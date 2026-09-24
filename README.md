@@ -5,7 +5,7 @@
 > redesigned for modern UX, and 100% protocol-driven. No vendor lock-in. No bloat. Just you and your AI.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
 ![WebUI](https://img.shields.io/badge/web--ui-React--free-4F6EF7.svg)
 ![Plugins](https://img.shields.io/badge/plugins-292%2B-6B8BFF.svg)
