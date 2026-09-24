@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris — Your Personal AI Super-Assistant</title>
+<meta name="description" content="Iris: a lightweight, modern, open-source personal AI assistant. Protocol-first, 292+ plugins, knowledge-base RAG, local-first. Free to download.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234F6EF7'/%3E%3Cpath d='M32 12l14 26h-9l-2.6-5h-4.8L27 38h-9l14-26zm-1.6 16.5h3.2L32 24l-1.6 4.5z' fill='%23fff'/%3E%3Ccircle cx='32' cy='48' r='4' fill='%236B8BFF'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#F4F5F7;--surface:#FFFFFF;--ink:#101828;--muted:#667085;--accent:#4F6EF7;--accent-2:#6B8BFF;--line:#E4E7EC;--ok:#12B76A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(244,245,247,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:28px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--ink)}
+.brand svg{width:26px;height:26px}
+.nav-links{display:flex;gap:22px;margin-left:auto}
+.nav-links a{color:var(--muted);font-size:14px;font-weight:500}
+.nav-links a:hover{color:var(--accent)}
+.lang{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-left:8px}
+.lang button{border:0;background:transparent;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-weight:600}
+.lang button.on{background:var(--accent);color:#fff}
+/* hero */
+.hero{padding:96px 0 72px;text-align:center;background:radial-gradient(1200px 500px at 50% -10%,rgba(79,110,247,.12),transparent 70%)}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.25);border-radius:99px;padding:6px 16px;font-weight:600;margin-bottom:24px}
+.hero h1{font-size:56px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin-bottom:16px}
+.hero h1 .grad{background:linear-gradient(90deg,#4F6EF7,#6B8BFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.tag{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 32px}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:700;transition:.15s}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(79,110,247,.28)}
+.btn.primary:hover{background:#3E5BD9;transform:translateY(-1px)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn .dl{font-size:11px;font-weight:500;opacity:.75}
+.hero .meta{margin-top:20px;font-size:13px;color:var(--muted)}
+/* sections */
+section{padding:72px 0}
+.sec-head{text-align:center;max-width:640px;margin:0 auto 48px}
+.sec-head .k{font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.sec-head h2{font-size:34px;font-weight:800;margin:8px 0 12px;letter-spacing:-.01em}
+.sec-head p{color:var(--muted);font-size:16px}
+/* features */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px;transition:.18s}
+.card:hover{border-color:rgba(79,110,247,.4);transform:translateY(-3px);box-shadow:0 10px 26px rgba(16,24,40,.06)}
+.card .ic{width:44px;height:44px;border-radius:12px;background:rgba(79,110,247,.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card .ic svg{width:22px;height:22px;stroke:var(--accent)}
+.card h3{font-size:17px;font-weight:700;margin-bottom:6px}
+.card p{font-size:14px;color:var(--muted)}
+/* shot */
+.shot-wrap{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 16px 40px rgba(16,24,40,.08)}
+.shot-wrap img{width:100%;border-radius:12px;display:block}
+.shot-caption{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+/* download */
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.dl-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px;display:flex;flex-direction:column}
+.dl-card .v{font-size:13px;font-weight:700;color:var(--ok);display:inline-flex;align-items:center;gap:6px;margin-bottom:6px}
+.dl-card h3{font-size:19px;font-weight:800;margin-bottom:4px}
+.dl-card p{font-size:14px;color:var(--muted);margin-bottom:18px;flex:1}
+.dl-btns{display:flex;gap:10px;flex-wrap:wrap}
+.dl-btns .btn{padding:11px 20px;font-size:14px}
+.src{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-top:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:14px}
+.src b{font-weight:700}
+.src .hosts{margin-left:auto;display:flex;gap:10px}
+.src .hosts a{font-size:13px;font-weight:600;color:var(--accent);border:1px solid rgba(79,110,247,.3);border-radius:8px;padding:5px 12px}
+.src .hosts a:hover{background:rgba(79,110,247,.08)}
+/* architecture */
+.arch{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px;overflow-x:auto}
+.arch svg{width:100%;min-width:720px;height:auto}
+/* license */
+.license{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 28px;display:flex;gap:16px;align-items:flex-start}
+.license svg{width:26px;height:26px;stroke:var(--ok);flex-shrink:0;margin-top:2px}
+.license b{display:block;margin-bottom:4px}
+.license p{font-size:14px;color:var(--muted)}
+/* footer */
+footer{background:#101828;color:#98A2B3;padding:48px 0;margin-top:40px}
+footer .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px}
+footer .brand{color:#fff}
+footer .r{margin-left:auto}
+@media(max-width:860px){
+  .hero{padding:64px 0 48px}
+  .hero h1{font-size:38px}
+  .grid{grid-template-columns:1fr}
+  .dl-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#4F6EF7"/><path d="M32 12l14 26h-9l-2.6-5h-4.8L27 38h-9l14-26zm-1.6 16.5h3.2L32 24l-1.6 4.5z" fill="#fff"/><circle cx="32" cy="48" r="4" fill="#6B8BFF"/></svg>
+      Iris
+    </div>
+    <div class="nav-links">
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#download" data-i18n="nav_download">Download</a>
+      <a href="#arch" data-i18n="nav_arch">Architecture</a>
+      <a href="#source" data-i18n="nav_source">Source</a>
+    </div>
+    <div class="lang"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('zh')">中文</button></div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge">✦ <span data-i18n="hero_badge">Open Source · MIT · Free forever</span></div>
+    <h1><span data-i18n="hero_h1a">Your Personal</span><br><span class="grad" data-i18n="hero_h1b">AI Super-Assistant</span></h1>
+    <p class="tag" data-i18n="hero_tag">A lightweight, modern rebuild of the Hermes agent framework — protocol-first, fully local, packed with a consumer-grade experience.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip" data-i18n="dl_cta">Download Iris v0.12.0<span class="dl">ZIP · 72 MB</span></a>
+      <a class="btn ghost" href="https://github.com/X33834/iris" data-i18n="gh_cta">★ Star on GitHub</a>
+    </div>
+    <p class="meta" data-i18n="hero_meta">Python 3.11+ · Linux / macOS / Windows · No account · No telemetry</p>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k" data-i18n="feat_k">Why Iris</div>
+      <h2 data-i18n="feat_h">Every capability. Half the weight.</h2>
+      <p data-i18n="feat_p">Built for people who want a serious AI assistant without the bloat.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div><h3 data-i18n="f1t">Lightweight core</h3><p data-i18n="f1d">40%+ lighter than the original framework. Boots in seconds, sips memory.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h3 data-i18n="f2t">Protocol-first</h3><p data-i18n="f2d">Any OpenAI-compatible endpoint. One base URL + key and you're live — no vendor lock-in.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><h3 data-i18n="f3t">292+ plugins</h3><p data-i18n="f3d">Official plugin catalog with one-click install / uninstall. Extend when you need, stay lean when you don't.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><h3 data-i18n="f4t">Knowledge base RAG</h3><p data-i18n="f4d">Upload documents, get CJK-aware full-text search, and let Iris answer from your own data.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3 data-i18n="f5t">Modern Web UI</h3><p data-i18n="f5d">Command palette, 14 skins, light/dark themes, 520+ settings — fully customizable.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 data-i18n="f6t">Local-first & private</h3><p data-i18n="f6d">Sessions, memory and knowledge stay on your machine. No account. No telemetry.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="shot-wrap">
+      <img src="https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/T09nbT4hko54LqxVOwwcHvugnsg" alt="Iris Web UI">
+      <div class="shot-caption" data-i18n="shot_cap">The Iris chat workspace — clean, fast, yours.</div>
+    </div>
+  </div>
+</section>
+
+<section id="download" style="padding-top:8px">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k" data-i18n="dl_k">Download</div>
+      <h2 data-i18n="dl_h">Get Iris v0.12.0</h2>
+      <p data-i18n="dl_p">One archive, everything included: agent core + web UI + docs.</p>
+    </div>
+    <div class="dl-grid">
+      <div class="dl-card">
+        <span class="v">● <span data-i18n="dl_v1">ZIP — recommended</span></span>
+        <h3>iris-v0.12.0.zip</h3>
+        <p data-i18n="dl_d1">For Windows & macOS users. Extract anywhere and run <code>python3 server.py</code>.</p>
+        <div class="dl-btns">
+          <a class="btn primary" href="https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip" data-i18n="dl_b1">Download ZIP</a>
+          <a class="btn ghost" href="https://github.com/Morningstar202604/iris/releases/download/v0.12.0/iris-v0.12.0.zip" data-i18n="dl_b1b">Mirror</a>
+        </div>
+      </div>
+      <div class="dl-card">
+        <span class="v">● <span data-i18n="dl_v2">TAR.GZ — source</span></span>
+        <h3>iris-v0.12.0.tar.gz</h3>
+        <p data-i18n="dl_d2">For Linux / server users. Full source tree, ready for deployment.</p>
+        <div class="dl-btns">
+          <a class="btn primary" href="https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.tar.gz" data-i18n="dl_b2">Download TAR.GZ</a>
+          <a class="btn ghost" href="https://github.com/Morningstar202604/iris/releases/download/v0.12.0/iris-v0.12.0.tar.gz" data-i18n="dl_b2b">Mirror</a>
+        </div>
+      </div>
+    </div>
+    <div class="src" id="source">
+      <b data-i18n="src_t">Open source on 4 platforms:</b>
+      <span data-i18n="src_d">Clone · fork · star · contribute</span>
+      <div class="hosts">
+        <a href="https://github.com/X33834/iris">GitHub</a>
+        <a href="https://gitee.com/badhope/iris">Gitee</a>
+        <a href="https://gitcode.com/badhope/iris">GitCode</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="arch" style="padding-top:8px">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="k" data-i18n="arch_k">Under the hood</div>
+      <h2 data-i18n="arch_h">Simple by design</h2>
+      <p data-i18n="arch_p">Two components, one seamless experience.</p>
+    </div>
+    <div class="arch">
+      <svg viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,sans-serif">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F6EF7"/><stop offset="1" stop-color="#6B8BFF"/></linearGradient></defs>
+        <g font-size="13">
+          <rect x="30" y="60" width="200" height="90" rx="14" fill="#fff" stroke="#E4E7EC"/>
+          <text x="130" y="92" text-anchor="middle" font-weight="700" fill="#101828">Web UI</text>
+          <text x="130" y="112" text-anchor="middle" fill="#667085">chat · settings · plugins</text>
+          <text x="130" y="130" text-anchor="middle" fill="#667085">command palette</text>
+          <rect x="30" y="230" width="200" height="90" rx="14" fill="#fff" stroke="#E4E7EC"/>
+          <text x="130" y="262" text-anchor="middle" font-weight="700" fill="#101828">Python Server</text>
+          <text x="130" y="282" text-anchor="middle" fill="#667085">api/routes.py · streaming</text>
+          <text x="130" y="300" text-anchor="middle" fill="#667085">knowledge API</text>
+          <rect x="380" y="60" width="230" height="90" rx="14" fill="#fff" stroke="#E4E7EC"/>
+          <text x="495" y="92" text-anchor="middle" font-weight="700" fill="#101828">Hermes Agent Core</text>
+          <text x="495" y="112" text-anchor="middle" fill="#667085">tools · memory · skills</text>
+          <text x="495" y="130" text-anchor="middle" fill="#667085">cron · delegation</text>
+          <rect x="380" y="230" width="230" height="90" rx="14" fill="#fff" stroke="#E4E7EC"/>
+          <text x="495" y="262" text-anchor="middle" font-weight="700" fill="#101828">Knowledge Base</text>
+          <text x="495" y="282" text-anchor="middle" fill="#667085">SQLite FTS5 · CJK search</text>
+          <text x="495" y="300" text-anchor="middle" fill="#667085">kb_search tool</text>
+          <rect x="730" y="60" width="200" height="90" rx="14" fill="url(#g)"/>
+          <text x="830" y="92" text-anchor="middle" font-weight="700" fill="#fff">Protocol Layer</text>
+          <text x="830" y="112" text-anchor="middle" fill="#E8EDFF">OpenAI-compatible</text>
+          <text x="830" y="130" text-anchor="middle" fill="#E8EDFF">any endpoint</text>
+          <rect x="730" y="230" width="200" height="90" rx="14" fill="#fff" stroke="#E4E7EC"/>
+          <text x="830" y="262" text-anchor="middle" font-weight="700" fill="#101828">Plugin Manager</text>
+          <text x="830" y="282" text-anchor="middle" fill="#667085">292+ catalog</text>
+          <text x="830" y="300" text-anchor="middle" fill="#667085">install / uninstall</text>
+          <g stroke="#98A2B3" stroke-width="1.5" fill="none">
+            <path d="M230 105h150"/><path d="M230 275h150"/>
+            <path d="M610 105h120"/><path d="M610 275h120"/>
+            <path d="M495 150v80"/><path d="M830 150v80"/><path d="M130 150v80"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:8px">
+  <div class="wrap">
+    <div class="license">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div>
+        <b data-i18n="lic_t">MIT Licensed — built on open source</b>
+        <p data-i18n="lic_d">Iris is a heavily customized rebuild of Hermes by Nous Research (MIT). Original copyright preserved, attribution maintained. Free to use, modify and redistribute.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">✦ Iris</div>
+    <span data-i18n="ftr">Your AI, your rules.</span>
+    <div class="r"><span data-i18n="ftr2">© 2026 Iris · MIT License</span></div>
+  </div>
+</footer>
+
+<script>
+var I18N={
+en:{nav_features:"Features",nav_download:"Download",nav_arch:"Architecture",nav_source:"Source",
+hero_badge:"Open Source · MIT · Free forever",hero_h1a:"Your Personal",hero_h1b:"AI Super-Assistant",
+hero_tag:"A lightweight, modern rebuild of the Hermes agent framework — protocol-first, fully local, packed with a consumer-grade experience.",
+dl_cta:"Download Iris v0.12.0",gh_cta:"★ Star on GitHub",
+hero_meta:"Python 3.11+ · Linux / macOS / Windows · No account · No telemetry",
+feat_k:"Why Iris",feat_h:"Every capability. Half the weight.",
+feat_p:"Built for people who want a serious AI assistant without the bloat.",
+f1t:"Lightweight core",f1d:"40%+ lighter than the original framework. Boots in seconds, sips memory.",
+f2t:"Protocol-first",f2d:"Any OpenAI-compatible endpoint. One base URL + key and you're live — no vendor lock-in.",
+f3t:"292+ plugins",f3d:"Official plugin catalog with one-click install / uninstall. Extend when you need, stay lean when you don't.",
+f4t:"Knowledge base RAG",f4d:"Upload documents, get CJK-aware full-text search, and let Iris answer from your own data.",
+f5t:"Modern Web UI",f5d:"Command palette, 14 skins, light/dark themes, 520+ settings — fully customizable.",
+f6t:"Local-first & private",f6d:"Sessions, memory and knowledge stay on your machine. No account. No telemetry.",
+shot_cap:"The Iris chat workspace — clean, fast, yours.",
+dl_k:"Download",dl_h:"Get Iris v0.12.0",dl_p:"One archive, everything included: agent core + web UI + docs.",
+dl_v1:"ZIP — recommended",dl_d1:"For Windows & macOS users. Extract anywhere and run python3 server.py.",
+dl_b1:"Download ZIP",dl_b1b:"Mirror",
+dl_v2:"TAR.GZ — source",dl_d2:"For Linux / server users. Full source tree, ready for deployment.",
+dl_b2:"Download TAR.GZ",dl_b2b:"Mirror",
+src_t:"Open source on 4 platforms:",src_d:"Clone · fork · star · contribute",
+arch_k:"Under the hood",arch_h:"Simple by design",arch_p:"Two components, one seamless experience.",
+lic_t:"MIT Licensed — built on open source",
+lic_d:"Iris is a heavily customized rebuild of Hermes by Nous Research (MIT). Original copyright preserved, attribution maintained. Free to use, modify and redistribute.",
+ftr:"Your AI, your rules.",ftr2:"© 2026 Iris · MIT License"},
+zh:{nav_features:"特性",nav_download:"下载",nav_arch:"架构",nav_source:"源码",
+hero_badge:"开源 · MIT · 永久免费",hero_h1a:"你的专属",hero_h1b:"AI 超级助手",
+hero_tag:"基于 Hermes 框架的轻量化现代重构——协议优先、完全本地化、消费级体验。",
+dl_cta:"下载 Iris v0.12.0",gh_cta:"★ 在 GitHub 上点赞",
+hero_meta:"Python 3.11+ · Linux / macOS / Windows · 无需账号 · 无遥测",
+feat_k:"为什么选择 Iris",feat_h:"功能一个不少，体积轻一半。",
+feat_p:"为想要真正好用的 AI 助手、又不想臃肿的人而造。",
+f1t:"轻量内核",f1d:"比原框架轻 40% 以上，秒级启动，内存占用极低。",
+f2t:"协议优先",f2d:"支持任意 OpenAI 兼容端点，一个地址一把密钥即用，不绑定任何厂商。",
+f3t:"292+ 插件",f3d:"官方插件目录一键安装/卸载。需要时扩展，不需要时保持轻量。",
+f4t:"知识库 RAG",f4d:"上传文档建立本地索引，中文精确检索，让 Iris 基于你自己的数据作答。",
+f5t:"现代 Web 界面",f5d:"命令面板、14 款皮肤、亮/暗主题、520+ 设置项，完全可自定义。",
+f6t:"本地优先 · 隐私",f6d:"会话、记忆、知识库全部留在本机。无需账号，无遥测。",
+shot_cap:"Iris 聊天工作区——简洁、快速、属于你。",
+dl_k:"下载",dl_h:"获取 Iris v0.12.0",dl_p:"一个压缩包包含全部：agent 核心 + Web UI + 文档。",
+dl_v1:"ZIP — 推荐",dl_d1:"适合 Windows / macOS 用户。解压后运行 python3 server.py 即可。",
+dl_b1:"下载 ZIP",dl_b1b:"镜像",
+dl_v2:"TAR.GZ — 源码",dl_d2:"适合 Linux / 服务器用户。完整源码树，开箱即部署。",
+dl_b2:"下载 TAR.GZ",dl_b2b:"镜像",
+src_t:"四大平台开源：",src_d:"克隆 · 复刻 · 点赞 · 贡献",
+arch_k:"架构一览",arch_h:"简洁设计",arch_p:"两个组件，一套无缝体验。",
+lic_t:"MIT 开源协议 — 基于开源构建",
+lic_d:"Iris 是基于 Nous Research 的开源项目 Hermes（MIT）的高度定制重构，保留原始版权与署名。可自由使用、修改与再分发。",
+ftr:"你的 AI，你的规则。",ftr2:"© 2026 Iris · MIT License"}
+};
+function setLang(l){
+  var dict=I18N[l]||I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){ var k=el.getAttribute('data-i18n'); if(dict[k]) el.textContent=dict[k]; });
+  document.documentElement.lang=l==='zh'?'zh-CN':'en';
+  document.querySelectorAll('.lang button').forEach(function(b,i){ b.classList.toggle('on',(l==='zh'?i===1:i===0)); });
+  try{ localStorage.setItem('iris-site-lang',l); }catch(e){}
+}
+(function(){ var saved=null; try{ saved=localStorage.getItem('iris-site-lang'); }catch(e){} setLang(saved==='zh'?'zh':'en'); })();
+</script>
+</body>
+</html>
