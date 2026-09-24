@@ -10,6 +10,19 @@
 ![WebUI](https://img.shields.io/badge/web--ui-React--free-4F6EF7.svg)
 ![Plugins](https://img.shields.io/badge/plugins-292%2B-6B8BFF.svg)
 ![i18n](https://img.shields.io/badge/i18n-14%20languages-green.svg)
+[![Official Site](https://img.shields.io/badge/Official%20Site-x33834.github.io%2Firis-4F6EF7)](https://x33834.github.io/iris)
+[![Download](https://img.shields.io/badge/Download-v0.12.0-12B76A)](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip)
+
+---
+
+## 🌐 Official Website & Download
+
+> **→ [x33834.github.io/iris](https://x33834.github.io/iris)** — features, screenshots, architecture & one-click download.
+
+| Download | Format | Size | For |
+|---|---|---|---|
+| [iris-v0.12.0.zip](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip) | ZIP | 72 MB | Windows / macOS — recommended |
+| [iris-v0.12.0.tar.gz](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.tar.gz) | TAR.GZ | 67 MB | Linux / servers — source tree |
 
 ---
 
