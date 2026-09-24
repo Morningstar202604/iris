@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-smoke:
+    name: Lint & Smoke (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install agent (editable)
+        run: |
+          cd agent
+          pip install --quiet -e . 2>/dev/null || pip install --quiet -e ".[core]" 2>/dev/null || echo "no extra deps needed"
+      - name: Syntax check (agent)
+        run: python -m compileall -q agent -x "apps/desktop|tests|optional-skills"
+      - name: Syntax check (webui)
+        run: python -m compileall -q webui -x "_shots|docs|tests"
+      - name: Import smoke test
+        run: |
+          cd agent && python -c "import hermes_cli; print('hermes_cli OK')"
+          cd ../webui && python -c "import api.routes; print('webui api OK')"
+
+  release:
+    name: Package & Release
+    needs: lint-and-smoke
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build source archives
+        run: |
+          mkdir -p dist
+          tar --exclude='.git' --exclude='*/__pycache__' --exclude='*/node_modules' -czf dist/iris-agent-${GITHUB_REF_NAME}.tar.gz agent webui README.md LICENSE docs
+          zip -qr dist/iris-${GITHUB_REF_NAME}.zip agent webui README.md LICENSE docs
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
