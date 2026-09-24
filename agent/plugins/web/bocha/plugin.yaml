@@ -1,0 +1,7 @@
+name: web-bocha
+version: 1.0.0
+description: "博查 (BochaAI) 国产 AI 网页搜索 — 中文搜索质量好、国内直连。需要 BOCHA_API_KEY（https://open.bochaai.com 免费申请，5 万次/月额度）。"
+author: Iris
+kind: backend
+provides_web_providers:
+  - bocha

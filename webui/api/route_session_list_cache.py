@@ -1,0 +1,785 @@
+"""Session-list cache helpers extracted from api.routes."""
+
+import copy
+import os
+import re
+import threading
+import time
+from collections import OrderedDict
+from pathlib import Path
+
+from api.config import LOCK, SESSION_DIR, SESSIONS, SETTINGS_FILE
+from api.models import _active_state_db_path, _active_stream_ids
+from api.profiles import _profiles_match
+
+
+# Cron session ids are ``cron_{job_id}_{run_timestamp}`` where the run
+# timestamp is ``YYYYMMDD_HHMMSS`` (e.g. cron_job6728_20260803_100000). Used to
+# validate that the text after a matched ``cron_{jid}_`` prefix is EXACTLY a run
+# timestamp, so a shorter job id (backup) cannot claim a longer job id's session
+# (backup_full) when the longer job is not itself running (#6728 gate fix).
+_CRON_RUN_TS_RE = re.compile(r"\d{8}_\d{6}")
+
+
+_SESSIONS_CACHE_TTL_SECONDS = 2.5
+# #4808: while a turn is actively streaming the frontend polls /api/sessions on a
+# fixed cadence (static/sessions.js `_streamingPollMs`). With the idle TTL of
+# 2.5s, the entry expires between streaming polls, so each poll can find it stale
+# and force a full all_sessions() rebuild on the hot path under the global store
+# LOCK — pinning CPU and starving token rendering on large stores (recurrence of
+# #4672). Hold the sidebar cache steady for longer than one poll interval while
+# streaming; live runtime state (active stream, sort order, pending flags) is
+# overlaid on every response regardless of cache, and structural/settings changes
+# still invalidate immediately. Keep this strictly greater than
+# `_streamingPollMs`/1000 (see tests/test_streaming_cache_ttl_vs_poll.py).
+_SESSIONS_CACHE_STREAMING_TTL_SECONDS = 45.0
+_SESSIONS_CACHE_MAX_ENTRIES = 64
+_SESSIONS_CACHE_WAIT_SECONDS = 0.25
+_SESSIONS_CACHE_STALE_WAIT_SECONDS = 0.10
+_SESSIONS_CACHE: OrderedDict[tuple, tuple[float, tuple, dict]] = OrderedDict()
+_SESSIONS_CACHE_LOCK = threading.RLock()
+_SESSIONS_CACHE_INFLIGHT: dict[tuple, threading.Event] = {}
+_SESSIONS_CACHE_GLOBAL_INVALIDATION_VERSION = 0
+_SESSIONS_CACHE_ALL_PROFILES_INVALIDATION_VERSION = 0
+_SESSIONS_CACHE_PROFILE_INVALIDATION_VERSION: dict[str, int] = {}
+
+
+_SIDEBAR_SESSION_RESPONSE_FIELDS = {
+    "session_id",
+    "title",
+    "display_title",
+    "_state_db_title",
+    "workspace",
+    "model",
+    "model_provider",
+    "message_count",
+    "user_message_count",
+    "created_at",
+    "updated_at",
+    "last_message_at",
+    "pinned",
+    "archived",
+    "project_id",
+    "profile",
+    "input_tokens",
+    "output_tokens",
+    "estimated_cost",
+    "cache_read_tokens",
+    "cache_write_tokens",
+    "cache_hit_percent",
+    "personality",
+    "context_length",
+    "config_context_length",
+    "window_usage_percent",
+    "source_tag",
+    "raw_source",
+    "session_source",
+    "source_label",
+    "is_cli_session",
+    "is_messaging_session",
+    "is_streaming",
+    "cron_running",
+    "active_stream_id",
+    "has_pending_user_message",
+    "pending_started_at",
+    "default_hidden",
+    "worktree_path",
+    "worktree_branch",
+    "parent_session_id",
+    "parent_title",
+    "parent_source",
+    "relationship_type",
+    "pre_compression_snapshot",
+    "_lineage_root_id",
+    "_lineage_tip_id",
+    "_compression_segment_count",
+    "_lineage_collapsed_count",
+    "_parent_lineage_root_id",
+    "_parent_lineage_tip_id",
+    "_cross_surface_child_session",
+    "match_type",
+    "match_preview",
+    # Preserved so the sidebar can suppress rename / action-menu / swipe on
+    # read-only sessions and render the detailed gateway model label. Only the
+    # latest bounded routing object is included; routing history stays excluded.
+    "read_only",
+    "is_read_only",
+    "gateway_routing",
+}
+
+
+def _session_list_cache_sidebar_fields() -> set[str]:
+    """Return the canonical bounded field set used by the list response."""
+    return _SIDEBAR_SESSION_RESPONSE_FIELDS
+
+
+def _session_list_cache_copy_value(value):
+    """Copy only mutable values after the transcript-bearing projection."""
+    if isinstance(value, (dict, list, set)):
+        return copy.deepcopy(value)
+    return value
+
+
+def _session_list_cache_copy_row(row: dict) -> dict:
+    return {
+        key: _session_list_cache_copy_value(value)
+        for key, value in row.items()
+    }
+
+
+def _session_list_cache_bounded_payload(payload: dict) -> dict:
+    """Project a builder payload to data the sidebar can actually consume.
+
+    Builders operate on full session snapshots because they also perform
+    reconciliation and lineage decisions. The cache must not retain those
+    snapshots: a single long transcript can otherwise make every cache set/get
+    allocate hundreds of megabytes via deepcopy().
+    """
+    fields = _session_list_cache_sidebar_fields()
+
+    def project_rows(rows):
+        projected = []
+        for row in rows or []:
+            if not isinstance(row, dict):
+                projected.append({})
+                continue
+            item = {key: row[key] for key in fields if key in row}
+            projected.append(_session_list_cache_copy_row(item))
+        return projected
+
+    bounded = {
+        key: _session_list_cache_copy_value(value)
+        for key, value in payload.items()
+        if key not in {"sessions", "sidebar_reference_sessions"}
+    }
+    if "sessions" in payload:
+        bounded["sessions"] = project_rows(payload.get("sessions"))
+    if "sidebar_reference_sessions" in payload:
+        bounded["sidebar_reference_sessions"] = project_rows(
+            payload.get("sidebar_reference_sessions")
+        )
+    return bounded
+
+
+def _session_list_cache_copy_payload(payload: dict) -> dict:
+    """Copy only the already-bounded cache shape for request-local mutation."""
+    copied = {
+        key: _session_list_cache_copy_value(value)
+        for key, value in payload.items()
+        if key not in {"sessions", "sidebar_reference_sessions"}
+    }
+    if "sessions" in payload:
+        copied["sessions"] = [
+            _session_list_cache_copy_row(row)
+            for row in payload.get("sessions", [])
+        ]
+    if "sidebar_reference_sessions" in payload:
+        copied["sidebar_reference_sessions"] = [
+            _session_list_cache_copy_row(row)
+            for row in payload.get("sidebar_reference_sessions", [])
+        ]
+    return copied
+
+
+def get_session_list_cache_snapshot() -> dict[str, object]:
+    """Return scalar cache occupancy without waiting or changing LRU state.
+
+    Held-section discipline: between the nonblocking acquire and the release,
+    only ``len()`` and module-constant reads are permitted. Nothing that can
+    resolve config, resolve a profile, touch the filesystem, import a module, or
+    wait on another lock may be added here. ``_SESSIONS_CACHE_LOCK`` is an
+    ``RLock``, so a nonblocking acquire from a thread already holding it would
+    report available mid-mutation; the health collector is this helper's only
+    caller and never runs nested inside a cache rebuild.
+    """
+    result = {
+        "available": False,
+        "entries": 0,
+        "inflight_rebuilds": 0,
+        "cap": 0,
+    }
+    acquired = False
+    try:
+        acquired = _SESSIONS_CACHE_LOCK.acquire(blocking=False)
+        if not acquired:
+            return result
+        return {
+            "available": True,
+            "entries": max(0, int(len(_SESSIONS_CACHE))),
+            "inflight_rebuilds": max(0, int(len(_SESSIONS_CACHE_INFLIGHT))),
+            "cap": max(0, int(_SESSIONS_CACHE_MAX_ENTRIES)),
+        }
+    except Exception:
+        return result
+    finally:
+        if acquired:
+            _SESSIONS_CACHE_LOCK.release()
+
+
+def _session_list_cache_session_dir() -> Path:
+    try:
+        import api.routes as _routes
+
+        value = getattr(_routes, "SESSION_DIR", SESSION_DIR)
+        return Path(value)
+    except Exception:
+        return SESSION_DIR
+
+
+def _session_list_cache_settings_file() -> Path:
+    try:
+        import api.routes as _routes
+
+        value = getattr(_routes, "SETTINGS_FILE", SETTINGS_FILE)
+        return Path(value)
+    except Exception:
+        return SETTINGS_FILE
+
+
+def _session_list_cache_state_db_path():
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_active_state_db_path", None)
+        if callable(override) and override is not _session_list_cache_state_db_path:
+            return override()
+    except Exception:
+        pass
+    return _active_state_db_path()
+
+
+def _session_list_cache_gateway_session_metadata_path() -> Path:
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_gateway_session_metadata_path", None)
+        if callable(override) and override is not _session_list_cache_gateway_session_metadata_path:
+            return Path(override())
+    except Exception:
+        pass
+
+    try:
+        from api.profiles import get_active_hermes_home
+
+        hermes_home = Path(get_active_hermes_home()).expanduser().resolve()
+    except Exception:
+        hermes_home = Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser().resolve()
+    return hermes_home / "sessions" / "sessions.json"
+
+
+def _session_list_cache_active_stream_ids():
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_active_stream_ids", None)
+        if callable(override) and override is not _session_list_cache_active_stream_ids:
+            return override()
+    except Exception:
+        pass
+    return _active_stream_ids()
+
+
+def _session_list_cache_running_cron_jobs() -> dict[str, float]:
+    """Return {job_id: start_epoch} for cron jobs currently tracked as running.
+
+    Cron liveness lives only in the in-memory ``_RUNNING_CRON_JOBS`` dict in
+    api.routes (#6728): the sidebar polls /api/sessions (not /api/crons/status),
+    so without this overlay a still-running cron job's session row looks
+    completed the moment it appends a message. Fail closed to an empty dict.
+    """
+    try:
+        import api.routes as _routes
+
+        jobs = getattr(_routes, "_RUNNING_CRON_JOBS", None)
+        lock = getattr(_routes, "_RUNNING_CRON_LOCK", None)
+        if jobs is None or lock is None:
+            return {}
+        with lock:
+            return dict(jobs)
+    except Exception:
+        return {}
+
+
+def _session_list_cache_resolved_source_stamp(key: tuple):
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_session_list_cache_source_stamp", None)
+        if callable(override) and override is not _session_list_cache_source_stamp:
+            return override(key)
+    except Exception:
+        pass
+    return _session_list_cache_source_stamp(key)
+
+
+def _session_list_cache_profile_scope(profile: str | None) -> str:
+    normalized = str(profile or "").strip() or "default"
+    if _profiles_match(normalized, "default"):
+        return "default"
+    return normalized
+
+
+def _session_list_cache_key(
+    active_profile: str | None,
+    all_profiles: bool,
+    show_cli_sessions: bool,
+    show_previous_messaging_sessions: bool,
+    show_cron_sessions: bool,
+    include_archived: bool = False,
+    exclude_hidden: bool = False,
+    visible_only: bool = False,
+    show_webhook_sessions: bool = False,
+    show_kanban_sessions: bool = False,
+    source_filter: str | None = None,
+    sidebar_source: str | None = None,
+    archived_limit: int | None = None,
+    archived_offset: int = 0,
+) -> tuple:
+    normalized_archived_limit = None
+    if archived_limit is not None:
+        try:
+            normalized_archived_limit = max(0, int(archived_limit))
+        except (TypeError, ValueError):
+            normalized_archived_limit = None
+    try:
+        normalized_archived_offset = max(0, int(archived_offset or 0))
+    except (TypeError, ValueError):
+        normalized_archived_offset = 0
+    return (
+        _session_list_cache_profile_scope(active_profile),
+        bool(all_profiles),
+        bool(show_cli_sessions),
+        bool(show_previous_messaging_sessions),
+        bool(show_cron_sessions),
+        bool(include_archived),
+        bool(exclude_hidden),
+        bool(visible_only),
+        bool(show_webhook_sessions),
+        bool(show_kanban_sessions),
+        source_filter,
+        sidebar_source,
+        normalized_archived_limit,
+        normalized_archived_offset,
+    )
+
+
+def _session_list_cache_get(
+    key: tuple,
+    allow_stale: bool = False,
+) -> tuple[dict | None, bool]:
+    now = time.monotonic()
+    current_stamp = _session_list_cache_resolved_source_stamp(key)
+    with _SESSIONS_CACHE_LOCK:
+        entry = _SESSIONS_CACHE.get(key)
+        if not entry:
+            return None, False
+        ts, stamp, payload = entry
+        if stamp != current_stamp:
+            if allow_stale:
+                _SESSIONS_CACHE.move_to_end(key)
+                return _session_list_cache_copy_payload(payload), False
+            _SESSIONS_CACHE.pop(key, None)
+            return None, False
+        # #4808: widen the freshness window while a turn is streaming so the fixed
+        # streaming poll cadence doesn't force a full rebuild on every poll.
+        ttl = _SESSIONS_CACHE_TTL_SECONDS
+        if _session_list_cache_streaming_freeze_marker() is not None:
+            ttl = _SESSIONS_CACHE_STREAMING_TTL_SECONDS
+        fresh = (now - ts) < ttl
+        if fresh:
+            _SESSIONS_CACHE.move_to_end(key)
+            return _session_list_cache_copy_payload(payload), True
+        if allow_stale:
+            _SESSIONS_CACHE.move_to_end(key)
+            return _session_list_cache_copy_payload(payload), False
+        _SESSIONS_CACHE.pop(key, None)
+        return None, False
+
+
+def _session_list_cache_stale_reason(key: tuple) -> str | None:
+    """Return why an existing cache entry is stale, if it is stale."""
+    now = time.monotonic()
+    current_stamp = _session_list_cache_resolved_source_stamp(key)
+    with _SESSIONS_CACHE_LOCK:
+        entry = _SESSIONS_CACHE.get(key)
+        if not entry:
+            return None
+        ts, stamp, _payload = entry
+        if stamp != current_stamp:
+            return "source"
+        ttl = _SESSIONS_CACHE_TTL_SECONDS
+        if _session_list_cache_streaming_freeze_marker() is not None:
+            ttl = _SESSIONS_CACHE_STREAMING_TTL_SECONDS
+        if (now - ts) >= ttl:
+            return "age"
+        return None
+
+
+def _session_list_cache_set(
+    key: tuple,
+    payload: dict,
+    *,
+    expected_invalidation_stamp: tuple[int, int] | None = None,
+) -> bool:
+    if not isinstance(payload, dict):
+        return False
+    stamp = _session_list_cache_resolved_source_stamp(key)
+    bounded = _session_list_cache_bounded_payload(payload)
+    with _SESSIONS_CACHE_LOCK:
+        # Projection intentionally happens outside the lock so large source rows
+        # cannot block cache hits. Re-check the caller's pre-build generation
+        # atomically before insertion, otherwise a rename/archive/delete clear
+        # that lands during projection can be undone by this stale write.
+        if (
+            expected_invalidation_stamp is not None
+            and _session_list_cache_invalidation_stamp(key)
+            != expected_invalidation_stamp
+        ):
+            return False
+        _SESSIONS_CACHE[key] = (time.monotonic(), stamp, bounded)
+        _SESSIONS_CACHE.move_to_end(key)
+        while len(_SESSIONS_CACHE) > _SESSIONS_CACHE_MAX_ENTRIES:
+            _SESSIONS_CACHE.popitem(last=False)
+    return True
+
+
+def _session_list_cache_clear(profile: str | None = None) -> None:
+    normalized_profile = _session_list_cache_profile_scope(profile) if profile else None
+    with _SESSIONS_CACHE_LOCK:
+        global _SESSIONS_CACHE_GLOBAL_INVALIDATION_VERSION
+        global _SESSIONS_CACHE_ALL_PROFILES_INVALIDATION_VERSION
+        if not profile:
+            _SESSIONS_CACHE_GLOBAL_INVALIDATION_VERSION += 1
+            _SESSIONS_CACHE_ALL_PROFILES_INVALIDATION_VERSION += 1
+            _SESSIONS_CACHE_PROFILE_INVALIDATION_VERSION.clear()
+            _SESSIONS_CACHE.clear()
+            return
+        _SESSIONS_CACHE_ALL_PROFILES_INVALIDATION_VERSION += 1
+        _SESSIONS_CACHE_PROFILE_INVALIDATION_VERSION[normalized_profile] = (
+            _SESSIONS_CACHE_PROFILE_INVALIDATION_VERSION.get(normalized_profile, 0) + 1
+        )
+        for cache_key in list(_SESSIONS_CACHE.keys()):
+            cache_profile, cache_all_profiles, *_rest = cache_key
+            if cache_all_profiles:
+                _SESSIONS_CACHE.pop(cache_key, None)
+                continue
+            if _profiles_match(cache_profile, normalized_profile):
+                _SESSIONS_CACHE.pop(cache_key, None)
+
+
+def _clear_session_list_cache(profile: str | None = None) -> None:
+    _session_list_cache_clear(profile=profile)
+
+
+def _session_list_cache_invalidation_stamp(key: tuple) -> tuple[int, int]:
+    cache_profile, cache_all_profiles, *_rest = key
+    with _SESSIONS_CACHE_LOCK:
+        global_version = _SESSIONS_CACHE_GLOBAL_INVALIDATION_VERSION
+        if cache_all_profiles:
+            return (
+                global_version,
+                _SESSIONS_CACHE_ALL_PROFILES_INVALIDATION_VERSION,
+            )
+        return (
+            global_version,
+            _SESSIONS_CACHE_PROFILE_INVALIDATION_VERSION.get(cache_profile, 0),
+        )
+
+
+def _session_list_cache_path_stamp(path: Path | None) -> tuple[int, int]:
+    try:
+        if path is None:
+            return (0, 0)
+        st = Path(path).stat()
+        return (int(getattr(st, "st_mtime_ns", int(st.st_mtime * 1_000_000_000))), int(st.st_size))
+    except Exception:
+        return (0, 0)
+
+
+def _session_list_cache_streaming_freeze_marker():
+    """Return a hold-down marker while any session is actively streaming, else None.
+
+    During an active chat turn the gateway/CLI writes message rows to state.db
+    continuously. Each write advances the WAL stat and the content fingerprint
+    (``MAX(rowid)`` of ``messages``) that ``_session_list_cache_source_stamp``
+    folds in, so the source stamp changes on essentially every ``/api/sessions``
+    poll — popping the cache and forcing a full ``all_sessions()`` rebuild
+    mid-stream. That rebuild then contends for the global ``LOCK`` the streaming
+    worker holds while writing, which is what drags token output down to
+    ~2 tok/s and produces the multi-second (and occasional ~15s) ``/api/sessions``
+    latencies in issue #4672.
+
+    The marker is keyed only on the *set* of active stream ids, not on any
+    per-write state, so:
+      * while the same turn(s) stream, the marker is constant → the cache holds
+        steady and rebuilds are bounded to the TTL cadence (one per
+        ``_SESSIONS_CACHE_TTL_SECONDS``) instead of one per poll;
+      * the instant a stream starts or stops, the active set changes → the
+        marker changes → the cache re-validates and the just-finished turn's
+        final title/message_count is picked up immediately.
+
+    Structural sidebar mutations (new/deleted/renamed/imported sessions,
+    attention, cron completion) do NOT rely on this stamp — they invalidate the
+    cache directly through the ``publish_session_list_changed`` listener — so the
+    only thing that can lag under the hold-down is a streaming session's own
+    title/message_count, which already tolerates a <=TTL refresh delay.
+    """
+    try:
+        active = _session_list_cache_active_stream_ids()
+    except Exception:
+        return None
+    if not active:
+        return None
+    try:
+        return ("streaming", tuple(sorted(str(x) for x in active)))
+    except Exception:
+        return ("streaming",)
+
+
+def _session_list_cache_state_db_fingerprint(state_db_path: Path | None):
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_session_list_cache_state_db_fingerprint", None)
+        if callable(override) and override is not _session_list_cache_state_db_fingerprint:
+            return override(state_db_path)
+    except Exception:
+        pass
+    return _session_list_cache_state_db_fingerprint_impl(state_db_path)
+
+
+def _session_list_cache_state_db_fingerprint_impl(state_db_path: Path | None):
+    if state_db_path is None:
+        return None
+    try:
+        from api.models import _sqlite_content_fingerprint
+
+        return _sqlite_content_fingerprint(state_db_path)
+    except Exception:
+        return None
+
+
+def _session_list_cache_source_stamp(key: tuple) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int], tuple[int, int], tuple[int, int], object, int]:
+    _cache_profile, _cache_all_profiles, _cache_show_cli_sessions, *_rest = key
+    try:
+        swv = _session_list_cache_settings_write_version()
+    except Exception:
+        swv = 0
+    # WebUI-origin sessions can also receive settled rows in state.db when the
+    # official Hermes Desktop App continues the same agent session.  The sidebar
+    # therefore watches state.db even when the CLI/external-session tab is hidden.
+    #
+    # Streaming hold-down (#4672): while a turn is in flight, collapse the
+    # volatile state.db-derived components (db/WAL stat, gateway metadata, index
+    # stat, content fingerprint) to a marker that only changes when a stream
+    # starts or stops. This stops per-token message writes from busting the
+    # cache and triggering LOCK-contending rebuilds on every poll. The TTL still
+    # forces a periodic rebuild so the streaming session's own count/title stay
+    # fresh within the TTL window, and settings_file + the settings write
+    # version stay live so user-initiated sidebar/setting toggles invalidate
+    # immediately. Skipping the fingerprint's SQLite connect here also makes the
+    # streaming-path stamp strictly cheaper than the idle path.
+    streaming_marker = _session_list_cache_streaming_freeze_marker()
+    if streaming_marker is not None:
+        return (
+            streaming_marker,
+            streaming_marker,
+            streaming_marker,
+            streaming_marker,
+            _session_list_cache_path_stamp(_session_list_cache_settings_file()),
+            streaming_marker,
+            swv,
+        )
+    try:
+        state_db_path = Path(_session_list_cache_state_db_path())
+    except Exception:
+        state_db_path = None
+    try:
+        state_db_wal_path = state_db_path.with_name(f"{state_db_path.name}-wal") if state_db_path is not None else None
+    except Exception:
+        state_db_wal_path = None
+    try:
+        gateway_metadata_path = _session_list_cache_gateway_session_metadata_path()
+    except Exception:
+        gateway_metadata_path = None
+    try:
+        session_index_path = _session_list_cache_session_dir() / "_index.json"
+    except Exception:
+        session_index_path = None
+    return (
+        _session_list_cache_path_stamp(state_db_path),
+        _session_list_cache_path_stamp(state_db_wal_path),
+        _session_list_cache_path_stamp(gateway_metadata_path),
+        _session_list_cache_path_stamp(session_index_path),
+        _session_list_cache_path_stamp(_session_list_cache_settings_file()),
+        # Commit-reliable content fingerprint of state.db — the file-stat stamps
+        # above can collide under WAL-mode writes (same mtime_ns bucket + WAL
+        # frame size), so without this a freshly-committed CLI/gateway session
+        # could be served stale for the cache TTL. Mirrors the models-layer fix.
+        _session_list_cache_state_db_fingerprint(state_db_path),
+        swv,
+    )
+
+
+def _session_list_cache_settings_write_version() -> int:
+    try:
+        import api.routes as _routes
+
+        override = getattr(_routes, "_session_list_cache_settings_write_version", None)
+        if callable(override) and override is not _session_list_cache_settings_write_version:
+            return int(override())
+    except Exception:
+        pass
+    try:
+        from api.config import _SETTINGS_WRITE_VERSION
+
+        return int(_SETTINGS_WRITE_VERSION)
+    except Exception:
+        return 0
+
+
+def _session_list_cache_overlay_runtime_rows(rows: list[dict]) -> list[dict]:
+    if not rows:
+        return []
+    try:
+        active_stream_ids = _session_list_cache_active_stream_ids()
+    except Exception:
+        active_stream_ids = set()
+    try:
+        running_cron_jobs = _session_list_cache_running_cron_jobs()
+    except Exception:
+        running_cron_jobs = {}
+    cron_job_prefixes = [(jid, f"cron_{jid}_", started_at) for jid, started_at in running_cron_jobs.items()]
+    session_ids = [
+        str(row.get("session_id") or "").strip()
+        for row in rows
+        if isinstance(row, dict) and str(row.get("session_id") or "").strip()
+    ]
+    live_sessions = {}
+    if session_ids:
+        with LOCK:
+            for sid in session_ids:
+                live = SESSIONS.get(sid)
+                if live is not None:
+                    live_sessions[sid] = live
+    overlaid = []
+    for row in rows:
+        item = dict(row) if isinstance(row, dict) else {}
+        sid = str(item.get("session_id") or "").strip()
+        live = live_sessions.get(sid)
+        if live is not None:
+            live_stream_id = getattr(live, "active_stream_id", None)
+            item["active_stream_id"] = live_stream_id or None
+            item["has_pending_user_message"] = bool(
+                getattr(live, "pending_user_message", None)
+            )
+            for key in ("pending_started_at", "updated_at", "last_message_at"):
+                current = _session_list_row_numeric_value(item.get(key))
+                raw_live_value = getattr(live, key, None)
+                live_value = _session_list_row_numeric_value(raw_live_value)
+                if live_value > current:
+                    item[key] = raw_live_value
+        stream_id = item.get("active_stream_id")
+        item["is_streaming"] = bool(stream_id and stream_id in active_stream_ids)
+        # #6728: a still-running cron job's session row must not look completed
+        # in the sidebar. Cron liveness is only exposed via /api/crons/status,
+        # which the sidebar never polls — stamp the flag here so the client can
+        # defer its completion/unread transition until the job actually ends.
+        # Session ids are cron_{job_id}_{run_timestamp}: only the run started at
+        # (or after) the tracked start belongs to the live execution — older runs
+        # of the same job stay completed.
+        item["cron_running"] = _session_list_row_cron_running(
+            sid, item, cron_job_prefixes
+        )
+        overlaid.append(item)
+    overlaid.sort(key=_session_list_runtime_sort_key, reverse=True)
+    return overlaid
+
+
+def _session_list_row_cron_running(
+    sid: str, row: dict, cron_job_prefixes: list[tuple[str, str, float]]
+) -> bool:
+    if not cron_job_prefixes or not sid:
+        return False
+    created_at = _session_list_row_numeric_value(row.get("created_at"))
+    # Longest prefix first, no fall-through: job ids may nest (backup vs
+    # backup_full), and the shorter prefix is a valid prefix of the longer one.
+    # A session belongs to the longest matching job id — first-match in
+    # insertion order, or falling through to a shorter prefix after a time-miss,
+    # would let a running shorter-prefix job claim a completed longer-prefix
+    # session. Mirrors the max(matches, key=len) convention in
+    # api.routes._latest_cron_session_info_for_jobs.
+    #
+    # #6728 (gate fix): prefixes are built ONLY from RUNNING jobs, so if the
+    # true longer owner (backup_full) is not running, longest-prefix sorting
+    # never sees it and a running `backup` would otherwise swallow a
+    # `cron_backup_full_YYYYMMDD_HHMMSS` session (the leftover `full_...` still
+    # starts with nothing it should match). Require the text AFTER the prefix to
+    # be exactly a run-timestamp (YYYYMMDD_HHMMSS) so a shorter job id cannot
+    # claim a longer job id's session regardless of which jobs are running.
+    for _jid, prefix, started_at in sorted(
+        cron_job_prefixes, key=lambda item: len(item[1]), reverse=True
+    ):
+        if sid.startswith(prefix) and _CRON_RUN_TS_RE.fullmatch(sid[len(prefix):]):
+            return created_at >= started_at
+    return False
+
+
+def _session_list_row_numeric_value(value) -> float:
+    try:
+        numeric = float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    return numeric if numeric > 0 else 0.0
+
+
+def _session_list_row_timestamp(row: dict) -> float:
+    if not isinstance(row, dict):
+        return 0.0
+    # Match the frontend `_sessionSortTimestampMs` semantics exactly (#4688 review):
+    # the idle base is the FIRST truthy of last_message_at -> updated_at -> created_at
+    # (NOT a flat max over all of them — a renamed/metadata-touched idle chat bumps
+    # updated_at without new messages and must not outrank a newer chatted session),
+    # then pending_started_at is overlaid only as the runtime promotion.
+    base = 0.0
+    for key in ("last_message_at", "updated_at", "created_at"):
+        base = _session_list_row_numeric_value(row.get(key))
+        if base > 0:
+            break
+    pending = _session_list_row_numeric_value(row.get("pending_started_at"))
+    return max(base, pending)
+
+
+def _session_list_row_is_runtime_active(row: dict) -> bool:
+    if not isinstance(row, dict):
+        return False
+    if row.get("is_streaming"):
+        return True
+    return bool(row.get("active_stream_id") and row.get("has_pending_user_message"))
+
+
+def _session_list_runtime_sort_key(row: dict) -> tuple[int, float]:
+    return (
+        1 if _session_list_row_is_runtime_active(row) else 0,
+        _session_list_row_timestamp(row),
+    )
+
+
+def _session_list_cache_claim_rebuild(key: tuple) -> tuple[threading.Event, bool]:
+    with _SESSIONS_CACHE_LOCK:
+        current = _SESSIONS_CACHE_INFLIGHT.get(key)
+        if current is not None:
+            return current, False
+        event = threading.Event()
+        _SESSIONS_CACHE_INFLIGHT[key] = event
+        return event, True
+
+
+def _session_list_cache_done(key: tuple, event: threading.Event | None) -> None:
+    with _SESSIONS_CACHE_LOCK:
+        if event is None:
+            return
+        if _SESSIONS_CACHE_INFLIGHT.get(key) is event:
+            _SESSIONS_CACHE_INFLIGHT.pop(key, None)
+    if event is not None:
+        event.set()

@@ -1,0 +1,7 @@
+name: web-knowledge-base
+version: 1.0.0
+description: "Iris 个人文档知识库 — 上传文档建立本地索引，对话时自动检索引用（SQLite FTS5 + CJK 分词，零第三方依赖）。"
+author: Iris
+kind: backend
+provides_tools:
+  - kb_search
