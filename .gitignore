@@ -85,6 +85,7 @@ docs/ui-ux/review-shots/
 .webui_password
 attachments/
 .aqg/
+*.log
 
 # Release artifacts are built by CI, not committed
 dist/
