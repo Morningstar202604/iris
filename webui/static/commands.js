@@ -485,7 +485,7 @@ function cliOnlyCommandResponse(cmdName, meta){
   if(name==='browser'){
     extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in `hermes chat`.';
   }
-  return `\`/${name}\` 是 Iris 命令行专用命令，无法在 WebUI 内运行。${detail}${extra}`;
+  return t('cmd_webui_only_notice', name, detail, extra);
 }
 
 async function executeAgentCommand(text,_meta){

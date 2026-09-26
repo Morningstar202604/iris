@@ -41,7 +41,7 @@ let _logsSeverityFilter = 'all';
 
 // Map of panel names → i18n keys for the app titlebar label.
 const APP_TITLEBAR_KEYS = {
-  chat: 'tab_chat', tasks: 'tab_tasks', skills: 'tab_skills',
+  chat: 'tab_chat', tasks: 'tab_tasks', skills: 'tab_skills', kanban: 'tab_kanban',
   memory: 'tab_memory', workspaces: 'tab_workspaces',
   profiles: 'tab_profiles', todos: 'tab_todos', insights: 'tab_insights', logs: 'tab_logs', settings: 'tab_settings',
 };
@@ -997,12 +997,12 @@ function _cronGatewayNoticeHtml(status) {
         ? 'Gateway endpoint not reachable'
         : 'Gateway not running';
   const body = notConfigured
-    ? '在 Iris WebUI 中，定时任务需要网关守护进程。若是单容器 Docker 安装，可在此手动创建和运行任务，但定时触发需要网关容器或在 WebUI 外运行 `iris gateway`。'
+    ? t('cron_gateway_notice_container_body')
     : isStaleMetadata
       ? 'The gateway is marked as configured, but its health metadata has gone stale. In Docker, scheduled jobs require a live gateway daemon that refreshes runtime metadata while ticking cron.'
       : isRemoteUnreachable
         ? 'The gateway health endpoint is not reachable from WebUI. Verify the configured gateway URL env var (`GATEWAY_HEALTH_URL`, `HERMES_GATEWAY_HEALTH_URL`, `HERMES_API_URL`, or `HERMES_WEBUI_GATEWAY_BASE_URL`) points to a reachable gateway service and network path before relying on cron ticking.'
-        : '在 Iris WebUI 中，定时任务需要网关守护进程运行。请先启动网关容器或 `iris gateway` 再依赖离线定时运行。';
+        : t('cron_gateway_notice_stop_body');
   const docsHref = 'https://github.com/nesquena/hermes-webui/blob/master/docs/docker.md#scheduled-jobs-and-the-gateway-daemon';
   const helpLink = notConfigured || isRemoteUnreachable || isStaleMetadata
     ? `<p><a href="${docsHref}" target="_blank" rel="noopener">How to enable scheduled jobs in Docker ↗</a></p>`
@@ -3326,7 +3326,7 @@ async function _kanbanPopulateAssigneeSelect(currentValue){
   // it last so the default-selected option is the first profile, not "no one".
   let html = '';
   if (profiles.length) {
-    html += `<optgroup label="${esc(t('kanban_assignee_profiles_label') || 'Iris 配置')}">`;
+    html += `<optgroup label="${esc(t('kanban_assignee_profiles_label') || 'Iris profiles')}">`;
     html += profiles.map(v => `<option value="${esc(v)}"${v === currentValue ? ' selected' : ''}>${esc(v)}</option>`).join('');
     html += '</optgroup>';
   }
@@ -3992,7 +3992,7 @@ async function loadKanbanBoards(){
   const activeMeta = boards.find(b => b.slug === active) || {slug: active, name: active, icon: '', color: ''};
   const nameEl = document.getElementById('kanbanBoardSwitcherName');
   const iconEl = document.getElementById('kanbanBoardSwitcherIcon');
-  if (nameEl) nameEl.textContent = activeMeta.name || activeMeta.slug || 'Default';
+  if (nameEl) nameEl.textContent = activeMeta.name || activeMeta.slug || t('board_default');
   if (iconEl) {
     iconEl.textContent = activeMeta.icon || '';
     if (activeMeta.color) iconEl.style.color = activeMeta.color;
@@ -4544,7 +4544,7 @@ function _renderSystemHealthPanel() {
           <div class="system-health-bar" role="progressbar" aria-label="Disk usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="system-health-bar-fill"></div></div>
         </div>
       </div>
-      <div class="system-health-foot">Live snapshot only; historical resource charts can build on this surface later.</div>
+      <div class="system-health-foot">${t('insights_snapshot_note')}</div>
     </section>`;
 }
 
@@ -4560,7 +4560,7 @@ function _renderLlmWikiStatus(d) {
   // becomes config-driven. esc() HTML-escapes but doesn't validate URL scheme.
   const docsUrl = /^https?:\/\//i.test(rawDocsUrl) ? rawDocsUrl : '#';
   const toggleNote = status.toggle_available
-    ? '可通过已配置的 Iris 代理设置切换。'
+    ? t('insights_toggle_hint')
     : (status.toggle_reason || 'No stable LLM Wiki on/off config flag was detected, so this panel is read-only.');
   const statusNote = isReady
     ? 'LLM Wiki is configured and page metadata is visible without exposing wiki content.'
@@ -4568,7 +4568,7 @@ function _renderLlmWikiStatus(d) {
       ? 'LLM Wiki exists but has no entity, concept, comparison, or query pages yet.'
       : isError
         ? `Unable to inspect LLM Wiki status${status.error ? ': ' + status.error : ''}.`
-        : 'No LLM Wiki directory was found. Set WIKI_PATH or skills.config.wiki.path to enable status visibility.';
+        : t('insights_no_wiki_dir');
   return `
     <div class="insights-card wiki-status-card" id="llmWikiStatusCard">
       <div class="wiki-status-head">
@@ -4583,7 +4583,7 @@ function _renderLlmWikiStatus(d) {
         <div><span>Enabled</span><strong>${status.enabled ? 'Yes' : 'No'}</strong></div>
         <div><span>Entries</span><strong>${Number(status.entry_count || 0).toLocaleString()}</strong></div>
         <div><span>Pages</span><strong>${Number(status.page_count || 0).toLocaleString()}</strong></div>
-        <div><span>raw/ files</span><strong>${Number(status.raw_source_count || 0).toLocaleString()}</strong></div>
+        <div><span>${t('insights_raw_files')}</span><strong>${Number(status.raw_source_count || 0).toLocaleString()}</strong></div>
         <div><span>Last updated</span><strong>${esc(_formatLlmWikiTimestamp(status.last_updated))}</strong></div>
         <div><span>Last writer</span><strong>${esc(status.last_writer || 'Not available')}</strong></div>
       </div>
@@ -8049,13 +8049,13 @@ function switchSettingsSection(name,opts){
   }
   _settingsSection=section;
   _currentSettingsSection=section;
-  const map={conversation:'Conversation',appearance:'Appearance',preferences:'Preferences',providers:'Providers',plugins:'Plugins',extensions:'Extensions',system:'System',help:'Help'};
+  const map={conversation:'Conversation',appearance:'Appearance',preferences:'Preferences',providers:'Providers',plugins:'Plugins',knowledge:'Knowledge',extensions:'Extensions',system:'System',help:'Help'};
   // Sidebar menu items
   document.querySelectorAll('#settingsMenu .side-menu-item').forEach(it=>{
     it.classList.toggle('active', it.dataset.settingsSection===section);
   });
   // Panes in main
-  ['conversation','appearance','preferences','providers','plugins','extensions','system','help'].forEach(key=>{
+  ['conversation','appearance','preferences','providers','plugins','knowledge','extensions','system','help'].forEach(key=>{
     const pane=$('settingsPane'+map[key]);
     if(pane) pane.classList.toggle('active', key===section);
   });
@@ -8072,6 +8072,16 @@ function switchSettingsSection(name,opts){
     if(section==='knowledge') loadKnowledgePanel();
   }
   if(opts&&opts.fromSidebarItem)_closeMobileSidebarAfterPanelSelection();
+  // Attach appearance control change handlers (only once)
+  if(section==='appearance' && !window._appearanceChangeHandlersBound){
+    const themeSel=$('settingsTheme');
+    const skinSel=$('settingsSkin');
+    const fontSel=$('settingsFontSize');
+    if(themeSel) themeSel.addEventListener('change',_scheduleAppearanceAutosave);
+    if(skinSel) skinSel.addEventListener('change',_scheduleAppearanceAutosave);
+    if(fontSel) fontSel.addEventListener('change',_scheduleAppearanceAutosave);
+    window._appearanceChangeHandlersBound=true;
+  }
 }
 
 function _normalizeSettingsSearchText(value) {
@@ -8652,6 +8662,15 @@ async function _autosaveAppearanceSettings(payload){
     const saved=await _enqueueSettingsPost({method:'POST',body:JSON.stringify(payload)});
     _settingsAppearanceAutosaveRetryPayload=null;
     _rememberAppearanceSaved(payload);
+    // Apply theme/skin immediately so UI reflects change without reload
+    if (typeof _pickTheme === 'function' && payload && payload.theme) {
+      _pickTheme(payload.theme);
+    } else if (typeof _applyTheme === 'function' && payload && payload.theme) {
+      _applyTheme(payload.theme);
+    }
+    if (typeof _applySkin === 'function' && payload && payload.skin) {
+      _applySkin(payload.skin);
+    }
     if(saved&&saved.font_size){
       localStorage.setItem('hermes-font-size',saved.font_size);
     }
@@ -10466,23 +10485,23 @@ async function loadKnowledgePanel(){
       const row=document.createElement('div');
       row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)';
       const sizeText=d.size>1048576?(d.size/1048576).toFixed(1)+' MB':d.size>1024?Math.round(d.size/1024)+' KB':d.size+' B';
-      row.innerHTML=`<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.title||'')}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${esc(d.filename||'')} · ${sizeText} · ${d.chunks} 个片段</div></div>`;
+      row.innerHTML=`<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.title||'')}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${esc(d.filename||'')} · ${sizeText} · ${t('kb_chunk_count').replace('{0}', d.chunks)}</div></div>`;
       const del=document.createElement('button');
       del.type='button';
-      del.textContent='删除';
+      del.textContent=t('delete_title');
       del.style.cssText='padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--error);cursor:pointer;font-size:12px;flex-shrink:0';
       del.onclick=async()=>{
         try{
           const res=await api('/api/knowledge/'+encodeURIComponent(d.doc_id),{method:'DELETE'});
           if(res&&res.ok) loadKnowledgePanel();
-          else showToast((res&&res.error)||'删除失败',3000,'error');
-        }catch(e){ showToast('删除失败: '+e.message,3000,'error'); }
+          else showToast((res&&res.error)||t('delete_failed'),3000,'error');
+        }catch(e){ showToast(t('delete_failed')+e.message,3000,'error'); }
       };
       row.appendChild(del);
       list.appendChild(row);
     });
   }catch(e){
-    list.innerHTML='<div style="color:var(--error);padding:12px;font-size:13px">知识库加载失败: '+esc(e.message||String(e))+'</div>';
+    list.innerHTML='<div style="color:var(--error);padding:12px;font-size:13px">'+t('kb_load_failed')+esc(e.message||String(e))+'</div>';
   }
 }
 
@@ -10495,12 +10514,12 @@ async function _uploadKnowledgeFiles(files){
       const fd=new FormData();
       fd.append('file',f,f.name);
       const res=await api('/api/knowledge/upload',{method:'POST',body:fd,noJSON:true});
-      if(res&&res.ok) ok.push(f.name+'（'+res.chunks+' 片段）');
-      else fail.push(f.name+': '+(res&&res.error||'未知错误'));
+      if(res&&res.ok) ok.push(f.name+t('kb_uploaded_chunks').replace('{0}', res.chunks));
+      else fail.push(f.name+': '+(res&&res.error||t('unknown_error')));
     }catch(e){ fail.push(f.name+': '+e.message); }
   }
   if(status){
-    status.textContent=[ok.length?'✓ 已索引: '+ok.join('、'):'', fail.length?'✗ 失败: '+fail.join('、'):''].filter(Boolean).join('\n');
+    status.textContent=[ok.length?t('kb_indexed').replace('{0}', ok.join('、')):'', fail.length?t('kb_upload_failed').replace('{0}', fail.join('、')):''].filter(Boolean).join('\n');
   }
   await loadKnowledgePanel();
 }
@@ -10509,14 +10528,14 @@ async function _kbTestSearch(){
   const q=$('kbSearchInput'), out=$('kbSearchResults');
   if(!q||!out) return;
   const query=q.value.trim();
-  if(!query){ out.textContent='请输入检索关键词'; return; }
-  out.textContent='检索中…';
+  if(!query){ out.textContent=t('kb_search_prompt'); return; }
+  out.textContent=t('kb_searching');
   try{
     const res=await api('/api/knowledge/search',{method:'POST',body:JSON.stringify({query:query,top_k:4})});
     const results=(res&&res.results)||[];
-    if(!results.length){ out.textContent='未命中任何片段。'; return; }
-    out.textContent='命中 '+results.length+' 个片段：\n'+results.map(r=>`【${r.doc}】(相关度 ${r.rank})\n${(r.content||'').slice(0,180)}...`).join('\n\n');
-  }catch(e){ out.textContent='检索失败: '+e.message; }
+    if(!results.length){ out.textContent=t('kb_no_hits'); return; }
+    out.textContent=t('kb_hits').replace('{0}', results.length).replace('{1}', results.map(r=>`${t('kb_hit_line').replace('{0}', r.doc).replace('{1}', r.rank)}\n${(r.content||'').slice(0,180)}...`).join('\n\n'));
+  }catch(e){ out.textContent=t('kb_search_failed')+e.message; }
 }
 
 function _initKnowledgePanelEvents(){
@@ -10931,7 +10950,7 @@ async function loadPluginCatalog(){
       return;
     }
     box.style.display='flex';
-    box.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:6px">官方插件目录 ('+plugins.length+')</div>';
+    box.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+t('ext_gallery_official_title').replace('{0}', plugins.length)+'</div>';
     const cap=Math.min(plugins.length,50);
     for(let i=0;i<cap;i++){
       const p=plugins[i]||{};
@@ -10943,7 +10962,7 @@ async function loadPluginCatalog(){
       row.innerHTML='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(name)+'</div><div style="font-size:12px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(desc||'')+'</div></div>';
       const btn=document.createElement('button');
       btn.type='button';
-      btn.textContent='安装';
+      btn.textContent=t('ext_gallery_install');
       btn.style.cssText='padding:5px 14px;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-size:12px;font-weight:600;flex-shrink:0';
       btn.addEventListener('click',async function(){
         await installPluginByIdentifier(id,btn);
@@ -10964,22 +10983,22 @@ async function installPluginByIdentifier(identifier,btn){
     status.textContent=msg;
     status.style.color=isErr?'var(--error)':'var(--muted)';
   };
-  if(btn){ btn.disabled=true; btn.textContent='安装中…'; }
-  setStatus('正在安装 '+identifier+' …',false);
+  if(btn){ btn.disabled=true; btn.textContent=t('ext_gallery_installing'); }
+  setStatus(t('ext_gallery_installing_named').replace('{0}', identifier),false);
   try{
     const data=await api('/api/plugins/install',{method:'POST',body:JSON.stringify({identifier:identifier}),timeoutMs:320000});
     if(data&&data.ok){
-      setStatus('已安装: '+identifier,false);
-      if(btn){ btn.textContent='已安装'; btn.disabled=true; }
+      setStatus(t('ext_gallery_installed_label')+identifier,false);
+      if(btn){ btn.textContent=t('ext_gallery_installed'); btn.disabled=true; }
       loadPluginsPanel();
     }else{
       const err=(data&&data.error)||'install failed';
-      setStatus('安装失败: '+err,true);
-      if(btn){ btn.textContent='重试'; btn.disabled=false; }
+      setStatus(t('ext_gallery_install_failed')+err,true);
+      if(btn){ btn.textContent=t('retry'); btn.disabled=false; }
     }
   }catch(e){
-    setStatus('安装失败: '+(e.message||String(e)),true);
-    if(btn){ btn.textContent='重试'; btn.disabled=false; }
+    setStatus(t('ext_gallery_install_failed')+(e.message||String(e)),true);
+    if(btn){ btn.textContent=t('retry'); btn.disabled=false; }
   }
 }
 
@@ -11001,12 +11020,12 @@ async function removePluginByName(name,btn){
       loadPluginsPanel();
     }else{
       const err=(data&&data.error)||'remove failed';
-      setStatus('安装失败: '+err,true);
-      if(btn){ btn.textContent='重试'; btn.disabled=false; }
+      setStatus(t('ext_gallery_install_failed')+err,true);
+      if(btn){ btn.textContent=t('retry'); btn.disabled=false; }
     }
   }catch(e){
-    setStatus('安装失败: '+(e.message||String(e)),true);
-    if(btn){ btn.textContent='重试'; btn.disabled=false; }
+    setStatus(t('ext_gallery_install_failed')+(e.message||String(e)),true);
+    if(btn){ btn.textContent=t('retry'); btn.disabled=false; }
   }
 }
 
@@ -11158,7 +11177,7 @@ const enabled=plugin&&plugin.enabled!==false;
       <div class="plugin-hook-list">${hookHtml}</div>
       ${openBtn ? `<div class="plugin-card-footer">${openBtn}</div>` : ''}
       ${toggleHtml}
-      ${isDashboardPlugin?'':`<div class="plugin-card-footer"><button type="button" class="plugin-remove-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--error);cursor:pointer;font-size:12px">卸载</button></div>`}
+      ${isDashboardPlugin?'':`<div class="plugin-card-footer"><button type="button" class="plugin-remove-btn" style="padding:4px 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--error);cursor:pointer;font-size:12px">${t('plugin_uninstall')}</button></div>`}
     </div>
   `;
   // Bind handlers with the RAW closure values (not interpolated into inline JS),
@@ -11685,7 +11704,7 @@ function _buildProviderCard(p){
       ? t('providers_status_configured')||'Configured'
       : (p.has_key ? t('providers_status_api_key') : t('providers_status_not_configured_label'));
   const metaParts=[];
-  if(modelCount>0) metaParts.push(modelCount+(modelCount===1?' model':' models'));
+  if(modelCount>0) metaParts.push(t(modelCount===1?'provider_model_count_one':'provider_model_count_many').replace('{0}', modelCount));
   metaParts.push(sourceLabel);
   const metaText=metaParts.join(' · ');
 
@@ -11748,7 +11767,7 @@ function _buildProviderCard(p){
     const testBtn=document.createElement('button');
     testBtn.type='button';
     testBtn.className='provider-card-btn provider-card-btn-ghost';
-    testBtn.textContent='测试连接';
+    testBtn.textContent=t('onboarding_probe_test_button');
     const probeStatus=document.createElement('div');
     probeStatus.className='provider-card-hint';
     baseUrlRow.appendChild(baseUrlInput);
@@ -12778,7 +12797,7 @@ function _openAuxAdvancedOptions(taskCfg,cfg){
    ? `<label style="display:grid;gap:4px;font-size:12px;color:var(--text)"><span style="font-weight:600">${esc(t('settings_main_advanced_service_tier')||'Service tier')}</span><select id="auxAdvancedServiceTier" style="width:100%;box-sizing:border-box;padding:7px 8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:12px"><option value=""${selectedServiceTier?'':' selected'}>${esc(t('settings_main_advanced_service_tier_default')||'Default / off')}</option><option value="priority"${selectedServiceTier==='priority'?' selected':''}>${esc(t('settings_main_advanced_service_tier_priority')||'Priority (fast)')}</option></select><span style="font-size:10px;color:var(--muted);line-height:1.35">${esc(t('settings_main_advanced_service_tier_desc')||'Optional request setting for OpenAI-family providers.')}</span></label>`
    : '';
   const timingFields=isMain?'':(
-   _auxAdvancedInputHtml('auxAdvancedTimeout',t('settings_aux_advanced_timeout')||'Timeout seconds',_auxAdvancedValue(cfg,'timeout'),t('settings_aux_advanced_timeout_desc')||'此辅助任务的请求超时时间，留空使用 Iris 默认值。','number','inputmode="numeric" min="1" step="1"')+
+   _auxAdvancedInputHtml('auxAdvancedTimeout',t('settings_aux_advanced_timeout')||'Timeout seconds',_auxAdvancedValue(cfg,'timeout'),t('settings_aux_advanced_timeout_desc')||'Request timeout for this auxiliary task; blank uses the Iris default.','number','inputmode="numeric" min="1" step="1"')+
    _auxAdvancedInputHtml('auxAdvancedDownloadTimeout',t('settings_aux_advanced_download_timeout')||'Download timeout seconds',_auxAdvancedValue(cfg,'download_timeout'),t('settings_aux_advanced_download_timeout_desc')||'Only relevant for tasks that download media/content, e.g. vision. Blank uses default.','number','inputmode="numeric" min="1" step="1"')+
    _auxAdvancedInputHtml('auxAdvancedMaxConcurrency',t('settings_aux_advanced_max_concurrency')||'Max concurrency',_auxAdvancedValue(cfg,'max_concurrency'),t('settings_aux_advanced_max_concurrency_desc')||'Optional per-task concurrency limit. Blank uses default.','number','inputmode="numeric" min="1" step="1"'));
   body.innerHTML=
@@ -13608,6 +13627,10 @@ function _gatewayActionControls(r){
 function _renderGatewayStatus(r){
   const card=$('gatewayStatusCard');
   if(!card||!r) return;
+  if(r.in_process){
+    card.innerHTML=`<div style="color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span>${esc(t('gateway_in_process_running'))}</div>`;
+    return;
+  }
   if(!r.configured){
     card.innerHTML=`<div style="color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>${esc(t('gateway_not_configured'))}</div>${_gatewayActionControls(r)}`;
     return;

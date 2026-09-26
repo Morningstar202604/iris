@@ -1247,9 +1247,11 @@ def test_extension_toggle_route_uses_csrf_gate(monkeypatch):
 
     auth_mod._invalidate_password_hash_cache()
     handler = FakeHandler()
+    # Loopback host: the DNS-rebinding gate only trusts the server's own
+    # hostnames; the subject of this test is the token gate behind it.
     handler.headers = {
-        "Origin": "http://example.com",
-        "Host": "example.com",
+        "Origin": "http://127.0.0.1:8787",
+        "Host": "127.0.0.1:8787",
         "Content-Length": "2",
     }
 

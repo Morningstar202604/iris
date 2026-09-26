@@ -1270,6 +1270,21 @@ def _gateway_status_payload() -> dict:
         configured = True if gateway_running_metadata else bool(identity_map)
         running = bool(identity_map)
 
+    # Single-process deployments: the WebUI's own in-process cron ticker counts
+    # as the running scheduler so the Tasks panel stops demanding a separate
+    # gateway daemon for scheduled jobs. An external gateway keeps priority —
+    # the ticker stands down when one owns the tick, so they never overlap.
+    in_process = False
+    try:
+        from api.cron_ticker import in_process_cron_ticker_alive
+
+        in_process = in_process_cron_ticker_alive()
+    except Exception:  # aqg: top-level boundary — status must render even without the ticker module
+        in_process = False
+    if in_process:
+        running = True
+        configured = True
+
     platforms_set: set[str] = set()
     for meta in identity_map.values():
         raw = meta.get("raw_source") or meta.get("platform") or ""
@@ -1298,6 +1313,7 @@ def _gateway_status_payload() -> dict:
     return {
         "running": running,
         "configured": configured,
+        "in_process": in_process,
         "platforms": platforms,
         "last_active": last_active,
         "session_count": len(identity_map),
@@ -5784,6 +5800,36 @@ def _ports_match(origin_scheme: str, origin_port: str | None, allowed_port: str 
     return False
 
 
+def _local_service_hostnames() -> set[str]:
+    """Hostnames this server legitimately serves, for the CSRF origin gate.
+
+    The request's own Host header is attacker-controlled under DNS rebinding,
+    so locality anchors on the server's own names instead: loopback, the
+    configured bind address when it names a specific interface, and this
+    machine's hostname and interface addresses.
+    """
+    names = {"localhost", "127.0.0.1", "::1"}
+    try:
+        from api.config import HOST
+
+        bind = (HOST or "").strip().lower()
+        if bind and bind not in ("0.0.0.0", "::"):
+            names.add(bind)
+    except Exception:  # aqg: top-level boundary — optional config read; fall back to loopback names
+        pass
+    try:
+        hostname = _socket.gethostname()
+        if hostname:
+            names.add(hostname.lower())
+            for info in _socket.getaddrinfo(hostname, None):
+                addr = (info[4][0] or "").split("%", 1)[0].strip().lower()
+                if addr:
+                    names.add(addr)
+    except OSError:
+        pass
+    return names
+
+
 def _allowed_public_origins() -> set[str]:
     """Parse HERMES_WEBUI_ALLOWED_ORIGINS env var (comma-separated) into a set.
 
@@ -5849,19 +5895,23 @@ def _check_same_origin_browser_request(handler, *, require_provenance: bool = Fa
     if origin_value in _allowed_public_origins():
         origin_allowed = True
     if not origin_allowed:
-        allowed_hosts = [h.strip() for h in [host] if h.strip()]
+        # DNS-rebinding defense: the request Host is attacker-controlled (Host:
+        # evil.com matching Origin: http://evil.com passes a naive comparison), so
+        # the name gate anchors on the server's own hostnames; the port check keeps
+        # using the request Host's port, which the attacker cannot leverage.
+        _req_name, req_port = _normalize_host_port(host)
+        allowed_entries = [(name, req_port) for name in _local_service_hostnames()]
         trust_forwarded_host = os.getenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "").strip().lower()
         if trust_forwarded_host in ("1", "true", "yes", "on"):
-            allowed_hosts.extend(
-                h.strip()
+            allowed_entries.extend(
+                _normalize_host_port(h.strip())
                 for h in [
                     handler.headers.get("X-Forwarded-Host", ""),
                     handler.headers.get("X-Real-Host", ""),
                 ]
                 if h.strip()
             )
-        for allowed in allowed_hosts:
-            allowed_name, allowed_port = _normalize_host_port(allowed)
+        for allowed_name, allowed_port in allowed_entries:
             if origin_name == allowed_name and _ports_match(origin_scheme, origin_port, allowed_port):
                 origin_allowed = True
                 break

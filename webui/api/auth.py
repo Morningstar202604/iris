@@ -577,6 +577,32 @@ def is_auth_enabled() -> bool:
     )
 
 
+_LOOPBACK_BIND_HOSTS = ("127.0.0.1", "::1", "localhost")
+
+
+def bind_security_error(host: str) -> str | None:
+    """Fail-closed startup guard for the bind address.
+
+    A non-loopback bind with no authentication configured is refused unless the
+    operator explicitly acknowledged the risk (Settings ->
+    auth_disabled_acknowledged). Loopback binds stay warn-only; an empty or
+    unknown host is treated as non-loopback (unknown is not allowed).
+    """
+    if (host or "").strip().lower() in _LOOPBACK_BIND_HOSTS:
+        return None
+    if is_auth_enabled():
+        return None
+    if bool(load_settings().get("auth_disabled_acknowledged")):
+        return None
+    return (
+        f"Refusing to bind {host!r} with NO authentication configured. "
+        "Anyone who can reach this port gets full access to sessions, files, "
+        "and the agent. Set a password (Settings or HERMES_WEBUI_PASSWORD), "
+        "bind to 127.0.0.1, or set auth_disabled_acknowledged=true in "
+        "settings.json to accept the risk."
+    )
+
+
 def verify_password(plain: str) -> bool:
     """Verify a plaintext password against the stored hash.
 

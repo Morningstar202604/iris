@@ -39,9 +39,7 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
                                 base_url_env_var="HERMES_QWEN_BASE_URL"),
     "lmstudio": HermesOverlay(extra_env_vars=("LM_API_KEY",), base_url_override="http://127.0.0.1:1234/v1",
                               base_url_env_var="LM_BASE_URL"),
-    "copilot-acp": HermesOverlay(transport="codex_responses", auth_type="external_process",
                                  base_url_override="acp://copilot", base_url_env_var="COPILOT_ACP_BASE_URL"),
-    "github-copilot": HermesOverlay(extra_env_vars=("COPILOT_GITHUB_TOKEN", "GH_TOKEN")),
     "anthropic": HermesOverlay(transport="anthropic_messages", extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")),
     "zai": HermesOverlay(extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), base_url_env_var="GLM_BASE_URL"),
     "kimi-for-coding": HermesOverlay(base_url_env_var="KIMI_BASE_URL"),
@@ -83,7 +81,6 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
     "ollama-cloud": HermesOverlay(base_url_override="https://ollama.com/v1", base_url_env_var="OLLAMA_BASE_URL"),
     # Azure Foundry serves OpenAI- and Anthropic-style endpoints; transport comes from model.api_mode.
     "azure-foundry": HermesOverlay(base_url_env_var="AZURE_FOUNDRY_BASE_URL"),
-    "bedrock": HermesOverlay(transport="bedrock_converse", auth_type="aws_sdk"),
     # Vertex is OAuth2 (service-account JSON / ADC), resolved by agent/vertex_adapter.py. Without an
     # overlay get_provider("vertex") is None and auxiliary_client._preserve_provider_with_base_url
     # would treat a Vertex MoA slot as an unknown custom endpoint, losing the identity
@@ -118,8 +115,6 @@ _ALIAS_GROUPS: Dict[str, Tuple[str, ...]] = {
     "nvidia": ("nim", "nvidia-nim", "build-nvidia", "nemotron"),
     "kimi-for-coding": ("kimi", "kimi-coding", "kimi-coding-cn", "moonshot"),
     "stepfun": ("step", "stepfun-coding-plan"), "minimax-cn": ("minimax-china", "minimax_cn"),
-    "anthropic": ("claude", "claude-code"), "github-copilot": ("copilot", "github"),
-    "copilot-acp": ("github-copilot-acp",), "openai-codex": ("chatgpt", "chatgpt-codex"),
     "vercel": ("ai-gateway", "aigateway", "vercel-ai-gateway"),
     "opencode": ("opencode-zen", "zen"), "opencode-go": ("go", "opencode-go-sub"), "kilo": ("kilocode", "kilo-code", "kilo-gateway"),
     "deepseek": ("deep-seek",), "alibaba": ("dashscope", "aliyun", "qwen", "alibaba-cloud"),
@@ -127,7 +122,6 @@ _ALIAS_GROUPS: Dict[str, Tuple[str, ...]] = {
     "huggingface": ("hf", "hugging-face", "huggingface-hub"), "novita": ("novita-ai", "novitaai"),
     "xiaomi": ("mimo", "xiaomi-mimo"), "tencent-tokenhub": ("tencent", "tokenhub", "tencent-cloud", "tencentmaas"),
     "tencent-tokenplan": ("tokenplan", "tencent-lkeap"),
-    "bedrock": ("aws", "aws-bedrock", "amazon-bedrock", "amazon"), "arcee": ("arcee-ai", "arceeai"),
     "gmi": ("gmi-cloud", "gmicloud"), "fireworks": ("fireworks-ai", "fw"), "upstage": ("solar",),
     "actual": ("actual-computer", "actualcomputer", "aci"),
     "nebius-token-factory": ("nebius", "nebius-tokenfactory", "nebius-tf", "token-factory", "tokenfactory"),
@@ -141,10 +135,8 @@ ALIASES: Dict[str, str] = {alias: canon for canon, aliases in _ALIAS_GROUPS.item
 
 _LABEL_OVERRIDES: Dict[str, str] = {
     "moa": "Mixture of Agents", "nous": "Nous Portal", "openai-codex": "ChatGPT or Codex Subscription",
-    "copilot-acp": "GitHub Copilot ACP", "stepfun": "StepFun Step Plan", "xiaomi": "Xiaomi MiMo", "gmi": "GMI Cloud",
     "upstage": "Upstage Solar", "actual": "Actual Computer", "tencent-tokenhub": "Tencent TokenHub",
     "nebius-token-factory": "Nebius Token Factory", "tencent-tokenplan": "Tencent TokenPlan", "lmstudio": "LM Studio",
-    "local": "Local endpoint", "bedrock": "AWS Bedrock", "vertex": "Google Vertex AI", "ollama-cloud": "Ollama Cloud",
     "xai-oauth": "xAI Grok OAuth (SuperGrok / Premium+)",
 }
 
@@ -153,7 +145,7 @@ _LABEL_OVERRIDES: Dict[str, str] = {
 
 TRANSPORT_TO_API_MODE: Dict[str, str] = {
     "openai_chat": "chat_completions", "anthropic_messages": "anthropic_messages",
-    "codex_responses": "codex_responses", "bedrock_converse": "bedrock_converse",
+    "codex_responses": "codex_responses",
 }
 
 
@@ -384,7 +376,6 @@ def determine_api_mode(provider: str, base_url: str = "", model: str = "") -> st
         # A plugin profile's transport IS its api_mode when a plugin registered that dialect.
         from agent.transports import registered_api_modes
         return pdef.transport if pdef.transport in registered_api_modes() else "chat_completions"
-    if provider == "bedrock":
         return "bedrock_converse"
     return "chat_completions"
 
@@ -466,7 +457,6 @@ def _lossy_alias_registry_pdef(raw: str, canonical: str) -> Optional[ProviderDef
     """Exact Hermes registry ids win over LOSSY alias collapsing (kimi-coding-cn must stay distinct
     from kimi-coding instead of collapsing through the shared models.dev alias "kimi-for-coding").
     A collapse is lossy only when MULTIPLE registry providers normalize to the same canonical name;
-    single-entry rewrites ("copilot" -> "github-copilot") are correct routing and keep resolving
     through the built-in chain so overlay transports apply."""
     try:
         from hermes_cli.auth import PROVIDER_REGISTRY as _AUTH_PROVIDER_REGISTRY

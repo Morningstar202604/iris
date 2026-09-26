@@ -99,7 +99,7 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-from api.request_logging import emit_request_log
+from api.request_logging import emit_request_log, redact_path_for_log
 from api.auth import check_auth_or_close, reset_trusted_auth_request_state
 from api.config import HOST, PORT, STATE_DIR, SESSION_DIR, DEFAULT_WORKSPACE
 from api.helpers import (
@@ -362,7 +362,7 @@ class Handler(BaseHTTPRequestHandler):
             'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
             'remote': remote,
             'method': getattr(self, 'command', None) or '-',
-            'path': getattr(self, 'path', None) or '-',
+            'path': redact_path_for_log(getattr(self, 'path', None) or '-'),
             'status': int(code) if str(code).isdigit() else code,
             'ms': duration_ms,
         }
@@ -592,8 +592,9 @@ def main() -> None:
     if within_container:
         print('[ok] Running within container.', flush=True)
 
-    # Security: warn if binding non-loopback without authentication
-    from api.auth import get_oidc_startup_warning, is_auth_enabled
+    from api.auth import bind_security_error, get_oidc_startup_warning, is_auth_enabled
+    if _bind_err := bind_security_error(HOST):  # fail-closed: non-loopback, no auth, no ack
+        sys.exit(f'[!!] {_bind_err}')
     if HOST not in ('127.0.0.1', '::1', 'localhost') and not is_auth_enabled():
         print(f'[!!] WARNING: Binding to {HOST} with NO PASSWORD SET.', flush=True)
         print(f'     Anyone on the network can access your filesystem and agent.', flush=True)
@@ -660,6 +661,16 @@ def main() -> None:
             print('[ok] SessionChannel reaper thread started', flush=True)
     except Exception as e:
         print(f'[!!] WARNING: SessionChannel reaper failed to start: {e}', flush=True)
+
+    # In-process cron scheduler: single-process deployments get scheduled jobs
+    # without a separate `hermes gateway` daemon. Yields automatically when an
+    # external gateway owns the cron tick.
+    try:
+        from api.cron_ticker import start_in_process_cron_ticker
+        if start_in_process_cron_ticker():
+            print('[ok] in-process cron scheduler started', flush=True)
+    except Exception as e:  # aqg: top-level boundary — startup must continue without cron ticking
+        print(f'[!!] WARNING: in-process cron scheduler failed to start: {e}', flush=True)
 
     try:
         from api.plugins import load_plugins
@@ -744,5 +755,10 @@ def main() -> None:
             stop_session_channel_reaper()
         except Exception:
             logger.debug("Failed to stop SessionChannel reaper during shutdown", exc_info=True)
+        try:
+            from api.cron_ticker import stop_in_process_cron_ticker
+            stop_in_process_cron_ticker()
+        except Exception:  # aqg: top-level boundary — shutdown must not be blocked by ticker teardown
+            logger.debug("Failed to stop in-process cron scheduler during shutdown", exc_info=True)
 if __name__ == '__main__':
     main()

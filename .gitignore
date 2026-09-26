@@ -84,3 +84,7 @@ docs/ui-ux/review-shots/
 # Local WebUI runtime data and credentials
 .webui_password
 attachments/
+.aqg/
+
+# Release artifacts are built by CI, not committed
+dist/

@@ -171,8 +171,8 @@ HERMES_AGENT_HELP_GUIDANCE = (
     # resolution). No "when the two differ" clause: docs-are-authoritative already carries the precedence.
     "You run on Iris. When the user needs help with Iris itself — configuring, "
     "setting up, using, extending, or troubleshooting it — or when you need to understand your own features, "
-    "tools, or capabilities, the built-in help and the `iris` skill have the actual commands and proven workflows — load it with "
-    "skill_view(name='iris') before configuring, modifying, or troubleshooting Iris so you don't guess "
+    "tools, or capabilities, the built-in help and the `hermes-agent` skill have the actual commands and proven workflows — load it with "
+    "skill_view(name='hermes-agent') before configuring, modifying, or troubleshooting Iris so you don't guess "
     "or invent workarounds."
 )
 

@@ -11,7 +11,7 @@ Two modes:
 
   --diff [BASE]   Line-scoped gate (default mode). Only report findings on lines
                   that this branch ADDED or MODIFIED relative to the merge-base
-                  with BASE (default: origin/master). Editing a legacy file that
+                  with BASE (default: origin/main). Editing a legacy file that
                   has pre-existing violations elsewhere is safe — only your own
                   new lines are gated. Exit 1 if any new finding, else 0.
 
@@ -22,7 +22,7 @@ Two modes:
 
 Usage::
 
-    python3 scripts/ruff_lint.py --diff origin/master     # the CI / pre-release gate
+    python3 scripts/ruff_lint.py --diff origin/main       # the CI / pre-release gate
     python3 scripts/ruff_lint.py --all                    # backlog report
     python3 scripts/ruff_lint.py --all --strict           # fail on ANY tree finding
 
@@ -199,9 +199,9 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument(
         "--diff",
         nargs="?",
-        const="origin/master",
+        const="origin/main",
         metavar="BASE",
-        help="Line-scoped gate vs merge-base with BASE (default origin/master).",
+        help="Line-scoped gate vs merge-base with BASE (default origin/main).",
     )
     g.add_argument("--all", action="store_true", help="Whole-tree backlog report.")
     p.add_argument("--strict", action="store_true", help="With --all: fail on any finding.")
@@ -209,7 +209,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.all:
         return run_all(args.strict)
-    base = args.diff or "origin/master"
+    base = args.diff or "origin/main"
     return run_diff(base)
 
 

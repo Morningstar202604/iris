@@ -333,8 +333,8 @@ def _beta_header(betas: list) -> Dict[str, str]:
 def _attribution_headers() -> Dict[str, str]:
     """Same client-attribution set sent to OpenRouter / Vercel AI Gateway / Fireworks."""
     return {
-        "HTTP-Referer": "", "X-Title": "Iris",
-        "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
+        "HTTP-Referer": "https://gitcode.com/badhope/iris", "X-Title": "Iris",
+        "User-Agent": f"IrisAgent/{_HERMES_VERSION}",
     }
 
 
@@ -532,7 +532,7 @@ def _oauth_wire_namer(anthropic_tools: List[Dict[str, Any]]):
 
 
 _OAUTH_SYSTEM_REPLACEMENTS = (
-    ("Iris", "Claude Code"), ("Iris", "Claude Code"), ("Nous Research", "Anthropic"),
+    ("Iris", "Claude Code"), ("Nous Research", "Anthropic"),
 )
 # The slug is rewritten only as a standalone prose word. Joined to a host, path, repo, mailbox
 # or quoted as an identifier (``hermes-agent.nousresearch.com``, ``~/.hermes/hermes-agent/venv``,

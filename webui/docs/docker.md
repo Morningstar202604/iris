@@ -286,6 +286,7 @@ services:
       - hermes-home:/home/hermes/.hermes
       - hermes-agent-src:/opt/hermes
     environment:
+      # IRIS_HOME is honored first; HERMES_HOME remains as the fallback name.
       - HERMES_HOME=/home/hermes/.hermes
       - HERMES_UID=${UID:-1000}
       - HERMES_GID=${GID:-1000}
