@@ -467,7 +467,7 @@ function isGenericCompressionContinuationIntent(text){
   const raw=String(text||'').trim().toLowerCase();
   if(!raw) return false;
   const normalized=raw.replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-  const generic=new Set(['continue','continue please','go on','keep going','resume','proceed','carry on','继续','继续吧','接着','接着做','继续做','继续执行']);
+    const generic=new Set(['continue','continue please','go on','keep going','resume','proceed','carry on',t('ui_continue'),'继续吧','接着','接着做','继续做','继续执行']); // aqg-i18n-exempt: multilingual "continue" keyword vocabulary matched against user input, never rendered
   if(generic.has(normalized)) return true;
   const parts=normalized.split(/\s+/).filter(Boolean);
   return !!parts.length&&parts.length<=2&&parts.every(part=>generic.has(part));
@@ -4237,7 +4237,7 @@ function _mountSearchableModelSelect(opts={}){
 
   const noMatchesOption=document.createElement('option');
   noMatchesOption.value='';
-  noMatchesOption.textContent='无匹配模型';
+  noMatchesOption.textContent=t('ui_no_matching_model');
   noMatchesOption.disabled=true;
   noMatchesOption.hidden=true;
   selectEl.appendChild(noMatchesOption);
@@ -8489,7 +8489,7 @@ function _applyBusyComposerPlaceholder(){
   if(_compressionPlaceholderSaved!==null) return;
   if(input.disabled) return;
   if(_composerHasContent()) return;
-  const idlePlaceholder='给 '+assistantDisplayName()+' 发送消息…';
+  const idlePlaceholder=t('composer_placeholder_named').replace('{0}', assistantDisplayName());
   if(!window._showBusyPlaceholderHint||!S.busy){
     input.placeholder=idlePlaceholder;
     return;
@@ -10278,7 +10278,7 @@ function _showAgentHealthAlert(payload){
   const title=$('agentHealthTitle');
   const details=$('agentHealthDetails');
   if(!banner) return;
-  if(title) title.textContent='Iris 代理未响应';
+  if(title) title.textContent=t('agent_health_unresponsive');
   const state=payload&&payload.details&&payload.details.gateway_state?` State: ${payload.details.gateway_state}.`:'';
   if(details) details.textContent=`Gateway heartbeat failed.${state} Messages may not be delivered until it comes back.`;
   banner.hidden=false;
@@ -10919,18 +10919,18 @@ function _renderLockManualInstruction(target, res){
   const copyBtn=document.createElement('button');
   copyBtn.type='button';
   copyBtn.className='update-btn';
-  copyBtn.textContent='复制命令';
+  copyBtn.textContent=t('ui_copy_command');
   copyBtn.onclick=async()=>{
     try{
       if(navigator.clipboard&&navigator.clipboard.writeText){
         await navigator.clipboard.writeText(cmd);
         copyBtn.textContent='Copied';
-        setTimeout(()=>{ copyBtn.textContent='复制命令'; }, 1500);
+        setTimeout(()=>{ copyBtn.textContent=t('ui_copy_command'); }, 1500);
       } else {
-        copyBtn.textContent='剪贴板不可用';
+        copyBtn.textContent=t('ui_clipboard_unavailable');
       }
     } catch(_){
-      copyBtn.textContent='复制失败';
+      copyBtn.textContent=t('copy_failed');
     }
   };
   actions.appendChild(copyBtn);
@@ -11000,7 +11000,7 @@ async function forceUpdate(btn){
     const res=await api('/api/updates/force',{method:'POST',body:JSON.stringify((()=>{const b={target};const _ch=window._updateData?.[target]?.channel;if(_ch==='stable'||_ch==='experimental')b.channel=_ch;return b;})()),timeoutMs:120000});
     if(!res.ok){
       if(errEl){errEl.textContent='Force update failed: '+(res.message||'unknown error');errEl.style.display='block';}
-      btn.disabled=false;btn.textContent='强制更新';
+      btn.disabled=false;btn.textContent=t('ui_force_update');
       return;
     }
     showToast('Force update applied — restarting…');
@@ -11009,7 +11009,7 @@ async function forceUpdate(btn){
     _waitForServerThenReload({baselineServerIdentity});
   }catch(e){
     if(errEl){errEl.textContent='Force update failed: '+e.message;errEl.style.display='block';}
-    btn.disabled=false;btn.textContent='强制更新';
+    btn.disabled=false;btn.textContent=t('ui_force_update');
   }
 }
 
@@ -11596,7 +11596,7 @@ function _createAssistantTurn(tsTitle='', tpsText=''){
 }
 function _setLatestAssistantTurnLandmark(turn, isLatest){
   if(!turn) return;
-  const label='Iris 最新响应';
+  const label=t('ui_latest_response');
   if(isLatest){
     if(typeof document!=='undefined'){
       document.querySelectorAll('.assistant-turn[data-latest-assistant-response="true"]').forEach(el=>{

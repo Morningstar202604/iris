@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import sqlite3
 import time
@@ -22,8 +21,9 @@ _MAX_CHUNK = 1000  # 每块最大字符数
 
 
 def _home_dir() -> Path:
-    env = os.environ.get("HERMES_HOME")
-    return Path(env) if env else Path.home() / ".hermes"
+    from api.profiles import get_active_hermes_home
+
+    return get_active_hermes_home()
 
 
 def _db_path() -> Path:
@@ -159,7 +159,8 @@ def list_documents() -> dict:
             ],
         }
     except Exception as exc:  # noqa: BLE001
-        return {"ok": True, "documents": [], "error": str(exc)}
+        logger.warning("list_documents failed: %s", exc)
+        return {"ok": False, "documents": [], "error": str(exc)}
 
 
 def delete_document(doc_id: str) -> dict:
@@ -167,9 +168,9 @@ def delete_document(doc_id: str) -> dict:
         con = _connect()
         _ensure_db(con)
         row = con.execute("SELECT filename FROM documents WHERE doc_id=?", (doc_id,)).fetchone()
-        con.execute("DELETE FROM chunks WHERE doc_id=?", (doc_id,))
         con.execute("DELETE FROM chunk_fts WHERE rowid IN (SELECT chunk_id FROM chunks WHERE doc_id=?)",
                     (doc_id,))
+        con.execute("DELETE FROM chunks WHERE doc_id=?", (doc_id,))
         con.execute("DELETE FROM documents WHERE doc_id=?", (doc_id,))
         con.commit()
         con.close()
@@ -184,8 +185,8 @@ def search(query: str, top_k: int = 4) -> dict:
     q = (query or "").strip()
     if not q:
         return {"ok": True, "results": []}
-    top_k = max(1, min(int(top_k or 4), 10))
     try:
+        top_k = max(1, min(int(top_k or 4), 10))
         con = _connect()
         _ensure_db(con)
         safe = " ".join(w for w in q.replace('"', " ").split() if w) or q
@@ -218,4 +219,5 @@ def search(query: str, top_k: int = 4) -> dict:
             ],
         }
     except Exception as exc:  # noqa: BLE001
-        return {"ok": True, "results": [], "error": str(exc)}
+        logger.warning("search failed: %s", exc)
+        return {"ok": False, "results": [], "error": str(exc)}

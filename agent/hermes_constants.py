@@ -110,11 +110,11 @@ def _warn_profile_fallback_once() -> None:
 
 
 def get_hermes_home() -> Path:
-    """Hermes home: context-local override → ``HERMES_HOME`` env var → platform default."""
+    """Hermes home: context-local override → ``IRIS_HOME``/``HERMES_HOME`` env var → platform default."""
     override = get_hermes_home_override()
     if override:
         return _expand_hermes_home(override)
-    if not os.environ.get("HERMES_HOME", "").strip():
+    if not os.environ.get("IRIS_HOME", "").strip() and not os.environ.get("HERMES_HOME", "").strip():
         _warn_profile_fallback_once()
     return get_process_hermes_home()
 
@@ -163,10 +163,10 @@ def get_process_hermes_home() -> Path:
 
     For process-level assets (theme YAML, dashboard plugin manifests) that must stay visible while a
     request is scoped to another profile (e.g. embedded ``/chat`` under ``--open-profile``). Follows
-    ``HERMES_HOME`` live on purpose: routed-profile DECISIONS compare against
+    ``IRIS_HOME`` then ``HERMES_HOME`` live on purpose: routed-profile DECISIONS compare against
     :func:`get_routing_process_hermes_home` instead (#119242).
     """
-    val = os.environ.get("HERMES_HOME", "").strip()
+    val = os.environ.get("IRIS_HOME", "").strip() or os.environ.get("HERMES_HOME", "").strip()
     return _expand_hermes_home(val) if val else _get_platform_default_hermes_home()
 
 

@@ -192,17 +192,22 @@ class TestCSRF:
         }), 'https origin should NOT match host advertising port 80'
 
     def test_http_explicit_port_80_matches_host_without_port(self):
-        """http://example.com:80 is the same origin as http://example.com."""
+        """http://localhost:80 is the same origin as http://localhost.
+
+        Uses a local service hostname: after the DNS-rebinding fix the origin
+        gate no longer trusts the request's own Host header, so the port
+        equivalence check is exercised on localhost instead of example.com.
+        """
         assert self._csrf_allowed({
-            'Origin': 'http://example.com:80',
-            'Host': 'example.com',
+            'Origin': 'http://localhost:80',
+            'Host': 'localhost',
         })
 
     def test_https_explicit_port_443_matches_host_without_port(self):
-        """https://example.com:443 is the same origin as https://example.com."""
+        """https://localhost:443 is the same origin as https://localhost."""
         assert self._csrf_allowed({
-            'Origin': 'https://example.com:443',
-            'Host': 'example.com',
+            'Origin': 'https://localhost:443',
+            'Host': 'localhost',
         })
 
     def test_non_default_port_not_waived(self):

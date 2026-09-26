@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
-![Plugins](https://img.shields.io/badge/plugins-292%2B-6B8BFF.svg)
+![Plugins](https://img.shields.io/badge/plugins-275%2B-6B8BFF.svg)
 ![i18n](https://img.shields.io/badge/i18n-14%20languages-green.svg)
 [![官网](https://img.shields.io/badge/✦%20%E5%AE%98%E7%BD%91-x33834.github.io%2Firis-4F6EF7)](https://x33834.github.io/iris)
 [![下载](https://img.shields.io/badge/⬇%20%E4%B8%8B%E8%BD%BD-v0.12.0-12B76A)](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip)
@@ -63,9 +63,9 @@ Hermes 是杰出的智能体框架——但它越来越重。**Iris** 保留 **1
 |---|---|---|
 | ⚡ 启动速度 | 慢，全量加载 | **秒级 — 懒加载 + uvloop** |
 | 📦 体积 | 臃肿 | **轻 40% 以上** |
-| 🖥️ Web UI | 开发工具风格 | **现代消费级界面** — 亮/暗主题、14 款皮肤、命令面板 |
+| 🖥️ Web UI | 开发工具风格 | **现代消费级界面** — 亮/暗主题、9 款皮肤、命令面板 |
 | 🔌 模型支持 | 逐厂商适配器 | **协议优先** — 任意 OpenAI 兼容端点即插即用 |
-| 🧩 插件 | 全部内置 | **292+ 目录，按需安装/卸载** |
+| 🧩 插件 | 全部内置 | **275+ 目录，按需安装/卸载** |
 | 📚 知识库 | 无 | **RAG + 中文精准全文检索** |
 | 🔒 隐私 | — | **本地优先。无账号。无遥测。** |
 
@@ -78,7 +78,7 @@ flowchart LR
     U["🌐 Web UI<br/>聊天 · 设置 · 插件<br/>命令面板"] --> S["🐍 Python 服务端<br/>api/routes.py · 流式"]
     S --> A["⚙️ Hermes Agent 核心<br/>工具 · 记忆 · 技能 · 定时"]
     S --> KB[("📚 知识库<br/>SQLite FTS5 · 中文检索")]
-    S --> PM["🧩 插件管理器<br/>292+ 目录 · 按需加载"]
+    S --> PM["🧩 插件管理器<br/>275+ 目录 · 按需加载"]
     S --> PL["🤖 协议层<br/>OpenAI 兼容"]
     PL --> M["任意 LLM 端点<br/>一个 base_url + key"]
     A --> T1["🛠️ 工具<br/>网页 · 终端 · 文件"]
@@ -97,9 +97,9 @@ flowchart LR
 |---|---|
 | ⚡ **轻量内核** | uvloop 事件循环、模块懒加载、精简运行时 |
 | 🔌 **任意模型任意厂商** | OpenAI 兼容协议层 — 填 base_url + key 即用 |
-| 🧩 **插件生态** | **292+ 插件**，一键安装 / 卸载 / 启停 |
+| 🧩 **插件生态** | **275+ 插件**，一键安装 / 卸载 / 启停 |
 | 📚 **知识库 RAG** | 上传文档 → 本地中文索引 → 基于*你的数据*作答 |
-| 🎨 **现代 Web UI** | 命令面板（`Ctrl+Shift+P`）、14 款皮肤、520+ 设置项 |
+| 🎨 **现代 Web UI** | 命令面板（`Ctrl+Shift+P`）、9 款皮肤、520+ 设置项 |
 | 🧠 **记忆与技能** | 长期记忆、技能中心、定时任务、看板、待办、会话搜索 |
 | 🗣️ **语音就绪** | 语音输入 + 免提语音模式 + 语音合成 |
 | 🌐 **14 种语言** | 完整国际化，默认中文，随时切换 |
@@ -109,13 +109,13 @@ flowchart LR
 
 ## 🖥️ 界面截图
 
-![Iris Web UI](docs/screenshot.png)
+截图与在线架构演示见落地页：[x33834.github.io/iris](https://x33834.github.io/iris)
 
 ---
 
 ## 🔄 与 Hermes 的关系
 
-Iris 是 **[Hermes](https://github.com/NousResearch/hermes)**（Nous Research 的开源智能体框架）的
+Iris 是 **[Hermes](https://github.com/NousResearch/hermes-agent)**（Nous Research 的开源智能体框架）的
 **独立深度定制重构**。我们：
 
 - **保留了 100% 的功能** — 没有删减，全部重构
@@ -127,7 +127,7 @@ Iris 是 **[Hermes](https://github.com/NousResearch/hermes)**（Nous Research �
 
 ## 📄 许可与致谢
 
-采用 **MIT License**，基于 **[Hermes](https://github.com/NousResearch/hermes)**（**Nous Research**，MIT）构建。
+采用 **MIT License**，基于 **[Hermes](https://github.com/NousResearch/hermes-agent)**（**Nous Research**，MIT）构建。
 保留原始版权与署名。完整协议见 [`LICENSE`](LICENSE)。
 
 ---

@@ -5,67 +5,80 @@
   if(!overlay||!search||!list) return;
   var items=[], activeIdx=0;
 
+  function tr(key){
+    return (typeof t==='function' ? t(key) : key);
+  }
+
+  // Skin names are brand proper nouns (Ares, Catppuccin, Charizard, ...) and stay
+  // as-is in every locale; only the generic "Default" is translated.
+  function skinLabel(skin){
+    return skin==='default' ? tr('skin_default') : skin;
+  }
+
+  var FONT_SIZE_KEYS={default:'font_size_default',small:'font_size_small',large:'font_size_large',xlarge:'font_size_xlarge'};
+
   var PANELS=[
-    ['chat','Chat','tab_chat'],['tasks','Tasks','tab_tasks'],['kanban','Kanban','tab_kanban'],
-    ['skills','Skills','tab_skills'],['memory','Memory','tab_memory'],['workspaces','Spaces','tab_workspaces'],
-    ['profiles','Profiles','tab_profiles'],['todos','Todos','tab_todos'],['insights','Insights','tab_insights'],
-    ['logs','Logs','tab_logs'],['settings','设置','tab_settings']
+    ['chat','tab_chat'],['tasks','tab_tasks'],['kanban','tab_kanban'],
+    ['skills','tab_skills'],['memory','tab_memory'],['workspaces','tab_workspaces'],
+    ['profiles','tab_profiles'],['todos','tab_todos'],['insights','tab_insights'],
+    ['logs','tab_logs'],['settings','tab_settings']
   ];
 
   function buildItems(){
     var out=[];
     PANELS.forEach(function(p){
-      out.push({group:'跳转到', title:p[1], hint:p[0], run:function(){ switchPanel(p[0],{fromRailClick:true}); close(); }});
+      out.push({group:tr('cmd_palette_group_go'), title:tr(p[1]), hint:p[0], run:function(){ switchPanel(p[0],{fromRailClick:true}); close(); }});
     });
-    out.push({group:'操作', title:'新建会话', hint:'Cmd K', run:function(){
+    out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_new_session'), hint:'Cmd K', run:function(){
       if(typeof newSession==='function'){ newSession(); }
       close();
     }});
-    out.push({group:'操作', title:'切换深色模式', hint:'', run:function(){
+    out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_toggle_dark'), hint:'', run:function(){
       if(typeof _pickTheme==='function'){ _pickTheme(document.documentElement.classList.contains('dark')?'light':'dark'); }
       close();
     }});
     ['default','ares','mono','graphite'].forEach(function(skin){
-      out.push({group:'操作', title:'皮肤: '+skin, hint:'', run:function(){
+      out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_skin').replace('{0}',skinLabel(skin)), hint:'', run:function(){
         if(typeof _applySkin==='function'){ _applySkin(skin); }
         close();
       }});
     });
     ['default','small','large','xlarge'].forEach(function(size){
-      out.push({group:'操作', title:'字号: '+size, hint:'', run:function(){
+      out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_font_size').replace('{0}',tr(FONT_SIZE_KEYS[size]||'font_size_default')), hint:'', run:function(){
         var d=document.documentElement;
         if(size==='default') delete d.dataset.fontSize; else d.dataset.fontSize=size;
         try{ localStorage.setItem('hermes-font-size',size); }catch(e){}
         close();
       }});
     });
-    out.push({group:'操作', title:'设置', hint:'Ctrl ,', run:function(){
-      if(typeof toggle设置==='function') toggle设置();
+    out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_settings'), hint:'Ctrl ,', run:function(){
+      switchPanel('settings',{fromRailClick:true});
       close();
     }});
-    out.push({group:'操作', title:'搜索会话', hint:'/', run:function(){
+    out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_search_sessions'), hint:'/', run:function(){
       close();
       var ss=$('sessionSearch');
       if(ss){ if(typeof closeMobileSidebar==='function') closeMobileSidebar(); ss.focus(); }
     }});
     // ── Iris: 预设提示词（内置 8 个 + localStorage 自定义，不造轮子直接复用输入框）──
     var builtinPrompts=[
-      ['翻译成英文','将下面内容翻译成地道、自然的英文，保留原意与语气：'],
-      ['翻译成中文','将下面内容翻译成通顺、自然的中文，保留原意与语气：'],
-      ['总结提炼','请用简洁的要点总结下面内容，突出关键结论：'],
-      ['写作润色','请优化下面的文字：使表达更流畅、准确、有文采，保持原意：'],
-      ['周报生成','根据下面工作内容生成一份结构清晰的周报：'],
-      ['代码审查','请审查下面代码：指出 bug、安全隐患和可优化点，并给出修改建议：'],
-      ['头脑风暴','针对下面主题进行头脑风暴，给出多角度的创意方案：'],
-      ['规划任务','帮我制定一份可执行的计划，包含步骤、优先级和时间安排：']
+      ['cmd_prompt_translate_en_title','cmd_prompt_translate_en_body'],
+      ['cmd_prompt_translate_zh_title','cmd_prompt_translate_zh_body'],
+      ['cmd_prompt_summarize_title','cmd_prompt_summarize_body'],
+      ['cmd_prompt_polish_title','cmd_prompt_polish_body'],
+      ['cmd_prompt_weekly_title','cmd_prompt_weekly_body'],
+      ['cmd_prompt_code_review_title','cmd_prompt_code_review_body'],
+      ['cmd_prompt_brainstorm_title','cmd_prompt_brainstorm_body'],
+      ['cmd_prompt_plan_title','cmd_prompt_plan_body']
     ];
     var custom=[];
     try{
       var raw=localStorage.getItem('iris-prompts');
       if(raw) custom=JSON.parse(raw)||[];
     }catch(e){}
-    builtinPrompts.concat(custom).forEach(function(pp){
-      out.push({group:'预设提示词', title:pp[0], hint:'', run:function(){
+    builtinPrompts.map(function(p){ return [tr(p[0]),tr(p[1])]; })
+      .concat(custom).forEach(function(pp){
+      out.push({group:tr('cmd_palette_group_prompts'), title:pp[0], hint:'', run:function(){
         close();
         var composer=$('msg');
         if(!composer||typeof composer.focus!=='function') return;

@@ -7342,7 +7342,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
 }
 
 function transcript(){
-  const lines=[`# Iris 会话 ${S.session?.session_id||''}`,``,
+  const lines=[t('msg_export_session_title', S.session?.session_id || ''),``,
     `Workspace: ${S.session?.workspace||''}`,`Model: ${S.session?.model||''}`,``];
   for(const m of S.messages){
     if(!m||m.role==='tool')continue;

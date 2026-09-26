@@ -9,6 +9,41 @@
 // Bumps automatically whenever the git commit changes — no manual edits needed.
 const CACHE_NAME = 'hermes-shell-__WEBUI_VERSION__';
 
+// Offline fallback page. A service worker runs in its own scope with no access
+// to the page's i18n runtime, so it carries its own copy for the few strings it
+// needs and picks one from navigator.language. Chinese variants are kept here
+// rather than in i18n.js because that bundle is unreachable from this scope.
+const OFFLINE_COPY = {
+  en: {
+    title: 'You are offline',
+    detail: 'Iris cannot reach the server. Check your network, then retry.',
+  },
+  zh: {
+    title: '当前处于离线状态',
+    detail: 'Iris 需要连接服务器。请检查网络后重试。',
+  },
+  'zh-Hant': {
+    title: '目前處於離線狀態',
+    detail: 'Iris 需要連線至伺服器。請檢查網路後重試。',
+  },
+};
+
+function offlineLocale() {
+  const raw = String((self.navigator && self.navigator.language) || 'en').toLowerCase();
+  if (raw.startsWith('zh')) {
+    return /hant|tw|hk|mo/.test(raw) ? 'zh-Hant' : 'zh';
+  }
+  return 'en';
+}
+
+function offlinePageHtml() {
+  const copy = OFFLINE_COPY[offlineLocale()];
+  return '<html><body style="font-family:sans-serif;padding:2rem;background:#1a1a1a;color:#ccc">' +
+    '<h2>' + copy.title + '</h2>' +
+    '<p>' + copy.detail + '</p>' +
+    '</body></html>';
+}
+
 // Static assets that form the app shell.
 //
 // Versioned assets (CSS + JS) include `?v=__WEBUI_VERSION__` to match the
@@ -21,6 +56,7 @@ const CACHE_NAME = 'hermes-shell-__WEBUI_VERSION__';
 // can make valid password submits fail until the user clears browser cache.
 // Navigations populate './' only after a successful non-redirect network load.
 const VQ = '?v=__WEBUI_VERSION__';
+
 const SHELL_ASSETS = [
   './static/style.css' + VQ,
   './static/pwa-startup.js' + VQ,
@@ -132,10 +168,7 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch(() => {
         return caches.match('./').then((cached) => cached || new Response(
-          '<html><body style="font-family:sans-serif;padding:2rem;background:#1a1a1a;color:#ccc">' +
-          '<h2>You are offline</h2>' +
-          '<p>Iris 需要连接服务器。请检查网络后重试。</p>' +
-          '</body></html>',
+          offlinePageHtml(),
           { headers: { 'Content-Type': 'text/html' } }
         ));
       })

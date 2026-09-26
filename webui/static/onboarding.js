@@ -664,7 +664,7 @@ async function _pollCodexOAuth(){
     _codexOAuthFlowId=null;
     _setCodexOAuthButton(true);
     if(status==='success'){
-      _renderCodexOAuthTerminal('success','凭据已保存到 Iris 凭据池，正在刷新提供商状态…');
+      _renderCodexOAuthTerminal('success',t('onboarding_creds_saved'));
       showToast(t('oauth_codex_success'));
       try{await loadOnboardingWizard();}catch(e){}
     }else if(status==='expired'){
@@ -775,7 +775,7 @@ async function _pollAnthropicOAuth(){
     _anthropicOAuthFlowId=null;
     _setAnthropicOAuthButton(true);
     if(status==='success'){
-      _renderAnthropicOAuthTerminal('success','Iris 已关联 Claude Code 凭据，正在刷新提供商状态…');
+      _renderAnthropicOAuthTerminal('success',t('onboarding_claude_linked'));
       showToast('Claude Code OAuth linked');
       try{await loadOnboardingWizard();}catch(e){}
     }else if(status==='expired'){
@@ -800,7 +800,7 @@ async function startAnthropicOAuth(){
   _anthropicOAuthFlowId=null;
   _setAnthropicOAuthButton(false);
   flowDiv.style.display='block';
-  flowDiv.innerHTML=`<div class="onboarding-oauth-card onboarding-oauth-pending"><div class="onboarding-oauth-icon">⏳</div><div><strong>正在检查 Claude Code 凭据…</strong><p>Iris 正在检查此服务器上已有的 Claude Code OAuth 凭据。</p></div></div>`;
+  flowDiv.innerHTML=`<div class="onboarding-oauth-card onboarding-oauth-pending"><div class="onboarding-oauth-icon">⏳</div><div><strong>${t('onboarding_checking_claude_title')}</strong><p>${t('onboarding_checking_claude_body')}</p></div></div>`;
   try{
     const resp=await api('/api/onboarding/oauth/start',{method:'POST',body:JSON.stringify({provider:'anthropic'})});
     if(resp.error) throw new Error(resp.error);
@@ -811,7 +811,7 @@ async function startAnthropicOAuth(){
       _clearAnthropicOAuthPoll();
       _anthropicOAuthFlowId=null;
       _setAnthropicOAuthButton(true);
-      _renderAnthropicOAuthTerminal('success','Iris 已关联 Claude Code 凭据，正在刷新提供商状态…');
+      _renderAnthropicOAuthTerminal('success',t('onboarding_claude_linked'));
       showToast('Claude Code OAuth linked');
       try{await loadOnboardingWizard();}catch(e){}
       return;
@@ -821,7 +821,7 @@ async function startAnthropicOAuth(){
         <div class="onboarding-oauth-icon">🖥️</div>
         <div style="flex:1">
           <strong>Complete Claude Code login on this host</strong>
-          <p style="margin-top:6px">${esc(action_required||"请在服务器上运行 'claude setup-token' 后返回此处，Iris 会自动检测凭据。")}</p>
+          <p style="margin-top:6px">${esc(action_required||t('onboarding_setup_token_hint'))}</p>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
             <code style="display:inline-block;background:rgba(255,255,255,.08);padding:6px 10px;border-radius:8px;user-select:all">claude setup-token</code>
             <button class="sm-btn" type="button" onclick="cancelAnthropicOAuth()">Cancel</button>

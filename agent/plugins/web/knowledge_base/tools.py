@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sqlite3
 from pathlib import Path
+
+from hermes_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,7 @@ _DB_NAME = "knowledge.db"
 
 
 def _db_path() -> Path:
-    home = os.environ.get("HERMES_HOME") or str(Path.home() / ".hermes")
-    return Path(home) / _DB_NAME
+    return get_hermes_home() / _DB_NAME
 
 
 def _connect() -> sqlite3.Connection:
@@ -40,8 +40,8 @@ def _search(query: str, top_k: int = 4) -> dict:
     q = (query or "").strip()
     if not q:
         return {"results": [], "error": "empty query"}
-    top_k = max(1, min(int(top_k or 4), 10))
     try:
+        top_k = max(1, min(int(top_k or 4), 10))
         con = _connect()
         # FTS5 MATCH：>=3 字符用 phrase（trigram/cjk），短词或特殊字符降级 LIKE
         safe = " ".join(w for w in q.replace('"', " ").split() if w) or q

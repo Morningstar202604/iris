@@ -3930,8 +3930,8 @@ window.addEventListener('pageshow', async (event) => {
 
 async function shutdownServer() {
   const ok = await showConfirmDialog({
-    title: (typeof t === 'function' ? t('settings_shutdown_confirm_title') : '停止 Iris WebUI'),
-    message: (typeof t === 'function' ? t('settings_shutdown_confirm_message') : '停止 Iris WebUI 服务器？'),
+    title: (typeof t === 'function' ? t('settings_shutdown_confirm_title') : t('boot_stop_title')),
+    message: (typeof t === 'function' ? t('settings_shutdown_confirm_message') : t('boot_stop_confirm')),
     confirmLabel: (typeof t === 'function' ? t('settings_shutdown_confirm_btn') : 'Stop'),
     danger: true,
   });

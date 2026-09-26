@@ -37,6 +37,13 @@ class FakeHandler:
 
 
 @pytest.fixture(autouse=True)
+def _allow_webui_local_origin(monkeypatch):
+    # Custom-hostname deployments allowlist their origin explicitly since the
+    # DNS-rebinding gate no longer trusts the request's own Host header.
+    monkeypatch.setenv("HERMES_WEBUI_ALLOWED_ORIGINS", "http://webui.local")
+
+
+@pytest.fixture(autouse=True)
 def _clear_extension_env(monkeypatch):
     from api import auth as auth_mod
 

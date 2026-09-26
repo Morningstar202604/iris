@@ -15,10 +15,15 @@ The release repo already carries four remotes:
 
 ```bash
 git remote -v
-# gitee   https://badhope:<TOKEN>@gitee.com/badhope/iris.git
-# gitcode https://badhope:<TOKEN>@gitcode.com/badhope/iris.git
-# gh1     https://x33834:<TOKEN>@github.com/X33834/iris.git
-# gh2     https://Morningstar202604:<TOKEN>@github.com/Morningstar202604/iris.git
+# gitee   https://gitee.com/badhope/iris.git
+# gitcode https://gitcode.com/badhope/iris.git
+# gh1     https://github.com/X33834/iris.git
+# gh2     https://github.com/Morningstar202604/iris.git
+
+# Never embed tokens in remote URLs — they end up in .git/config, shell
+# history, and CI logs. Use a credential helper instead:
+#   git config --global credential.helper manager   (Windows / macOS)
+#   git config --global credential.helper store     (Linux, plaintext file)
 
 # After every commit:
 git push gh1 main && git push gh2 main
@@ -31,7 +36,8 @@ git push gitee v0.12.0 && git push gitcode v0.12.0
 
 ## Option B — GitHub Actions mirror (automatic, recommended)
 
-Add a workflow that mirrors every push to the China hosts (see `.github/workflows/mirror.yml`):
+To automate mirroring, save the following as `.github/workflows/mirror.yml`
+(it is not shipped in this repo — create it in your own fork):
 
 ```yaml
 # .github/workflows/mirror.yml
@@ -48,14 +54,14 @@ jobs:
       - name: Mirror to Gitee
         run: |
           git remote add gitee https://badhope:${{ secrets.GITEE_TOKEN }}@gitee.com/badhope/iris.git
-          git push -f gitee main
+          git push gitee main  # fast-forward only; a force push hides divergence
       - name: Mirror to GitCode
         run: |
-          git remote add gitcode https://badhope:${{ secrets.GITECODE_TOKEN }}@gitcode.com/badhope/iris.git
-          git push -f gitcode main
+          git remote add gitcode https://badhope:${{ secrets.GITCODE_TOKEN }}@gitcode.com/badhope/iris.git
+          git push gitcode main
 ```
 
-> Add `GITEE_TOKEN` / `GITECODE_TOKEN` to *Settings → Secrets and variables → Actions*.
+> Add `GITEE_TOKEN` / `GITCODE_TOKEN` to *Settings → Secrets and variables → Actions*.
 > Mirror runs after CI, so only green commits propagate to the China mirrors.
 
 ## Option C — host-native mirrors
