@@ -11,9 +11,31 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
 ![Plugins](https://img.shields.io/badge/plugins-275%2B-6B8BFF.svg)
-![i18n](https://img.shields.io/badge/i18n-14%20languages-green.svg)
+![i18n](https://img.shields.io/badge/i18n-15%20languages-green.svg)
 [![Official Repo](https://img.shields.io/badge/✦%20Iris-gitcode.com%2Fbadhope%2Firis-4F6EF7)](https://gitcode.com/badhope/iris)
 [![Download](https://img.shields.io/badge/⬇%20Download-v0.12.0-12B76A)](https://gitcode.com/badhope/iris/releases)
+
+---
+
+## 🖥️ See it in action
+
+**A real task, done end-to-end** — Iris planned, wrote, verified and reported a complete
+single-page website, recovering on its own from a stream drop, an oversized write and a
+sandbox permission limit along the way:
+
+![Real agent task — building a website](assets/screenshots/chat-demo.png)
+
+<video src="assets/demo/iris-demo.mp4" controls width="720"></video>
+
+## 📸 Screenshots
+
+| Main workspace | Settings | Skills hub |
+|---|---|---|
+| ![Main](assets/screenshots/main.png) | ![Settings](assets/screenshots/settings.png) | ![Skills](assets/screenshots/skills.png) |
+
+| Scheduled tasks | Usage analytics | Mobile |
+|---|---|---|
+| ![Tasks](assets/screenshots/tasks.png) | ![Stats](assets/screenshots/stats.png) | ![Mobile](assets/screenshots/mobile.png) |
 
 ---
 
@@ -54,6 +76,9 @@ custom_providers:
     api_key: your-key
 ```
 
+> 📘 Full setup, provider wiring, image generation, approvals and troubleshooting live in
+> **[`docs/`](docs/)** — start with [`docs/quickstart.md`](docs/quickstart.md).
+
 ---
 
 ## ⚡ Why Iris? (vs. the original Hermes)
@@ -65,7 +90,7 @@ while making the whole thing feel like a modern consumer AI app:
 |---|---|---|
 | ⚡ Boot time | slow, loads everything | **seconds — lazy loading, uvloop-native** |
 | 📦 Footprint | heavy | **leaner — web UI needs only pyyaml + cryptography** |
-| 🖥️ Web UI | dev-tool style | **modern consumer UI** — light/dark, 9 skins, command palette |
+| 🖥️ Web UI | dev-tool style | **modern consumer UI** — light/dark, 21 skins, command palette |
 | 🔌 Model support | provider-specific adapters | **protocol-first** — *any* OpenAI-compatible endpoint |
 | 🧩 Plugins | bundled always | **275+ catalog, install / uninstall on demand** |
 | 📚 Knowledge base | — | **RAG with CJK-aware full-text search** |
@@ -101,17 +126,11 @@ flowchart LR
 | 🔌 **Any model, any provider** | OpenAI-compatible protocol layer — base URL + key, done |
 | 🧩 **Plugin ecosystem** | **275+ plugins**, one-click install / uninstall / toggle |
 | 📚 **Knowledge base RAG** | Upload docs → local CJK-aware index → answers from *your* data |
-| 🎨 **Modern Web UI** | Command palette (`Ctrl+Shift+P`), 9 skins, 520+ settings |
+| 🎨 **Modern Web UI** | Command palette (`Ctrl+Shift+P`), 21 skins, 520+ settings |
 | 🧠 **Memory & skills** | Long-term memory, skills hub, cron, kanban, todo, session search |
 | 🗣️ **Voice-ready** | Dictation + hands-free voice + text-to-speech |
-| 🌐 **14 languages** | Full i18n, defaults to Chinese (中文), switch anytime |
+| 🌐 **15 languages** | Full i18n, defaults to Chinese (中文), switch anytime |
 | 🔒 **Local-first & private** | Sessions, memory, knowledge — all on *your* machine |
-
----
-
-## 🖥️ Screenshot
-
-See the landing page for screenshots and a live architecture tour: [x33834.github.io/iris](https://x33834.github.io/iris)
 
 ---
 
@@ -124,6 +143,17 @@ Iris is an **independent, deeply-customized distribution of [Hermes](https://git
 - **Rewrote the entire front-end** in a mainstream consumer-app style
 - **Slimmed the deploy surface** — the web UI runs on two Python deps; heavy providers stay optional
 - **Added** knowledge-base RAG, command palette, preset prompts, ECharts rendering, and more
+
+---
+
+## 📚 Documentation
+
+| Doc | What it covers |
+|---|---|
+| [`docs/quickstart.md`](docs/quickstart.md) | Install, first run, model setup |
+| [`docs/configuration.md`](docs/configuration.md) | `config.yaml` reference — providers, image gen, approvals |
+| [`docs/usage.md`](docs/usage.md) | Daily use — chat, tools, tasks, kanban, memory, skills |
+| [`docs/faq.md`](docs/faq.md) | Common issues & fixes (rate limits, stalls, upgrades) |
 
 ---
 
