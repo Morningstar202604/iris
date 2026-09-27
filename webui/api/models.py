@@ -7913,6 +7913,26 @@ def _sqlite_file_stat_cache_key(db_path: Path):
     )
 
 
+def _streaming_freeze_marker(active_stream_ids_getter):
+    """Return a hold-down cache marker while any turn is actively streaming.
+
+    Keyed only on the set of active stream ids: constant while the same
+    turn(s) stream (so caches hold steady across polls), changes the instant
+    a stream starts/stops (so the just-finished turn''s rows are picked up
+    promptly). Returns None when no stream is active or the probe fails.
+    """
+    try:
+        active = active_stream_ids_getter()
+    except Exception:
+        return None
+    if not active:
+        return None
+    try:
+        return ("streaming", tuple(sorted(str(x) for x in active)))
+    except Exception:
+        return ("streaming",)
+
+
 def _cli_sessions_streaming_freeze_marker():
     """Return a stable cache-key marker while any turn is actively streaming.
 
@@ -7942,16 +7962,8 @@ def _cli_sessions_streaming_freeze_marker():
     instantly — a bounded, self-healing lag that is the deliberate latency/CPU
     trade-off of the freeze. (#4842)
     """
-    try:
-        active = _active_stream_ids()
-    except Exception:
-        return None
-    if not active:
-        return None
-    try:
-        return ("streaming", tuple(sorted(str(x) for x in active)))
-    except Exception:
-        return ("streaming",)
+    return _streaming_freeze_marker(_active_stream_ids)
+
 
 
 def _resolve_cli_sessions_context(source_filter=None, include_claude_code: bool = True):

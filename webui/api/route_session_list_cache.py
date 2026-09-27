@@ -524,16 +524,10 @@ def _session_list_cache_streaming_freeze_marker():
     only thing that can lag under the hold-down is a streaming session's own
     title/message_count, which already tolerates a <=TTL refresh delay.
     """
-    try:
-        active = _session_list_cache_active_stream_ids()
-    except Exception:
-        return None
-    if not active:
-        return None
-    try:
-        return ("streaming", tuple(sorted(str(x) for x in active)))
-    except Exception:
-        return ("streaming",)
+    from api.models import _streaming_freeze_marker
+
+    return _streaming_freeze_marker(_session_list_cache_active_stream_ids)
+
 
 
 def _session_list_cache_state_db_fingerprint(state_db_path: Path | None):
