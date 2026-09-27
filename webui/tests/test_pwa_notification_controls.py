@@ -122,7 +122,7 @@ def test_settings_expose_permission_and_test_controls():
     assert 'id="notificationPermissionButtonWrap"' in INDEX_HTML
     assert 'id="notificationPermissionButton"' in INDEX_HTML
     assert "requestNotificationPermission()" in INDEX_HTML
-    assert "sendBrowserNotification('Hermes test'" in INDEX_HTML
+    assert "sendBrowserNotification('Iris test'" in INDEX_HTML
     assert "{force:true}" in INDEX_HTML
     assert "function updateNotificationPermissionStatus" in PANELS_JS
     assert "const btn=$('notificationPermissionButton');" in PANELS_JS

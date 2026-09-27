@@ -15,12 +15,20 @@ from pathlib import Path
 
 import pytest
 
+from tests.test_issue2147_profile_concept_help import PROFILE_CONCEPT_KEYS
+
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "static"
 I18N = (STATIC / "i18n.js").read_text(encoding="utf-8")
 INDEX_HTML = (STATIC / "index.html").read_text(encoding="utf-8")
 PANELS_JS = (STATIC / "panels.js").read_text(encoding="utf-8")
 PALETTE_JS = (STATIC / "command-palette.js").read_text(encoding="utf-8")
+
+# Keys owned by the English bundle and intentionally absent from every other
+# locale (see test_issue2147_profile_concept_help): non-English bundles fall back
+# to en via `_locale[key] ?? LOCALES.en[key]`, so the completeness check must not
+# require them. The per-locale coverage tests subtract the same set.
+ENGLISH_FALLBACK_KEYS = {*PROFILE_CONCEPT_KEYS, "workspace_artifact_source_session"}
 
 CJK = re.compile(r"[\u4e00-\u9fff]")
 STRING_LITERAL = re.compile(r"""(['"`])((?:\\.|(?!\1).)*?)\1""", re.S)
@@ -100,7 +108,7 @@ def test_no_hardcoded_cjk_in_chrome_js(path):
 
 @pytest.mark.parametrize("locale", REQUIRED_LOCALES)
 def test_locale_bundle_is_complete(locale):
-    missing = sorted(EN_KEYS - LOCALE_KEYS[locale])
+    missing = sorted((EN_KEYS - LOCALE_KEYS[locale]) - ENGLISH_FALLBACK_KEYS)
     assert not missing, (
         f"{locale} bundle is missing {len(missing)} keys defined in en: {missing[:20]}"
     )

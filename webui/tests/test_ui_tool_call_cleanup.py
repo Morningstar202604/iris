@@ -780,7 +780,7 @@ class TestToolCardDesignTokens:
             "--border:#2A2A45",
             "--text:#FFF8DC",
             "--muted:#C0C0C0",
-            "--accent:#FFD700",
+            "--accent:#8B8BF0",
             "--surface:#1A1A2E",
             "--topbar-bg:rgba(20,20,37,.98)",
         )
@@ -795,7 +795,7 @@ class TestToolCardDesignTokens:
             "--border:#E0D8C8",
             "--text:#1A1610",
             "--muted:#5C5344",
-            "--accent:#B8860B",
+            "--accent:#5B5BD6",
             "--surface:#F3EEE3",
         )
         for token in expected_tokens:

@@ -505,7 +505,7 @@ def test_pet_slash_intercept_bypasses_generic_agent_execution():
     assert pet["remainingInput"] == ""
 
     assert [item["role"] for item in browser["messages"]] == ["user", "assistant"]
-    assert "`/browser` is a Hermes CLI-only command" in browser["messages"][1]["content"]
+    assert "cmd_webui_only_notice" in browser["messages"][1]["content"]
     assert browser["commandExecCalls"] == []
 
 

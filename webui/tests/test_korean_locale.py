@@ -101,7 +101,7 @@ def test_korean_locale_includes_representative_translations():
         "tab_tasks: '작업'",
         "tab_profiles: 'Agent 프로필'",
         "empty_title: '무엇을 도와드릴까요?'",
-        "onboarding_title: 'Hermes Web UI에 오신 것을 환영합니다'",
+        "onboarding_title: 'Iris Web UI에 오신 것을 환영합니다'",
     ]
     for entry in expected:
         assert entry in src
@@ -116,7 +116,7 @@ def test_korean_settings_detail_descriptions_are_translated():
         "settings_desc_sidebar_density: '왼쪽 사이드바의 세션 목록에 표시할 메타데이터 양을 제어합니다.'",
         "settings_desc_auto_title_refresh: '최신 대화를 바탕으로 세션 제목을 자동으로 다시 생성해 대화가 진행되어도 제목을 관련 있게 유지합니다. LLM 제목 생성 모델 설정이 필요합니다.'",
         "settings_desc_external_sessions: 'CLI, Telegram, Discord, Slack 및 기타 채널의 대화를 세션 목록에 표시합니다. 클릭하여 가져오고 계속하세요.'",
-        "settings_desc_sync_insights: 'WebUI 토큰 사용량을 state.db에 반영하여 hermes /insights에 브라우저 세션 데이터가 포함되도록 합니다. 기본값은 꺼짐입니다.'",
+        "settings_desc_sync_insights: 'WebUI 토큰 사용량을 state.db에 반영하여 Iris /insights에 브라우저 세션 데이터가 포함되도록 합니다. 기본값은 꺼짐입니다.'",
         "settings_desc_check_updates: 'WebUI 또는 Agent의 새 버전이 있으면 배너를 표시합니다. 백그라운드에서 주기적으로 git fetch를 실행합니다.'",
         "settings_desc_bot_name: '기본 프로필에만 사용됩니다. 다른 프로필은 각 프로필 이름을 사용합니다.'",
         "settings_desc_password: '새 비밀번호를 설정하거나 변경하려면 입력하세요. 현재 설정을 유지하려면 비워 두세요.'",

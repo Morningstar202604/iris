@@ -3053,7 +3053,7 @@ function applyBotName(){
   const topbarTitle=$('topbarTitle');
   if(topbarTitle && (!S.session)) topbarTitle.textContent=name;
   const msg=$('msg');
-  if(msg) msg.placeholder='\u7ed9 '+name+' \u53d1\u9001\u6d88\u606f\u2026';
+  if(msg) msg.placeholder=t('composer_placeholder_named',name);
   if(typeof _applyBusyComposerPlaceholder==='function') _applyBusyComposerPlaceholder();
 }
 

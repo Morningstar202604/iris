@@ -59,7 +59,7 @@ def test_login_page_served():
         html = r.read().decode()
         assert r.status == 200
         assert "Sign in" in html
-        assert "Hermes" in html
+        assert "Iris" in html
         assert 'src="static/login.js?v=' in html
         assert 'src="/static/login.js"' not in html
 

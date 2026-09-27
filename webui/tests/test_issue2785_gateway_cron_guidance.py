@@ -27,7 +27,8 @@ def test_cron_panel_loads_gateway_status_for_scheduling_guidance():
     assert "Gateway endpoint not reachable" in panels
     assert "configured gateway URL env var" in panels
     assert "GATEWAY_HEALTH_URL" in panels
-    assert "scheduled jobs require the Hermes gateway daemon" in panels
+    assert "t('cron_gateway_notice_container_body')" in panels
+    assert "t('cron_gateway_notice_stop_body')" in panels
     assert "loadCronGatewayNotice()" in panels
 
 

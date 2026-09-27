@@ -1,0 +1,19 @@
+# Keep arbitrary scratch files out of docs/, but track contributor markdown.
+docs/*
+!docs/*.md
+!docs/ui-ux/
+!docs/ui-ux/**
+!docs/rfcs/
+!docs/rfcs/**
+!docs/architecture/
+!docs/architecture/**
+
+# Local-only AI assistant context — never committed, even under docs/.
+# These must come after the !docs/*.md negation so they win.
+docs/AGENTS.md
+docs/CLAUDE.md
+docs/.cursorrules
+docs/.windsurfrules
+
+# Local overrides of the shared repo entrypoint stay ignored.
+AGENTS.local.md

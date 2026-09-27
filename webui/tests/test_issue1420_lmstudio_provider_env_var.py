@@ -70,9 +70,15 @@ def _swap_in_test_config(extra_cfg):
     """Snapshot config.cfg, replace with a minimal test config; return restore-fn."""
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
+    # Pin _cfg_path to the active config path. A sibling test that switched
+    # profiles / repointed HERMES_CONFIG_PATH can leave _cfg_path stale relative
+    # to _get_config_path(), which makes get_config()'s `path_changed` branch
+    # reload from disk and silently discard this in-memory swap.
+    old_path = getattr(config, "_cfg_path", None)
     config.cfg.clear()
     config.cfg["model"] = {}
     config.cfg.update(extra_cfg)
+    config._cfg_path = config._get_config_path()
     try:
         config._cfg_mtime = config.Path(config._get_config_path()).stat().st_mtime
     except Exception:
@@ -82,6 +88,7 @@ def _swap_in_test_config(extra_cfg):
         config.cfg.clear()
         config.cfg.update(old_cfg)
         config._cfg_mtime = old_mtime
+        config._cfg_path = old_path
 
     return _restore
 

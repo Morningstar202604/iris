@@ -167,12 +167,12 @@ DEFAULT_AGENT_IDENTITY = (
 )
 
 HERMES_AGENT_HELP_GUIDANCE = (
-    # Injected only when skill_view exists AND the hermes-agent skill is installed (system_prompt.py slot
+    # Injected only when skill_view exists AND the iris-agent skill is installed (system_prompt.py slot
     # resolution). No "when the two differ" clause: docs-are-authoritative already carries the precedence.
     "You run on Iris. When the user needs help with Iris itself — configuring, "
     "setting up, using, extending, or troubleshooting it — or when you need to understand your own features, "
-    "tools, or capabilities, the built-in help and the `hermes-agent` skill have the actual commands and proven workflows — load it with "
-    "skill_view(name='hermes-agent') before configuring, modifying, or troubleshooting Iris so you don't guess "
+    "tools, or capabilities, the built-in help and the `iris-agent` skill have the actual commands and proven workflows — load it with "
+    "skill_view(name='iris-agent') before configuring, modifying, or troubleshooting Iris so you don't guess "
     "or invent workarounds."
 )
 

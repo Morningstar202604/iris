@@ -490,6 +490,7 @@ function runScenario(command) {
       globalThis.loadProvidersPanel = async () => undefined;
       globalThis.loadPluginsPanel = async () => undefined;
       globalThis.loadExtensionsPanel = async () => undefined;
+      globalThis.loadKnowledgePanel = async () => undefined;
       globalThis._settingsIndex = null;
       globalThis._settingsIndexPromise = null;
       globalThis._settingsSearchSeq = 0;

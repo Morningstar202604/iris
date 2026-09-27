@@ -1,0 +1,32 @@
+name: WebUI tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          # Quote the version specifier: an unquoted `pyyaml>=6.0` is parsed by
+          # the shell as a redirection to a file named `=6.0`.
+          pip install "pyyaml>=6.0"
+      - name: Run the WebUI suite
+        run: ./scripts/test.sh tests/ -q --timeout=120

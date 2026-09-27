@@ -17,8 +17,8 @@ def test_help_nav_button_present():
 
 def test_help_pane_present():
     assert 'id="settingsPaneHelp"' in INDEX_HTML
-    assert 'href="https://get-hermes.ai/"' in INDEX_HTML
-    assert 'href="https://github.com/nesquena/hermes-webui/issues"' in INDEX_HTML
+    assert 'href="https://x33834.github.io/iris"' in INDEX_HTML
+    assert 'href="https://github.com/X33834/iris/issues"' in INDEX_HTML
 
 
 def test_help_pane_links_are_outbound():

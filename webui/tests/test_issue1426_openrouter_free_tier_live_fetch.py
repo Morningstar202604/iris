@@ -76,6 +76,10 @@ def _isolate_openrouter_cache(monkeypatch):
         },
         raising=False,
     )
+    # Pin _cfg_path to the active config path so get_available_models()'s
+    # `path_changed` branch does not reload from disk and re-derive the active
+    # provider from a sibling test's leftover config (test-isolation pollution).
+    monkeypatch.setattr(config, "_cfg_path", config._get_config_path(), raising=False)
     # Reset module-level cache
     try:
         config.invalidate_models_cache()

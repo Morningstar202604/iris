@@ -1,0 +1,53 @@
+# Docker build-context filter for the WebUI image.
+#
+# The Dockerfile copies this context to /apptoo and docker_init.bash seeds /app
+# from it, so anything excluded here never reaches the runtime tree.
+
+# Version control, editors, and local tooling
+.git
+.gitignore
+.github
+*.swp
+*.swo
+*.bak
+
+# Python caches and build metadata
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node tooling
+node_modules/
+package-lock.json
+
+# Local secrets and runtime state — never bake these into the image
+.env
+.env.*
+!.env.example
+!.env.docker.example
+.webui_password
+attachments/
+*.log
+
+# Repository instructions stay out of the image. Root-only so a user-selected
+# workspace can still ship its own AGENTS.md (/workspace is a bind mount).
+/AGENTS.md
+AGENTS.local.md
+CLAUDE.md
+.cursorrules
+.windsurfrules
+
+# Local-only scratch under docs/, but keep contributor markdown trackable
+docs/*
+!docs/*.md
+!docs/ui-ux/
+!docs/ui-ux/**
+!docs/rfcs/
+!docs/rfcs/**
+!docs/architecture/
+!docs/architecture/**

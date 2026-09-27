@@ -36,8 +36,8 @@ class TestComposerPlaceholderProfile:
         m = re.search(r'function assistantDisplayName\(\)\{.*?\n\}', src, re.DOTALL)
         assert m, "assistantDisplayName function must exist"
         body = m.group(0)
-        assert "window._botName||'Hermes'" in body, \
-            "assistantDisplayName must use window._botName or 'Hermes' for the default profile"
+        assert "window._botName||'Iris'" in body, \
+            "assistantDisplayName must use window._botName or 'Iris' for the default profile"
 
     def test_chat_surfaces_use_shared_assistant_display_name(self):
         """Chat rows, titles, notifications, and cancel copy must honor profile overrides."""
@@ -99,5 +99,5 @@ class TestComposerPlaceholderProfile:
         m = re.search(r'function applyBotName\(\)\{.*?\n\}', src, re.DOTALL)
         assert m, "applyBotName function must exist"
         body = m.group(0)
-        assert re.search(r"msg\.placeholder\s*=\s*.*Message.*name", body), \
-            "applyBotName must set composer placeholder to 'Message <name>…'"
+        assert re.search(r"msg\.placeholder\s*=\s*t\('composer_placeholder_named'\s*,\s*name\)", body), \
+            "applyBotName must set the localized composer placeholder with the resolved name"

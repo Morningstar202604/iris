@@ -110,8 +110,10 @@ def test_frontend_can_execute_agent_commands_via_api_endpoint():
 
 def test_cli_only_response_mentions_webui_and_cli_scope():
     assert "function cliOnlyCommandResponse" in COMMANDS_JS
-    assert "Hermes CLI-only command" in COMMANDS_JS
-    assert "cannot run inside the WebUI" in COMMANDS_JS
+    assert "t('cmd_webui_only_notice'" in COMMANDS_JS
+    i18n_src = (REPO_ROOT / "static" / "i18n.js").read_text(encoding="utf-8")
+    assert "is an Iris CLI-only command" in i18n_src
+    assert "cannot run in the WebUI" in i18n_src
 
 
 def test_browser_cli_only_response_explains_server_side_browser_tools():
@@ -129,7 +131,7 @@ def _run_commands_js(script_body: str) -> dict:
         const ctx = {{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           api: async (path) => {{
             if (path === '/api/commands') return {{
               commands: [
@@ -344,7 +346,7 @@ def test_cli_only_response_helper_uses_canonical_command_name():
         """
     )
 
-    assert "`/browser` is a Hermes CLI-only command" in result["response"]
+    assert result["response"].startswith("cmd_webui_only_notice(browser)")
     assert "Attach browser tools" in result["response"]
     assert "configured server-side" in result["response"]
 
@@ -466,7 +468,7 @@ def test_skill_autocomplete_waits_for_bundle_metadata_before_showing_colliding_k
         const ctx = {{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           api: async (path) => {{
             if (path === '/api/commands') return {{ commands: [] }};
             if (path === '/api/commands/bundles') return bundlesReady;
@@ -526,7 +528,7 @@ def test_bundle_collisions_stay_hidden_until_agent_metadata_is_ready():
         const ctx = {{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           api: async (path) => {{
             if (path === '/api/commands') return commandsReady;
             if (path === '/api/commands/bundles') return {{
@@ -814,7 +816,7 @@ def _run_shared_classic_realm_js() -> dict:
         const ctx = vm.createContext({{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           document: {{ addEventListener(){{}}, getElementById(){{ return null; }}, hidden: false }},
           window: {{ addEventListener(){{}}, speechSynthesis: {{ speaking: false, paused: false }} }},
           location: {{ href: 'http://localhost/', protocol: 'http:', host: 'localhost' }},
@@ -907,7 +909,7 @@ def _run_production_autocomplete_js(commands_payload: list[dict], script_body: s
         const ctx = {{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           api: async (path) => {{
             if (path === '/api/commands') return {{ commands: {json.dumps(commands_payload)} }};
             if (path === '/api/commands/bundles') return {{ bundles: [] }};
@@ -1022,7 +1024,7 @@ def _run_busy_intercept_js(script_body: str) -> dict:
         const ctx = {{
           console,
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
-          t: (key) => key,
+          t: (key, ...args) => args.length ? key + '(' + args.map(a => String(a)).join(')(') + ')' : key,
           S: {{
             busy: true,
             activeStreamId: 'stream-1',

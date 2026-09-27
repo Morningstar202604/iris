@@ -292,9 +292,9 @@ def _home_relative(p: Path) -> Path:
     return p if p.is_absolute() else get_hermes_home() / p
 
 
-# Never disableable: `hermes-agent` is the agent's own operating manual and the
+# Never disableable: `iris-agent` is the agent's own operating manual and the
 # system prompt points at it unconditionally.
-ESSENTIAL_SKILLS: frozenset = frozenset({"hermes-agent"})
+ESSENTIAL_SKILLS: frozenset = frozenset({"iris-agent"})
 
 
 def get_disabled_skill_names(platform: str | None = None) -> Set[str]:

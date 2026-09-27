@@ -4525,8 +4525,8 @@ function _renderSystemHealthPanel() {
     <section class="insights-card system-health-panel loading" id="systemHealthPanel" aria-label="Host resource health" aria-live="polite">
       <div class="system-health-head">
         <div>
-          <div class="insights-card-title">系统健康</div>
-          <div class="system-health-sub">当前服务器资源占用</div>
+          <div class="insights-card-title">System health</div>
+          <div class="system-health-sub">Current VPS resource usage</div>
         </div>
         <span class="system-health-status" id="systemHealthStatus"><span class="system-health-dot" aria-hidden="true"></span>Loading…</span>
       </div>
@@ -11019,7 +11019,8 @@ async function installPluginByIdentifier(identifier,btn){
 
 async function removePluginByName(name,btn){
   if(!name) return;
-  if(!window.confirm('Remove plugin "'+name+'"?')) return;
+  const ok=await showConfirmDialog({message:'Remove plugin "'+name+'"?',danger:true,confirmLabel:t('plugin_uninstall')});
+  if(!ok) return;
   const status=$('pluginInstallStatus');
   const setStatus=function(msg,isErr){
     if(!status) return;

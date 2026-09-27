@@ -2233,7 +2233,7 @@ def get_provider_quota(provider_id: str | None = None, *, refresh: bool = False)
             "message": f"{display_name} credential pool: all credentials are unavailable.",
         }
 
-    detail = "OpenAI/Anthropic 速率限制响应头暂未接入，等 WebUI 捕获 provider 响应元数据后即可支持。"
+    detail = "OpenAI/Anthropic rate-limit response headers are not captured yet; this is a follow-up once the WebUI captures provider response metadata."
     return {
         "ok": False,
         "provider": provider,
@@ -2241,7 +2241,7 @@ def get_provider_quota(provider_id: str | None = None, *, refresh: bool = False)
         "supported": False,
         "status": "unsupported",
         "quota": None,
-        "message": f"暂无法获取 {display_name} 的用量状态。{detail}",
+        "message": f"Usage status for {display_name} is not available yet. {detail}",
     }
 
 

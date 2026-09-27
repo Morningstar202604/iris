@@ -67,7 +67,7 @@ def test_notification_click_open_window_remains_no_reusable_client_fallback():
 
 def test_test_notification_without_sid_still_targets_current_page_for_reuse():
     assert "const url=sid?`${location.origin}${_sessionUrlForSid(sid)}`:location.href;" in MESSAGES_SRC
-    assert "sendBrowserNotification('Hermes test','Notifications are ready.',{force:true});" in (
+    assert "sendBrowserNotification('Iris test','Notifications are ready.',{force:true});" in (
         ROOT / "static" / "index.html"
     ).read_text(encoding="utf-8")
 

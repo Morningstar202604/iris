@@ -1,7 +1,27 @@
 """Tests for graceful stash-apply recovery in _apply_update_inner."""
 from unittest.mock import patch
 
+import pytest
+
 import api.updates as updates
+
+
+@pytest.fixture(autouse=True)
+def _fake_update_repo_root(tmp_path, monkeypatch):
+    """The update helpers require REPO_ROOT to look like a git checkout.
+
+    Every test here mocks ``_run_git`` outright, so the only filesystem
+    precondition is that ``REPO_ROOT / '.git'`` exists. In the original
+    standalone webui checkout REPO_ROOT *was* the repo root, but in the iris
+    monorepo it lives in a subdirectory and has no ``.git`` of its own, so the
+    update entry points would short-circuit with "Not a git repository".
+    Provide an isolated fake repo root; tests that need their own path still
+    patch REPO_ROOT themselves (which takes precedence).
+    """
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    (repo / '.git').mkdir()
+    monkeypatch.setattr(updates, 'REPO_ROOT', repo)
 
 
 def test_pull_failure_untracked_overwrite_flags_conflict(tmp_path):

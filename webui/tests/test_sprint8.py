@@ -116,7 +116,7 @@ def test_app_js_contains_highlight_code(cleanup_test_sessions):
 def test_index_html_contains_prism(cleanup_test_sessions):
     with urllib.request.urlopen(BASE + "/", timeout=10) as r:
         src = r.read().decode()
-    assert "prismjs" in src.lower()
+    assert "prism" in src.lower()
 
 def test_index_html_contains_clear_button(cleanup_test_sessions):
     with urllib.request.urlopen(BASE + "/", timeout=10) as r:
