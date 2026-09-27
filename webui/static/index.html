@@ -70,7 +70,7 @@
   }
 })()</script>
 <link rel="stylesheet" href="static/style.css?v=__WEBUI_VERSION__">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" integrity="sha384-LJcOxlx9IMbNXDqJ2axpfEQKkAYbFjJfhXexLfiRJhjDU81mzgkiQq8rkV0j6dVh" crossorigin="anonymous">
+  <link rel="stylesheet" href="/static/vendor/xterm.css">
   <!-- KaTeX math rendering CSS (loaded eagerly from vendored assets to prevent font CSP noise) -->
   <link rel="stylesheet" href="static/vendor/katex/0.16.22/katex.min.css">
   <!-- streaming-markdown: incremental DOM-building markdown parser for live streams -->
@@ -88,12 +88,13 @@
   <!-- SRI removed from prism-tomorrow.min.css — jsdelivr serves different digests across
        edge nodes causing intermittent integrity failures that block syntax highlighting (#1100).
        Version is pinned to @1.29.0 which is sufficient for supply-chain assurance. -->
-  <link id="prism-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js" integrity="sha384-MXybTpajaBV0AkcBaCPT4KIvo0FzoCiWXgcihYsw4FUkEz0Pv3JGV6tk2G8vJtDc" crossorigin="anonymous" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha384-Uq05+JLko69eOiPr39ta9bh7kld5PKZoU+fF7g0EXTAriEollhZ+DrN8Q/Oi8J2Q" crossorigin="anonymous" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js" integrity="sha384-/nfmYPUzWMS6v2atn8hbljz7NE0EI1iGx34lJaNzyVjWGDzMv+ciUZUeJpKA3Glc" crossorigin="anonymous" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js" integrity="sha384-AQLWHRKAgdTxkolJcLOELg4E9rE89CPE2xMy3tIRFn08NcGKPTsELdvKomqji+DL" crossorigin="anonymous" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.js" integrity="sha384-U4fBROT3kCM582gaYiNaOSQiJbXPzd9SfR1598Y7yeGSYVBzikXrNg0XyuU+mOnl" crossorigin="anonymous" defer></script>
+  <link id="prism-theme" rel="stylesheet" href="/static/vendor/prism-tomorrow.min.css">
+  <script src="/static/vendor/prism-core.min.js" defer></script>
+  <script src="/static/vendor/prism-autoloader.min.js" defer></script>
+  <script>window.Prism = window.Prism || {}; Prism.plugins = Prism.plugins || {}; Prism.plugins.autoloader = { languagesPath: "/static/vendor/prism-components/" };</script>
+  <script src="/static/vendor/xterm.js" defer></script>
+  <script src="/static/vendor/xterm-addon-fit.js" defer></script>
+  <script src="/static/vendor/xterm-addon-web-links.js" defer></script>
   <!-- PWA service worker registration -->
   <script>
     if ('serviceWorker' in navigator) {

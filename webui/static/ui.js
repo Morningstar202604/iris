@@ -20564,7 +20564,7 @@ function _renderExcalidrawCanvases(){
 }
 
 // ── PDF inline preview (first page) ────────────────────────────────────────
-// NOTE: PDF.js is loaded from CDN (jsdelivr). Offline/air-gapped deployments
+// NOTE: PDF.js is vendored locally (static/vendor/pdf.min.mjs) so deployments
 // will not get inline previews; the 15 s fallback timeout degrades to a
 // download link in that case. The 4 MB size cap is checked client-side after
 // the full buffer is received — ideally the server would enforce it before
@@ -20641,8 +20641,8 @@ function loadPdfInline(container){
       loadPdf(window._pdfjsLib);
     } else if(!_pdfjsLoading){
       _pdfjsLoading=true;
-      const _pdfSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.155/build/pdf.min.mjs';
-      const _pdfWorker='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.155/build/pdf.worker.min.mjs';
+      const _pdfSrc='/static/vendor/pdf.min.mjs';
+      const _pdfWorker='/static/vendor/pdf.worker.min.mjs';
       const _pdfBlob=new Blob([`import*as p from'${_pdfSrc}';p.GlobalWorkerOptions.workerSrc='${_pdfWorker}';window._pdfjsLib=p;window._pdfjsReady=true;window.dispatchEvent(new Event('pdfjs-ready'));`],{type:'application/javascript'});
       const s=document.createElement('script');
       s.type='module';
@@ -20704,9 +20704,7 @@ function renderMermaidBlocks(container){
     if(!_mermaidLoading){
       _mermaidLoading=true;
       const script=document.createElement('script');
-      script.src='https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js';
-      script.integrity='sha384-R63zfMfSwJF4xCR11wXii+QUsbiBIdiDzDbtxia72oGWfkT7WHJfmD/I/eeHPJyT';
-      script.crossOrigin='anonymous';
+      script.src='/static/vendor/mermaid.min.js';
       script.onload=()=>{
         if(typeof mermaid!=='undefined'){
           mermaid.initialize({startOnLoad:false,theme:document.documentElement.classList.contains('dark')?'dark':'default',themeVariables:{
@@ -20756,8 +20754,7 @@ function renderEChartsBlocks(container){
     if(!_echartsLoading){
       _echartsLoading=true;
       const script=document.createElement('script');
-      script.src='https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js';
-      script.crossOrigin='anonymous';
+      script.src='/static/vendor/echarts.min.js';
       script.onload=()=>{ _echartsReady=true; renderEChartsBlocks(); };
       script.onerror=()=>{
         _echartsLoading=false;
