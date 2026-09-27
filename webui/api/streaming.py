@@ -75,6 +75,7 @@ from api.turn_journal import append_turn_journal_event_for_stream
 from api.usage import prompt_cache_hit_percent
 from api.models import (
     StateDBSessionMessagesSnapshot,
+    _partial_message_signature,
     _is_empty_partial_activity_message,
     _evict_sessions_over_cap,
     clear_process_wakeup_pause,
@@ -8258,36 +8259,6 @@ def _extract_tool_calls_from_messages(messages, live_tool_calls=None):
 
     return tool_calls
 
-
-def _partial_message_signature(message: dict) -> tuple:
-    """Return a stable identity for a persisted partial assistant marker."""
-    if not isinstance(message, dict):
-        return ('', '', ())
-    tool_sig = []
-    for tool_call in message.get('_partial_tool_calls') or []:
-        if not isinstance(tool_call, dict):
-            continue
-        try:
-            args_sig = json.dumps(
-                tool_call.get('args') or {},
-                ensure_ascii=False,
-                sort_keys=True,
-                default=str,
-            )
-        except Exception:
-            args_sig = str(tool_call.get('args') or '')
-        tool_sig.append((
-            str(tool_call.get('name') or ''),
-            args_sig,
-            bool(tool_call.get('done', False)),
-            bool(tool_call.get('is_error', False)),
-            str(tool_call.get('preview') or tool_call.get('snippet') or ''),
-        ))
-    return (
-        str(message.get('content') or '').strip(),
-        str(message.get('reasoning') or '').strip(),
-        tuple(tool_sig),
-    )
 
 
 def _partial_marker_already_present(messages, candidate: dict, *, before_idx: int | None = None) -> bool:
