@@ -1304,7 +1304,7 @@ def _check_repo(path, name, channel=DEFAULT_UPDATE_CHANNEL):
 
 
 def _probe_dirty(
-    path: Path, timeout: int = 1, *, legacy_empty_is_dirty: bool = False,
+    path: Path, timeout: int = 5, *, legacy_empty_is_dirty: bool = False,
 ) -> bool | None:
     """Return dirty, clean, or unknown for a working-tree probe."""
     out, ok = _run_git(['diff-index', '--quiet', 'HEAD', '--'], path, timeout=timeout)
@@ -1319,7 +1319,7 @@ def _probe_dirty(
     return None
 
 
-def _is_dirty(path: Path, timeout: int = 1) -> bool:
+def _is_dirty(path: Path, timeout: int = 5) -> bool:
     """Return True when the working tree has uncommitted changes vs HEAD.
 
     Same primitive as ``_dirty_suffix`` (issue #4085): ``git diff-index
