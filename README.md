@@ -21,19 +21,19 @@
 single-page website, recovering on its own from a stream drop, an oversized write and a
 sandbox permission limit along the way:
 
-![Real agent task — building a website](assets/screenshots/chat-demo.png)
+![Real agent task — building a website](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/chat-demo.png)
 
-[![Watch a full demo run](assets/demo/iris-demo-poster.png)](assets/demo/iris-demo.mp4)
+[![Watch a full demo run](https://gitcode.com/badhope/iris/raw/main/assets/demo/iris-demo-poster.png)](https://gitcode.com/badhope/iris/raw/main/assets/demo/iris-demo.mp4)
 
 ## 📸 Screenshots
 
 | Main workspace | Settings | Skills hub |
 |---|---|---|
-| ![Main](assets/screenshots/main.png) | ![Settings](assets/screenshots/settings.png) | ![Skills](assets/screenshots/skills.png) |
+| ![Main](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/main.png) | ![Settings](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/settings.png) | ![Skills](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/skills.png) |
 
 | Scheduled tasks | Usage analytics | Mobile |
 |---|---|---|
-| ![Tasks](assets/screenshots/tasks.png) | ![Stats](assets/screenshots/stats.png) | ![Mobile](assets/screenshots/mobile.png) |
+| ![Tasks](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/tasks.png) | ![Stats](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/stats.png) | ![Mobile](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/mobile.png) |
 
 ---
 
