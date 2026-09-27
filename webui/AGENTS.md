@@ -178,3 +178,27 @@ code strings to remain in routes.py. Only 25 of 481 functions could move
 without breaking that contract. If you split it, do it as a **test-contract
 migration**: move a function family AND its tests in the same commit, never a
 blind extraction.
+
+## HTTP client & exception-handling conventions
+
+- **One HTTP client**: `api/http_client.py` owns the shared
+  `NoRedirectHandler` (redirect_request -> None) and the
+  `no_redirect_opener()` helper. Never define another redirect-refusing
+  handler locally — alias-import the shared one. Single-consumer policy
+  handlers (IPv4-first, allowlist, same-origin, pinned-CA) may stay next to
+  their only consumer.
+- **No silent `except Exception: pass` without justification**: if the
+  swallow is deliberate best-effort, put a one-line comment above the
+  `except` saying why the failure is ignorable (existing model:
+  `webui/api/onboarding.py` probe). New code that swallows without a comment
+  will be flagged in review. Audit history: ~189 sites, none around
+  write/save/delete operations (no data-loss risk found), most are
+  probe/cache/cleanup best-effort.
+- **SQLite read probes stay one-shot**: `_sqlite_content_fingerprint` and
+  peers deliberately open a short-timeout `mode=ro` connection per call so a
+  fingerprint read never stalls the `/api/sessions` hot path or holds
+  cross-request connection state. Do not "optimize" them into a shared
+  connection without re-proving the no-stall/no-contention property.
+- **Server**: `webui/server.py` already has per-request read timeout (30s),
+  a bounded worker pool (128) with overflow rejection, daemon threads,
+  SIGPIPE handling and shutdown audit. Keep these.
