@@ -82,6 +82,17 @@ approvals:
 - `smart`：推荐，兼顾安全与自动化
 - `off`：全部自动执行（仅在你完全信任脚本时使用）
 
+## 自愈守护（可选）
+
+WebUI 进程若被外部环境回收（容器/OOM），`ctl.sh` 不会自动拉起。需要长时间稳定运行时启用 watchdog：
+
+```bash
+cd webui
+./watchdog.sh                 # 每 10 秒探测 /health，挂了自动重启
+./watchdog.sh --interval 30   # 自定义间隔
+./watchdog.sh --once          # 单次健康检查（脚本/CI 用）
+```
+
 ## 下一步
 
 - 阅读 [`configuration.md`](configuration.md) 了解全部配置项

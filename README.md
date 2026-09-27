@@ -10,10 +10,8 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
-![Plugins](https://img.shields.io/badge/plugins-80%2B-6B8BFF.svg)
-![i18n](https://img.shields.io/badge/i18n-15%20languages-green.svg)
 [![Official Repo](https://img.shields.io/badge/✦%20Iris-gitcode.com%2Fbadhope%2Firis-4F6EF7)](https://gitcode.com/badhope/iris)
-[![Download](https://img.shields.io/badge/⬇%20Download-v0.12.0-12B76A)](https://gitcode.com/badhope/iris/releases)
+[![Download](https://img.shields.io/badge/⬇%20Download%20latest-12B76A)](https://gitcode.com/badhope/iris/releases)
 
 ---
 
@@ -43,10 +41,14 @@ sandbox permission limit along the way:
 
 **→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — the official home on GitCode: source, releases, issues, and the in-repo landing page (`docs/`).
 
-| Download | Format | Size | For |
-|---|---|---|---|
-| [⬇ iris-v0.12.0.zip](https://gitcode.com/badhope/iris/releases) | ZIP | 72 MB | **Windows / macOS — recommended** |
-| [⬇ iris-v0.12.0.tar.gz](https://gitcode.com/badhope/iris/releases) | TAR.GZ | 67 MB | Linux / servers — full source tree |
+| Download | Format | For |
+|---|---|---|
+| [⬇ Latest release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — recommended** |
+| [⬇ Latest release — TAR.GZ](https://gitcode.com/badhope/iris/releases) | TAR.GZ | Linux / servers — full source tree |
+
+> Building from source (`git clone` + `pip install -e ./agent`) always gives you the newest fixes.
+> Release archives track tagged versions; feature counts in this README intentionally stay
+> number-free because the project ships continuously.
 
 ---
 
@@ -90,9 +92,9 @@ while making the whole thing feel like a modern consumer AI app:
 |---|---|---|
 | ⚡ Boot time | slow, loads everything | **seconds — lazy loading, uvloop-native** |
 | 📦 Footprint | heavy | **leaner — web UI needs only pyyaml + cryptography** |
-| 🖥️ Web UI | dev-tool style | **modern consumer UI** — light/dark, 21 skins, command palette |
+| 🖥️ Web UI | dev-tool style | **modern consumer UI** — light/dark + many skins, command palette |
 | 🔌 Model support | provider-specific adapters | **protocol-first** — *any* OpenAI-compatible endpoint |
-| 🧩 Plugins | bundled always | **80+ catalog, install / uninstall on demand** |
+| 🧩 Plugins | bundled always | **built-in catalog, install / uninstall on demand** |
 | 📚 Knowledge base | — | **RAG with CJK-aware full-text search** |
 | 🔒 Privacy | — | **local-first. No account. No telemetry.** |
 
@@ -105,7 +107,7 @@ flowchart LR
     U["🌐 Web UI<br/>chat · settings · plugins<br/>command palette"] --> S["🐍 Python Server<br/>api/routes.py · streaming"]
     S --> A["⚙️ Hermes Agent Core<br/>tools · memory · skills · cron"]
     S --> KB[("📚 Knowledge Base<br/>SQLite FTS5 · CJK search")]
-    S --> PM["🧩 Plugin Manager<br/>80+ catalog · on-demand"]
+    S --> PM["🧩 Plugin Manager<br/>built-in catalog · on-demand"]
     S --> PL["🤖 Protocol Layer<br/>OpenAI-compatible"]
     PL --> M["Any LLM endpoint<br/>one base_url + key"]
     A --> T1["🛠️ Tools<br/>web · terminal · files"]
@@ -124,12 +126,12 @@ flowchart LR
 |---|---|
 | ⚡ **Lightweight core** | uvloop event loop, lazy-loaded modules, trimmed runtime |
 | 🔌 **Any model, any provider** | OpenAI-compatible protocol layer — base URL + key, done |
-| 🧩 **Plugin ecosystem** | **80+ plugins**, one-click install / uninstall / toggle |
+| 🧩 **Plugin ecosystem** | **Built-in catalog**, one-click install / uninstall / toggle |
 | 📚 **Knowledge base RAG** | Upload docs → local CJK-aware index → answers from *your* data |
-| 🎨 **Modern Web UI** | Command palette (`Ctrl+Shift+P`), 21 skins, 300+ settings |
+| 🎨 **Modern Web UI** | Command palette (`Ctrl+Shift+P`), light/dark + many skins, rich settings |
 | 🧠 **Memory & skills** | Long-term memory, skills hub, cron, kanban, todo, session search |
 | 🗣️ **Voice-ready** | Dictation + hands-free voice + text-to-speech |
-| 🌐 **15 languages** | Full i18n, defaults to Chinese (中文), switch anytime |
+| 🌐 **Multi-language** | Full i18n, defaults to Chinese (中文), switch anytime |
 | 🔒 **Local-first & private** | Sessions, memory, knowledge — all on *your* machine |
 
 ---

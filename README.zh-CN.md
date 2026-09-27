@@ -10,9 +10,8 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
 ![Plugins](https://img.shields.io/badge/plugins-80%2B-6B8BFF.svg)
-![i18n](https://img.shields.io/badge/i18n-15%20languages-green.svg)
 [![官方仓库](https://img.shields.io/badge/✦%20Iris-gitcode.com%2Fbadhope%2Firis-4F6EF7)](https://gitcode.com/badhope/iris)
-[![下载](https://img.shields.io/badge/⬇%20下载-v0.12.0-12B76A)](https://gitcode.com/badhope/iris/releases)
+[![下载](https://img.shields.io/badge/⬇%20下载最新版-12B76A)](https://gitcode.com/badhope/iris/releases)
 
 ---
 
@@ -41,10 +40,13 @@
 
 **→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — GitCode 官方主页：源码、发布、Issue，以及仓库内落地页（`docs/`）。
 
-| 下载 | 格式 | 大小 | 适用 |
-|---|---|---|---|
-| [⬇ iris-v0.12.0.zip](https://gitcode.com/badhope/iris/releases) | ZIP | 72 MB | **Windows / macOS — 推荐** |
-| [⬇ iris-v0.12.0.tar.gz](https://gitcode.com/badhope/iris/releases) | TAR.GZ | 67 MB | Linux / 服务器 — 完整源码树 |
+| 下载 | 格式 | 适用 |
+|---|---|---|
+| [⬇ 最新 Release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — 推荐** |
+| [⬇ 最新 Release — TAR.GZ](https://gitcode.com/badhope/iris/releases) | TAR.GZ | Linux / 服务器 — 完整源码树 |
+
+> 从源码构建（`git clone` + `pip install -e ./agent`）永远获得最新修复。
+> Release 归档对应打标签的版本；本 README 刻意不写特性数量——项目持续更新，数字会过时。
 
 ---
 
@@ -88,9 +90,9 @@ Hermes 是出色的智能体框架——但越来越重。**Iris** 保留完整 
 |---|---|---|
 | ⚡ 启动速度 | 慢，全量加载 | **秒级——懒加载 + uvloop** |
 | 📦 体积 | 重 | **更轻——Web UI 仅需 pyyaml + cryptography** |
-| 🖥️ Web UI | 开发工具风格 | **现代消费级 UI** —— 亮/暗、21 套皮肤、命令面板 |
+| 🖥️ Web UI | 开发工具风格 | **现代消费级 UI** —— 亮/暗 + 多款皮肤、命令面板 |
 | 🔌 模型支持 | 分厂商适配器 | **协议优先** —— *任意* OpenAI 兼容端点 |
-| 🧩 插件 | 总是全量捆绑 | **80+ 目录，按需安装 / 卸载** |
+| 🧩 插件 | 总是全量捆绑 | **内置目录，按需安装 / 卸载** |
 | 📚 知识库 | — | **RAG + 中文感知全文检索** |
 | 🔒 隐私 | — | **本地优先。无账号。无遥测。** |
 
@@ -103,7 +105,7 @@ flowchart LR
     U["🌐 Web UI<br/>聊天 · 设置 · 插件<br/>命令面板"] --> S["🐍 Python 服务端<br/>api/routes.py · 流式"]
     S --> A["⚙️ Hermes Agent 核心<br/>工具 · 记忆 · 技能 · 定时"]
     S --> KB[("📚 知识库<br/>SQLite FTS5 · 中文检索")]
-    S --> PM["🧩 插件管理器<br/>80+ 目录 · 按需"]
+    S --> PM["🧩 插件管理器<br/>内置目录 · 按需"]
     S --> PL["🤖 协议层<br/>OpenAI 兼容"]
     PL --> M["任意 LLM 端点<br/>一个 base_url + key"]
     A --> T1["🛠️ 工具<br/>网页 · 终端 · 文件"]
@@ -122,12 +124,12 @@ flowchart LR
 |---|---|
 | ⚡ **轻量内核** | uvloop 事件循环、模块懒加载、精简运行时 |
 | 🔌 **任意模型、任意提供商** | OpenAI 兼容协议层 —— 填 base URL + key 即可 |
-| 🧩 **插件生态** | **80+ 插件**，一键安装 / 卸载 / 启停 |
+| 🧩 **插件生态** | **内置目录**，一键安装 / 卸载 / 启停 |
 | 📚 **知识库 RAG** | 上传文档 → 本地中文索引 → 从*你的*数据作答 |
-| 🎨 **现代 Web UI** | 命令面板（`Ctrl+Shift+P`）、21 套皮肤、300+ 设置项 |
+| 🎨 **现代 Web UI** | 命令面板（`Ctrl+Shift+P`）、亮/暗 + 多款皮肤、丰富设置项 |
 | 🧠 **记忆与技能** | 长期记忆、技能中心、定时任务、看板、待办、会话搜索 |
 | 🗣️ **语音就绪** | 语音输入 + 免提语音 + 文字转语音 |
-| 🌐 **15 种语言** | 完整 i18n，默认中文，随时切换 |
+| 🌐 **多语言** | 完整 i18n，默认中文，随时切换 |
 | 🔒 **本地优先、私密** | 会话、记忆、知识库 —— 全部在你的机器上 |
 
 ---
