@@ -1,46 +1,48 @@
 # Quick Start
 
-Iris 是一个**本地优先**的个人 AI 超级助手：完整的 Agent 内核 + 现代消费级 Web UI。
-本指南带你 3 步跑起来。
+**English** · [简体中文](quickstart.zh-CN.md)
 
-## 1. 克隆与安装
+Iris is a **local-first** personal AI super-assistant: a full agent core with a modern
+consumer-grade Web UI. This guide gets you running in 3 steps.
+
+## 1. Clone & install
 
 ```bash
 git clone https://gitcode.com/badhope/iris.git && cd iris
 
-# 安装 agent 核心（Hermes 内核 + 工具/插件/记忆/技能/定时任务）
+# Install the agent core (Hermes kernel + tools / plugins / memory / skills / cron)
 cd agent && pip install -e . && cd ..
 ```
 
-> 需要 Python 3.11+。建议使用 venv：
+> Requires Python 3.11+. A virtualenv is recommended:
 > ```bash
 > python3 -m venv .venv && source .venv/bin/activate
 > ```
 
-## 2. 启动 Web UI
+## 2. Launch the Web UI
 
 ```bash
 cd webui && python3 server.py
 ```
 
-浏览器打开 **http://127.0.0.1:8787**（端口可通过 `HERMES_WEBUI_PORT` 环境变量修改）。
+Open **http://127.0.0.1:8787** in your browser (change the port with `HERMES_WEBUI_PORT`).
 
-**关键环境变量：**
+**Key environment variables:**
 
-| 变量 | 作用 | 默认 |
+| Variable | Purpose | Default |
 |---|---|---|
-| `HERMES_WEBUI_AGENT_DIR` | Agent 源码目录（仓库内的 `agent/`） | 自动探测 |
-| `HERMES_WEBUI_STATE_DIR` | 会话/状态数据目录 | `~/.hermes` |
-| `HERMES_WEBUI_PORT` | 监听端口 | `8787` |
-| `HERMES_WEBUI_PASSWORD` | 访问密码（可选） | 空 = 本机免密 |
+| `HERMES_WEBUI_AGENT_DIR` | Agent source dir (this repo's `agent/`) | auto-detected |
+| `HERMES_WEBUI_STATE_DIR` | Session / state data dir | `~/.hermes` |
+| `HERMES_WEBUI_PORT` | Listen port | `8787` |
+| `HERMES_WEBUI_PASSWORD` | Access password (optional) | empty = localhost, no password |
 
-## 3. 接入模型
+## 3. Connect a model
 
-### 方式 A：使用内置模型
-启动后进入 **设置 → 提供商**，选择一个可用模型即可。
+### Option A — built-in models
+Open **Settings → Providers** and pick an available model.
 
-### 方式 B：接入任意 OpenAI 兼容端点（推荐）
-编辑 `~/.hermes/config.yaml`：
+### Option B — any OpenAI-compatible endpoint (recommended)
+Edit `~/.hermes/config.yaml`:
 
 ```yaml
 model:
@@ -54,10 +56,11 @@ custom_providers:
       - my-model
 ```
 
-保存后**重启 Web UI** 生效。
+Save, then **restart the Web UI**.
 
-### 图像生成（可选）
-Iris 的画图工具走插件机制。要把任意 OpenAI 兼容端点用作画图后端：
+### Image generation (optional)
+Iris's drawing tool goes through the plugin mechanism. To point any OpenAI-compatible
+endpoint at the image backend:
 
 ```yaml
 plugins:
@@ -66,35 +69,36 @@ plugins:
 image_gen:
   provider: openai
   openai:
-    provider: my-provider      # 复用上面 custom_providers 的端点与密钥
-    model: my-image-model      # 端点自己的图像模型名
+    provider: my-provider      # reuse the custom_providers endpoint + key
+    model: my-image-model      # the endpoint's own image model name
 ```
 
-### 无人值守审批（可选）
-Web UI 任务在无人值守下执行 `execute_code` 等脚本时需要审批策略：
+### Unattended approvals (optional)
+When tasks run unattended, script tools like `execute_code` need an approval policy:
 
 ```yaml
 approvals:
-  mode: smart        # smart = 安全命令自动跑，危险命令才询问
+  mode: smart        # smart = safe commands run automatically, dangerous ones ask
   timeout: 120
 ```
 
-- `smart`：推荐，兼顾安全与自动化
-- `off`：全部自动执行（仅在你完全信任脚本时使用）
+- `smart` — recommended; balances automation and safety
+- `off` — run everything automatically (only if you fully trust the scripts)
 
-## 自愈守护（可选）
+## Self-healing watchdog (optional)
 
-WebUI 进程若被外部环境回收（容器/OOM），`ctl.sh` 不会自动拉起。需要长时间稳定运行时启用 watchdog：
+If the WebUI process is reclaimed by the environment (container / OOM), `ctl.sh` does
+not restart it. Enable the watchdog for long-running stability:
 
 ```bash
 cd webui
-./watchdog.sh                 # 每 10 秒探测 /health，挂了自动重启
-./watchdog.sh --interval 30   # 自定义间隔
-./watchdog.sh --once          # 单次健康检查（脚本/CI 用）
+./watchdog.sh                 # poll /health every 10s, auto-restart on failure
+./watchdog.sh --interval 30   # custom interval
+./watchdog.sh --once          # single health check (scripts / CI)
 ```
 
-## 下一步
+## Next steps
 
-- 阅读 [`configuration.md`](configuration.md) 了解全部配置项
-- 阅读 [`usage.md`](usage.md) 了解日常功能
-- 遇到问题先看 [`faq.md`](faq.md)
+- [`configuration.md`](configuration.md) — full configuration reference
+- [`usage.md`](usage.md) — daily usage guide
+- [`faq.md`](faq.md) — troubleshooting

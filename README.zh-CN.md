@@ -77,7 +77,7 @@ custom_providers:
 ```
 
 > 📘 完整安装、提供商接入、图像生成、审批与故障排查见
-> **[`docs/`](docs/)** —— 从 [`docs/quickstart.md`](docs/quickstart.md) 开始。
+> **[`docs/`](docs/)** —— 从 [`docs/quickstart.zh-CN.md`](docs/quickstart.zh-CN.md) 开始。
 
 ---
 
@@ -150,10 +150,10 @@ Iris 是 **[Hermes](https://github.com/NousResearch/hermes-agent)**（Nous Resea
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/quickstart.md`](docs/quickstart.md) | 安装、首次运行、模型配置 |
-| [`docs/configuration.md`](docs/configuration.md) | `config.yaml` 参考 —— 提供商、图像生成、审批 |
-| [`docs/usage.md`](docs/usage.md) | 日常使用 —— 聊天、工具、任务、看板、记忆、技能 |
-| [`docs/faq.md`](docs/faq.md) | 常见问题与解决（限流、卡顿、升级） |
+| [`docs/quickstart.zh-CN.md`](docs/quickstart.zh-CN.md) | 安装、首次运行、模型配置 |
+| [`docs/configuration.zh-CN.md`](docs/configuration.zh-CN.md) | `config.yaml` 参考 —— 提供商、图像生成、审批 |
+| [`docs/usage.zh-CN.md`](docs/usage.zh-CN.md) | 日常使用 —— 聊天、工具、任务、看板、记忆、技能 |
+| [`docs/faq.zh-CN.md`](docs/faq.zh-CN.md) | 常见问题与解决（限流、卡顿、升级） |
 
 ---
 

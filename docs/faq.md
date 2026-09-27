@@ -1,69 +1,82 @@
-# FAQ — 常见问题
+# FAQ — Frequently Asked Questions
 
-## 1. 任务一直报 `HTTP 429`（限流）
+**English** · [简体中文](faq.zh-CN.md)
 
-**原因**：所接模型服务对免费用户有速率/总量限制。
+## 1. Tasks keep failing with `HTTP 429` (rate limited)
 
-**处理**：
-- 免费配额是**滑动窗口**制——等待一段时间（分钟级）自动恢复，**不要连续重试**，重试反而延长限流。
-- Iris 对 429 会自动指数退避重试 3 次，之后向用户报告限流。
-- 长期使用请升级服务商的付费计划（Token Plan 等）。
+**Cause**: the model service limits free users by rate / total usage.
 
-## 2. 启动后提示 `agent_runtime_stale`
+**Fix**:
+- Free quotas are **sliding-window** — wait a bit (minutes) and it resets by itself;
+  **do not retry in a tight loop**, that only extends the limit.
+- Iris retries 429 with exponential backoff (3 attempts), then reports the limit.
+- For heavy use, upgrade to a paid plan (Token Plan etc.) on the provider side.
 
-**原因**：Agent 源码或 `config.yaml` 在 Web UI 运行期间被修改，Web UI 无法确认更新安全完成。
+## 2. `agent_runtime_stale` after startup
 
-**处理**：重启 Web UI（`Ctrl+C` 后重新 `python3 server.py`）。这是保护机制，不是故障。
+**Cause**: agent source or `config.yaml` changed while the Web UI was running, so the
+UI can't confirm a safe update.
 
-## 3. 技能面板打不开 / `No module named 'agent'`
+**Fix**: restart the Web UI (`Ctrl+C`, then `python3 server.py` again). It is a safety
+guard, not a failure.
 
-**原因**：Web UI 没找到 Agent 源码目录。
+## 3. Skills panel won't open / `No module named 'agent'`
 
-**处理**：用环境变量显式指定：
+**Cause**: the Web UI cannot find the agent source directory.
+
+**Fix**: point it explicitly:
 
 ```bash
 HERMES_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
 ```
 
-## 4. 每次请求都很慢（数秒延迟）
+## 4. Every request is slow (seconds of latency)
 
-**原因**：Iris 会探测模型上下文长度；对自定义端点，探测若超时会影响体验。
+**Cause**: Iris probes the model's context length; on custom endpoints a slow probe
+hurts the experience.
 
-**处理**：
-- 在 `config.yaml` 的 `model` 下显式声明 `context_length: 128000`（填你模型的实际窗口），跳过探测。
-- 换用延迟更低的模型端点。
+**Fix**:
+- Set `context_length: 128000` under `model` in `config.yaml` (use your model's real
+  window) to skip probing.
+- Switch to a lower-latency endpoint.
 
-## 5. 任务执行到一半停下、没有输出
+## 5. A task stops mid-way with no output
 
-**可能原因**：`execute_code` 等脚本工具在等待审批（无人值守）。
+**Likely cause**: script tools such as `execute_code` are waiting for approval
+(unattended runs).
 
-**处理**：设置 `approvals.mode: smart`（见 [configuration.md](configuration.md#approvals--审批)），安全命令自动执行。
+**Fix**: set `approvals.mode: smart` (see [configuration.md](configuration.md#approvals--approvals)),
+so safe commands run automatically.
 
-## 6. 画图工具不可用（工具列表里没有）
+## 6. Image tool is missing (not in the tool list)
 
-**原因**：未配置 `image_gen` 后端。
+**Cause**: no `image_gen` backend configured.
 
-**处理**：在 `config.yaml` 启用 `image_gen/openai` 插件并指向你的 OpenAI 兼容端点（见 [quickstart.md](quickstart.md#图像生成可选)）。
+**Fix**: enable the `image_gen/openai` plugin and point it at an OpenAI-compatible
+endpoint (see [quickstart.md](quickstart.md#image-generation-optional)).
 
-## 7. 会话/历史突然只剩一部分
+## 7. Conversation history suddenly got shorter
 
-**处理**：Iris 在上下文接近上限时会自动压缩历史并继续任务，这是正常的内存管理。完整会话文件仍在磁盘（`~/.hermes/sessions/`）。
+**Fix**: Iris compacts history automatically near the context limit and continues the
+task — normal memory management. Full session files remain on disk (`~/.hermes/sessions/`).
 
-## 8. 如何完全卸载
+## 8. How do I uninstall completely?
 
 ```bash
-# 删除状态与配置
+# remove state and config
 rm -rf ~/.hermes
-# 删除项目
+# remove the project
 rm -rf iris
 ```
 
-## 9. 数据存在哪里？会不会上传？
+## 9. Where is my data? Is it uploaded?
 
-- 会话、记忆、知识库、任务全部在**本机**：`~/.hermes/`。
-- Iris 本身**无账号、无遥测**。只有你配置的模型服务商会收到对话请求（数据流向由你的 provider 决定）。
-- 知识库检索在本地完成，不上传你的文档。
+- Sessions, memory, knowledge base and tasks live **on your machine**: `~/.hermes/`.
+- Iris itself has **no account, no telemetry**. Only the model provider you configured
+  receives conversation requests (data flow is decided by your provider).
+- Knowledge-base search happens locally — your documents are not uploaded.
 
-## 10. 想用别的模型（非 OpenAI 兼容）
+## 10. Can I use a non-OpenAI-compatible model?
 
-Iris 是**协议优先**：只要端点兼容 OpenAI Chat Completions 协议（绝大多数托管服务都兼容），即可通过 `custom_providers` 接入。
+Iris is **protocol-first**: any endpoint speaking the OpenAI Chat Completions protocol
+(the vast majority of hosted services) can be wired in via `custom_providers`.

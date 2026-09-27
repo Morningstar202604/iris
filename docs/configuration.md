@@ -1,99 +1,109 @@
 # Configuration Reference
 
-Iris 的运行时配置位于 `~/.hermes/config.yaml`（首次启动自动创建）。
-本文档覆盖公开使用最相关的配置块。全部设置项可在 Web UI **设置**页完成，配置文件的优先级最高。
+**English** · [简体中文](configuration.zh-CN.md)
 
-## model — 主模型
+Iris runtime configuration lives in `~/.hermes/config.yaml` (auto-created on first run).
+This reference covers the blocks most relevant to daily use. All settings are also
+editable in the Web UI **Settings** panel; the config file takes precedence.
+
+## model — main model
 
 ```yaml
 model:
-  provider: custom:agnes      # 提供商 ID
-  default: agnes-3.0-flash    # 默认模型
+  provider: custom:agnes      # provider ID
+  default: agnes-3.0-flash    # default model
   base_url: https://your-endpoint/v1
 ```
 
-- `context_length`（可选）：显式声明模型上下文窗口，避免探测延迟。
-  示例：`context_length: 128000`。不设置时 Iris 自动探测（自定义端点会快速回退到默认值）。
+- `context_length` (optional): declare the model's context window explicitly to skip
+  probing latency. Example: `context_length: 128000`. When unset, Iris auto-detects
+  (custom endpoints fall back quickly to a default).
 
-## custom_providers — 自定义提供商
+## custom_providers — custom providers
 
 ```yaml
 custom_providers:
-  - name: agnes                    # 提供商名（模型选择器里显示为分组名）
+  - name: agnes                    # group name shown in the model picker
     base_url: https://your-endpoint/v1
     api_key: your-key
     models:
-      - model-a                    # 该端点可用的模型列表
+      - model-a                    # models this endpoint offers
       - model-b
 ```
 
-- 接入后，Web UI 的模型下拉会显示该提供商分组及其模型。
-- 密钥也可以不写文件：只填 `key_env: MY_API_KEY_ENV`，从环境变量读取。
+- Once added, the endpoint and its models appear in the Web UI model dropdown.
+- Instead of a literal key you may set `key_env: MY_API_KEY_ENV` to read from an
+  environment variable.
 
-## plugins — 插件
+## plugins — plugins
 
 ```yaml
 plugins:
   enabled:
-    - web-defuddle          # 网页正文提取
-    - web-knowledge-base    # 知识库搜索
-    - image_gen/openai      # 画图后端（openai 兼容端点）
+    - web-defuddle          # web page text extraction
+    - web-knowledge-base    # knowledge-base search
+    - image_gen/openai      # image backend (OpenAI-compatible endpoint)
   disabled: []
 ```
 
-插件按 `类型/名称` 引用（如 `image_gen/openai`）。`plugins.enabled` 是白名单——未列出的插件不会加载。
+Plugins are referenced as `type/name` (e.g. `image_gen/openai`). `plugins.enabled`
+is a whitelist — unlisted plugins are not loaded.
 
-## image_gen — 画图
+## image_gen — image generation
 
 ```yaml
 image_gen:
-  provider: openai          # 画图后端
+  provider: openai          # image backend
   openai:
-    provider: agnes         # 复用 custom_providers 的端点/密钥
-    model: your-image-model # 端点自己的图像模型名（原样透传）
+    provider: agnes         # reuse a custom_providers endpoint / key
+    model: your-image-model # the endpoint's own image model name (passed through)
 ```
 
-- `image_gen.openai.provider` 指向 `custom_providers` 里的名字，自动继承其 base_url 与 api_key。
-- 未配置时 `image_generate` 工具不可用（工具列表会隐藏它）。
+- `image_gen.openai.provider` points at an entry in `custom_providers`, inheriting its
+  `base_url` and `api_key`.
+- Without this block the `image_generate` tool is hidden from the tool list.
 
-## approvals — 审批
+## approvals — approvals
 
 ```yaml
 approvals:
   mode: smart               # manual | smart | off
-  timeout: 120              # 等待人工审批的超时秒数
+  timeout: 120              # seconds to wait for a human approval
 ```
 
-| 模式 | 行为 |
+| Mode | Behavior |
 |---|---|
-| `manual` | 所有脚本类工具都等人批准（**无人值守任务会超时**） |
-| `smart` | 安全命令自动执行；危险命令才询问（**推荐**） |
-| `off` | 全部自动执行（仅信任脚本时使用） |
+| `manual` | Every script-like tool waits for approval (**unattended tasks time out**) |
+| `smart` | Safe commands run automatically; dangerous ones ask (**recommended**) |
+| `off` | Everything runs automatically (only if you trust the scripts) |
 
-Web UI / API 无人值守运行长任务时，建议 `smart`，否则 `execute_code` 等工具会等待审批直到超时。
+When running long tasks unattended via Web UI / API, use `smart` — otherwise tools
+such as `execute_code` wait for approval until timeout.
 
-## 提示词与个性化
+## Prompts & personalization
 
-- **对话人格**：Web UI **设置 → 偏好**，或 `personalities` 配置块。
-- **预设提示词**：composer 上方的预设下拉，保存常用指令模板。
+- **Persona**: Web UI **Settings → Preferences**, or the `personalities` block.
+- **Preset prompts**: the preset dropdown above the composer stores frequent
+  instruction templates.
 
-## 环境变量
+## Environment variables
 
-| 变量 | 作用 |
+| Variable | Purpose |
 |---|---|
-| `HERMES_WEBUI_AGENT_DIR` | Agent 源码目录 |
-| `HERMES_WEBUI_STATE_DIR` | 状态/会话数据目录 |
-| `HERMES_WEBUI_PORT` | Web UI 端口（默认 8787） |
-| `HERMES_WEBUI_PASSWORD` | 访问密码 |
-| `HERMES_PLUGINS_DEBUG` | `1` 时输出插件加载调试日志 |
+| `HERMES_WEBUI_AGENT_DIR` | Agent source directory |
+| `HERMES_WEBUI_STATE_DIR` | State / session data directory |
+| `HERMES_WEBUI_PORT` | Web UI port (default 8787) |
+| `HERMES_WEBUI_PASSWORD` | Access password |
+| `HERMES_PLUGINS_DEBUG` | `1` to print plugin-load debug logs |
 
-## 配置生效
+## Applying changes
 
-修改 `config.yaml` 后**必须重启 Web UI**：
+After editing `config.yaml`, **restart the Web UI**:
 
 ```bash
-# 停止旧进程后
+# stop the old process, then
 cd webui && python3 server.py
 ```
 
-> 若提示 `agent_runtime_stale`，说明 Agent 源码或配置在运行期间被改动，重启 Web UI 即可恢复。
+> If you see `agent_runtime_stale`, it means agent source or config changed while the
+> server was running — restart the Web UI to recover. This is a safety guard, not a bug.

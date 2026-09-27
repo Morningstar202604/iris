@@ -1,79 +1,91 @@
 # Usage Guide
 
-Iris 是完整的个人 AI 工作台。本文按日常使用场景说明核心功能。
+**English** · [简体中文](usage.zh-CN.md)
 
-## 聊天与任务
+Iris is a complete personal AI workbench. This guide walks through the core features
+by everyday scenario.
 
-- **直接提问**：底部输入框发送消息即可。模型会在需要时自动调用工具（终端、文件、网页、画图等）完成任务。
-- **复杂任务**：直接用自然语言描述目标，例如：
-  - “在工作区创建目录 `demo`，写一个完整的单页官网并告诉我路径和大小”
-  - “写一个 Python 程序实现斐波那契数列，运行并验证输出”
-  - “用画图工具生成一张品牌 logo，保存到工作区”
-- **composer 三个选择器**（从左到右）：
-  1. **档案**（default）— 切换身份/人格配置
-  2. **工作区**（Home）— 切换任务工作目录
-  3. **模型**（Agnes 3.0 Flash）— 切换对话模型
-- **预设提示词**：composer 上方的预设下拉可保存常用指令。
+## Chat & tasks
 
-### 任务中的自愈能力
+- **Ask directly**: type in the bottom composer and send. Iris calls tools on its own
+  (terminal, files, web, image generation, …) whenever a task needs them.
+- **Complex tasks**: describe the goal in plain language, e.g.
+  - “Create a directory `demo` in the workspace, write a complete single-page site and
+    tell me the path and size”
+  - “Write a Python program for the Fibonacci sequence, run it and verify the output”
+  - “Generate a brand logo with the image tool and save it to the workspace”
+- **Composer selectors** (left to right):
+  1. **Profile** (default) — switch persona / identity config
+  2. **Workspace** (Home) — switch the task working directory
+  3. **Model** (Agnes 3.0 Flash) — switch the conversation model
+- **Preset prompts**: the preset dropdown above the composer saves frequent commands.
 
-Iris 在长任务中会自动处理多种环境问题，无需人工干预：
+### Self-healing during long tasks
 
-| 情况 | 自动处理 |
+Iris handles common environment problems automatically, with no manual intervention:
+
+| Situation | Auto handling |
 |---|---|
-| 流式响应截断 | 自动续写，继续未完成的工作 |
-| 超大文件写入 | 自动改为分批写入 |
-| 模型限流（429） | 指数退避重试（3 次） |
-| 工具权限不足 | 记录原因，改用等价替代方案 |
-| 上下文超长 | 自动压缩历史后继续 |
+| Stream response truncated | Continues writing, resumes unfinished work |
+| Oversized file write | Automatically switches to batched writes |
+| Model rate limit (429) | Exponential backoff retry (3 attempts) |
+| Tool permission denied | Records the reason and uses an equivalent alternative |
+| Context too long | Compacts history automatically and continues |
 
-## 会话管理
+## Sessions
 
-- 左侧 **聊天** 面板：搜索、按来源（WebUI/CLI）筛选、新建会话。
-- 每条会话独立保留完整历史、模型、工作区。
-- 会话导出：设置 → 对话 → 记录 / JSON / 共享 / HTML。
+- Left **Chat** panel: search, filter by source (WebUI / CLI), start new sessions.
+- Every session keeps its own history, model and workspace.
+- Export: Settings → Conversations → record / JSON / share / HTML.
 
-## 技能（Skills）
+## Skills
 
-- **技能中心**（左侧 技能）：查看、创建、启停技能。技能是复用的指令模板，可让 Iris 按固定流程干活。
-- 创建技能时描述需简短（触发词优先，一行内），超长会被拒绝。
+- **Skills hub** (left rail): view, create, enable/disable skills. Skills are reusable
+  instruction templates that make Iris follow a fixed workflow.
+- Keep skill descriptions short (trigger words first, one line); oversized ones are
+  rejected.
 
-## 记忆（Memory）
+## Memory
 
-- 个人记忆分四区：**我的备注**、**用户画像**、**智能体灵魂**、**项目上下文**。
-- Iris 会在对话中自动沉淀画像与长期记忆，你也可以手动编辑。
+- Personal memory has four sections: **My Notes**, **User Profile**, **Agent Soul**,
+  **Project Context**.
+- Iris accumulates profile and long-term memory during conversation; you can also
+  edit entries manually.
 
-## 定时任务（Cron）
+## Scheduled tasks (Cron)
 
-- **任务** 面板：新建定时任务（一次性 / 周期 / 复杂日历规则）。
-- 任务可指定模型与工作区，支持运行记录查看。
+- **Tasks** panel: create scheduled jobs (one-off / recurring / complex calendar rules).
+- Jobs can pick a model and workspace, and expose run history.
 
-## 看板与待办
+## Kanban & todos
 
-- **看板**：多列任务看板，适合项目管理。
-- **待办**：个人任务清单。
+- **Kanban**: multi-column task board, good for project management.
+- **Todos**: personal task list.
 
-## 工作区
+## Workspace
 
-- **工作区** 面板：管理多个工作目录（Home 为默认）。
-- 会话可绑定工作区，文件操作都在该目录下进行。
+- **Workspace** panel: manage working directories (Home is the default).
+- Sessions can bind a workspace; all file operations happen inside that directory.
 
-## 用量统计
+## Usage analytics
 
-- **统计** 面板：系统健康（CPU/RAM/Disk）、技能使用、会话/消息/令牌/费用统计。
-- **提供商 → 配额**：查看各提供商用量。免费额度用尽会收到 429，等待窗口重置即可。
+- **Insights** panel: system health (CPU/RAM/Disk), skill usage, session / message /
+  token / cost statistics.
+- **Providers → quota**: per-provider usage. Free quotas may return 429 once exhausted;
+  wait for the window to reset.
 
-## 移动端
+## Mobile
 
-移动端浏览器同样可用：左侧抽屉导航、响应式布局、移动端配置按钮（工作区/模型/配额）。
+The mobile browser works too: drawer navigation, responsive layout, mobile config
+buttons (workspace / model / quota).
 
-## 键盘快捷键
+## Keyboard shortcuts
 
-- `Ctrl+Shift+P` 命令面板
-- `↑` / `↓` 编辑时翻阅历史
-- `Esc` 关闭弹层/下拉
+- `Ctrl+Shift+P` command palette
+- `↑` / `↓` scroll through history while editing
+- `Esc` close dialogs / dropdowns
 
-## 语音
+## Voice
 
-- 输入框旁的 🎤 语音输入、🔖 预设、📝 附件。
-- 设置 → 外观/偏好 可调整语音与朗读选项。
+- 🎤 voice input, 🔖 presets, 📝 attachments beside the composer.
+- Settings → Appearance / Preferences adjusts voice and TTS options.
