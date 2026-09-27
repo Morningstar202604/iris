@@ -20,6 +20,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 
 from api.config import get_config
+from api.http_client import NoRedirectHandler as _NoRedirect
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +48,6 @@ _ALLOW_VALUES_WHITESPACE_WARNING = (
     'Use a comma-delimited scalar (e.g. "value1,value2") or a YAML array. '
     "If this is one intentional multi-word group, it is already correct and no action is needed."
 )
-
-
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
 
 
 class OIDCConfigError(Exception):

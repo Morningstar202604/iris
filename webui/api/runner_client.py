@@ -12,6 +12,7 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+from api.http_client import no_redirect_opener
 from typing import Any
 
 

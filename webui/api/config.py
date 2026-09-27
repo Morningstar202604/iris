@@ -33,6 +33,7 @@ from urllib.parse import parse_qs, urlparse
 
 # ── Basic layout ──────────────────────────────────────────────────────────────
 import api.paths as _paths
+from api.http_client import NoRedirectHandler as _NoRedirectHandler
 from api.plugin_providers import (
     effective_provider_display_name as _effective_provider_display_name,
     is_plugin_model_provider as _is_plugin_model_provider,
@@ -5453,20 +5454,6 @@ def _models_dev_reasoning_efforts(model_id: str, provider_id: str) -> list[str] 
     if supports_reasoning is False:
         return []
     return None
-
-
-class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """urllib redirect handler that refuses to follow any redirect.
-
-    Used by the LM Studio reasoning probe so a 3xx from the probe URL can never
-    forward the ``Authorization`` header (the configured LM Studio key) to a
-    redirected, possibly attacker-controlled host. ``redirect_request``
-    returning ``None`` makes urllib raise the original 3xx as an ``HTTPError``,
-    which the probe swallows. (#3837 security review)
-    """
-
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
 
 
 def _get_lmstudio_reasoning_probe_api_key() -> str | None:

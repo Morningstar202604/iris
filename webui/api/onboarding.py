@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from api.auth import is_auth_enabled
+from api.http_client import NoRedirectHandler as _NoRedirectHandler, no_redirect_opener
 from api.config import (
     DEFAULT_MODEL,
     DEFAULT_WORKSPACE,
@@ -324,28 +325,9 @@ PROBE_TIMEOUT_SECONDS = 5.0
 # case for a hostile / mis-pointed endpoint that streams forever.
 PROBE_MAX_BYTES = 256 * 1024
 
-
-class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Refuse to follow HTTP redirects on the probe path.
-
-    `urllib.request.urlopen` follows redirects by default — without this
-    handler, a probe at `http://example.com/v1/models` could be redirected
-    to `http://internal-service:8080/admin`, surfacing internal HTTP services
-    to whatever the probe targets next.  The probe is already gated behind
-    WebUI auth and the local-network check, so the threat model is
-    "authenticated user enumerating internal services" — same as `curl`
-    from their browser DevTools.  Disabling redirects tightens defaults
-    without breaking any legitimate use case (a self-hosted /models endpoint
-    that 3xx-redirects is itself misconfigured).  Redirects surface to the
-    caller as `unreachable` (mapped from `HTTPError(3xx)` in the probe).
-    Reviewer-flagged in PR #1501 (#1499 + #1500).
-    """
-
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None  # tell urllib to NOT follow; raises HTTPError(3xx) instead
-
-
-_PROBE_OPENER = urllib.request.build_opener(_NoRedirectHandler())
+# Probe opener refuses redirects so a 3xx can never leak the configured
+# API key / Authorization header to a redirected host (PR #1501 review).
+_PROBE_OPENER = no_redirect_opener()
 _DNS_ONLY_TEST_TLDS = frozenset({"invalid", "test", "example"})
 
 

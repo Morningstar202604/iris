@@ -10,6 +10,7 @@ import uuid
 import urllib.error
 import urllib.parse
 import urllib.request
+from api.http_client import NoRedirectHandler as _NoRedirect
 from typing import Any
 
 from api.config import (
@@ -809,10 +810,6 @@ def stop_gateway_run(run_id: str) -> bool:
         headers=headers,
         method="POST",
     )
-    class _NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self, req, fp, code, msg, headers, newurl):
-            return None
-
     try:
         opener = urllib.request.build_opener(_NoRedirect)
         with opener.open(req, timeout=10) as response:
