@@ -41,6 +41,8 @@ sandbox permission limit along the way:
 
 **→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — the official home on GitCode: source, releases, issues, and the in-repo landing page (`docs/`).
 
+**→ [Live landing page](https://x33834.github.io/iris)** — interactive overview: screenshots, architecture tour & one-click download.
+
 | Download | Format | For |
 |---|---|---|
 | [⬇ Latest release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — recommended** |

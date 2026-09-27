@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-smoke:
+    name: Lint & Smoke (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install agent (editable)
+        run: |
+          cd agent
+          pip install --quiet -e .
+      - name: Ruff gate (changed lines vs origin/main)
+        if: github.event_name == 'pull_request'
+        run: |
+          pip install --quiet ruff
+          cd webui && python scripts/ruff_lint.py --diff origin/main
+      - name: Syntax check (agent)
+        run: python -m compileall -q agent -x "apps/desktop|tests|optional-skills"
+      - name: Syntax check (webui)
+        run: python -m compileall -q webui -x "_shots|docs|tests"
+      - name: Import smoke test
+        run: |
+          cd agent && python -c "import hermes_cli; print('hermes_cli OK')"
+          cd ../webui && python -c "import api.routes; print('webui api OK')"
+
+  webui-tests:
+    name: WebUI tests (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['0', '1', '2', '3']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Run webui suite (shard ${{ matrix.shard }}/4)
+        run: cd webui && ./scripts/test.sh tests/ -q --timeout=120 --shard-id=${{ matrix.shard }} --num-shards=4
+
+  agent-tests:
+    name: Agent tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install agent with dev deps
+        run: cd agent && pip install --quiet -e ".[dev]"
+      - name: Run agent tests
+        # CI lane runs pytest directly: scripts/run_tests.sh bootstraps a local
+        # venv that does not exist on a fresh runner; the editable install above
+        # is the equivalent environment.
+        run: cd agent && python -m pytest tests/ -q
+
+  release:
+    name: Package & Release
+    needs: [lint-and-smoke, webui-tests, agent-tests]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build source archives
+        run: |
+          mkdir -p dist
+          tar --exclude='.git' --exclude='*/__pycache__' --exclude='*/node_modules' -czf dist/iris-agent-${GITHUB_REF_NAME}.tar.gz agent webui README.md LICENSE docs
+          zip -qr dist/iris-${GITHUB_REF_NAME}.zip agent webui README.md LICENSE docs
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: dist/*
+          generate_release_notes: true

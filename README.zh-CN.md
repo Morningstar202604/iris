@@ -40,6 +40,8 @@
 
 **→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — GitCode 官方主页：源码、发布、Issue，以及仓库内落地页（`docs/`）。
 
+**→ [在线落地页](https://x33834.github.io/iris)** — 交互式总览：截图、架构导览与一键下载。
+
 | 下载 | 格式 | 适用 |
 |---|---|---|
 | [⬇ 最新 Release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — 推荐** |
