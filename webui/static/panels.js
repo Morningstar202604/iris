@@ -4525,8 +4525,8 @@ function _renderSystemHealthPanel() {
     <section class="insights-card system-health-panel loading" id="systemHealthPanel" aria-label="Host resource health" aria-live="polite">
       <div class="system-health-head">
         <div>
-          <div class="insights-card-title">System health</div>
-          <div class="system-health-sub">Current VPS resource usage</div>
+          <div class="insights-card-title">系统健康</div>
+          <div class="system-health-sub">当前服务器资源占用</div>
         </div>
         <span class="system-health-status" id="systemHealthStatus"><span class="system-health-dot" aria-hidden="true"></span>Loading…</span>
       </div>
@@ -5341,7 +5341,7 @@ const MEMORY_SECTIONS = [
   { key: 'memory', labelKey: 'my_notes', emptyKey: 'no_notes_yet', iconKey: 'brain' },
   { key: 'user',   labelKey: 'user_profile', emptyKey: 'no_profile_yet', iconKey: 'user' },
   { key: 'soul',   labelKey: 'agent_soul', emptyKey: 'no_soul_yet', iconKey: 'sparkles' },
-  { key: 'project_context', label: 'Project Context', empty: 'No project context file found for this workspace.', iconKey: 'file-text', readOnly: true },
+  { key: 'project_context', labelKey: 'memory_project_context', emptyKey: 'memory_project_context_empty', iconKey: 'file-text', readOnly: true },
   { key: 'external_notes', labelKey: 'external_notes_sources', emptyKey: 'external_notes_empty', iconKey: 'book-open' },
 ];
 

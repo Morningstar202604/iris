@@ -5,7 +5,8 @@
 
 const LOCALES = {
   en: {
-    offline_title: 'Connection lost',
+    memory_project_context: 'Project Context',
+    memory_project_context_empty: 'No project context file found for this workspace.',offline_title: 'Connection lost',
     offline_browser_detail: 'Your browser reports that this device is offline.',
     offline_network_detail: 'Iris is unreachable from this browser right now.',
     offline_autorefresh: 'I will refresh this page automatically when Iris is reachable again.',
@@ -10831,7 +10832,9 @@ const LOCALES = {
   },
 
   zh: {
-    offline_title: '连接已断开',
+    memory_project_context: '项目上下文',
+    memory_project_context_empty: '该工作区未找到项目上下文文件。',memory_empty_title: '选择一个记忆分区',
+    memory_empty_sub: '从左侧列表选择一个分区进行查看或编辑。',offline_title: '连接已断开',
     offline_browser_detail: '浏览器报告此设备当前离线。',
     offline_network_detail: '此浏览器当前无法连接到 Iris。',
     offline_autorefresh: '当 Iris 可访问时，我会自动刷新此页面。',
@@ -12094,7 +12097,7 @@ const LOCALES = {
     profile_delete_confirm_title: (name) => `删除配置档“${name}”？`,
     profile_delete_confirm_message: '该配置档的所有会话、配置、技能和记忆将被永久删除。此操作无法撤销。',
     profile_deleted: (name) => `配置档已删除：${name}`,
-    active_conversation_none: '当前未选择活动会话。',
+    active_conversation_none: '当前未选择活动会话。请先在左侧选择一个会话，或发起一条新消息。',
     active_conversation_meta: (title, count) => `${title} · ${count} 条消息`,
     settings_unsaved_changes: '你有未保存的更改。',
     sign_out_failed: '退出登录失败：',
