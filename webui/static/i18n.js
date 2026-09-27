@@ -5,6 +5,11 @@
 
 const LOCALES = {
   en: {
+    provider_cost_spent_pct: '{0}% of ${2} budget used (${1})',
+    provider_cost_spent_hint: 'Manual usage record for this month; resets on the 1st.',
+    provider_cost_spent_set: 'Save',
+    provider_cost_spent_placeholder: 'e.g. 12.50',
+    provider_cost_spent_label: 'Spent this month',
     skills_load_failed_generic: '技能列表加载失败，请稍后重试或检查服务状态。',
     skills_load_missing_deps: '技能列表暂时无法加载：当前运行环境缺少 agent 依赖。请使用完整部署方式启动（含 Hermes agent 与网关守护进程），或在设置-系统-更新中执行完整安装。',
     insights_wiki_inspect_failed: 'Unable to inspect LLM Wiki status',
@@ -10836,6 +10841,11 @@ const LOCALES = {
   },
 
   zh: {
+    provider_cost_spent_pct: '已用 ${1} / 预算 ${2}（{0}%）',
+    provider_cost_spent_hint: '手动记录本月用量，每月 1 日自动重置。',
+    provider_cost_spent_set: '保存',
+    provider_cost_spent_placeholder: '如 12.50',
+    provider_cost_spent_label: '本月已用',
     skills_load_failed_generic: '技能列表加载失败，请稍后重试或检查服务状态。',
     skills_load_missing_deps: '技能列表暂时无法加载：当前运行环境缺少 agent 依赖。请使用完整部署方式启动（含 Hermes agent 与网关守护进程），或在设置-系统-更新中执行完整安装。',
     insights_wiki_inspect_failed: '无法检查 LLM Wiki 状态',

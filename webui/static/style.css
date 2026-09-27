@@ -5324,6 +5324,7 @@ main.main > #mainPlugin{display:none;}
 .provider-cost-chart-pace{font-weight:400;color:var(--text);}
 .provider-cost-chart-bars{height:80px;}
 .provider-cost-budget-title{font-size:11px;font-weight:650;color:var(--muted);}
+.provider-cost-budget-hint{font-size:11px;color:var(--muted);opacity:.75;}
 .provider-cost-budget-row{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .provider-cost-budget-input-group{display:flex;align-items:center;gap:4px;}
 .provider-cost-budget-prefix{font-size:12px;color:var(--muted);}

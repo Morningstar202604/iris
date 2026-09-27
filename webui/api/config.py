@@ -11495,6 +11495,8 @@ _SETTINGS_DEFAULTS = {
     "password_hash": None,  # PBKDF2-HMAC-SHA256 hash; None = auth disabled
     "auth_disabled_acknowledged": False,  # user acknowledged unauthenticated risk
     "provider_cost_budget": None,
+    "provider_cost_spent": None,  # manual month usage (USD), resets on month change
+    "provider_cost_spent_month": None,  # "YYYY-MM" the spent value belongs to
 }
 _SETTINGS_SPEECH_KEYS = {
     "tts_enabled",
@@ -12031,6 +12033,16 @@ def save_settings(settings: dict) -> dict:
                 if budget is None:
                     continue
                 current[k] = budget
+                continue
+            if k == "provider_cost_spent":
+                if v is None or v == "":
+                    current[k] = None
+                    continue
+                spent = _coerce_provider_cost_budget(v)
+                if spent is None:
+                    continue
+                current[k] = spent
+                current["provider_cost_spent_month"] = time.strftime("%Y-%m")
                 continue
             # Coerce bool keys
             if k in _SETTINGS_BOOL_KEYS:

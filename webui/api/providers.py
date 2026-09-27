@@ -2267,6 +2267,25 @@ def _get_provider_cost_budget() -> float | None:
         return None
 
 
+def _get_provider_cost_spent() -> float:
+    """Return the manually recorded usage for the current month.
+
+    The value is tagged with the month it was recorded in; once the
+    calendar month rolls over the recorded amount resets to 0 so the
+    budget comparison always reflects the current month.
+    """
+    try:
+        from api.config import load_settings
+        settings = load_settings()
+        spent = settings.get("provider_cost_spent")
+        month = settings.get("provider_cost_spent_month")
+        if month != time.strftime("%Y-%m"):
+            return 0.0
+        return float(spent) if spent is not None else 0.0
+    except Exception:
+        return 0.0
+
+
 def _cost_snapshots_dir() -> Path:
     """Return the directory for cost-snapshot JSON files.
 
@@ -2496,6 +2515,7 @@ def get_provider_cost_history(provider_id: str | None = None, days: int = 7) -> 
             "supported": True,
             "status": "no_key",
             "monthly_budget": monthly_budget,
+            "monthly_spent": _get_provider_cost_spent(),
             "message": "OpenRouter cost history needs an OPENROUTER_API_KEY configured on the server.",
         }
 
@@ -2517,6 +2537,7 @@ def get_provider_cost_history(provider_id: str | None = None, days: int = 7) -> 
             "limit": None,
             "label": None,
             "monthly_budget": monthly_budget,
+            "monthly_spent": _get_provider_cost_spent(),
             "message": "OpenRouter cost history is temporarily unavailable. Showing last known data.",
         }
 

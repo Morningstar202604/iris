@@ -11694,6 +11694,84 @@ function _attachBudgetControls(wrap,history,card,paceNum){
   clearBtn.addEventListener('click',()=>{
     _saveBudget(null);
   });
+
+  // ── 本月已用：手动记录（跨月自动重置，适用于无自动用量源的 provider） ──
+  const spent=(history&&history.monthly_spent!=null)?Number(history.monthly_spent):0;
+  const spentRow=document.createElement('div');
+  spentRow.className='provider-cost-budget-row';
+  const spentTitle=document.createElement('div');
+  spentTitle.className='provider-cost-budget-title';
+  spentTitle.textContent=t('provider_cost_spent_label');
+  spentRow.appendChild(spentTitle);
+  const spentGroup=document.createElement('div');
+  spentGroup.className='provider-cost-budget-input-group';
+  const spentPrefix=document.createElement('span');
+  spentPrefix.className='provider-cost-budget-prefix';
+  spentPrefix.textContent='$';
+  spentGroup.appendChild(spentPrefix);
+  const spentInput=document.createElement('input');
+  spentInput.type='number';
+  spentInput.min='0';
+  spentInput.step='0.01';
+  spentInput.className='provider-cost-budget-input';
+  spentInput.placeholder=t('provider_cost_spent_placeholder');
+  if(spent>0) spentInput.value=spent.toFixed(2);
+  spentGroup.appendChild(spentInput);
+  const spentBtn=document.createElement('button');
+  spentBtn.type='button';
+  spentBtn.className='provider-cost-budget-set';
+  spentBtn.textContent=t('provider_cost_spent_set');
+  spentGroup.appendChild(spentBtn);
+  const spentClear=document.createElement('button');
+  spentClear.type='button';
+  spentClear.className='provider-cost-budget-clear';
+  spentClear.textContent=t('provider_cost_budget_clear');
+  if(!spent) spentClear.style.display='none';
+  spentGroup.appendChild(spentClear);
+  spentRow.appendChild(spentGroup);
+  const spentHint=document.createElement('div');
+  spentHint.className='provider-cost-budget-hint';
+  spentHint.textContent=t('provider_cost_spent_hint');
+  spentRow.appendChild(spentHint);
+  wrap.appendChild(spentRow);
+
+  async function _saveSpent(value){
+    try{
+      await _enqueueSettingsPost({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider_cost_spent:value})});
+      const existing=card.querySelector('.provider-cost-chart-wrap');
+      if(existing) existing.remove();
+      renderProviderCostChart(card);
+    }catch(e){
+      if(typeof showToast==='function') showToast(t('provider_cost_budget_save_failed'));
+    }
+  }
+  spentBtn.addEventListener('click',()=>{
+    const val=parseFloat(spentInput.value);
+    if(!isFinite(val)||val<0) return;
+    _saveSpent(val);
+  });
+  spentClear.addEventListener('click',()=>{
+    _saveSpent(null);
+  });
+
+  // 已用/预算 进度条（两者都有时才显示）
+  if(budget!=null&&budget>0&&spent>0){
+    const pct=Math.round((spent/budget)*100);
+    const barWrap=document.createElement('div');
+    barWrap.className='provider-cost-budget-bar-wrap';
+    const bar=document.createElement('div');
+    bar.className='provider-cost-budget-bar';
+    const fill=document.createElement('div');
+    fill.className='provider-cost-budget-bar-fill'+(pct>=100?' over':pct>=80?' warn':'');
+    fill.style.width=Math.min(100,pct)+'%';
+    bar.appendChild(fill);
+    barWrap.appendChild(bar);
+    const pctLabel=document.createElement('span');
+    pctLabel.className='provider-cost-budget-pct-label';
+    pctLabel.textContent=t('provider_cost_spent_pct',pct,spent.toFixed(2),budget.toFixed(2));
+    barWrap.appendChild(pctLabel);
+    spentRow.appendChild(barWrap);
+  }
 }
 
 function _buildProviderCard(p){
