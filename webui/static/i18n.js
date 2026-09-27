@@ -5,6 +5,12 @@
 
 const LOCALES = {
   en: {
+    skills_load_failed_generic: '技能列表加载失败，请稍后重试或检查服务状态。',
+    skills_load_missing_deps: '技能列表暂时无法加载：当前运行环境缺少 agent 依赖。请使用完整部署方式启动（含 Hermes agent 与网关守护进程），或在设置-系统-更新中执行完整安装。',
+    insights_wiki_inspect_failed: 'Unable to inspect LLM Wiki status',
+    insights_wiki_no_pages: 'LLM Wiki exists but has no entity, concept, comparison, or query pages yet.',
+    insights_wiki_configured: 'LLM Wiki is configured and page metadata is visible without exposing wiki content.',
+    insights_wiki_toggle_missing: 'No stable LLM Wiki on/off config flag was detected, so this panel is read-only.',
     memory_project_context: 'Project Context',
     memory_project_context_empty: 'No project context file found for this workspace.',offline_title: 'Connection lost',
     offline_browser_detail: 'Your browser reports that this device is offline.',
@@ -1905,10 +1911,8 @@ const LOCALES = {
     plugin_install_input_placeholder: 'Plugin name, Git URL, or owner/repo (e.g. skills-hub)',
     plugin_install_btn: 'Install',
     kb_upload_title: 'Upload documents',
-    kb_upload_btn: 'Choose files',
     kb_search_title: 'Test retrieval',
     kb_search_input_placeholder: 'Enter a keyword or question to test knowledge-base retrieval…',
-    kb_search_btn: 'Search',
     kb_docs_title: 'Indexed documents',
     kb_docs_empty: 'No documents indexed yet. Upload a file to get started.',
     agent_health_dismiss: 'Dismiss',
@@ -10832,6 +10836,12 @@ const LOCALES = {
   },
 
   zh: {
+    skills_load_failed_generic: '技能列表加载失败，请稍后重试或检查服务状态。',
+    skills_load_missing_deps: '技能列表暂时无法加载：当前运行环境缺少 agent 依赖。请使用完整部署方式启动（含 Hermes agent 与网关守护进程），或在设置-系统-更新中执行完整安装。',
+    insights_wiki_inspect_failed: '无法检查 LLM Wiki 状态',
+    insights_wiki_no_pages: 'LLM Wiki 已存在，但还没有实体、概念、对比或查询页面。',
+    insights_wiki_configured: 'LLM Wiki 已配置，可在不暴露 Wiki 内容的情况下查看页面元数据。',
+    insights_wiki_toggle_missing: '未检测到稳定的 LLM Wiki 开关配置，本面板为只读。',
     memory_project_context: '项目上下文',
     memory_project_context_empty: '该工作区未找到项目上下文文件。',memory_empty_title: '选择一个记忆分区',
     memory_empty_sub: '从左侧列表选择一个分区进行查看或编辑。',offline_title: '连接已断开',
@@ -12713,10 +12723,8 @@ const LOCALES = {
     plugin_install_input_placeholder: '插件名、Git 地址或 owner/repo（例如 skills-hub）',
     plugin_install_btn: '安装',
     kb_upload_title: '上传文档',
-    kb_upload_btn: '选择文件',
     kb_search_title: '检索测试',
     kb_search_input_placeholder: '输入关键词或问题，测试知识库检索…',
-    kb_search_btn: '检索',
     kb_docs_title: '已索引文档',
     kb_docs_empty: '还没有已索引的文档。上传文件即可开始。',
     agent_health_dismiss: '关闭',

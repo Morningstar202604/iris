@@ -4561,13 +4561,13 @@ function _renderLlmWikiStatus(d) {
   const docsUrl = /^https?:\/\//i.test(rawDocsUrl) ? rawDocsUrl : '#';
   const toggleNote = status.toggle_available
     ? t('insights_toggle_hint')
-    : (status.toggle_reason || 'No stable LLM Wiki on/off config flag was detected, so this panel is read-only.');
+    : (status.toggle_reason || t('insights_wiki_toggle_missing'));
   const statusNote = isReady
-    ? 'LLM Wiki is configured and page metadata is visible without exposing wiki content.'
+    ? t('insights_wiki_configured')
     : isEmpty
-      ? 'LLM Wiki exists but has no entity, concept, comparison, or query pages yet.'
+      ? t('insights_wiki_no_pages')
       : isError
-        ? `Unable to inspect LLM Wiki status${status.error ? ': ' + status.error : ''}.`
+        ? t('insights_wiki_inspect_failed') + (status.error ? ': ' + status.error : '')
         : t('insights_no_wiki_dir');
   return `
     <div class="insights-card wiki-status-card" id="llmWikiStatusCard">
@@ -4921,7 +4921,14 @@ async function loadSkills() {
     const liveCats = new Set(_skillsData.map(s => s.category || '(general)'));
     for (const c of _collapsedCats) { if (!liveCats.has(c)) _collapsedCats.delete(c); }
     renderSkills(_skillsData);
-  } catch(e) { box.innerHTML = `<div style="padding:12px;color:var(--accent);font-size:12px">Error: ${esc(e.message)}</div>`; }
+  } catch(e) {
+    const raw = String((e && (e.message || e.error)) || e || '');
+    const depMissing = /module|import|agent|not found|internal server error/i.test(raw);
+    const hint = depMissing
+      ? t('skills_load_missing_deps')
+      : t('skills_load_failed_generic');
+    box.innerHTML = `<div style="padding:14px 12px;color:var(--muted);font-size:12px;line-height:1.6">${esc(hint)}${raw && depMissing ? '<div style="margin-top:4px;opacity:.7">' + esc(raw.slice(0,120)) + '</div>' : ''}</div>`;
+  }
 }
 
 let _collapsedCats = new Set(); // persisted collapsed state across re-renders
@@ -8432,6 +8439,11 @@ function _syncHermesPanelSessionActions(){
   setDisabled('btnShareSession',!hasSession||visibleMessages===0);
   setDisabled('btnStopSharingSession',!hasShare);
   setDisabled('btnClearConvModal',!hasSession||visibleMessages===0);
+  // 共享/停止共享按当前状态只显示一个（避免并排歧义）
+  const shareBtn = $('btnShareSession');
+  const stopBtn = $('btnStopSharingSession');
+  if (shareBtn) shareBtn.style.display = hasShare ? 'none' : '';
+  if (stopBtn) stopBtn.style.display = hasShare ? '' : 'none';
 }
 
 // Thin wrapper: settings now live in the main content area. External callers
