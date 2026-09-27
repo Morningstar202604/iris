@@ -796,6 +796,10 @@ class RelayHostRegistry:
                 return host
             try:
                 host = RelayRuntime(profile_key=key)
+            except ModuleNotFoundError:
+                # Optional integration (nemo_relay) not installed — expected on stock installs.
+                logger.info("Hermes Relay runtime unavailable: nemo_relay not installed (optional feature, continuing without it)")
+                host = NoopRelayRuntime(profile_key=key, reason="nemo_relay not installed")
             except Exception as exc:
                 logger.warning("Hermes Relay runtime initialization failed", exc_info=True)
                 host = NoopRelayRuntime(profile_key=key, reason=str(exc))

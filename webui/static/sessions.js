@@ -7395,7 +7395,12 @@ function _sessionDisplayTitle(s){
   const strip=(typeof _stripAttachedFilesMarker==='function')
     ? _stripAttachedFilesMarker
     : (text)=>String(text||'').replace(/\n\n\[Attached files: [^\]]+\]$/,'').trim();
-  const title=strip(rawTitle);
+  // Stored titles may carry the `[Workspace::v1: <path>]` worktree sentinel
+  // when a session's first message opened a workspace — never show that raw.
+  const stripWorkspace=(typeof _stripWorkspaceDisplayPrefix==='function')
+    ? _stripWorkspaceDisplayPrefix
+    : (text)=>String(text||'').replace(/^\s*\[Workspace(?:[^\]\\]|\\.)*\]\s*/,'').trim();
+  const title=stripWorkspace(strip(rawTitle));
   return title||'Untitled';
 }
 

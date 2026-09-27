@@ -4550,6 +4550,9 @@ function _renderSystemHealthPanel() {
 
 function _renderLlmWikiStatus(d) {
   const status = d || {status:'error'};
+  // Optional feature: hide the card entirely when no wiki is configured —
+  // an "Unavailable" badge on stock installs only confuses users.
+  if (status.status === 'missing') return '';
   const isReady = status.available && status.status === 'ready';
   const isEmpty = status.available && status.status === 'empty';
   const isError = status.status === 'error';
