@@ -20,19 +20,19 @@
 **一次真实任务的完整执行** —— Iris 独立完成了整站开发：规划、分批写入、校验、总结汇报，
 途中自动处理了流式截断、超大文件写入和沙箱权限限制等环境问题：
 
-![真实 Agent 任务 —— 开发官网](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/chat-demo.png)
+![真实 Agent 任务 —— 开发官网](assets/screenshots/chat-demo.png)
 
-[![观看完整演示](https://gitcode.com/badhope/iris/raw/main/assets/demo/iris-demo-poster.png)](https://gitcode.com/badhope/iris/raw/main/assets/demo/iris-demo.mp4)
+[![观看完整演示](assets/demo/iris-demo-poster.png)](assets/demo/iris-demo.mp4)
 
 ## 📸 界面截图
 
 | 主工作台 | 设置 | 技能中心 |
 |---|---|---|
-| ![主界面](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/main.png) | ![设置](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/settings.png) | ![技能](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/skills.png) |
+| ![主界面](assets/screenshots/main.png) | ![设置](assets/screenshots/settings.png) | ![技能](assets/screenshots/skills.png) |
 
 | 定时任务 | 用量统计 | 移动端 |
 |---|---|---|
-| ![任务](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/tasks.png) | ![统计](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/stats.png) | ![移动端](https://gitcode.com/badhope/iris/raw/main/assets/screenshots/mobile.png) |
+| ![任务](assets/screenshots/tasks.png) | ![统计](assets/screenshots/stats.png) | ![移动端](assets/screenshots/mobile.png) |
 
 ---
 
