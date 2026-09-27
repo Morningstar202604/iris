@@ -167,3 +167,14 @@ on purpose so upstream fixes merge cleanly. Rules:
   load-bearing contracts — renaming them breaks imports, configs, and stored
   user preferences. Leave them unless you migrate the whole contract at once.
 - The canonical version is **v0.12.0** (README badge, git tag, pyproject).
+
+## routes.py monolith — why it stays (for now)
+
+`webui/api/routes.py` is ~30K lines. A mechanical function extraction was
+attempted and rolled back: the test suite (15K+ tests) pins nearly every
+function to the `api.routes` module namespace — 219 names are patched/mocked
+on `api.routes` by tests, and 20+ source-presence assertions require specific
+code strings to remain in routes.py. Only 25 of 481 functions could move
+without breaking that contract. If you split it, do it as a **test-contract
+migration**: move a function family AND its tests in the same commit, never a
+blind extraction.
