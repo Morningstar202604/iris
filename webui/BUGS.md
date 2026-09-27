@@ -2,6 +2,10 @@
 
 This file tracks UI bugs and polish items. Fixed items are kept for reference.
 
+> **Version note**: Iris canonical version is **v0.12.0**. Entries mentioning
+> `v0.17.x` / `PR #NN` / `#NNNN` are historical references from the upstream
+> hermes-webui line and are kept for traceability only.
+
 ---
 
 ## Open Bugs

@@ -1,9 +1,9 @@
 
 
 [project]
-name = "hermes-agent"
-version = "0.21.4"
-description = "The self-improving AI agent — creates skills from experience, improves them during use, and runs anywhere"
+name = "iris"
+version = "0.12.0"
+description = "Iris — a fast, lightweight, local-first personal AI assistant (Iris distribution of the Hermes agent framework)"
 readme = "README.md"
 # Upper bound is load-bearing, not cosmetic. uv resolves the project's
 # Python from `requires-python`, and an inherited `UV_PYTHON` env var (or a
@@ -13,7 +13,7 @@ readme = "README.md"
 # <3.14 makes uv refuse 3.14 with a clear error instead of attempting that
 # build. Raise the ceiling once our Rust transitives ship cp314 wheels.
 requires-python = ">=3.11,<3.14"
-authors = [{ name = "Nous Research" }]
+authors = [{ name = "badhope" }]
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [

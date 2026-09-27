@@ -1,8 +1,9 @@
 # ✦ Iris — Your Personal AI Super-Assistant
 
 > **Fast. Lightweight. Fully yours.**
-> A ground-up, heavily-customized rebuild of the open-source **Hermes** agent framework —
-> stripped for speed, redesigned for modern UX, 100% protocol-driven. No vendor lock-in. No bloat. Just you and your AI.
+> The Iris distribution of the open-source **Hermes** agent framework —
+> a fully rewritten, consumer-grade web UI on a lean local-first core.
+> 100% protocol-driven, no vendor lock-in, no bloat. Just you and your AI.
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -11,19 +12,19 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
 ![Plugins](https://img.shields.io/badge/plugins-275%2B-6B8BFF.svg)
 ![i18n](https://img.shields.io/badge/i18n-14%20languages-green.svg)
-[![Official Site](https://img.shields.io/badge/✦%20Official%20Site-x33834.github.io%2Firis-4F6EF7)](https://x33834.github.io/iris)
-[![Download](https://img.shields.io/badge/⬇%20Download-v0.12.0-12B76A)](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip)
+[![Official Repo](https://img.shields.io/badge/✦%20Iris-gitcode.com%2Fbadhope%2Firis-4F6EF7)](https://gitcode.com/badhope/iris)
+[![Download](https://img.shields.io/badge/⬇%20Download-v0.12.0-12B76A)](https://gitcode.com/badhope/iris/releases)
 
 ---
 
-## 🌐 Official Website · 👀 See it first
+## 🌐 Official Repo · 👀 See it first
 
-**→ [x33834.github.io/iris](https://x33834.github.io/iris)** — interactive landing page with screenshots, live architecture diagram & one-click download.
+**→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — the official home on GitCode: source, releases, issues, and the in-repo landing page (`docs/`).
 
 | Download | Format | Size | For |
 |---|---|---|---|
-| [⬇ iris-v0.12.0.zip](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.zip) | ZIP | 72 MB | **Windows / macOS — recommended** |
-| [⬇ iris-v0.12.0.tar.gz](https://github.com/X33834/iris/releases/download/v0.12.0/iris-v0.12.0.tar.gz) | TAR.GZ | 67 MB | Linux / servers — full source tree |
+| [⬇ iris-v0.12.0.zip](https://gitcode.com/badhope/iris/releases) | ZIP | 72 MB | **Windows / macOS — recommended** |
+| [⬇ iris-v0.12.0.tar.gz](https://gitcode.com/badhope/iris/releases) | TAR.GZ | 67 MB | Linux / servers — full source tree |
 
 ---
 
@@ -31,7 +32,7 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/X33834/iris.git && cd iris
+git clone https://gitcode.com/badhope/iris.git && cd iris
 
 # 2. Install the agent
 cd agent && pip install -e . && cd ..
@@ -57,13 +58,13 @@ custom_providers:
 
 ## ⚡ Why Iris? (vs. the original Hermes)
 
-Hermes is a brilliant agent framework — but it grew heavy. **Iris** keeps **100% of the functionality**
+Hermes is a brilliant agent framework — but it grew heavy. **Iris** keeps the full Hermes core
 while making the whole thing feel like a modern consumer AI app:
 
 | | Hermes (original) | **Iris** |
 |---|---|---|
 | ⚡ Boot time | slow, loads everything | **seconds — lazy loading, uvloop-native** |
-| 📦 Footprint | heavy | **40%+ lighter** |
+| 📦 Footprint | heavy | **leaner — web UI needs only pyyaml + cryptography** |
 | 🖥️ Web UI | dev-tool style | **modern consumer UI** — light/dark, 9 skins, command palette |
 | 🔌 Model support | provider-specific adapters | **protocol-first** — *any* OpenAI-compatible endpoint |
 | 🧩 Plugins | bundled always | **275+ catalog, install / uninstall on demand** |
@@ -116,12 +117,12 @@ See the landing page for screenshots and a live architecture tour: [x33834.githu
 
 ## 🔄 Relationship to Hermes
 
-Iris is an **independent, heavily-customized rebuild of [Hermes](https://github.com/NousResearch/hermes-agent)**
+Iris is an **independent, deeply-customized distribution of [Hermes](https://github.com/NousResearch/hermes-agent)**
 (the open-source agent framework by **Nous Research**). We:
 
-- **Kept 100% of the functionality** — nothing removed, everything refactored
-- **Replaced heavy internals** with modern, lighter implementations
+- **Kept the full Hermes core** — upstream module layout is preserved so upstream fixes merge cleanly
 - **Rewrote the entire front-end** in a mainstream consumer-app style
+- **Slimmed the deploy surface** — the web UI runs on two Python deps; heavy providers stay optional
 - **Added** knowledge-base RAG, command palette, preset prompts, ECharts rendering, and more
 
 ---

@@ -1,4 +1,4 @@
-# Agent instructions for Hermes WebUI
+# Agent instructions for Iris WebUI
 
 This file is the shared entry point for AI assistants working in this
 repository. Keep it project-specific and safe to publish. Do not put personal
@@ -155,3 +155,15 @@ python3 bootstrap.py
 
 Do not include private machine instructions in this tracked file. Use a
 git-ignored local note for personal workflow details.
+
+## Branding note (Iris)
+
+Iris is the brand; the agent core keeps the upstream `hermes_*` module layout
+on purpose so upstream fixes merge cleanly. Rules:
+
+- **User-facing strings** (titles, labels, banners, CLI output, docs) say "Iris".
+- **Internal identifiers** (`hermes_*` modules/classes/functions, `HERMES_*` env
+  vars, `hermes-*` localStorage keys, `window.registerHermes*` hooks) are
+  load-bearing contracts — renaming them breaks imports, configs, and stored
+  user preferences. Leave them unless you migrate the whole contract at once.
+- The canonical version is **v0.12.0** (README badge, git tag, pyproject).
