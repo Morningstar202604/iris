@@ -22,7 +22,7 @@
 
 ![真实 Agent 任务 —— 开发官网](assets/screenshots/chat-demo.png)
 
-<video src="assets/demo/iris-demo.mp4" controls width="720"></video>
+[![观看完整演示](assets/demo/iris-demo-poster.png)](assets/demo/iris-demo.mp4)
 
 ## 📸 界面截图
 

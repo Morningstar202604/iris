@@ -23,7 +23,7 @@ sandbox permission limit along the way:
 
 ![Real agent task — building a website](assets/screenshots/chat-demo.png)
 
-<video src="assets/demo/iris-demo.mp4" controls width="720"></video>
+[![Watch a full demo run](assets/demo/iris-demo-poster.png)](assets/demo/iris-demo.mp4)
 
 ## 📸 Screenshots
 
