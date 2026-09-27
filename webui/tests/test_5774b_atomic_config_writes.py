@@ -806,6 +806,7 @@ def test_writable_parent_with_readonly_file_raises_and_keeps_bytes(tmp_path: Pat
         os.chmod(target, 0o644)
 
 
+@_ROOT_SKIP
 def test_readonly_parent_with_unwritable_file_still_raises(tmp_path: Path) -> None:
     cfg_dir = tmp_path / "locked"
     cfg_dir.mkdir()

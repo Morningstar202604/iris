@@ -7,11 +7,16 @@ Docker setups), Path.exists() raises PermissionError instead of returning False.
 load_settings() must treat that as "file not accessible = use defaults" rather
 than propagating the exception up to crash the request handler.
 """
+import os
 import stat
 import pytest
 import api.config as config
 
 
+@pytest.mark.skipif(
+    getattr(os, "geteuid", lambda: -1)() == 0,
+    reason="root bypasses directory permission bits",
+)
 def test_load_settings_returns_defaults_when_settings_file_unreadable(monkeypatch, tmp_path):
     """PermissionError from SETTINGS_FILE.exists() must not propagate — return defaults instead.
 
