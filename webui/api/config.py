@@ -11431,7 +11431,7 @@ _SETTINGS_DEFAULTS = {
     "voice_continuous": False,
     "voice_silence_ms": 1800,
     "raw_audio_mode": False,
-    "theme": "dark",  # light | dark | system
+    "theme": "light",  # light | dark | system
     "skin": "default",  # accent color skin: default | ares | mono | graphite | slate | poseidon | sisyphus | charizard | sienna | catppuccin | nous
     "font_size": "default",  # small | default | large | xlarge
     "session_jump_buttons": False,  # show Start/End transcript jump pills

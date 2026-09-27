@@ -39,7 +39,7 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
                                 base_url_env_var="HERMES_QWEN_BASE_URL"),
     "lmstudio": HermesOverlay(extra_env_vars=("LM_API_KEY",), base_url_override="http://127.0.0.1:1234/v1",
                               base_url_env_var="LM_BASE_URL"),
-                                 base_url_override="acp://copilot", base_url_env_var="COPILOT_ACP_BASE_URL"),
+    "github-copilot": HermesOverlay(base_url_override="acp://copilot", base_url_env_var="COPILOT_ACP_BASE_URL"),
     "anthropic": HermesOverlay(transport="anthropic_messages", extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")),
     "zai": HermesOverlay(extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), base_url_env_var="GLM_BASE_URL"),
     "kimi-for-coding": HermesOverlay(base_url_env_var="KIMI_BASE_URL"),

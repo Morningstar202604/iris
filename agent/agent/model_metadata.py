@@ -1554,7 +1554,15 @@ def _query_ollama_api_show_uncached(model: str, base_url: str, api_key: str = ""
     server_url = _server_root(base_url)
     if _endpoint_blackholed(server_url):
         return None
-    data = _ollama_show(server_url, api_key, model, timeout=5.0, note_blackhole=True)
+    # Fast-path rejection for clearly non-Ollama remote endpoints (e.g. custom
+    # OpenAI-compatible gateways): probing them with /api/show can hang or
+    # crawl instead of 404ing quickly, adding multi-second latency to every
+    # context-length resolve. Only actual Ollama deployments (local or hosted
+    # with an ollama-ish hostname) get probed.
+    hostname = (server_url or "").lower()
+    if not (hostname.startswith(("http://127.", "http://localhost", "http://0.0.0.0")) or "ollama" in hostname):
+        return None
+    data = _ollama_show(server_url, api_key, model, timeout=2.0, note_blackhole=True)
     # Hosted Ollama: the GGUF max is authoritative (the operator may have capped num_ctx arbitrarily).
     return _ollama_show_context(data, gguf_first=True, minimum=1024) if data is not None else None
 
