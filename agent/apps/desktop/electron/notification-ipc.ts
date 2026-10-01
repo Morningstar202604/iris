@@ -4,7 +4,7 @@ import { createEventDeduper } from './event-dedupe'
 import { resolveNotificationAction } from './notification-actions'
 import { createLinuxNotifications } from './notification-linux'
 import { createNotificationRegistry } from './notification-registry'
-import type { HermesNotification } from './notification-types'
+import type { IrisNotification } from './notification-types'
 
 interface NotificationHost {
   getMainWindow: () => BrowserWindow | null
@@ -23,7 +23,7 @@ export function registerNativeNotifications({
   const linux = platform === 'linux' ? createLinuxNotifications() : undefined
   const notifications = createNotificationRegistry({ releaseOnClose: Boolean(linux) })
 
-  ipcMain.handle('hermes:notify', async (event, payload: HermesNotification) => {
+  ipcMain.handle('iris:notify', async (event, payload: IrisNotification) => {
     // The source renderer owns runtime bindings and plugin callbacks.
     const sourceWindow = BrowserWindow.fromWebContents(event.sender)
     const targetWindow = () => (sourceWindow && !sourceWindow.isDestroyed() ? sourceWindow : getMainWindow())
@@ -64,11 +64,11 @@ export function registerNativeNotifications({
       const focusSessionId = payload?.focusSessionId || payload?.sessionId
 
       if (focusSessionId) {
-        window.webContents.send('hermes:focus-session', focusSessionId)
+        window.webContents.send('iris:focus-session', focusSessionId)
       }
 
       if (payload?.activate || payload?.notifyId) {
-        window.webContents.send('hermes:notification-activate', {
+        window.webContents.send('iris:notification-activate', {
           activate: payload?.activate,
           notifyId: window === sourceWindow ? payload?.notifyId : undefined,
           tag: payload?.tag
@@ -94,13 +94,13 @@ export function registerNativeNotifications({
           return
         }
 
-        window.webContents.send('hermes:notification-action', { sessionId: payload.sessionId, actionId: action.id })
+        window.webContents.send('iris:notification-action', { sessionId: payload.sessionId, actionId: action.id })
 
         return
       }
 
       focusWindow(window)
-      window.webContents.send('hermes:notification-activate', {
+      window.webContents.send('iris:notification-activate', {
         actionId: action.id,
         activate: action.activate || payload?.activate,
         notifyId: window === sourceWindow ? payload?.notifyId : undefined,

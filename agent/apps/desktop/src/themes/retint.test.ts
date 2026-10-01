@@ -1,4 +1,4 @@
-import { contrastRatio } from '@hermes/shared/color'
+import { contrastRatio } from '@iris/shared/color'
 import { describe, expect, it } from 'vitest'
 
 import { hexToOklch, withHue } from './color'

@@ -107,8 +107,8 @@ def test_compression_exhausted_after_session_rotation_preserves_snapshot_and_err
         def interrupt(self, _message):
             return None
 
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = lambda *_args, **_kwargs: object()
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = lambda *_args, **_kwargs: object()
 
     with monkeypatch.context() as m:
         m.setattr(streaming, "get_session", lambda _sid: session)
@@ -116,7 +116,7 @@ def test_compression_exhausted_after_session_rotation_preserves_snapshot_and_err
         m.setattr(streaming, "resolve_model_provider", lambda *_args, **_kwargs: ("gpt-4o", "openai", None))
         m.setattr("api.config.get_config", lambda *_args, **_kwargs: {})
         m.setattr("api.config._resolve_cli_toolsets", lambda *_args, **_kwargs: [])
-        m.setitem(sys.modules, "hermes_state", fake_hermes_state)
+        m.setitem(sys.modules, "iris_state", fake_iris_state)
         streaming._run_agent_streaming(
             session_id=old_sid,
             msg_text="Do the long task.",
@@ -404,14 +404,14 @@ def test_apperror_payload_enriched_before_enqueue(tmp_path, monkeypatch):
         def interrupt(self, _message):
             return None
 
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = lambda *_args, **_kwargs: object()
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = lambda *_args, **_kwargs: object()
 
     with monkeypatch.context() as m:
         m.setattr(streaming, "get_session", lambda _sid: session)
         m.setattr(streaming, "_get_ai_agent", lambda: FakeAgent)
         m.setattr(streaming, "resolve_model_provider", lambda *_args, **_kwargs: ("gpt-4o", "openai", None))
-        m.setitem(sys.modules, "hermes_state", fake_hermes_state)
+        m.setitem(sys.modules, "iris_state", fake_iris_state)
         m.setattr("api.config.get_config", lambda *_args, **_kwargs: {})
         m.setattr("api.config._resolve_cli_toolsets", lambda *_args, **_kwargs: [])
         m.setattr(streaming, "redact_session_data", lambda s: s)

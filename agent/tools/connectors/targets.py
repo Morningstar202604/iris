@@ -73,7 +73,7 @@ def validate_action(action: str, managed: List[str], mcp: List[str]) -> Optional
 
 def catalog_names() -> Set[str]:
     try:
-        from hermes_cli.mcp_catalog import list_catalog
+        from iris_cli.mcp_catalog import list_catalog
 
         return {e.name for e in list_catalog()}
     except Exception as exc:

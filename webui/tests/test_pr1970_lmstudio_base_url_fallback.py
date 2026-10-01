@@ -54,14 +54,14 @@ def _groups_by_provider_id(result: dict) -> dict:
     return {group["provider_id"]: group for group in result["groups"]}
 
 
-def _stub_hermes_cli(monkeypatch):
-    fake_models = types.ModuleType("hermes_cli.models")
+def _stub_iris_cli(monkeypatch):
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda _pid: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {"key_source": "none"}
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(
         config,
         "_get_auth_store_path",
@@ -201,16 +201,16 @@ def test_get_provider_base_url_treats_malformed_provider_entry_as_unconfigured()
 
 
 
-def test_lmstudio_fallback_works_when_hermes_cli_unavailable(tmp_path, monkeypatch):
+def test_lmstudio_fallback_works_when_iris_cli_unavailable(tmp_path, monkeypatch):
     """The lmstudio branch must populate models from the urlopen fallback even
-    when `from hermes_cli.models import provider_model_ids` raises ImportError.
+    when `from iris_cli.models import provider_model_ids` raises ImportError.
 
     Pre-fix, the outer try/except in the lmstudio branch caught the ImportError
     and silently aborted the whole branch, never running the urlopen fallback —
-    a CI-vs-local divergence where local environments with hermes_cli installed
+    a CI-vs-local divergence where local environments with iris_cli installed
     worked, and CI (clean editable install) failed with empty model groups.
 
-    Caught in CI on stage-337; fix splits the hermes_cli try from the urlopen
+    Caught in CI on stage-337; fix splits the iris_cli try from the urlopen
     fallback so each runs independently.
     """
     import json as _json
@@ -219,19 +219,19 @@ def test_lmstudio_fallback_works_when_hermes_cli_unavailable(tmp_path, monkeypat
 
     import api.config as config
 
-    # Block hermes_cli import the way a CI runner without the package would.
-    blocked_modules = [name for name in list(sys.modules) if name == "hermes_cli" or name.startswith("hermes_cli.")]
+    # Block iris_cli import the way a CI runner without the package would.
+    blocked_modules = [name for name in list(sys.modules) if name == "iris_cli" or name.startswith("iris_cli.")]
     for name in blocked_modules:
         monkeypatch.delitem(sys.modules, name, raising=False)
 
     class _Blocker:
         def find_module(self, name, path=None):
-            if name == "hermes_cli" or name.startswith("hermes_cli."):
+            if name == "iris_cli" or name.startswith("iris_cli."):
                 return self
             return None
 
         def load_module(self, name):
-            raise ImportError(f"hermes_cli blocked for test: {name}")
+            raise ImportError(f"iris_cli blocked for test: {name}")
 
     blocker = _Blocker()
     sys.meta_path.insert(0, blocker)
@@ -278,9 +278,9 @@ providers:
         result = config.get_available_models()
         groups = {g["provider_id"]: g for g in result["groups"]}
 
-        # Fallback must succeed despite hermes_cli being unimportable.
+        # Fallback must succeed despite iris_cli being unimportable.
         assert "lmstudio" in groups, (
-            f"lmstudio group missing when hermes_cli unavailable; groups={list(groups)}"
+            f"lmstudio group missing when iris_cli unavailable; groups={list(groups)}"
         )
         model_ids = {m["id"] for m in groups["lmstudio"]["models"]}
         assert "qwen3.6-35b-a3b@q6_k" in model_ids
@@ -298,18 +298,18 @@ def test_lmstudio_fallback_handles_malformed_providers_list(tmp_path, monkeypatc
     import socket as _socket
     import urllib.request as _urlreq
 
-    blocked_modules = [name for name in list(sys.modules) if name == "hermes_cli" or name.startswith("hermes_cli.")]
+    blocked_modules = [name for name in list(sys.modules) if name == "iris_cli" or name.startswith("iris_cli.")]
     for name in blocked_modules:
         monkeypatch.delitem(sys.modules, name, raising=False)
 
     class _Blocker:
         def find_module(self, name, path=None):
-            if name == "hermes_cli" or name.startswith("hermes_cli."):
+            if name == "iris_cli" or name.startswith("iris_cli."):
                 return self
             return None
 
         def load_module(self, name):
-            raise ImportError(f"hermes_cli blocked for test: {name}")
+            raise ImportError(f"iris_cli blocked for test: {name}")
 
     blocker = _Blocker()
     sys.meta_path.insert(0, blocker)
@@ -369,7 +369,7 @@ providers:
 
 def test_provider_catalog_treats_malformed_providers_as_unconfigured(monkeypatch):
     """Catalog lookup must not crash when providers is a non-dict value."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     with _RestoreCfg():
@@ -391,7 +391,7 @@ def test_provider_catalog_treats_malformed_providers_as_unconfigured(monkeypatch
 
 def test_provider_catalog_preserves_dict_shaped_raw_key_lookup(monkeypatch):
     """Dict-shaped providers must still resolve configured models through the raw key."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     with _RestoreCfg():
@@ -424,7 +424,7 @@ def test_provider_catalog_rejects_non_active_models_only_custom_provider(monkeyp
     """A models-only custom provider config must NOT render when it is not the
     active/configured provider (#5301 review finding: admitting any
     models-only config re-opens the copilot-2 duplicate-alias regression)."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     with _RestoreCfg():
@@ -455,7 +455,7 @@ def test_provider_catalog_rejects_non_active_models_only_custom_provider(monkeyp
 
 def test_provider_catalog_treats_malformed_provider_entry_as_unconfigured(monkeypatch):
     """Provider catalog raw-key lookup must ignore truth-y non-dict entries."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     with _RestoreCfg():

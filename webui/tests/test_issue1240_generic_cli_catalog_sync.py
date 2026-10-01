@@ -1,7 +1,7 @@
-"""Regression tests for #1240 — WebUI model catalog should delegate to Hermes CLI.
+"""Regression tests for #1240 — WebUI model catalog should delegate to Iris CLI.
 
 The WebUI picker should not freeze ordinary providers to its static
-``_PROVIDER_MODELS`` snapshot when Hermes CLI can return a fresher provider
+``_PROVIDER_MODELS`` snapshot when Iris CLI can return a fresher provider
 catalog. Static lists remain a fallback only.
 """
 
@@ -42,12 +42,12 @@ def _scrub_provider_env(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def _install_fake_hermes_cli(monkeypatch, *, provider_id: str, live_ids, raise_on_lookup: bool = False):
-    """Install a hermes_cli stub that reports one authenticated provider."""
-    fake_pkg = types.ModuleType("hermes_cli")
+def _install_fake_iris_cli(monkeypatch, *, provider_id: str, live_ids, raise_on_lookup: bool = False):
+    """Install a iris_cli stub that reports one authenticated provider."""
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": provider_id, "authenticated": True}
     ]
@@ -62,7 +62,7 @@ def _install_fake_hermes_cli(monkeypatch, *, provider_id: str, live_ids, raise_o
 
     fake_models.provider_model_ids = provider_model_ids
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
 
     def get_auth_status(pid):
         if pid == provider_id:
@@ -71,9 +71,9 @@ def _install_fake_hermes_cli(monkeypatch, *, provider_id: str, live_ids, raise_o
 
     fake_auth.get_auth_status = get_auth_status
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
     config.invalidate_models_cache()
@@ -81,9 +81,9 @@ def _install_fake_hermes_cli(monkeypatch, *, provider_id: str, live_ids, raise_o
 
 
 def _configure(monkeypatch, tmp_path, *, provider: str, default: str = ""):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: hermes_home)
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: iris_home)
     monkeypatch.setattr(config, "_get_config_path", lambda: tmp_path / "missing-config.yaml")
     monkeypatch.setattr(config, "_models_cache_path", tmp_path / "models_cache.json")
     monkeypatch.setattr(
@@ -108,15 +108,15 @@ def _ids(group: dict) -> list[str]:
     return [m.get("id") for m in group.get("models", [])]
 
 
-def test_generic_provider_uses_hermes_cli_catalog_before_static_snapshot(monkeypatch, tmp_path):
+def test_generic_provider_uses_iris_cli_catalog_before_static_snapshot(monkeypatch, tmp_path):
     """A normal provider should show fresh CLI-discovered models.
 
     ``claude-sonnet-5.0`` is intentionally absent from WebUI's static Anthropic
     list. Before this fix the group came entirely from ``_PROVIDER_MODELS`` and
-    this model was invisible even though Hermes CLI knew about it.
+    this model was invisible even though Iris CLI knew about it.
     """
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="anthropic",
         live_ids=["claude-opus-4.7", "claude-sonnet-5.0"],
@@ -133,7 +133,7 @@ def test_generic_provider_uses_hermes_cli_catalog_before_static_snapshot(monkeyp
 
 def test_generic_provider_keeps_static_catalog_as_cli_failure_fallback(monkeypatch, tmp_path):
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="anthropic",
         live_ids=[],
@@ -152,12 +152,12 @@ def test_generic_provider_keeps_static_catalog_as_cli_failure_fallback(monkeypat
 def test_generic_provider_prefixes_live_ids_when_not_active_provider(monkeypatch, tmp_path):
     """Provider-qualified live IDs must route through the selected provider."""
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="anthropic",
         live_ids=["claude-sonnet-5.0"],
     )
-    # Anthropic is authenticated via Hermes CLI, but OpenAI is the active
+    # Anthropic is authenticated via Iris CLI, but OpenAI is the active
     # default. The Anthropic row still has to be pickable/routable.
     _configure(monkeypatch, tmp_path, provider="openai", default="gpt-5.5")
 

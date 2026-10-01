@@ -21,16 +21,16 @@ from api.streaming import _context_messages_for_new_turn
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes_home"
+def iris_home(tmp_path, monkeypatch):
+    home = tmp_path / "iris_home"
     home.mkdir()
     (home / "sessions").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", home)
+    monkeypatch.setenv("IRIS_HOME", str(home))
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", home)
     return home
 
 
-def test_recovered_journal_text_is_in_next_turn_context(hermes_home):
+def test_recovered_journal_text_is_in_next_turn_context(iris_home):
     sid = "recovered_context_repro"
     stream_id = "stream-upgrade"
     append_run_event(
@@ -74,7 +74,7 @@ def test_recovered_journal_text_is_in_next_turn_context(hermes_home):
     assert "重启条件满足" in context_text
 
 
-def test_deduped_existing_recovered_assistant_repairs_missing_context(hermes_home):
+def test_deduped_existing_recovered_assistant_repairs_missing_context(iris_home):
     """If visible recovery already happened but context was missing, rerunning
     recovery with dedupe_existing=True should backfill context instead of
     deciding the existing visible row is enough.

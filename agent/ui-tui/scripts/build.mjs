@@ -35,7 +35,7 @@ await build({
   outfile: out,
   jsx: 'automatic',
   jsxImportSource: 'react',
-  // Skip the prebuilt @hermes/ink bundle and inline the source instead:
+  // Skip the prebuilt @iris/ink bundle and inline the source instead:
   // (1) esbuild's `__esm` helper does not await nested async init, so the
   //     prebuilt bundle's lazy `render` would never resolve when nested in
   //     this top-level Promise.all; (2) bundling from source also lets us
@@ -43,7 +43,7 @@ await build({
   //     bundle entirely — re-exporting them from entry-exports created a
   //     circular async chain that hung the TUI at startup with only ANSI
   //     reset bytes on screen (#31227).
-  alias: { '@hermes/ink': resolve(root, 'packages/hermes-ink/src/entry-exports.ts') },
+  alias: { '@iris/ink': resolve(root, 'packages/iris-ink/src/entry-exports.ts') },
   plugins: [stubDevtools],
   // Some transitive deps use CommonJS `require(...)` at runtime. ESM bundles
   // don't get a `require` binding automatically, so we inject one.
@@ -55,7 +55,7 @@ await build({
 
 // esbuild preserves the shebang from src/entry.tsx into the bundle, but Nix's
 // patchShebangs phase mangles `/usr/bin/env -S node --foo --bar` (it strips
-// the `node` token, leaving a broken interpreter). The hermes_cli launcher
+// the `node` token, leaving a broken interpreter). The iris_cli launcher
 // always invokes this file as `node dist/entry.js` anyway, so the shebang is
 // redundant — strip it.
 const body = readFileSync(out, 'utf8')

@@ -14,7 +14,7 @@ import { BootFailureOverlay } from './boot-failure-overlay'
 
 function failBoot() {
   $desktopBoot.set({
-    error: 'Could not connect to Hermes gateway',
+    error: 'Could not connect to Iris gateway',
     fakeMode: false,
     message: 'boot failed',
     phase: 'renderer.error',
@@ -26,13 +26,13 @@ function failBoot() {
 }
 
 function stubDesktop(config: Record<string, unknown>, overrides: Record<string, unknown> = {}) {
-  const original = window.hermesDesktop
-  Object.defineProperty(window, 'hermesDesktop', {
+  const original = window.irisDesktop
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { getRecentLogs: async () => ({ lines: [] }), getConnectionConfig: async () => config, ...overrides }
   })
 
-  return () => Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: original })
+  return () => Object.defineProperty(window, 'irisDesktop', { configurable: true, value: original })
 }
 
 const remoteToken = {
@@ -74,7 +74,7 @@ describe('BootFailureOverlay', () => {
       </>
     )
 
-    const recoverySurface = screen.getByRole('dialog', { name: /Hermes couldn't start/i })
+    const recoverySurface = screen.getByRole('dialog', { name: /Iris couldn't start/i })
     const retry = screen.getByRole('button', { name: /retry/i })
     const backgroundAction = screen.getByText(/background action/i)
 

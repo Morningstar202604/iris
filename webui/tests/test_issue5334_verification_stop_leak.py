@@ -1,6 +1,6 @@
 """Regression tests for issue #5334.
 
-The Hermes Agent runs an internal verify-before-finish loop. When it fires, it
+The Iris Agent runs an internal verify-before-finish loop. When it fires, it
 appends a synthetic assistant "premature done" answer plus a synthetic ``user``
 nudge whose text looks like::
 

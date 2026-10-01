@@ -1,9 +1,9 @@
-"""Lazy dependency installer for opt-in Hermes backends.
+"""Lazy dependency installer for opt-in Iris backends.
 
 Backends call :func:`ensure(feature)` on first import; missing packages are installed into the
 active venv (or the durable target) unless ``security.allow_lazy_installs: false``, in which
 case :class:`FeatureUnavailable` carries a remediation hint. Security model: venv-scoped
-(never system Python); durable-target mode (``HERMES_LAZY_INSTALL_TARGET``, sealed images)
+(never system Python); durable-target mode (``IRIS_LAZY_INSTALL_TARGET``, sealed images)
 APPENDS the target to ``sys.path`` so core site-packages wins every collision and a lazy
 package can only add modules, never shadow core; PyPI-by-name specs only (``_spec_is_safe``);
 ``ensure`` accepts only the :data:`LAZY_DEPS` allowlist; failures surface pip's stderr, no retry.
@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from hermes_cli._subprocess_compat import windows_hide_flags
+from iris_cli._subprocess_compat import windows_hide_flags
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ LAZY_DEPS: dict[str, tuple[str, ...]] = {
     # SILK voice-note decoding (WeChat/QQ); silk-v3 codec binding.
     "stt.silk": ("pilk==0.2.4",),
 
-    # ─── Wake word ("Hey Hermes") engines (sync with the `wake` extra) ──────
+    # ─── Wake word ("Hey Iris") engines (sync with the `wake` extra) ──────
     # openWakeWord's ONNX model scores ~0 on macOS ARM64, so macOS uses the tflite backend
     # (ai-edge-litert, bridged in tools/wake_word.py). Separate feature because specs cannot
     # carry PEP 508 markers (";" is rejected) — the caller applies the platform gate.
@@ -111,7 +111,7 @@ LAZY_DEPS: dict[str, tuple[str, ...]] = {
     # install on the sealed Docker image (durable-target only).
     "memory.supermemory": ("supermemory==3.50.0",),
     # Plugin-owned SDKs mirror the range their plugin.yaml declares instead of an exact pin: an exact pin
-    # made _is_satisfied() reject every newer compatible release, so `hermes update` kept downgrading a
+    # made _is_satisfied() reject every newer compatible release, so `iris update` kept downgrading a
     # working newer client and broke daemons whose DB it had migrated (#86992, #39424, #98407).
     "memory.mem0": ("mem0ai>=2.0.10,<3",),
 
@@ -204,11 +204,11 @@ LAZY_DEPS: dict[str, tuple[str, ...]] = {
         "httpx2==2.7.0",  # mcp 2.x HTTP stack — sync with pyproject [computer-use]
         "starlette==1.3.1",
     ),
-    # HF Agent Trace Viewer upload (hermes trace upload / /upload-trace). huggingface-hub is a SHARED
+    # HF Agent Trace Viewer upload (iris trace upload / /upload-trace). huggingface-hub is a SHARED
     # dependency: transformers (pulled by sentence-transformers when a memory plugin runs local embeddings,
     # e.g. the catalog hindsight plugin's local_embedded mode) requires >=1.5.0,<2, and
     # faster-whisper/tokenizers depend on it transitively. Because active_features() marks a feature active
-    # from mere package presence, the `hermes update` lazy-refresh pass re-asserts THIS pin on every install
+    # from mere package presence, the `iris update` lazy-refresh pass re-asserts THIS pin on every install
     # where hub is present — so an exact pin below 1.5.0 force-downgrades the shared package and breaks
     # those embedding daemons on startup (#60783). Policy: keep the exact pin (no ranges — security
     # posture), but it MUST stay inside transformers' accepted window and MUST match uv.lock so the whole
@@ -244,7 +244,7 @@ class _InstallResult:
 
 # Internal bridge var (set by the Docker image, not user config) redirecting lazy installs from the
 # sealed venv to a writable durable volume.
-_LAZY_TARGET_ENV = "HERMES_LAZY_INSTALL_TARGET"
+_LAZY_TARGET_ENV = "IRIS_LAZY_INSTALL_TARGET"
 # Stamp of the Python X.Y + ABI the target was populated for; a mismatch after an image rebuild
 # wipes the store so stale .so files are never imported.
 _TARGET_STAMP_NAME = ".python-abi"
@@ -324,15 +324,15 @@ def activate_durable_lazy_target() -> None:
 
 def _allow_lazy_installs() -> bool:
     """Whether lazy installs are permitted: (1) ``security.allow_lazy_installs: false`` blocks in BOTH
-    modes; (2) the sealed venv (``HERMES_DISABLE_LAZY_INSTALLS=1``) blocks only without a durable
+    modes; (2) the sealed venv (``IRIS_DISABLE_LAZY_INSTALLS=1``) blocks only without a durable
     target to redirect into. Unreadable config fails OPEN — blocking is an explicit opt-in."""
     cfg = None
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         cfg = load_config()
     if cfg is not None and not bool((cfg.get("security") or {}).get("allow_lazy_installs", True)):
         return False
-    if os.environ.get("HERMES_DISABLE_LAZY_INSTALLS") == "1":
+    if os.environ.get("IRIS_DISABLE_LAZY_INSTALLS") == "1":
         return _lazy_install_target() is not None
     return True
 
@@ -341,7 +341,7 @@ def _unsupported_feature_reason(feature: str) -> Optional[str]:
     """Platform capability gate (not policy): why a feature cannot work on this host, or None."""
     if sys.platform == "win32" and feature == "platform.matrix":
         return ("unsupported on Windows: Matrix E2EE depends on python-olm, which has no Windows wheel and "
-                "requires make + libolm to build from sdist. Run Hermes under WSL to use Matrix on Windows.")
+                "requires make + libolm to build from sdist. Run Iris under WSL to use Matrix on Windows.")
     return None
 
 
@@ -376,7 +376,7 @@ def _installed_version(spec: str) -> Optional[str]:
 
 
 def _is_satisfied(spec: str) -> bool:
-    """Present AND inside the spec's version range, so ``hermes update`` propagates pin bumps to
+    """Present AND inside the spec's version range, so ``iris update`` propagates pin bumps to
     installed backends. Unparseable specs/versions or a missing ``packaging`` count as satisfied — err
     toward "don't churn"."""
     installed = _installed_version(spec)
@@ -414,7 +414,7 @@ def _core_constraints_file() -> Optional[Path]:
                 pins[name.lower()] = f"{name}=={dist.version}"
         if not pins:
             return None
-        fd, path = tempfile.mkstemp(prefix="hermes-core-constraints-", suffix=".txt")
+        fd, path = tempfile.mkstemp(prefix="iris-core-constraints-", suffix=".txt")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write("\n".join(sorted(pins.values())) + "\n")
         return Path(path)
@@ -528,13 +528,13 @@ def _run_installer(cmd: list[str], **kw) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, **_SUBPROCESS_KW, creationflags=windows_hide_flags(), **kw)
 
 
-# Whose dependency-security policy an install runs under. ``core``: Hermes's own packages (LAZY_DEPS
-# extras, refreshed by ``hermes update``) resolve under the checkout's ``[tool.uv]`` policy — the 14-day
+# Whose dependency-security policy an install runs under. ``core``: Iris's own packages (LAZY_DEPS
+# extras, refreshed by ``iris update``) resolve under the checkout's ``[tool.uv]`` policy — the 14-day
 # ``exclude-newer`` quarantine and its per-package exceptions. ``plugin``: a plugin's declared
 # ``python_dependencies`` follow the PLUGIN's own policy (maintainer ruling: "plugins don't have to abide
-# by our 14 day rule; they can have their own security policy on that. Only Hermes' dependencies themselves
-# have to"), so Hermes's project config is not applied — a plugin floored on a release younger than 14 days
-# would otherwise be uninstallable through Hermes while installing fine everywhere else.
+# by our 14 day rule; they can have their own security policy on that. Only Iris' dependencies themselves
+# have to"), so Iris's project config is not applied — a plugin floored on a release younger than 14 days
+# would otherwise be uninstallable through Iris while installing fine everywhere else.
 INSTALL_POLICIES = ("core", "plugin")
 
 
@@ -555,10 +555,10 @@ def _uv_policy_args(policy: str) -> tuple[list[str], Optional[str]]:
 
 
 def _uv_binary() -> Optional[str]:
-    """Managed uv first ($HERMES_HOME/bin is never on PATH), then PATH. A lookup, not ensure_uv():
+    """Managed uv first ($IRIS_HOME/bin is never on PATH), then PATH. A lookup, not ensure_uv():
     downloading uv mid-turn is more than the caller asked for; pip covers no-uv."""
     try:
-        from hermes_cli.managed_uv import resolve_uv
+        from iris_cli.managed_uv import resolve_uv
 
         return resolve_uv() or shutil.which("uv")
     except Exception:
@@ -567,7 +567,7 @@ def _uv_binary() -> Optional[str]:
 
 def _write_constraints_file(lines: tuple[str, ...]) -> Path:
     import tempfile
-    fd, path = tempfile.mkstemp(prefix="hermes-plugin-constraints-", suffix=".txt")
+    fd, path = tempfile.mkstemp(prefix="iris-plugin-constraints-", suffix=".txt")
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     return Path(path)
@@ -586,9 +586,9 @@ def _venv_pip_install(specs: tuple[str, ...], *, timeout: int = 300, constraint_
                       dry_run: bool = False, policy: str = "core") -> _InstallResult:
     """Install ``specs`` via the uv -> pip -> ensurepip ladder, venv-scoped or into the durable
     ``--target`` (constrained to core versions) when :data:`_LAZY_TARGET_ENV` is set. Independent of
-    ``hermes_cli.tools_config._pip_install`` (no CLI dependency).
+    ``iris_cli.tools_config._pip_install`` (no CLI dependency).
 
-    *constraint_lines* pins the resolver (plugin installs pass Hermes' own declared ranges so a plugin
+    *constraint_lines* pins the resolver (plugin installs pass Iris' own declared ranges so a plugin
     can never move a core package out of range); *dry_run* resolves without installing; *policy* is one
     of :data:`INSTALL_POLICIES` (see :func:`_uv_policy_args`)."""
     if not specs:
@@ -613,8 +613,8 @@ def _venv_pip_install(specs: tuple[str, ...], *, timeout: int = 300, constraint_
         return _InstallResult(r.returncode == 0, r.stdout or "", r.stderr or "")
 
     try:
-        from tools.environments.local import hermes_subprocess_env
-        uv_env = hermes_subprocess_env(inherit_credentials=False)
+        from tools.environments.local import iris_subprocess_env
+        uv_env = iris_subprocess_env(inherit_credentials=False)
         uv_env["VIRTUAL_ENV"] = str(Path(sys.executable).parent.parent)
         # Tier 1: uv. --compile-bytecode because uv writes no __pycache__ by default, so the first
         # import would recompile the backend AND its transitives (_warm_installed_bytecode is the
@@ -705,14 +705,14 @@ def ensure(feature: str, *, prompt: bool = True) -> None:
     if _lazy_install_target() is None:
         managed_by = ""  # config unreadable — proceed with the install
         with contextlib.suppress(Exception):
-            from hermes_cli.config import get_managed_system
+            from iris_cli.config import get_managed_system
             managed_by = get_managed_system()
         if managed_by:
             raise FeatureUnavailable(
                 feature, missing,
                 f"unsupported on {managed_by}-managed installs: this build's packages come from {managed_by}, "
-                f"so Hermes cannot install them at runtime. Add the dependencies for {feature!r} via "
-                f"{managed_by} (or run a pip/uv install of Hermes instead).")
+                f"so Iris cannot install them at runtime. Add the dependencies for {feature!r} via "
+                f"{managed_by} (or run a pip/uv install of Iris instead).")
     for spec in missing:  # belt and braces on top of the allowlist
         if not _spec_is_safe(spec):
             raise FeatureUnavailable(feature, missing, f"refusing to install unsafe spec {spec!r}")
@@ -769,7 +769,7 @@ def install_specs(specs: list[str] | tuple[str, ...], *, timeout: int = 300,
     """Install data-driven pip specs (plugin manifest ``python_dependencies``) with the same routing and
     gating as :func:`ensure`, but unknown packages are allowed — the caller owns manifest trust, this
     owns spec hygiene. *constraints* are requirement lines the resolver must honour; *dry_run* only
-    resolves; *policy* defaults to ``"plugin"`` (the plugin's own dependency policy, not Hermes's
+    resolves; *policy* defaults to ``"plugin"`` (the plugin's own dependency policy, not Iris's
     ``exclude-newer`` quarantine — :data:`INSTALL_POLICIES`). Never raises; inspect the
     :class:`InstallSpecsResult`."""
     cleaned = tuple(str(s).strip() for s in specs if str(s).strip())
@@ -782,9 +782,9 @@ def install_specs(specs: list[str] | tuple[str, ...], *, timeout: int = 300,
             return InstallSpecsResult(ok=False, blocked=True, reason=f"refusing to install unsafe spec {spec!r}")
     target = _lazy_install_target()
     if not _allow_lazy_installs():
-        sealed = os.environ.get("HERMES_DISABLE_LAZY_INSTALLS") == "1" and target is None
+        sealed = os.environ.get("IRIS_DISABLE_LAZY_INSTALLS") == "1" and target is None
         reason = ("runtime installs are disabled on this deployment: the agent environment is immutable "
-                  "and no writable install target is configured (HERMES_LAZY_INSTALL_TARGET)"
+                  "and no writable install target is configured (IRIS_LAZY_INSTALL_TARGET)"
                   ) if sealed else "runtime installs disabled (security.allow_lazy_installs=false)"
         return InstallSpecsResult(ok=False, blocked=True, reason=reason)
     display = "uv pip install " + (f"--target {target} " if target is not None else "") + " ".join(cleaned)
@@ -802,12 +802,12 @@ def install_specs(specs: list[str] | tuple[str, ...], *, timeout: int = 300,
 
 def active_features() -> list[str]:
     """Features whose ANCHOR package (first spec) is present at any version — shared helpers like
-    asyncpg are deliberately not proof a backend was enabled. Drives ``hermes update``."""
+    asyncpg are deliberately not proof a backend was enabled. Drives ``iris update``."""
     return [f for f, specs in LAZY_DEPS.items() if specs and _is_present(specs[0])]
 
 
 def refresh_active_features(*, prompt: bool = False) -> dict[str, str]:
-    """Re-run ``ensure`` for every active feature (``hermes update``); returns
+    """Re-run ``ensure`` for every active feature (``iris update``); returns
     ``{feature: "current" | "refreshed" | "failed: <reason>" | "skipped: <reason>"}``. Never raises."""
     return _refresh_features(active_features(), prompt=prompt, restoring=False)
 

@@ -1,7 +1,7 @@
 """Claude Code sessions must open under a NAMED (non-root) active profile.
 
 ``get_claude_code_sessions()`` scans ``~/.claude/projects`` and stamps
-``profile: None`` on every row — those JSONL transcripts belong to no Hermes
+``profile: None`` on every row — those JSONL transcripts belong to no Iris
 profile. ``/api/sessions`` lists them regardless of the active profile, but the
 ``GET /api/session`` detail load ran them through
 ``_session_visible_to_active_profile``, which coerces ``None`` -> ``'default'``

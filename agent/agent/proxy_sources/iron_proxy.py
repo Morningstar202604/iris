@@ -3,8 +3,8 @@
 Sandboxes (Docker/Modal/SSH) hold only opaque proxy tokens; iron-proxy — a TLS-intercepting,
 default-deny egress firewall — swaps them for real credentials on the way out, so a leaked
 token is useless outside the trusted proxy boundary.  The pinned binary is auto-installed
-into ``<hermes_home>/bin``; CA, ``proxy.yaml``, ``mappings.json``, pidfile and logs live in
-``<hermes_home>/proxy``.  Failures warn and never block agent startup.
+into ``<iris_home>/bin``; CA, ``proxy.yaml``, ``mappings.json``, pidfile and logs live in
+``<iris_home>/proxy``.  Failures warn and never block agent startup.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ _STARTUP_GRACE_SECONDS = 5
 
 # Management API (v0.39): loopback POST /v1/reload hot-swaps the ruleset.  Bearer key minted at
 # setup (0600 at <proxy>/management.token), injected under this env name; empty => daemon refuses to start.
-_MGMT_API_KEY_ENV = "HERMES_IRON_PROXY_MGMT_KEY"
+_MGMT_API_KEY_ENV = "IRIS_IRON_PROXY_MGMT_KEY"
 _MGMT_PORT_OFFSET = 2  # tunnel_port is CONNECT/MITM, +1 is plain-HTTP forward, +2 is management
 _MGMT_RELOAD_TIMEOUT = 15
 
@@ -77,7 +77,7 @@ _BEARER_PROVIDERS: Dict[str, Tuple[str, ...]] = {
 # ``secrets.replace.match_headers`` targets arbitrary header names (case-insensitive; confirmed by the
 # iron-proxy author on PR #30179 and verified in the pinned v0.39.0 source — ``swapHeaders`` +
 # ``parseHeaderMatchers``), so these are first-class swapped providers, not "uncovered". ``aliases`` are
-# interchangeable env-var names for the SAME upstream credential (Hermes' auth.py keys Google on both
+# interchangeable env-var names for the SAME upstream credential (Iris' auth.py keys Google on both
 # GEMINI_API_KEY and GOOGLE_API_KEY). The sandbox receives the minted token under the canonical name AND
 # every alias so SDKs reading either work.
 _HEADER_AUTH_PROVIDERS: Dict[str, Dict[str, Tuple[str, ...]]] = {
@@ -120,7 +120,7 @@ _VERSION_CACHE: Dict[str, str] = {}
 
 # Nonce planted in the daemon env so ``_pid_alive`` can prove a PID is still *our* binary across
 # PID recycling (a fresh process can't inherit our arbitrary env value).
-_HERMES_IRON_PROXY_NONCE_ENV = "HERMES_IRON_PROXY_NONCE"
+_IRIS_IRON_PROXY_NONCE_ENV = "IRIS_IRON_PROXY_NONCE"
 _proxy_nonce: Optional[str] = None
 
 
@@ -156,14 +156,14 @@ class TokenMapping:
     alias_env_names: Tuple[str, ...] = ()
 
 
-def _hermes_bin_dir() -> Path:
-    from hermes_constants import get_hermes_home
-    return get_hermes_home() / "bin"
+def _iris_bin_dir() -> Path:
+    from iris_constants import get_iris_home
+    return get_iris_home() / "bin"
 
 
 def _proxy_state_dir_ro() -> Path:  # without creating it (status probes, pidfile reads)
-    from hermes_constants import get_hermes_home
-    return get_hermes_home() / "proxy"
+    from iris_constants import get_iris_home
+    return get_iris_home() / "proxy"
 
 
 def _proxy_state_dir() -> Path:
@@ -190,8 +190,8 @@ def _platform_asset_name() -> str:
 
 
 def find_iron_proxy(*, install_if_missing: bool = False) -> Optional[Path]:
-    """Managed ``<hermes_home>/bin`` copy first, then PATH; optionally auto-install."""
-    managed = _hermes_bin_dir() / _platform_binary_name()
+    """Managed ``<iris_home>/bin`` copy first, then PATH; optionally auto-install."""
+    managed = _iris_bin_dir() / _platform_binary_name()
     if managed.exists() and os.access(managed, os.X_OK):
         return managed
     if system := shutil.which("iron-proxy"):
@@ -207,12 +207,12 @@ def find_iron_proxy(*, install_if_missing: bool = False) -> Optional[Path]:
 
 def install_iron_proxy(*, force: bool = False) -> Path:
     """Download, verify, and install the pinned binary; raises on any failure."""
-    (bin_dir := _hermes_bin_dir()).mkdir(parents=True, exist_ok=True)
+    (bin_dir := _iris_bin_dir()).mkdir(parents=True, exist_ok=True)
     target = bin_dir / _platform_binary_name()
     if target.exists() and not force:
         return target
     asset_name = _platform_asset_name()
-    with tempfile.TemporaryDirectory(prefix="hermes-iron-proxy-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="iris-iron-proxy-") as tmpdir:
         archive_path, checksum_path = (tmp := Path(tmpdir)) / asset_name, tmp / _IRON_PROXY_CHECKSUM_NAME
         logger.info("Downloading %s", f"{_IRON_PROXY_RELEASE_BASE}/{asset_name}")
         _release_asset(asset_name, archive_path)
@@ -246,7 +246,7 @@ def _release_asset(name: str, dest: Path) -> None:
     """Download one pinned-release asset to ``dest``; RuntimeError on any URL error."""
     url = f"{_IRON_PROXY_RELEASE_BASE}/{name}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "hermes-agent"})
+        req = urllib.request.Request(url, headers={"User-Agent": "iris-agent"})
         with urllib.request.urlopen(req, timeout=_DOWNLOAD_TIMEOUT) as resp, open(dest, "wb") as f:  # noqa: S310
             shutil.copyfileobj(resp, f)
     except urllib.error.URLError as exc:
@@ -357,10 +357,10 @@ def ensure_ca_cert(*, force: bool = False) -> Tuple[Path, Path]:
         return ca_crt, ca_key
     if shutil.which("openssl") is None:
         raise RuntimeError("openssl not found on PATH. Install OpenSSL (apt: `openssl`, brew: `openssl`) to generate the iron-proxy CA cert.")
-    with tempfile.TemporaryDirectory(prefix="hermes-proxy-ca-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="iris-proxy-ca-") as tmpdir:
         tmp_key, tmp_crt = Path(tmpdir) / "ca.key", Path(tmpdir) / "ca.crt"
         _run(["openssl", "genrsa", "-out", str(tmp_key), "4096"], timeout=60, check=True)
-        _run(["openssl", "req", "-x509", "-new", "-nodes", "-key", str(tmp_key), "-sha256", "-days", "3650", "-subj", "/CN=hermes iron-proxy CA",
+        _run(["openssl", "req", "-x509", "-new", "-nodes", "-key", str(tmp_key), "-sha256", "-days", "3650", "-subj", "/CN=iris iron-proxy CA",
               "-addext", "basicConstraints=critical,CA:TRUE", "-addext", "keyUsage=critical,keyCertSign", "-out", str(tmp_crt)], timeout=60, check=True)
         # Key: stage 0o600 against a fresh inode, then atomically rename into place.
         key_staged = ca_key.with_suffix(ca_key.suffix + ".staged")
@@ -374,7 +374,7 @@ def ensure_ca_cert(*, force: bool = False) -> Tuple[Path, Path]:
     return ca_crt, ca_key
 
 
-def mint_proxy_token(prefix: str = "hermes-proxy") -> str:
+def mint_proxy_token(prefix: str = "iris-proxy") -> str:
     """Opaque token: recognizable prefix + 128-bit random hex suffix (iron-proxy matches exactly)."""
     return f"{prefix}-{hashlib.sha256(os.urandom(32)).hexdigest()[:32]}"
 
@@ -392,13 +392,13 @@ def ensure_management_token(*, force: bool = False) -> str:
     p = _proxy_state_dir() / "management.token"
     if not force and (existing := _read_text_or_none(p)):
         return existing
-    token = mint_proxy_token(prefix="hermes-mgmt")
+    token = mint_proxy_token(prefix="iris-mgmt")
     _write_private_file(p, token.encode("utf-8"))
     return token
 
 
 def _yaml():
-    """PyYAML module or None (it is a Hermes dep, but never a hard requirement here)."""
+    """PyYAML module or None (it is a Iris dep, but never a hard requirement here)."""
     try:
         import yaml
         return yaml
@@ -441,20 +441,20 @@ def _probe_target() -> Tuple[str, int]:
 # Management-API error status -> operator message (422 = validation rejected, ruleset unchanged; 401 = daemon started with another management.token).
 _RELOAD_HTTP_ERRORS = {
     422: "iron-proxy rejected the new config (validation failed; the running ruleset is unchanged): {body}",
-    401: "management API rejected our key (401).  The running daemon was started with a different management.token — run `hermes egress restart`.",
+    401: "management API rejected our key (401).  The running daemon was started with a different management.token — run `iris egress restart`.",
 }
 
 
 def reload_proxy() -> bool:
     """``POST /v1/reload`` (validation failures leave the running config untouched); actionable RuntimeError on any failure."""
     if not (pid := _read_pid()) or not _pid_alive(pid):
-        raise RuntimeError("iron-proxy is not running — nothing to reload.  Run `hermes egress start`.")
+        raise RuntimeError("iron-proxy is not running — nothing to reload.  Run `iris egress start`.")
     if (mgmt := _read_management_listen_from_config()) is None:
         raise RuntimeError(
-            "The generated proxy.yaml has no management listener (written before reload support).  Re-run `hermes egress setup` and use `hermes egress restart` this one time."
+            "The generated proxy.yaml has no management listener (written before reload support).  Re-run `iris egress setup` and use `iris egress restart` this one time."
         )
     if not (token := _read_text_or_none(_proxy_state_dir_ro() / "management.token")):
-        raise RuntimeError("management.token is missing — re-run `hermes egress setup`, then `hermes egress restart`.")
+        raise RuntimeError("management.token is missing — re-run `iris egress setup`, then `iris egress restart`.")
     host, port = mgmt
     req = urllib.request.Request(f"http://{host}:{port}/v1/reload", method="POST", headers={"Authorization": f"Bearer {token}"}, data=b"")
     try:
@@ -471,7 +471,7 @@ def reload_proxy() -> bool:
     except (urllib.error.URLError, OSError) as exc:
         # A daemon started from a pre-management config is alive but has no listener.
         raise RuntimeError(
-            f"could not reach the management API at {host}:{port} ({exc}).  If the daemon was started before reload support, run `hermes egress restart` once."
+            f"could not reach the management API at {host}:{port} ({exc}).  If the daemon was started before reload support, run `iris egress restart` once."
         ) from exc
 
 
@@ -580,7 +580,7 @@ def ensure_audit_log(audit_path: Path) -> None:
 
 
 def write_proxy_config(config: Dict) -> Path:
-    """Serialize the config dict to ``<hermes_home>/proxy/proxy.yaml`` (safe_dump, no Python tags).
+    """Serialize the config dict to ``<iris_home>/proxy/proxy.yaml`` (safe_dump, no Python tags).
 
     The file holds proxy tokens: written 0600 from creation, never at process umask."""
     if (yaml := _yaml()) is None:
@@ -711,7 +711,7 @@ def _pid_alive(pid: int) -> bool:
     if nonce_candidates:
         with suppress(OSError):
             env_bytes = Path(f"/proc/{pid}/environ").read_bytes()
-            if any(f"{_HERMES_IRON_PROXY_NONCE_ENV}={n}".encode() in env_bytes for n in nonce_candidates):
+            if any(f"{_IRIS_IRON_PROXY_NONCE_ENV}={n}".encode() in env_bytes for n in nonce_candidates):
                 return True
     with suppress(OSError):
         if (cmdline_path := Path(f"/proc/{pid}/cmdline")).exists():
@@ -734,9 +734,9 @@ def start_proxy(
     if (existing := _read_pid()) and _pid_alive(existing):
         return get_status()
     if (bin_path := binary or find_iron_proxy(install_if_missing=install_if_missing)) is None:
-        raise RuntimeError("iron-proxy binary not available — run `hermes egress install`.")
+        raise RuntimeError("iron-proxy binary not available — run `iris egress install`.")
     if not (cfg := config_path or (_proxy_state_dir() / "proxy.yaml")).exists():
-        raise RuntimeError(f"iron-proxy config not found at {cfg}. Run `hermes egress setup` first.")
+        raise RuntimeError(f"iron-proxy config not found at {cfg}. Run `iris egress setup` first.")
     # Minimal env: os.environ.copy() would expose every operator secret via /proc/<pid>/environ.
     env = _build_proxy_subprocess_env(extra_env=extra_env, refresh_from_bitwarden=refresh_secrets_from_bitwarden, bitwarden_config=bitwarden_config)
     # v0.39 validates api_key_env is non-empty when management.listen is set.
@@ -744,10 +744,10 @@ def start_proxy(
         env[_MGMT_API_KEY_ENV] = ensure_management_token()
     # Per-start nonce for PID-recycling defense; module-global is fine (one proxy per process).
     _proxy_nonce = hashlib.sha256(os.urandom(16)).hexdigest()
-    env[_HERMES_IRON_PROXY_NONCE_ENV] = _proxy_nonce
+    env[_IRIS_IRON_PROXY_NONCE_ENV] = _proxy_nonce
     log_path = _proxy_state_dir() / "iron-proxy.log"
     proc = _spawn_daemon(bin_path, cfg, env, log_path)
-    # Pidfile BEFORE the listening poll so `hermes egress stop` can clean an orphan if the parent dies mid-poll.
+    # Pidfile BEFORE the listening poll so `iris egress stop` can clean an orphan if the parent dies mid-poll.
     pidfile = _pidfile()
     try:
         _write_pidfile_safely(pidfile, proc.pid)
@@ -842,7 +842,7 @@ def _write_pidfile_safely(pidfile: Path, pid: int) -> None:
     except FileExistsError:
         if (existing_pid := _read_pid()) and _pid_alive(existing_pid):
             raise RuntimeError(
-                f"Another iron-proxy start appears to be in progress (pidfile {pidfile} -> pid {existing_pid}).  Run `hermes egress stop` if that proxy is stuck."
+                f"Another iron-proxy start appears to be in progress (pidfile {pidfile} -> pid {existing_pid}).  Run `iris egress stop` if that proxy is stuck."
             )
         pidfile.unlink(missing_ok=True)
         fd = os.open(str(pidfile), open_flags, 0o600)
@@ -942,12 +942,12 @@ def _refresh_secrets_from_bitwarden(env: Dict[str, str], needed: set, bitwarden_
         _bitwarden_shortfall(
             allow_env_fallback,
             f"Bitwarden refresh did not return secrets for {missing}.  Either add the secrets to your BWS project, switch to "
-            f"credential_source: env via `hermes egress setup --no-bitwarden`, or set `proxy.allow_env_fallback: true` in "
+            f"credential_source: env via `iris egress setup --no-bitwarden`, or set `proxy.allow_env_fallback: true` in "
             f"config.yaml to opt into the legacy host-env fallback.",
             "Bitwarden refresh did not return secrets for %s — falling back to host env for those names (allow_env_fallback=true).", missing,
         )
     if warnings:  # log only the count: the taint analyzer can't tell bws status text is non-secret
-        logger.warning("Bitwarden refresh produced %d warning(s); run `hermes secrets bitwarden status` for detail.", len(warnings))
+        logger.warning("Bitwarden refresh produced %d warning(s); run `iris secrets bitwarden status` for detail.", len(warnings))
 
 
 def _forget_daemon() -> None:

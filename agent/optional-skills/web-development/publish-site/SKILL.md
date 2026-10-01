@@ -2,11 +2,11 @@
 name: publish-site
 description: Versioned site deploys to GitHub/Cloudflare/Netlify Pages.
 version: 1.0.0
-author: Hermes Agent (Nous Research)
+author: Nous Research (original Hermes bundler); Iris fork
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [publish, deploy, hosting, github-pages, cloudflare-pages, netlify, static-site, versioning, rollback, web-development]
     category: web-development
 ---

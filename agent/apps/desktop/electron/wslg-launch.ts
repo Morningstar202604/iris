@@ -8,7 +8,7 @@ export function wslgLaunchArgs(
   platform: NodeJS.Platform,
   isWsl = isWslEnvironment(env, platform)
 ): string[] | null {
-  const displayEnv = { ...env, HERMES_DESKTOP_DISABLE_GPU: undefined }
+  const displayEnv = { ...env, IRIS_DESKTOP_DISABLE_GPU: undefined }
 
   if (platform !== 'linux' || !isWsl || !env.WAYLAND_DISPLAY || detectRemoteDisplay({ env: displayEnv, platform })) {
     return null

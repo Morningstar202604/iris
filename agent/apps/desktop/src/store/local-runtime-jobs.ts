@@ -1,13 +1,13 @@
 import { atom } from 'nanostores'
 
 import { getApiRequestConnection } from '@/api/client'
-import { getLocalModelsJobs, installLocalRuntime } from '@/hermes'
+import { getLocalModelsJobs, installLocalRuntime } from '@/iris'
 import { translateNow } from '@/i18n'
 import { $activeGatewayRoute } from '@/store/gateway'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { notify, notifyError } from '@/store/notifications'
 import { $connection } from '@/store/session'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/iris'
 
 // App-level tracker for local-runtime jobs (runtime installs, model
 // downloads). The AUTHORITY is the backend job registry — this store is a

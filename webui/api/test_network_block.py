@@ -3,7 +3,7 @@
 Kept in its own module so ``server.py`` stays a thin entry point
 (``tests/test_sprint10.py`` caps it at 750 lines): this is ~70 lines of address
 classification that has nothing to do with request serving. The guard is only
-installed when the test harness exports ``HERMES_WEBUI_TEST_NETWORK_BLOCK``, so
+installed when the test harness exports ``IRIS_WEBUI_TEST_NETWORK_BLOCK``, so
 production is unaffected.
 """
 import re
@@ -66,7 +66,7 @@ def install() -> None:
         if _addr_is_local(host):
             return _REAL_CREATE_CONN(address, *a, **kw)
         raise OSError(
-            f"hermes test network isolation (server.py): outbound to {address!r} blocked"
+            f"iris test network isolation (server.py): outbound to {address!r} blocked"
         )
 
     def _blocked_socket_connect(self, address):
@@ -77,7 +77,7 @@ def install() -> None:
         if _addr_is_local(host):
             return _REAL_SOCK_CONNECT(self, address)
         raise OSError(
-            f"hermes test network isolation (server.py): socket.connect to {address!r} blocked"
+            f"iris test network isolation (server.py): socket.connect to {address!r} blocked"
         )
 
     socket.create_connection = _blocked_create_connection

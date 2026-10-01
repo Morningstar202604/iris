@@ -38,8 +38,8 @@ def test_skills_list_reads_disabled_state_from_active_profile(monkeypatch, tmp_p
     _write_config(default_home, ["alpha"])
     _write_config(active_home, ["beta"])
 
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: active_home)
+    monkeypatch.setenv("IRIS_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: active_home)
 
     listed = routes._skills_list_from_dir(active_home / "skills")["skills"]
     by_name = {skill["name"]: skill for skill in listed}
@@ -50,7 +50,7 @@ def test_skills_list_reads_disabled_state_from_active_profile(monkeypatch, tmp_p
 
 @requires_agent_modules
 def test_skill_toggle_writes_active_profile_config_not_default(monkeypatch, tmp_path):
-    """#3066: WebUI toggle writes the active profile config, not default HERMES_HOME."""
+    """#3066: WebUI toggle writes the active profile config, not default IRIS_HOME."""
     from api import profiles, routes
 
     default_home = tmp_path / "default"
@@ -59,8 +59,8 @@ def test_skill_toggle_writes_active_profile_config_not_default(monkeypatch, tmp_
     _write_config(default_home, [])
     _write_config(active_home, ["gamma"])
 
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: active_home)
+    monkeypatch.setenv("IRIS_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: active_home)
     monkeypatch.setattr(routes, "reload_config", lambda: None)
     monkeypatch.setattr(routes, "j", lambda _handler, payload: payload)
     monkeypatch.setattr(routes, "bad", lambda _handler, message, status=400: {"error": message, "status": status})

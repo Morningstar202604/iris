@@ -41,7 +41,7 @@ def test_569_autodetect_before_usermod():
     assert usermod_pos != -1, "usermod not found"
     assert detect_pos < usermod_pos, (
         "UID auto-detect must occur before 'usermod' so the correct UID "
-        "is used when remapping the hermeswebui user"
+        "is used when remapping the iriswebui user"
     )
 
 
@@ -65,32 +65,32 @@ def test_569_fallback_preserved():
     )
 
 
-# ── #668: UID/GID auto-detect from hermes-home shared volume (two-container) ──
+# ── #668: UID/GID auto-detect from iris-home shared volume (two-container) ──
 
-def test_668_uid_autodetect_checks_hermes_home():
-    """docker_init.bash must probe hermes-home dirs for UID in two-container setups.
+def test_668_uid_autodetect_checks_iris_home():
+    """docker_init.bash must probe iris-home dirs for UID in two-container setups.
 
-    When hermes-agent and hermes-webui run in separate containers sharing a
-    named volume, /workspace may not exist but ~/.hermes will be owned by the
+    When iris-agent and iris-webui run in separate containers sharing a
+    named volume, /workspace may not exist but ~/.iris will be owned by the
     agent's UID. The init script must probe it so the webui user is remapped
     to match (#668).
     """
-    assert "/home/hermeswebui/.hermes" in INIT_SH, (
-        "docker_init.bash must probe /home/hermeswebui/.hermes for UID detection "
+    assert "/home/iriswebui/.iris" in INIT_SH, (
+        "docker_init.bash must probe /home/iriswebui/.iris for UID detection "
         "to support two-container setups where /workspace may not exist (#668)"
     )
 
 
-def test_668_gid_autodetect_checks_hermes_home():
-    """docker_init.bash must probe hermes-home dirs for GID in two-container setups (#668)."""
+def test_668_gid_autodetect_checks_iris_home():
+    """docker_init.bash must probe iris-home dirs for GID in two-container setups (#668)."""
     # Both UID and GID detection share the same probe dirs — check GID block too
     gid_detect_start = INIT_SH.find("Auto-detect GID from mounted volumes")
     assert gid_detect_start != -1, (
         "GID auto-detect comment must be updated to mention shared volumes (#668)"
     )
     gid_block = INIT_SH[gid_detect_start:gid_detect_start + 600]
-    assert "/home/hermeswebui/.hermes" in gid_block or "HERMES_HOME" in gid_block, (
-        "GID auto-detect block must probe hermes-home dirs (#668)"
+    assert "/home/iriswebui/.iris" in gid_block or "IRIS_HOME" in gid_block, (
+        "GID auto-detect block must probe iris-home dirs (#668)"
     )
 
 
@@ -105,14 +105,14 @@ def test_668_uid_probe_loop_uses_break():
     )
 
 
-def test_668_hermes_home_probe_before_workspace():
-    """Hermes-home probe must appear before /workspace probe in docker_init.bash (#668)."""
-    hermes_home_pos = INIT_SH.find("/home/hermeswebui/.hermes")
+def test_668_iris_home_probe_before_workspace():
+    """Iris-home probe must appear before /workspace probe in docker_init.bash (#668)."""
+    iris_home_pos = INIT_SH.find("/home/iriswebui/.iris")
     workspace_pos = INIT_SH.find('if [ -d "/workspace" ]')
-    assert hermes_home_pos != -1, "/home/hermeswebui/.hermes probe not found"
+    assert iris_home_pos != -1, "/home/iriswebui/.iris probe not found"
     assert workspace_pos != -1, "/workspace probe not found"
-    assert hermes_home_pos < workspace_pos, (
-        "Hermes-home probe must come before /workspace probe — "
+    assert iris_home_pos < workspace_pos, (
+        "Iris-home probe must come before /workspace probe — "
         "shared volume UID should take priority over workspace UID (#668)"
     )
 

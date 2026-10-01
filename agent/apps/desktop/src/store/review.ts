@@ -3,7 +3,7 @@ import { atom, computed } from 'nanostores'
 import { SIDEBAR_COLLAPSE_MEDIA_QUERY } from '@/app/layout-constants'
 import { PANE_TOGGLE_REVEAL_EVENT } from '@/components/pane-shell'
 import { isPaneVisible, revealTreePane } from '@/components/pane-shell/tree/store'
-import type { HermesReviewFile, HermesReviewShipInfo } from '@/global'
+import type { IrisReviewFile, IrisReviewShipInfo } from '@/global'
 import { matchesQuery } from '@/hooks/use-media-query'
 import { desktopGit } from '@/lib/desktop-git'
 import { isExcludedPath } from '@/lib/excluded-paths'
@@ -21,7 +21,7 @@ import { $workspaceChangeTick } from './workspace-events'
 // session's cwd is the repo; the pane reads git as the source of truth, the
 // same bounded "re-probe on structural edges" model as the coding rail.
 //
-// Scope is always "uncommitted" — Hermes' flow is agent edits you review BEFORE
+// Scope is always "uncommitted" — Iris' flow is agent edits you review BEFORE
 // committing, so branch/last-turn scopes are almost always empty here (unlike
 // Codex, which commits per turn). We show the one view that's always populated.
 
@@ -29,10 +29,10 @@ import { $workspaceChangeTick } from './workspace-events'
 // event is addressed by pane id).
 export const REVIEW_PANE_ID = 'review'
 
-const OPEN_KEY = 'hermes.desktop.reviewOpen'
-const COMMIT_DEFAULT_KEY = 'hermes.desktop.reviewCommitDefault'
-const TREE_MODE_KEY = 'hermes.desktop.reviewTreeMode'
-const SELECTED_KEY = 'hermes.desktop.reviewSelectedPath'
+const OPEN_KEY = 'iris.desktop.reviewOpen'
+const COMMIT_DEFAULT_KEY = 'iris.desktop.reviewCommitDefault'
+const TREE_MODE_KEY = 'iris.desktop.reviewTreeMode'
+const SELECTED_KEY = 'iris.desktop.reviewSelectedPath'
 const REVIEW_REFRESH_DEBOUNCE_MS = 100
 const SHIP_INFO_STALE_MS = 30_000
 
@@ -63,7 +63,7 @@ export function toggleReviewTreeMode(): void {
   $reviewTreeMode.set($reviewTreeMode.get() === 'tree' ? 'list' : 'tree')
 }
 
-export const $reviewFiles = atom<HermesReviewFile[]>([])
+export const $reviewFiles = atom<IrisReviewFile[]>([])
 export const $reviewLoading = atom(false)
 // False when the active session isn't in a local git repo (detached/fresh chat,
 // remote backend). Lets the pane say "not a repo" instead of stranding on a
@@ -84,7 +84,7 @@ export const $reviewDiffLoading = atom(false)
 
 // Ship state: gh availability + this branch's PR, and a busy flag for the
 // commit/push/PR action bar (disables buttons + shows progress).
-export const $reviewShipInfo = atom<HermesReviewShipInfo>({ ghReady: false, pr: null })
+export const $reviewShipInfo = atom<IrisReviewShipInfo>({ ghReady: false, pr: null })
 export const $reviewShipBusy = atom(false)
 
 // True while a commit message is being generated (drives the input's spinner).
@@ -106,7 +106,7 @@ export const reviewRepoCwd = (): null | string => $reviewScopeCwd.get()?.trim() 
 
 const repoCwd = reviewRepoCwd
 
-type ReviewBridge = NonNullable<NonNullable<NonNullable<Window['hermesDesktop']>['git']>['review']>
+type ReviewBridge = NonNullable<NonNullable<NonNullable<Window['irisDesktop']>['git']>['review']>
 let reviewRefreshSeq = 0
 let reviewRefreshTimer: ReturnType<typeof setTimeout> | null = null
 let shipInfoSeq = 0
@@ -197,7 +197,7 @@ function scheduleReviewRefresh(): void {
   }, REVIEW_REFRESH_DEBOUNCE_MS)
 }
 
-export async function selectReviewFile(file: HermesReviewFile): Promise<void> {
+export async function selectReviewFile(file: IrisReviewFile): Promise<void> {
   $reviewSelectedPath.set(file.path)
 
   const ctx = reviewCtx()
@@ -348,7 +348,7 @@ export function revealReview(scopeCwd: null | string = null, scopeTarget = 'main
 }
 
 /** The changed file matching a tool-reported path (absolute or repo-relative). */
-function matchReviewFile(files: readonly HermesReviewFile[], path: string): HermesReviewFile | undefined {
+function matchReviewFile(files: readonly IrisReviewFile[], path: string): IrisReviewFile | undefined {
   const target = path.replace(/\\/g, '/').replace(/\/+$/, '')
 
   if (!target) {
@@ -540,7 +540,7 @@ export async function createOrOpenPr(): Promise<void> {
   const existing = $reviewShipInfo.get().pr
 
   if (existing?.url) {
-    void window.hermesDesktop?.openExternal?.(existing.url)
+    void window.irisDesktop?.openExternal?.(existing.url)
 
     return
   }
@@ -549,7 +549,7 @@ export async function createOrOpenPr(): Promise<void> {
     const { url } = await ctx.review.createPr(ctx.cwd)
 
     if (url) {
-      void window.hermesDesktop?.openExternal?.(url)
+      void window.irisDesktop?.openExternal?.(url)
     }
 
     // The session recorded its branch when it started; the checkout may have

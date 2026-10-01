@@ -32,9 +32,9 @@ before running commands or inspecting logs.
 
 Follow that checklist's safety rules:
 
-- use isolated `HERMES_HOME` and `HERMES_WEBUI_STATE_DIR` for trials unless the
+- use isolated `IRIS_HOME` and `IRIS_WEBUI_STATE_DIR` for trials unless the
   human explicitly asks to use real state
-- do not delete or overwrite a real `~/.hermes` directory without explicit
+- do not delete or overwrite a real `~/.iris` directory without explicit
   approval
 - do not print API keys, OAuth tokens, cookies, full `.env` files, full
   `auth.json` files, or password hashes
@@ -48,7 +48,7 @@ Follow that checklist's safety rules:
 - For local pytest runs, use `./scripts/test.sh` instead of bare `python3`,
   `python -m pytest`, or `pytest`. The script creates/uses the repo `.venv`,
   pins execution to Python 3.11-3.13, and installs missing dev test dependencies.
-  `HERMES_WEBUI_TEST_PYTHON` selects the supported base interpreter used to
+  `IRIS_WEBUI_TEST_PYTHON` selects the supported base interpreter used to
   create or rebuild `.venv`; it must not install test dependencies into a
   system/Homebrew interpreter directly.
   If a direct pytest invocation reports an unsupported interpreter, rerun through
@@ -101,7 +101,7 @@ Follow that checklist's safety rules:
   loads the continuation and preserves the draft without automatic replay.
   Explicit closures and unknown terminal reasons do not authorize a redirect.
 - For Docker build changes in `docker_init.bash`, mirror directory exclusions
-  in both the `rsync` and `cp -a` paths — `/opt/hermes` may contain subdirectories
+  in both the `rsync` and `cp -a` paths — `/opt/iris` may contain subdirectories
   with restricted permissions (e.g. `.playwright/`).
 
 ## Completion and verification
@@ -135,7 +135,7 @@ If verification is blocked, report the blocker rather than claim completion.
 
 ## Local state and secrets
 
-Hermes WebUI can read and write real agent state, sessions, workspaces,
+Iris WebUI can read and write real agent state, sessions, workspaces,
 credentials, and cron data. Treat local validation as potentially destructive
 unless you have confirmed the active state directories.
 
@@ -147,9 +147,9 @@ complete identity so profiles and sessions cannot leak into each other.
 Prefer isolated trial state for experiments:
 
 ```bash
-HERMES_HOME=/tmp/hermes-webui-agent-home \
-HERMES_WEBUI_STATE_DIR=/tmp/hermes-webui-agent-state \
-HERMES_WEBUI_PORT=8789 \
+IRIS_HOME=/tmp/iris-webui-agent-home \
+IRIS_WEBUI_STATE_DIR=/tmp/iris-webui-agent-state \
+IRIS_WEBUI_PORT=8789 \
 python3 bootstrap.py
 ```
 
@@ -158,12 +158,12 @@ git-ignored local note for personal workflow details.
 
 ## Branding note (Iris)
 
-Iris is the brand; the agent core keeps the upstream `hermes_*` module layout
+Iris is the brand; the agent core keeps the upstream `iris_*` module layout
 on purpose so upstream fixes merge cleanly. Rules:
 
 - **User-facing strings** (titles, labels, banners, CLI output, docs) say "Iris".
-- **Internal identifiers** (`hermes_*` modules/classes/functions, `HERMES_*` env
-  vars, `hermes-*` localStorage keys, `window.registerHermes*` hooks) are
+- **Internal identifiers** (`iris_*` modules/classes/functions, `IRIS_*` env
+  vars, `iris-*` localStorage keys, `window.registerIris*` hooks) are
   load-bearing contracts — renaming them breaks imports, configs, and stored
   user preferences. Leave them unless you migrate the whole contract at once.
 - The canonical version is **v0.12.0** (README badge, git tag, pyproject).

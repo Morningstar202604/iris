@@ -14,7 +14,7 @@ it('carries the same first-use guidance through the hidden guide and every first
   const prompts = [
     seeds[0].content,
     ...(['build', 'machine-setup', 'plugin'] as const).map(plan =>
-      buildFirstTaskRunbook('Organize my work', DEFAULT_ANSWERS, plan, '/tmp/example-plugins')
+      buildFirstTaskRunbook('Organize my work', DEFAULT_ANSWERS, plan, '/tmp/iris-plugin-fixture')
     )
   ]
 

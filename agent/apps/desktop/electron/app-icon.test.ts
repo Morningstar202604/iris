@@ -38,12 +38,12 @@ test('resolveAppIcon returns the first candidate that passes the probe', () => {
 })
 
 test('decodingFileProbe rejects a missing file', () => {
-  const missing = path.join(os.tmpdir(), `hermes-icon-missing-${process.pid}.png`)
+  const missing = path.join(os.tmpdir(), `iris-icon-missing-${process.pid}.png`)
   assert.equal(decodingFileProbe(missing), false)
 })
 
 test('decodingFileProbe rejects a directory', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-icon-dir-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-icon-dir-'))
 
   try {
     assert.equal(decodingFileProbe(dir), false)
@@ -55,14 +55,14 @@ test('decodingFileProbe rejects a directory', () => {
 test('appIconCandidates keeps the documented precedence ladder', () => {
   const mac = appIconCandidates({
     isWindows: false,
-    appRoot: '/Applications/Hermes.app/Contents/Resources',
+    appRoot: '/Applications/Iris.app/Contents/Resources',
     unpackedPathFor: p => `${p}.unpacked`
   })
 
   assert.deepEqual(mac, [
-    path.join('/Applications/Hermes.app/Contents/Resources', 'public', 'apple-touch-icon.png'),
-    path.join('/Applications/Hermes.app/Contents/Resources', 'dist', 'apple-touch-icon.png'),
-    path.join('/Applications/Hermes.app/Contents/Resources.unpacked', 'dist', 'apple-touch-icon.png')
+    path.join('/Applications/Iris.app/Contents/Resources', 'public', 'apple-touch-icon.png'),
+    path.join('/Applications/Iris.app/Contents/Resources', 'dist', 'apple-touch-icon.png'),
+    path.join('/Applications/Iris.app/Contents/Resources.unpacked', 'dist', 'apple-touch-icon.png')
   ])
 
   // Windows prepends the two full-bleed .ico rungs ahead of the PNG ladder.

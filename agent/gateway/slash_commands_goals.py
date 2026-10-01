@@ -35,8 +35,8 @@ class GatewayGoalCommandsMixin:
     """Autonomy-loop gateway commands: /goal, /subgoal, /heartbeat, /loop, /refine, /review."""
 
     async def _handle_goal_command(self, event: MessageEvent) -> str:
-        from hermes_cli.goal_command import dispatch_goal_command
-        from hermes_cli.goals import last_user_message_from_db
+        from iris_cli.goal_command import dispatch_goal_command
+        from iris_cli.goals import last_user_message_from_db
 
         mgr, _session_entry = await self._get_goal_manager_for_event(event)
         if mgr is None:
@@ -99,7 +99,7 @@ class GatewayGoalCommandsMixin:
         """Handle /heartbeat (mirror of the CLI handler): the session's one recurring re-entry
         prompt. The gateway-wide poller injects due heartbeats through the adapter FIFO as
         ordinary user turns, so alternation and caching hold."""
-        from hermes_cli.heartbeat import parse_interval, format_interval, MIN_INTERVAL_SECONDS
+        from iris_cli.heartbeat import parse_interval, format_interval, MIN_INTERVAL_SECONDS
         args = (event.get_command_args() or "").strip()
         lower = args.lower()
         mgr, _session_entry = await self._get_heartbeat_manager_for_event(event)
@@ -153,7 +153,7 @@ class GatewayGoalCommandsMixin:
         return (
             f"♥ Heartbeat set (every {format_interval(state.interval_seconds)}): {state.prompt}\n"
             "Fires as a normal turn whenever this session is idle and the interval has "
-            "elapsed. Lives while the gateway runs — use `hermes cron` for durable schedules."
+            "elapsed. Lives while the gateway runs — use `iris cron` for durable schedules."
         )
 
     def _idle_cached_agent_or_error(self, event: MessageEvent, verb: str):
@@ -262,7 +262,7 @@ class GatewayGoalCommandsMixin:
     async def _handle_loop_command(self, event: MessageEvent) -> str:
         """Handle /loop — recurring in-session wakeups, via ``dispatch_loop_command`` (CLI mirror)."""
         try:
-            from hermes_cli.loops import LoopManager, dispatch_loop_command, goal_blocks_loop_tick
+            from iris_cli.loops import LoopManager, dispatch_loop_command, goal_blocks_loop_tick
         except Exception as exc:
             logger.debug("loops module unavailable: %s", exc)
             return "Loops unavailable."

@@ -59,7 +59,7 @@ def test_server_provisional_titles_strip_attached_files_context():
 
 def test_duplicate_upload_response_reports_actual_stored_filename(tmp_path, monkeypatch):
     """Duplicate upload names should report the suffixed stored basename."""
-    monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(tmp_path))
+    monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(tmp_path))
 
     from api.upload import _sanitize_upload_name, _upload_destination
 

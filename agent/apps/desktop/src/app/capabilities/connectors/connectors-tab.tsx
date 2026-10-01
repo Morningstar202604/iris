@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import type { HermesGateway, ProfileScope } from '@/hermes'
+import type { IrisGateway, ProfileScope } from '@/iris'
 import { useI18n } from '@/i18n'
 import { $freeTierStatus } from '@/store/free-tier'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
@@ -38,7 +38,7 @@ import type { ConnectorCardModel, ConnectorsFilter, HostedPhase } from './types'
 const toolsListKey = (card: ConnectorCardModel) => (card.residency === 'local' ? localServerName(card) : card.slug)
 
 export interface ConnectorsTabProps {
-  gateway: HermesGateway | null
+  gateway: IrisGateway | null
   profile: ProfileScope
 }
 
@@ -135,7 +135,7 @@ export function ConnectorsTab({ gateway, profile }: ConnectorsTabProps) {
     const url = outcome.operation.targets.find(target => target.connectUrl)?.connectUrl
 
     if (url) {
-      void window.hermesDesktop?.openExternal?.(url)
+      void window.irisDesktop?.openExternal?.(url)
     }
 
     setOpenKey(cardKey(card))

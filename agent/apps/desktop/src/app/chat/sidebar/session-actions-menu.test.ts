@@ -26,12 +26,12 @@ const { renameSession, request, activeGateway } = vi.hoisted(() => ({
 // Wire activeGateway's default return to the shared request mock now that it exists.
 activeGateway.mockReturnValue({ request })
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   renameSession: (...args: unknown[]) => renameSession(...(args as [])),
   // profile.ts calls this at import (its $activeGatewayProfile subscribe fires
   // immediately), pulled in transitively via session-states.
   setApiRequestProfile: () => {},
-  HermesGateway: class {}
+  IrisGateway: class {}
 }))
 
 vi.mock('@/store/gateway', () => ({

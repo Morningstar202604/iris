@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- SSE streaming engine and agent thread runner.
+Iris Web UI -- SSE streaming engine and agent thread runner.
 Includes Sprint 10 cancel support via CANCEL_FLAGS.
 """
 import base64
@@ -409,7 +409,7 @@ def _stream_writeback_diag_threshold_seconds(environ=None):
         environ = os.environ
     raw = str(
         environ.get(
-            "HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS",
+            "IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS",
             _STREAM_WRITEBACK_DIAG_DEFAULT_THRESHOLD_MS,
         )
     ).strip()
@@ -900,14 +900,14 @@ def _is_fallback_lifecycle_message(kind: str, message: str) -> bool:
 
 
 # Session turn-lease notices emitted by the Agent (agent/turn_facade_lease.py)
-# while another Hermes process (gateway, CLI, cron) holds this session's turn
+# while another Iris process (gateway, CLI, cron) holds this session's turn
 # lease. Emitted via ``_emit_status`` (kind ``lifecycle``) while waiting and on
 # admission, and via ``_emit_warning`` (kind ``warn``) when the wait times out
 # and the message was not processed.
 _SESSION_LEASE_WAIT_MARKERS = (
-    'another hermes process is using this session',
-    'still waiting for the other hermes process',
-    'another hermes process kept this session busy',
+    'another iris process is using this session',
+    'still waiting for the other iris process',
+    'another iris process kept this session busy',
     'session is free; loading the latest transcript',
 )
 
@@ -926,7 +926,7 @@ def _is_session_lease_wait_message(kind: str, message: str) -> bool:
 
 
 def _is_agent_compression_start_status(kind: str, message: str) -> bool:
-    """Return True only for real Hermes context-compression start notices.
+    """Return True only for real Iris context-compression start notices.
 
     WebUI bridges matching lifecycle statuses into an SSE ``compressing`` event
     and paints the live "Compressing context" worklog divider. The previous
@@ -935,7 +935,7 @@ def _is_agent_compression_start_status(kind: str, message: str) -> bool:
     cooldown / unrelated notices and make brand-new low-token turns look like
     auto-compression.
 
-    Positive markers below match the agent emitters in hermes-agent
+    Positive markers below match the agent emitters in iris-agent
     (``conversation_loop`` pre-API / 413 / too-large,
     ``conversation_compression`` compaction status). Preflight compression
     (``turn_context``) is intentionally excluded — the later authoritative
@@ -980,7 +980,7 @@ def _prewarm_skill_tool_modules():
     does lightweight attribute patching.
 
     We cannot place these at module top-level because ``tools.*`` lives
-    in the hermes-agent package which may not be on ``sys.path`` at
+    in the iris-agent package which may not be on ``sys.path`` at
     import time (Docker volume-mount ordering).  A dedicated helper
     keeps the lazy-import try/except in one place and makes the intent
     explicit.
@@ -992,7 +992,7 @@ def _prewarm_skill_tool_modules():
             pass
 
 
-# Lazy import to avoid circular deps -- hermes-agent is on sys.path via api/config.py
+# Lazy import to avoid circular deps -- iris-agent is on sys.path via api/config.py
 from api.agent_runtime import ensure_agent_runtime_current, get_ai_agent_class
 
 
@@ -1123,7 +1123,7 @@ _CANCEL_MARKER_PATTERNS = ('task cancelled', 'task canceled', 'response interrup
 
 _WEBUI_PROGRESS_PROMPT = """
 WebUI progress guidance:
-- Match the normal Hermes messaging style, but do not let long tool-running WebUI turns appear silent.
+- Match the normal Iris messaging style, but do not let long tool-running WebUI turns appear silent.
 - For long multi-step work that uses tools, emit brief user-visible progress updates as normal assistant content, not only as hidden reasoning.
 - Before the first tool batch in a long task, say what you are about to inspect.
 - After each meaningful batch of tool calls, say what you just confirmed and what you will check next before continuing with more tools.
@@ -1235,7 +1235,7 @@ _PREFILL_CONTEXT_DEFAULT_MAX_CHARS = 12_000
 
 
 def _prefill_context_max_chars(config_data: dict) -> int:
-    raw = os.getenv("HERMES_WEBUI_PREFILL_CONTEXT_MAX_CHARS", "") or str(
+    raw = os.getenv("IRIS_WEBUI_PREFILL_CONTEXT_MAX_CHARS", "") or str(
         config_data.get("webui_prefill_context_max_chars") or ""
     )
     try:
@@ -1284,7 +1284,7 @@ def _apply_prefill_context_budget(context: dict, config_data: dict) -> dict:
     if char_count <= max_chars:
         return context
 
-    file_raw = os.getenv("HERMES_PREFILL_MESSAGES_FILE", "") or str(config_data.get("prefill_messages_file") or "")
+    file_raw = os.getenv("IRIS_PREFILL_MESSAGES_FILE", "") or str(config_data.get("prefill_messages_file") or "")
     if context.get("source") == "script" and file_raw:
         fallback = _load_prefill_messages_file(file_raw, source="file_budget_fallback")
         fallback_messages = fallback.get("messages") if isinstance(fallback, dict) else []
@@ -1318,7 +1318,7 @@ def _load_prefill_messages_file(file_raw: str, *, source: str = "file", status: 
 
 
 def _prefill_script_timeout(config_data: dict) -> float:
-    raw = os.getenv("HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT", "") or str(config_data.get("webui_prefill_messages_script_timeout") or "")
+    raw = os.getenv("IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT", "") or str(config_data.get("webui_prefill_messages_script_timeout") or "")
     try:
         return max(0.1, min(float(raw or 5), 30.0))
     except Exception:
@@ -1355,7 +1355,7 @@ def _messages_from_prefill_script_output(text: str) -> list[dict]:
 
 
 def _load_prefill_messages_script(config_data: dict) -> dict:
-    script_raw = os.getenv("HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT", "") or config_data.get("webui_prefill_messages_script")
+    script_raw = os.getenv("IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT", "") or config_data.get("webui_prefill_messages_script")
     if not script_raw:
         return _prefill_not_configured()
     command = _prefill_script_command(script_raw)
@@ -1396,14 +1396,14 @@ def _load_webui_prefill_context(
 ) -> dict:
     """Load configured WebUI session prefill messages.
 
-    Supports the same bounded JSON-file shape used by Hermes Agent.  WebUI also
+    Supports the same bounded JSON-file shape used by Iris Agent.  WebUI also
     supports its own explicitly opt-in script hook so admins can bridge Joplin,
     Obsidian, Notion, llm-wiki, or another local notes source into ephemeral
     turn context without baking any one note provider into the WebUI.
     """
     cfg = config_data if isinstance(config_data, dict) else get_config()
     script_context = _load_prefill_messages_script(cfg)
-    file_raw = os.getenv("HERMES_PREFILL_MESSAGES_FILE", "") or str(cfg.get("prefill_messages_file") or "")
+    file_raw = os.getenv("IRIS_PREFILL_MESSAGES_FILE", "") or str(cfg.get("prefill_messages_file") or "")
     if script_context.get("status") == "not_configured":
         if file_raw:
             return _apply_prefill_context_budget(_load_prefill_messages_file(file_raw), cfg)
@@ -1450,17 +1450,17 @@ def _webui_delivery_context_prompt(config_data: Optional[dict] = None) -> str:
     cfg = config_data if isinstance(config_data, dict) else get_config()
     lines: list[str] = []
 
-    display_hermes_home = None
+    display_iris_home = None
     try:
-        from hermes_constants import get_hermes_home, display_hermes_home as _dh
-        display_hermes_home = _dh
+        from iris_constants import get_iris_home, display_iris_home as _dh
+        display_iris_home = _dh
     except Exception:
-        get_hermes_home = None  # type: ignore[assignment]
+        get_iris_home = None  # type: ignore[assignment]
 
     connected = ["local (files on this machine)"]
     try:
-        if get_hermes_home is not None:
-            state_path = get_hermes_home() / "gateway_state.json"
+        if get_iris_home is not None:
+            state_path = get_iris_home() / "gateway_state.json"
             if state_path.exists():
                 raw_state = json.loads(state_path.read_text(encoding="utf-8"))
                 platforms = raw_state.get("platforms") if isinstance(raw_state, dict) else {}
@@ -1498,9 +1498,9 @@ def _webui_delivery_context_prompt(config_data: Optional[dict] = None) -> str:
     lines.append("**Delivery options for scheduled tasks:**")
     lines.append("- `\"origin\"` → Back to this WebUI/browser session when the WebUI runtime supports origin delivery; otherwise prefer an explicit platform target.")
     try:
-        home_display = display_hermes_home() if display_hermes_home else "~/.hermes"
+        home_display = display_iris_home() if display_iris_home else "~/.iris"
     except Exception:
-        home_display = "~/.hermes"
+        home_display = "~/.iris"
     lines.append(f"- `\"local\"` → Save to local files only ({home_display}/cron/output/)")
     for platform, label in sorted(home_channels.items()):
         lines.append(f"- `\"{platform}\"` → Home channel ({label})")
@@ -1587,7 +1587,7 @@ def _preferred_agent_display_name() -> str:
     except Exception:
         logger.debug("Failed to load bot_name for cancellation copy", exc_info=True)
         name = ''
-    return name or 'Hermes'
+    return name or 'Iris'
 
 
 def _preferred_agent_display_name_for_session(session) -> str:
@@ -1598,7 +1598,7 @@ def _preferred_agent_display_name_for_session(session) -> str:
 
 
 def _cancelled_turn_hint(agent_name: str | None = None) -> str:
-    name = str(agent_name or _preferred_agent_display_name()).strip() or 'Hermes'
+    name = str(agent_name or _preferred_agent_display_name()).strip() or 'Iris'
     return f'The run was cancelled by the user before {name} finished. No provider failure occurred.'
 
 
@@ -1698,7 +1698,7 @@ def _classify_provider_error(
 ) -> dict:
     """Classify provider/agent failure text for WebUI apperror UX.
 
-    Keep this string-based until hermes-agent exposes stable structured
+    Keep this string-based until iris-agent exposes stable structured
     provider error classes for Codex OAuth plan limits.
     """
     _probe_text, _probe_status_code = _provider_error_probe_text(err_str)
@@ -1806,12 +1806,12 @@ def _classify_provider_error(
         )
     )
     _is_not_found = (
-        # model_not_found hints mention Settings / `hermes model` below.
+        # model_not_found hints mention Settings / `iris model` below.
         '404' in err_str
         or 'not found' in _err_lower
         or 'does not exist' in _err_lower
         or 'model not found' in _err_lower
-        or 'model_not_found' in _err_lower  # hint below points to Settings / `hermes model`
+        or 'model_not_found' in _err_lower  # hint below points to Settings / `iris model`
         or 'invalid model' in _err_lower
         or 'does not match any known model' in _err_lower
         or 'unknown model' in _err_lower
@@ -1829,13 +1829,13 @@ def _classify_provider_error(
         return {
             'label': 'No usable credentials',
             'type': 'credential_pool_empty',
-            'hint': 'The credential pool for this provider has no usable keys left (all entries exhausted or unconfigured). Add or refresh a key for this provider in your Hermes config / credential pool, or switch providers via `hermes model`.',
+            'hint': 'The credential pool for this provider has no usable keys left (all entries exhausted or unconfigured). Add or refresh a key for this provider in your Iris config / credential pool, or switch providers via `iris model`.',
         }
     if _is_quota:
         return {
             'label': 'Out of credits',
             'type': 'quota_exhausted',
-            'hint': 'Your provider account is out of credits or usage. Top up, wait for the plan window to reset, or switch providers via `hermes model`.',
+            'hint': 'Your provider account is out of credits or usage. Top up, wait for the plan window to reset, or switch providers via `iris model`.',
         }
     if _is_rate_limit:
         return {
@@ -1847,13 +1847,13 @@ def _classify_provider_error(
         return {
             'label': 'Authentication failed',
             'type': 'auth_mismatch',
-            'hint': 'The selected model may not be supported by your configured provider or your API key is invalid. Run `hermes model` in your terminal to update credentials, then restart the WebUI.',
+            'hint': 'The selected model may not be supported by your configured provider or your API key is invalid. Run `iris model` in your terminal to update credentials, then restart the WebUI.',
         }
     if _is_not_found:
         return {
             'label': 'Model not found',
             'type': 'model_not_found',
-            'hint': 'The selected model was not found by the provider. Check the model ID in Settings or run `hermes model` to verify it exists for your provider.',
+            'hint': 'The selected model was not found by the provider. Check the model ID in Settings or run `iris model` to verify it exists for your provider.',
         }
     if _is_compression_exhausted:
         return {
@@ -1867,7 +1867,7 @@ def _classify_provider_error(
             # Preserve the existing no_response event type (#373) while making
             # the catch-all silent-failure message more specific for #1765.
             'type': 'no_response',
-            'hint': 'The provider returned no content and no error. This often means a usage/rate limit was hit silently. Check provider status, switch providers via `hermes model`, or try again in a moment.',
+            'hint': 'The provider returned no content and no error. This often means a usage/rate limit was hit silently. Check provider status, switch providers via `iris model`, or try again in a moment.',
         }
     return {'label': 'Error', 'type': 'error', 'hint': ''}
 
@@ -1896,7 +1896,7 @@ _MAX_ITERATION_SUMMARY_REQUEST = (
 
 
 def _is_synthetic_max_iteration_summary_request(message) -> bool:
-    """Return True for Hermes Agent's internal max-iteration summary prompt."""
+    """Return True for Iris Agent's internal max-iteration summary prompt."""
     if not isinstance(message, dict) or message.get('role') != 'user':
         return False
     text = " ".join(_message_text(message.get('content', '')).split())
@@ -1915,7 +1915,7 @@ def _drop_synthetic_max_iteration_summary_requests(messages, *, enabled: bool = 
     ]
 
 
-# Structured markers the Hermes Agent stamps on synthetic scaffolding turns that
+# Structured markers the Iris Agent stamps on synthetic scaffolding turns that
 # drive its internal verify-before-finish loop. The agent appends BOTH a
 # synthetic assistant "premature done" answer AND a synthetic ``user`` nudge
 # (e.g. "[System: You edited code in this turn, but the workspace does not have
@@ -2499,7 +2499,7 @@ def _maybe_inject_max_iteration_summary_fallback(messages, result) -> list:
     When ``AIAgent`` exhausts its iteration budget, ``agent.handle_max_iterations``
     always returns a non-empty ``final_response`` — either the model-generated
     summary or a graceful fallback (e.g. ``"I reached the iteration limit and
-    couldn't generate a summary."``). Hermes Agent surfaces that string as the
+    couldn't generate a summary."``). Iris Agent surfaces that string as the
     final answer to the user; the WebUI, by contrast, reads only ``messages``,
     so an empty summary (common with reasoning-only responses) left the user
     with a bare ``tool_limit_reached`` error instead of any closure text.
@@ -2508,7 +2508,7 @@ def _maybe_inject_max_iteration_summary_fallback(messages, result) -> list:
     assistant answer, inject ``result['final_response']`` as a new assistant
     turn so ``_mark_latest_assistant_tool_limit_status`` can attach the status
     card in the normal flow and the user sees the same closure text as
-    hermes-agent. Returns the (possibly new) messages list; does nothing when
+    iris-agent. Returns the (possibly new) messages list; does nothing when
     a usable assistant answer already exists or when ``result`` carries no
     graceful fallback text.
     """
@@ -2790,11 +2790,11 @@ def _finalize_cancelled_turn(
 def _aiagent_import_error_detail() -> str:
     """Return a multi-line diagnostic string for the "AIAgent not available" path.
 
-    The bare ImportError ("AIAgent not available -- check that hermes-agent is
+    The bare ImportError ("AIAgent not available -- check that iris-agent is
     on sys.path") leaves users guessing at which python is running, where it's
     looking, and what to fix. We assemble the same evidence a maintainer would
     ask for first (issue #1695): the python that's running, the agent_dir env
-    var if set, the sys.path entries that mention 'hermes', and the most-common
+    var if set, the sys.path entries that mention 'iris', and the most-common
     fix (`pip install -e .` in the agent dir).
 
     Kept as a separate helper so it stays out of the hot path until we actually
@@ -2803,31 +2803,31 @@ def _aiagent_import_error_detail() -> str:
     import os as _os
     import sys as _sys
 
-    lines = ["AIAgent not available -- check that hermes-agent is on sys.path"]
+    lines = ["AIAgent not available -- check that iris-agent is on sys.path"]
     lines.append("")
     lines.append(f"  python:  {_sys.executable}")
-    agent_dir = _os.environ.get("HERMES_WEBUI_AGENT_DIR")
+    agent_dir = _os.environ.get("IRIS_WEBUI_AGENT_DIR")
     if agent_dir:
-        lines.append(f"  HERMES_WEBUI_AGENT_DIR: {agent_dir}")
+        lines.append(f"  IRIS_WEBUI_AGENT_DIR: {agent_dir}")
     else:
-        lines.append("  HERMES_WEBUI_AGENT_DIR: (not set)")
+        lines.append("  IRIS_WEBUI_AGENT_DIR: (not set)")
 
     # Show only the sys.path entries that look relevant — full sys.path is noisy.
-    relevant = [p for p in _sys.path if "hermes" in p.lower() or "agent" in p.lower()]
+    relevant = [p for p in _sys.path if "iris" in p.lower() or "agent" in p.lower()]
     if relevant:
-        lines.append("  sys.path entries mentioning hermes/agent:")
+        lines.append("  sys.path entries mentioning iris/agent:")
         for entry in relevant[:6]:
             lines.append(f"    - {entry}")
         if len(relevant) > 6:
             lines.append(f"    ... and {len(relevant) - 6} more")
     else:
-        lines.append("  sys.path: (no entries mention hermes or agent)")
+        lines.append("  sys.path: (no entries mention iris or agent)")
 
     lines.append("")
     lines.append("  Most common fix: install the agent in editable mode so its modules")
     lines.append("  appear on sys.path:")
     lines.append("")
-    lines.append("    cd /path/to/hermes-agent")
+    lines.append("    cd /path/to/iris-agent")
     lines.append("    pip install -e .")
     lines.append("")
     lines.append("  Then restart the WebUI.")
@@ -3003,59 +3003,59 @@ def _build_agent_thread_env(profile_runtime_env: dict | None, workspace: str, se
     env = dict(profile_runtime_env or {})
     env.update({
         'TERMINAL_CWD': str(workspace),
-        'HERMES_EXEC_ASK': '1',
-        'HERMES_SESSION_KEY': session_id,
-        'HERMES_SESSION_ID': session_id,
-        'HERMES_SESSION_PLATFORM': 'webui',
+        'IRIS_EXEC_ASK': '1',
+        'IRIS_SESSION_KEY': session_id,
+        'IRIS_SESSION_ID': session_id,
+        'IRIS_SESSION_PLATFORM': 'webui',
         # process_complete agent-wakeup wiring (ours-original, Option B): the
         # terminal_tool watcher routing gate (terminal_tool.py:~1940) reads
-        # HERMES_SESSION_CHAT_ID to populate pending_watchers for WebUI
+        # IRIS_SESSION_CHAT_ID to populate pending_watchers for WebUI
         # sessions so notify_on_complete completions enqueue and the agent
-        # can be woken. HERMES_SESSION_ID/PLATFORM come from upstream #2279.
-        'HERMES_SESSION_CHAT_ID': str(session_id),
-        'HERMES_HOME': profile_home,
+        # can be woken. IRIS_SESSION_ID/PLATFORM come from upstream #2279.
+        'IRIS_SESSION_CHAT_ID': str(session_id),
+        'IRIS_HOME': profile_home,
     })
     return env
 
 
-_streaming_hermes_home_override_available = None
+_streaming_iris_home_override_available = None
 
 
-def _resolve_streaming_hermes_home_override():
-    """Return hermes_constants module if context-local home override APIs exist.
+def _resolve_streaming_iris_home_override():
+    """Return iris_constants module if context-local home override APIs exist.
 
     Cached import-safe resolver mirrors the optional pattern used by
     `api.profiles` so older agent versions safely degrade to the process-global
     env mirror fallback.
     """
-    global _streaming_hermes_home_override_available
+    global _streaming_iris_home_override_available
     import sys as _sys
 
-    if _streaming_hermes_home_override_available is False:
+    if _streaming_iris_home_override_available is False:
         return None
 
-    mod = _sys.modules.get('hermes_constants')
-    if mod is None and _streaming_hermes_home_override_available is None:
+    mod = _sys.modules.get('iris_constants')
+    if mod is None and _streaming_iris_home_override_available is None:
         try:
-            import hermes_constants  # noqa: F401
-            mod = _sys.modules.get('hermes_constants')
+            import iris_constants  # noqa: F401
+            mod = _sys.modules.get('iris_constants')
         except Exception:
-            _streaming_hermes_home_override_available = False
+            _streaming_iris_home_override_available = False
             return None
 
     if (
         mod is not None
-        and hasattr(mod, 'set_hermes_home_override')
-        and hasattr(mod, 'reset_hermes_home_override')
+        and hasattr(mod, 'set_iris_home_override')
+        and hasattr(mod, 'reset_iris_home_override')
     ):
-        _streaming_hermes_home_override_available = True
+        _streaming_iris_home_override_available = True
         return mod
 
-    _streaming_hermes_home_override_available = False
+    _streaming_iris_home_override_available = False
     return None
 
 
-def _set_streaming_hermes_home_override(profile_home: str):
+def _set_streaming_iris_home_override(profile_home: str):
     """Install the context-local home override if available.
 
     Returns ``(module, token, installed)`` so callers can restore it with the
@@ -3064,34 +3064,34 @@ def _set_streaming_hermes_home_override(profile_home: str):
     if not profile_home:
         return None, None, False
 
-    _home_override_mod = _resolve_streaming_hermes_home_override()
+    _home_override_mod = _resolve_streaming_iris_home_override()
     if _home_override_mod is None:
         return None, None, False
 
     try:
-        _token = _home_override_mod.set_hermes_home_override(profile_home)
+        _token = _home_override_mod.set_iris_home_override(profile_home)
         return _home_override_mod, _token, True
     except Exception:
         logger.debug(
-            "Failed to set streaming Hermes home override; continuing with os.environ mirror",
+            "Failed to set streaming Iris home override; continuing with os.environ mirror",
             exc_info=True,
         )
         return None, None, False
 
 
-def _reset_streaming_hermes_home_override(override_mod, override_token, override_installed: bool) -> None:
+def _reset_streaming_iris_home_override(override_mod, override_token, override_installed: bool) -> None:
     """Reset the context-local home override if it was installed."""
     if override_mod is None or not override_installed:
         return
     try:
-        override_mod.reset_hermes_home_override(override_token)
+        override_mod.reset_iris_home_override(override_token)
     except Exception:
-        logger.debug("Failed to reset streaming Hermes home override", exc_info=True)
+        logger.debug("Failed to reset streaming Iris home override", exc_info=True)
 
 
 # ── Per-turn session identity (xsession wakeup misroute root fix — Option 1) ─
 # WebUI bound per-turn session identity ONLY to the process-global
-# os.environ['HERMES_SESSION_KEY'] (turn-start, line ~3263) and released the
+# os.environ['IRIS_SESSION_KEY'] (turn-start, line ~3263) and released the
 # env lock BEFORE the agent ran. WebUI never called any contextvar setter, so
 # gateway.session_context._SESSION_KEY stayed _UNSET and
 # tools.approval.get_current_session_key (the EXACT call a
@@ -3113,18 +3113,18 @@ def _set_turn_session_identity(session_id: str, workspace: str = ""):
         ``get_current_session_key`` (the exact call terminal_tool.py makes for
         a notify_on_complete background spawn: the bug path).
       * ``gateway.session_context._SESSION_KEY`` — read by direct
-        ``get_session_env("HERMES_SESSION_KEY")`` consumers.
+        ``get_session_env("IRIS_SESSION_KEY")`` consumers.
       * ``gateway.session_context._SESSION_UI_SESSION_ID`` — exact browser-tab
         return address stamped onto ProcessSession.origin_ui_session_id and
-        completion events by modern hermes-agent builds. Authoritative for
+        completion events by modern iris-agent builds. Authoritative for
         wakeup routing when present (see ``_resolve_completion_target``).
       * ``agent.runtime_cwd._SESSION_CWD`` — this turn's workspace, when
         *workspace* is given. The WebUI runs the agent IN-PROCESS, so
         ``os.getcwd()`` is the server's launch directory, not the workspace the
         user selected. Anything resolving a default working directory from the
-        process therefore lands in the Hermes install tree: measured, every
+        process therefore lands in the Iris install tree: measured, every
         conductor child spawned from a WebUI session recorded
-        ``workdir=~/.hermes/hermes-agent`` while the selected workspace was
+        ``workdir=~/.iris/iris-agent`` while the selected workspace was
         ``~/workspace``, which also fed those children the install tree's own
         contributor ``AGENTS.md`` as workspace doctrine. ``TERMINAL_CWD`` is
         already set per turn for the same purpose but is a process-global that
@@ -3133,7 +3133,7 @@ def _set_turn_session_identity(session_id: str, workspace: str = ""):
 
     It deliberately does NOT call ``gateway.session_context.set_session_vars``:
     that blanket setter also zeroes the platform/chat_id/user contextvars,
-    flipping ``HERMES_SESSION_PLATFORM`` from its env fallback (``'webui'``,
+    flipping ``IRIS_SESSION_PLATFORM`` from its env fallback (``'webui'``,
     still written to os.environ at turn-start) to an explicit ``""`` — which
     would break the ``notify_on_complete`` watcher registration gate.
     """
@@ -3240,17 +3240,17 @@ def _stale_completion_max_age_seconds() -> float:
     notification that finally fires long after the user moved on cannot
     contaminate an unrelated later turn. See nesquena/hermes-webui#4029.
 
-    Configurable via HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS. A value of
+    Configurable via IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS. A value of
     0 (or negative) disables age-gating and restores the legacy drain-all
     behavior. Defaults to 6 hours.
     """
-    raw = os.environ.get("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS")
+    raw = os.environ.get("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS")
     if raw is not None:
         try:
             return float(raw)
         except (TypeError, ValueError):
             logger.warning(
-                "Invalid HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS=%r; using default",
+                "Invalid IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS=%r; using default",
                 raw,
             )
     return 6 * 60 * 60  # 6 hours
@@ -3674,7 +3674,7 @@ def _build_native_multimodal_message(workspace_ctx: str, msg_text: str, attachme
     """Build native multimodal content parts for current-turn image uploads.
 
     WebUI uploads files into the active workspace. For image files, pass the
-    bytes to Hermes as OpenAI-style image_url data URLs so vision-capable main
+    bytes to Iris as OpenAI-style image_url data URLs so vision-capable main
     models can consume them in the same request. Non-image files intentionally
     stay as text path attachments so the agent can inspect them with file tools.
 
@@ -3692,7 +3692,7 @@ def _build_native_multimodal_message(workspace_ctx: str, msg_text: str, attachme
     parts = [{'type': 'text', 'text': workspace_ctx + msg_text}]
     workspace_root = _resolve_path(workspace, profile=profile)
     # Stage-361 maintainer fix (Opus SHOULD-FIX): chat uploads from #2319 now
-    # land in ~/.hermes/webui/attachments/<sid>/ (outside workspace_root by
+    # land in ~/.iris/webui/attachments/<sid>/ (outside workspace_root by
     # design). The pre-existing `path.relative_to(workspace_root)` guard would
     # silently reject every image upload for vision-capable models. Allow the
     # configured attachment root in addition to workspace_root so native
@@ -4679,7 +4679,7 @@ def _get_aux_title_config() -> dict:
 def _aux_title_generation_enabled() -> bool:
     """Return whether automatic title generation is enabled (default: enabled).
 
-    Mirrors Hermes Agent's ``auxiliary.title_generation.enabled`` contract
+    Mirrors Iris Agent's ``auxiliary.title_generation.enabled`` contract
     byte-for-byte via its canonical ``is_truthy_value(value, default=True)``
     semantics (agent/title_generator.py -> utils.is_truthy_value):
 
@@ -5163,12 +5163,12 @@ def _fallback_title_from_exchange(user_text: str, assistant_text: str) -> Option
         if not _contains_latin(topic_name):
             if any(k in combined for k in ('time', 'schedule', 'efficiency', 'manage', 'fitness', 'singing', 'calligraphy')):
                 return 'Time management discussion'
-            if any(k in combined for k in ('hermes', 'codex', 'ai')):
+            if any(k in combined for k in ('iris', 'codex', 'ai')):
                 return 'AI productivity discussion'
             return 'Conversation topic'
         if any(k in combined for k in ('time', 'schedule', 'efficiency', 'manage', 'fitness', 'singing', 'calligraphy')):
             return f'{topic_name} time management'
-        if any(k in combined for k in ('hermes', 'codex', 'ai')):
+        if any(k in combined for k in ('iris', 'codex', 'ai')):
             return f'{topic_name} AI productivity'
         return f'{topic_name} discussion'
 
@@ -5308,7 +5308,7 @@ def _run_background_title_update(session_id: str, user_text: str, assistant_text
             else:
                 _put_title_status(put_event, session_id, source, llm_status, effective_title, raw_preview)
             put_event('title', {'session_id': session_id, 'title': effective_title})
-            # Sync the generated title to state.db so `hermes sessions list` shows it.
+            # Sync the generated title to state.db so `iris sessions list` shows it.
             try:
                 from api.state_sync import sync_session_title
                 sync_session_title(session_id, effective_title, profile=getattr(s, 'profile', None) or 'default')
@@ -5386,7 +5386,7 @@ def _run_background_title_refresh(session_id: str, user_text: str, assistant_tex
             s.save(touch_updated_at=False)
         _put_title_status(put_event, session_id, 'refreshed', llm_status, effective_title, raw_preview)
         put_event('title', {'session_id': session_id, 'title': effective_title})
-        # Sync the refreshed title to state.db so `hermes sessions list` stays current.
+        # Sync the refreshed title to state.db so `iris sessions list` stays current.
         try:
             from api.state_sync import sync_session_title
             sync_session_title(session_id, effective_title, profile=getattr(s, 'profile', None) or 'default')
@@ -5661,7 +5661,7 @@ def _unwrap_single_oob_frame(content: str) -> str | None:
 def _unwrap_steer_row_oob_marker(message: dict) -> None:
     """Extract inner steer text from a typed steer row in place (#7600).
 
-    The Hermes Agent emits mid-turn steers as standalone typed user rows
+    The Iris Agent emits mid-turn steers as standalone typed user rows
     (`role == 'user'`, `display_kind == 'steer'`). The control wrapper
     `[OUT-OF-BAND USER MESSAGE ...] ... [/OUT-OF-BAND USER MESSAGE]` is
     extracted to preserve only the user-authored instruction.
@@ -5862,7 +5862,7 @@ def _compact_image_parts_for_persistence(messages) -> int:
     The active model receives native image parts while a tool call is running. Once
     the turn has completed, retaining base64 data URLs in both the visible
     transcript and ``context_messages`` makes every JSON sidecar save/load and
-    session API response scale with the image bytes. Hermes Agent's durable
+    session API response scale with the image bytes. Iris Agent's durable
     session store applies the same text-only policy for completed multimodal
     tool results. Keep text parts and the surrounding tool-call chain intact so
     future turns retain the conversational record and can re-open the original
@@ -5874,7 +5874,7 @@ def _compact_image_parts_for_persistence(messages) -> int:
     """
     changed = 0
     for message in messages or ():
-        # Mirror Hermes Agent's durable-session policy: native *tool* results
+        # Mirror Iris Agent's durable-session policy: native *tool* results
         # are transient input for the current model call. User attachments are
         # a separate product contract and must remain intact here.
         if not isinstance(message, dict) or message.get('role') != 'tool':
@@ -7459,7 +7459,7 @@ def _merge_display_messages_after_agent_result(
 ):
     """Keep UI transcript durable while allowing model context to compact.
 
-    If Hermes Agent returns a normal append-only history, append that delta to
+    If Iris Agent returns a normal append-only history, append that delta to
     the UI transcript. If the model/context history was compacted and no longer
     has the prior context as a prefix, keep the previous UI transcript and append
     the current user turn onward. Synthetic compaction/reference markers remain
@@ -7470,7 +7470,7 @@ def _merge_display_messages_after_agent_result(
         if not _is_context_compression_marker(m)
         and not _is_compressed_context_tool_result_summary_message(m)
     ]
-    # Drop Hermes Agent internal verify-loop scaffolding (synthetic "premature
+    # Drop Iris Agent internal verify-loop scaffolding (synthetic "premature
     # done" answer + the "[System: ...verification evidence...]" nudge) before
     # it can become a visible user/assistant turn. The agent flags these with
     # structured markers (_verification_stop_synthetic / _pre_verify_synthetic)
@@ -8430,7 +8430,7 @@ def _sse(handler, event, data):
 # so no events are lost for a tab that comes back. Operators behind unusual
 # proxies can tune the deadline without code changes.
 try:
-    _raw_deadline = os.getenv("HERMES_WEBUI_SSE_WRITE_DEADLINE") or os.getenv("HERMES_SSE_WRITE_DEADLINE")
+    _raw_deadline = os.getenv("IRIS_WEBUI_SSE_WRITE_DEADLINE") or os.getenv("IRIS_SSE_WRITE_DEADLINE")
     SSE_WRITE_DEADLINE_SECONDS = float(_raw_deadline or "20.0")
 except (TypeError, ValueError):
     SSE_WRITE_DEADLINE_SECONDS = 20.0
@@ -8894,7 +8894,7 @@ def _build_session_db_for_stream(state_db_path):
     continue without session_search rather than propagating a hard failure.
     """
     try:
-        from hermes_state import SessionDB
+        from iris_state import SessionDB
         _attempts = 3
         _last_error = None
         for _attempt in range(_attempts):
@@ -8992,7 +8992,7 @@ def _build_run_conversation_kwargs(
     """Build one rolling-compatible Agent invocation contract.
 
     ``persist_user_timestamp`` is signature-gated (#6935): an older
-    hermes-agent whose ``run_conversation()`` predates the kwarg must not
+    iris-agent whose ``run_conversation()`` predates the kwarg must not
     receive it, or the call trips a TypeError before the turn starts.
     """
     kwargs = {
@@ -9027,8 +9027,8 @@ def _attempt_credential_self_heal(
     applicable (e.g. auth.json unchanged, provider unresolvable).
 
     Steps:
-    1. Re-read ``~/.hermes/auth.json`` to pick up fresh credentials that
-       may have been written by a concurrent ``hermes model`` CLI invocation.
+    1. Re-read ``~/.iris/auth.json`` to pick up fresh credentials that
+       may have been written by a concurrent ``iris model`` CLI invocation.
     2. Evict the session's cached agent so it is rebuilt with fresh keys.
     3. Evict the provider's credential-pool cache entry.
     4. Re-resolve the runtime provider.
@@ -9044,7 +9044,7 @@ def _attempt_credential_self_heal(
             SESSION_AGENT_CACHE, SESSION_AGENT_CACHE_LOCK,
             invalidate_credential_pool_cache,
         )
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from iris_cli.runtime_provider import resolve_runtime_provider
 
         # 1. Re-read auth.json (triggers a fresh credential scan)
         _fresh_auth = read_auth_json()
@@ -9460,14 +9460,14 @@ def _run_agent_streaming(
     old_session_key = None
     old_session_id = None
     old_session_platform = None
-    old_hermes_home = None
+    old_iris_home = None
     old_profile_env = {}
     result = None
     _result_partial_pre_call_context = []
 
-    # MCP discovery moved to AFTER the per-profile HERMES_HOME mutation below
+    # MCP discovery moved to AFTER the per-profile IRIS_HOME mutation below
     # (was here at v0.51.30) — the previous placement always read the default
-    # profile's mcp_servers because os.environ['HERMES_HOME'] hadn't been
+    # profile's mcp_servers because os.environ['IRIS_HOME'] hadn't been
     # rewritten yet.  See https://github.com/nesquena/hermes-webui/issues/1968.
 
     agent = None
@@ -9627,7 +9627,7 @@ def _run_agent_streaming(
                                     # the worker's own _cfg resolution below.
                                     try:
                                         from api.config import get_config_for_profile_home as _gch_u
-                                        from api.profiles import get_hermes_home_for_profile as _ghp_u
+                                        from api.profiles import get_iris_home_for_profile as _ghp_u
                                         _ph_u = _ghp_u(getattr(_session_obj, 'profile', None))
                                         _cfg_u = _gch_u(_ph_u)
                                     except Exception:
@@ -9671,7 +9671,7 @@ def _run_agent_streaming(
                                     ):
                                         _resolved_real = _real_u
                                 except TypeError:
-                                    # Older hermes-agent: legacy 2-arg form.
+                                    # Older iris-agent: legacy 2-arg form.
                                     try:
                                         from api.routes import (
                                             _should_accept_session_context_length_refresh as _accept2_u,
@@ -9909,7 +9909,7 @@ def _run_agent_streaming(
             return
         # Pass through rate-limit and fallback messages so the frontend can
         # show them as warnings via the existing messages.js 'warning' listener.
-        # Session turn-lease waits (another Hermes process owns this session)
+        # Session turn-lease waits (another Iris process owns this session)
         # use the same channel so a delayed turn explains itself.
         if _is_session_lease_wait_message(_kind, _message):
             put('warning', {'type': 'session_lease_wait', 'message': _message})
@@ -9926,7 +9926,7 @@ def _run_agent_streaming(
     _turn_session_identity_tokens = None
     _streaming_cron_profile_home_token = None
     _turn_pending_source = 'webui'
-    _streaming_hermes_home_override_ctx = (None, None, False)
+    _streaming_iris_home_override_ctx = (None, None, False)
     _streaming_skill_home_snapshot = None
     _restore_streaming_skill_home_modules = False
     _acquired_streaming_skill_home_patch_lock = False
@@ -10088,18 +10088,18 @@ def _run_agent_streaming(
                 patch_skill_home_modules,
                 restore_skill_home_modules,
                 snapshot_skill_home_modules,
-                get_hermes_home_for_profile,
+                get_iris_home_for_profile,
                 get_profile_runtime_env,
                 _skill_modules_support_profile_home,
                 _SKILL_HOME_MODULE_PATCH_LOCK,
             )
-            _profile_home_path = get_hermes_home_for_profile(getattr(s, 'profile', None))
+            _profile_home_path = get_iris_home_for_profile(getattr(s, 'profile', None))
             _profile_home = str(_profile_home_path)
             _streaming_cron_profile_home_token = _STREAMING_CRON_PROFILE_HOME.set(_profile_home)
             _profile_runtime_env = get_profile_runtime_env(_profile_home_path)
             _safe_profile_runtime_env = filter_runtime_env_for_gateway_parity(_profile_runtime_env)
         except ImportError:
-            _profile_home = os.environ.get('HERMES_HOME', '')
+            _profile_home = os.environ.get('IRIS_HOME', '')
             _profile_runtime_env = {}
             _safe_profile_runtime_env = {}
             patch_skill_home_modules = None
@@ -10156,10 +10156,10 @@ def _run_agent_streaming(
             session_id,
             _profile_home,
         )
-        _streaming_hermes_home_override_ctx = _set_streaming_hermes_home_override(_profile_home)
+        _streaming_iris_home_override_ctx = _set_streaming_iris_home_override(_profile_home)
         _set_thread_env(**_thread_env)
         # process_complete agent-wakeup wiring (ours-original, Option B): bind
-        # this session's HERMES_SESSION_KEY to its WebUI session_id so the
+        # this session's IRIS_SESSION_KEY to its WebUI session_id so the
         # drain thread can route notify_on_complete events back to the right
         # SSE channel / server-side wakeup.
         try:
@@ -10176,7 +10176,7 @@ def _run_agent_streaming(
         # Full-turn serialization is only needed for static/legacy skill-module
         # resolution, where process-global skill-module globals are still used.
         # Dynamic-capable modules continue concurrent execution.
-        _streaming_override_installed = bool(_streaming_hermes_home_override_ctx[2])
+        _streaming_override_installed = bool(_streaming_iris_home_override_ctx[2])
         _streaming_modules_are_dynamic = False
         if patch_skill_home_modules is not None and snapshot_skill_home_modules is not None:
             if _streaming_override_installed and _skill_modules_support_profile_home is not None:
@@ -10209,36 +10209,36 @@ def _run_agent_streaming(
                 patch_skill_home_modules(Path(_profile_home))
             old_profile_env = {key: os.environ.get(key) for key in _safe_profile_runtime_env}
             old_cwd = os.environ.get('TERMINAL_CWD')
-            old_exec_ask = os.environ.get('HERMES_EXEC_ASK')
-            old_session_key = os.environ.get('HERMES_SESSION_KEY')
-            old_session_id = os.environ.get('HERMES_SESSION_ID')
-            old_session_platform = os.environ.get('HERMES_SESSION_PLATFORM')
-            old_session_chat_id = os.environ.get('HERMES_SESSION_CHAT_ID')
-            old_hermes_home = os.environ.get('HERMES_HOME')
+            old_exec_ask = os.environ.get('IRIS_EXEC_ASK')
+            old_session_key = os.environ.get('IRIS_SESSION_KEY')
+            old_session_id = os.environ.get('IRIS_SESSION_ID')
+            old_session_platform = os.environ.get('IRIS_SESSION_PLATFORM')
+            old_session_chat_id = os.environ.get('IRIS_SESSION_CHAT_ID')
+            old_iris_home = os.environ.get('IRIS_HOME')
             os.environ.update(_safe_profile_runtime_env)
             os.environ['TERMINAL_CWD'] = str(s.workspace)
-            os.environ['HERMES_EXEC_ASK'] = '1'
-            os.environ['HERMES_SESSION_KEY'] = session_id
-            os.environ['HERMES_SESSION_ID'] = session_id
-            os.environ['HERMES_SESSION_PLATFORM'] = 'webui'
+            os.environ['IRIS_EXEC_ASK'] = '1'
+            os.environ['IRIS_SESSION_KEY'] = session_id
+            os.environ['IRIS_SESSION_ID'] = session_id
+            os.environ['IRIS_SESSION_PLATFORM'] = 'webui'
             # process_complete wiring (ours-original, Option B): see
             # _build_agent_thread_env above.
-            os.environ['HERMES_SESSION_CHAT_ID'] = str(session_id)
+            os.environ['IRIS_SESSION_CHAT_ID'] = str(session_id)
             if _profile_home:
-                os.environ['HERMES_HOME'] = _profile_home
-                # Prefer context-local Hermes-home overrides when available.
+                os.environ['IRIS_HOME'] = _profile_home
+                # Prefer context-local Iris-home overrides when available.
                 # In that mode, tools.skills_tool._skills_dir() and
                 # tools.skill_manager_tool._skills_dir() can resolve the active
-                # profile from get_hermes_home() and keep per-thread isolation
+                # profile from get_iris_home() and keep per-thread isolation
                 # without mutating module globals. If override installation
                 # succeeds for both modules, skip process-cache patching.
                 # If either module is static/missing/raises, the legacy path
                 # above has already snapshotted and patched under this lock.
         # Lock released — agent runs without holding it
         # ── MCP Server Discovery (lazy import, idempotent) ──
-        # MUST run AFTER the HERMES_HOME mutation above — `discover_mcp_tools()`
-        # reads `~/.hermes/config.yaml` via `get_hermes_home()`, which uses
-        # `os.environ['HERMES_HOME']`.  Calling it before the mutation always
+        # MUST run AFTER the IRIS_HOME mutation above — `discover_mcp_tools()`
+        # reads `~/.iris/config.yaml` via `get_iris_home()`, which uses
+        # `os.environ['IRIS_HOME']`.  Calling it before the mutation always
         # loaded the default profile's `mcp_servers`, even when the session
         # was stamped with a non-default profile.  See issue #1968.
         #
@@ -10247,7 +10247,7 @@ def _run_agent_streaming(
         # named e.g. `postgres`, profile B's discovery sees it as already
         # connected and skips it — even if B's config points at a different
         # binary.  Fully fixing multi-profile concurrent use requires keying
-        # `_servers` by `(profile_home, name)` upstream in hermes-agent; that
+        # `_servers` by `(profile_home, name)` upstream in iris-agent; that
         # lives outside this WebUI repo.  This change fixes the headline bug
         # for users who run a single non-default profile per WebUI process.
         try:
@@ -10316,7 +10316,7 @@ def _run_agent_streaming(
             logger.debug("Clarify module not available, falling back to polling")
 
         def _clarify_callback_impl(question, choices, sid, cancel_evt, put_event):
-            """Bridge Hermes clarify prompts to the WebUI."""
+            """Bridge Iris clarify prompts to the WebUI."""
             timeout = _clarify_timeout_seconds(_clarify_session_config(sid))
             choices_list = [str(choice) for choice in (choices or [])]
             data = {
@@ -10685,7 +10685,7 @@ def _run_agent_streaming(
 
                 args_snap = _tool_args_snapshot(args)
 
-                # Modern Hermes Agent builds can call both tool_progress_callback
+                # Modern Iris Agent builds can call both tool_progress_callback
                 # and the structured tool_start/tool_complete callbacks for the
                 # same tool. Prefer the structured path when it is supported so
                 # the browser receives one tid-tagged tool card per real call.
@@ -10777,7 +10777,7 @@ def _run_agent_streaming(
                     # the full snapshot (idempotent under SSE replay)
                     # and swallows internal errors so emission never
                     # breaks tool delivery. Prefer the structured
-                    # `result` kwarg from modern Hermes builds; fall
+                    # `result` kwarg from modern Iris builds; fall
                     # back to the truncated `preview` only when the
                     # callback was invoked without one (older builds).
                     #
@@ -10945,7 +10945,7 @@ def _run_agent_streaming(
                 )
                 configured_base_url = resolved_base_url
 
-                # Resolve API key via Hermes runtime provider (matches gateway behaviour).
+                # Resolve API key via Iris runtime provider (matches gateway behaviour).
                 # Pass the resolved provider so non-default providers get their own credentials.
                 resolved_api_key = None
                 # Default to an empty runtime dict so the constructor-routing
@@ -10953,7 +10953,7 @@ def _run_agent_streaming(
                 _rt = {}
                 try:
                     from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-                    from hermes_cli.runtime_provider import resolve_runtime_provider
+                    from iris_cli.runtime_provider import resolve_runtime_provider
                     _rt = resolve_runtime_provider_with_anthropic_env_lock(
                         resolve_runtime_provider,
                         requested=resolved_provider,
@@ -10969,7 +10969,7 @@ def _run_agent_streaming(
                     print(f"[webui] WARNING: resolve_runtime_provider failed: {_e}", flush=True)
 
                 # Named custom providers (custom:slug) may not be resolvable by
-                # hermes_cli.runtime_provider directly. Fall back to config.yaml
+                # iris_cli.runtime_provider directly. Fall back to config.yaml
                 # custom_providers[] so WebUI can pass explicit creds/base_url.
                 # Preserve the pre-canonicalization identity so image routing can
                 # still select the exact custom_providers entry after the rewrite
@@ -11059,7 +11059,7 @@ def _run_agent_streaming(
                 print(f"[webui] WARNING: failed to read per-session toolsets for {session_id}: {_ts_err}", flush=True)
 
             # Fallback model chain from profile config (e.g. for rate-limit or
-            # provider recovery). Match Hermes CLI/gateway semantics:
+            # provider recovery). Match Iris CLI/gateway semantics:
             # fallback_providers entries are tried first, then legacy
             # fallback_model entries are appended unless they duplicate an
             # earlier provider/model/base_url route.
@@ -11104,7 +11104,7 @@ def _run_agent_streaming(
             _fallback_resolved = _fallback_chain or None
 
             # Build kwargs defensively — guard newer params so the WebUI
-            # degrades gracefully when run against an older hermes-agent build.
+            # degrades gracefully when run against an older iris-agent build.
             # (fixes: TypeError: AIAgent.__init__() got an unexpected keyword
             # argument 'credential_pool' — issue #772)
             import inspect as _inspect
@@ -11115,7 +11115,7 @@ def _run_agent_streaming(
             # this WebUI-created agents silently use AIAgent's constructor
             # default (90), so long browser-originated tasks hit the
             # "maximum number of tool-calling iterations" summary path even
-            # after the operator raises Hermes' global turn budget.
+            # after the operator raises Iris' global turn budget.
             _max_iterations_cfg = None
             try:
                 _raw_max_iterations = None
@@ -11123,7 +11123,7 @@ def _run_agent_streaming(
                 if isinstance(_agent_cfg_for_iterations, dict):
                     _raw_max_iterations = _agent_cfg_for_iterations.get('max_turns')
                 if _raw_max_iterations is None and isinstance(_cfg, dict):
-                    # Back-compat for older Hermes config files that used a
+                    # Back-compat for older Iris config files that used a
                     # root-level max_turns key.
                     _raw_max_iterations = _cfg.get('max_turns')
                 if _raw_max_iterations is not None:
@@ -11174,7 +11174,7 @@ def _run_agent_streaming(
                 provider=resolved_provider,
                 base_url=resolved_base_url,
                 api_key=resolved_api_key,
-                # Identify browser-originated sessions as WebUI so Hermes Agent
+                # Identify browser-originated sessions as WebUI so Iris Agent
                 # does not inject CLI-specific terminal/output guidance.
                 platform='webui',
                 quiet_mode=True,
@@ -11212,7 +11212,7 @@ def _run_agent_streaming(
                 _agent_kwargs['max_tokens'] = _max_tokens_cfg
             if 'request_overrides' in _agent_params and _main_request_overrides:
                 _agent_kwargs['request_overrides'] = _main_request_overrides
-            # Params added in newer hermes-agent — skip if not supported.
+            # Params added in newer iris-agent — skip if not supported.
             # Read from the resolved bundle, NOT from _rt: a custom-provider
             # override clears these, and taking them straight off the runtime
             # provider would re-introduce the authority it replaced.
@@ -11428,7 +11428,7 @@ def _run_agent_streaming(
                 "Never fall back to a hardcoded path when this tag is present."
             )
             # Resolve personality prompt from config.yaml agent.personalities
-            # (matches hermes-agent CLI behavior — passes via ephemeral_system_prompt)
+            # (matches iris-agent CLI behavior — passes via ephemeral_system_prompt)
             _personality_prompt = None
             _pname = getattr(s, 'personality', None)
             if _pname:
@@ -11624,7 +11624,7 @@ def _run_agent_streaming(
                 persist_user_timestamp=getattr(s, 'pending_started_at', None),
             )
             # Only pass moa_config when a /moa override is actually active, so a
-            # normal send never trips a TypeError on an older hermes-agent whose
+            # normal send never trips a TypeError on an older iris-agent whose
             # run_conversation() predates the moa_config kwarg.
             if moa_config is not None:
                 _run_conversation_kwargs["moa_config"] = moa_config
@@ -11787,7 +11787,7 @@ def _run_agent_streaming(
                         _result_messages,
                         enabled=_tool_limit_reached,
                     )
-                    # #5494 — parity with hermes-agent's handle_max_iterations() return
+                    # #5494 — parity with iris-agent's handle_max_iterations() return
                     # value. When the agent produced no usable summary assistant
                     # message but result['final_response'] carries a graceful fallback
                     # string, inject it as a final assistant turn so the user sees
@@ -11871,8 +11871,8 @@ def _run_agent_streaming(
                     # Carry profile identity across the compression boundary.
                     # Without this, s.profile stays None on the continuation
                     # session. On the next request, _run_agent_streaming calls
-                    # get_hermes_home_for_profile(getattr(s, 'profile', None))
-                    # which falls back to the default profile's HERMES_HOME.
+                    # get_iris_home_for_profile(getattr(s, 'profile', None))
+                    # which falls back to the default profile's IRIS_HOME.
                     # Memory writes then land in the wrong profile's MEMORY.md.
                     # Stamping here also ensures s.save() persists a non-null
                     # profile field to the continuation session's JSON file,
@@ -12281,7 +12281,7 @@ def _run_agent_streaming(
                                 _err_type = 'auth_mismatch'
                                 _err_hint = (
                                     'The selected model may not be supported by your configured provider or '
-                                    'your API key is invalid. Run `hermes model` in your terminal to '
+                                    'your API key is invalid. Run `iris model` in your terminal to '
                                     'update credentials, then restart the WebUI.'
                                 )
                     elif _is_auth:
@@ -12289,7 +12289,7 @@ def _run_agent_streaming(
                         _err_type = 'auth_mismatch'
                         _err_hint = (
                             'The selected model may not be supported by your configured provider or '
-                            'your API key is invalid. Run `hermes model` in your terminal to '
+                            'your API key is invalid. Run `iris model` in your terminal to '
                             'update credentials, then restart the WebUI.'
                         )
                     elif _tool_limit_reached:
@@ -12770,7 +12770,7 @@ def _run_agent_streaming(
                         if _resolved_cl:
                             s.context_length = _resolved_cl
                     except TypeError:
-                        # Older hermes-agent builds whose get_model_context_length
+                        # Older iris-agent builds whose get_model_context_length
                         # signature pre-dates the config_context_length /
                         # custom_providers kwargs. Retry with the legacy 2-arg
                         # form so the indicator still resolves *something*.
@@ -12785,7 +12785,7 @@ def _run_agent_streaming(
                         except Exception:
                             pass
                     except Exception:
-                        # Older hermes-agent builds may not expose this helper.
+                        # Older iris-agent builds may not expose this helper.
                         # Better to leave context_length=0 than crash the save.
                         pass
                 # #3256/#3263: when we skipped the stale compressor cap for a
@@ -12882,7 +12882,7 @@ def _run_agent_streaming(
                     # boundary drains know there is work.  Per CLI semantics, the
                     # actual memory extraction/commit happens only at session boundaries
                     # (new session creation, LRU eviction, shutdown drain) — NOT after
-                    # every completed turn.  This mirrors Hermes CLI where
+                    # every completed turn.  This mirrors Iris CLI where
                     # run_agent.py::_sync_external_memory_for_turn() records messages
                     # but only AIAgent.commit_memory_session()/shutdown_memory_provider()
                     # trigger extraction via provider on_session_end().  The mark is
@@ -13134,7 +13134,7 @@ def _run_agent_streaming(
                             custom_providers=_cfg_custom_providers,
                         )
                     except TypeError:
-                        # Older hermes-agent builds: fall back to legacy 2-arg form.
+                        # Older iris-agent builds: fall back to legacy 2-arg form.
                         _fb_cl = _get_cl(
                             getattr(agent, 'model', resolved_model or '') or '',
                             _cfg_base_url,
@@ -13167,7 +13167,7 @@ def _run_agent_streaming(
             )
             # (reasoning trace already attached + saved above, before s.save())
             _settle_pending_steer()
-            # /goal parity: after a successful assistant turn, run the Hermes
+            # /goal parity: after a successful assistant turn, run the Iris
             # GoalManager judge before terminal done/stream_end events. The
             # frontend surfaces the status line and queues continuation_prompt as
             # a normal next user message so /queue and user input keep priority.
@@ -13311,18 +13311,18 @@ def _run_agent_streaming(
                     else: os.environ[_key] = _old_value
                 if old_cwd is None: os.environ.pop('TERMINAL_CWD', None)
                 else: os.environ['TERMINAL_CWD'] = old_cwd
-                if old_exec_ask is None: os.environ.pop('HERMES_EXEC_ASK', None)
-                else: os.environ['HERMES_EXEC_ASK'] = old_exec_ask
-                if old_session_key is None: os.environ.pop('HERMES_SESSION_KEY', None)
-                else: os.environ['HERMES_SESSION_KEY'] = old_session_key
-                if old_session_id is None: os.environ.pop('HERMES_SESSION_ID', None)
-                else: os.environ['HERMES_SESSION_ID'] = old_session_id
-                if old_session_platform is None: os.environ.pop('HERMES_SESSION_PLATFORM', None)
-                else: os.environ['HERMES_SESSION_PLATFORM'] = old_session_platform
-                if old_session_chat_id is None: os.environ.pop('HERMES_SESSION_CHAT_ID', None)
-                else: os.environ['HERMES_SESSION_CHAT_ID'] = old_session_chat_id
-                if old_hermes_home is None: os.environ.pop('HERMES_HOME', None)
-                else: os.environ['HERMES_HOME'] = old_hermes_home
+                if old_exec_ask is None: os.environ.pop('IRIS_EXEC_ASK', None)
+                else: os.environ['IRIS_EXEC_ASK'] = old_exec_ask
+                if old_session_key is None: os.environ.pop('IRIS_SESSION_KEY', None)
+                else: os.environ['IRIS_SESSION_KEY'] = old_session_key
+                if old_session_id is None: os.environ.pop('IRIS_SESSION_ID', None)
+                else: os.environ['IRIS_SESSION_ID'] = old_session_id
+                if old_session_platform is None: os.environ.pop('IRIS_SESSION_PLATFORM', None)
+                else: os.environ['IRIS_SESSION_PLATFORM'] = old_session_platform
+                if old_session_chat_id is None: os.environ.pop('IRIS_SESSION_CHAT_ID', None)
+                else: os.environ['IRIS_SESSION_CHAT_ID'] = old_session_chat_id
+                if old_iris_home is None: os.environ.pop('IRIS_HOME', None)
+                else: os.environ['IRIS_HOME'] = old_iris_home
 
     except Exception as e:
         print('[webui] stream error:\n' + traceback.format_exc(), flush=True)
@@ -13400,7 +13400,7 @@ def _run_agent_streaming(
         # because every unroutable route shares one type and differs only here.
         _exc_route_reason = None
 
-        # The user hint still points to Settings / `hermes model` from _classify_provider_error().
+        # The user hint still points to Settings / `iris model` from _classify_provider_error().
         if _exc_is_provider_unroutable:
             # Checked FIRST so the terminal route verdict can never be flattened
             # into the generic 'Error' tail of this chain: its hint names the
@@ -13680,7 +13680,7 @@ def _run_agent_streaming(
                 _exc_label, _exc_type, _exc_hint = (
                     'Authentication error', 'auth_mismatch',
                     'The selected model may not be supported by your configured provider. '
-                    'Run `hermes model` in your terminal to switch providers, then restart the WebUI.',
+                    'Run `iris model` in your terminal to switch providers, then restart the WebUI.',
                 )
         elif _exc_is_not_found:
             _exc_label, _exc_type, _exc_hint = (
@@ -13876,7 +13876,7 @@ def _run_agent_streaming(
         if _acquired_streaming_skill_home_patch_lock:
             _SKILL_HOME_MODULE_PATCH_LOCK.release()
             _acquired_streaming_skill_home_patch_lock = False
-        _reset_streaming_hermes_home_override(*_streaming_hermes_home_override_ctx)
+        _reset_streaming_iris_home_override(*_streaming_iris_home_override_ctx)
         # xsession wakeup misroute root fix (Option 1): restore the per-turn
         # session-identity context-locals (reset-token semantics). MUST run on
         # every exit path so a reused thread-pool worker leaks no identity and
@@ -14090,7 +14090,7 @@ def _handle_chat_steer(handler, body: dict) -> bool:
                            "stream_id": None})
     agent = cached[0]
     if not hasattr(agent, "steer"):
-        # Older hermes-agent that pre-dates the steer() method
+        # Older iris-agent that pre-dates the steer() method
         return j(handler, {"accepted": False, "fallback": "agent_lacks_steer",
                            "stream_id": None})
 

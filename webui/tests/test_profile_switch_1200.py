@@ -30,7 +30,7 @@ def test_switch_profile_returns_target_workspace_not_current(tmp_path, monkeypat
     import api.profiles as profiles
 
     # Build fake profile structure
-    default_home = tmp_path / '.hermes'
+    default_home = tmp_path / '.iris'
     default_home.mkdir()
     ayan_home = default_home / 'profiles' / 'ayan'
     ayan_home.mkdir(parents=True)
@@ -52,9 +52,9 @@ def test_switch_profile_returns_target_workspace_not_current(tmp_path, monkeypat
     default_state.mkdir()
     (default_state / 'last_workspace.txt').write_text(str(default_ws), encoding='utf-8')
 
-    # Patch _DEFAULT_HERMES_HOME to our tmp dir
-    orig_default = profiles._DEFAULT_HERMES_HOME
-    profiles._DEFAULT_HERMES_HOME = default_home
+    # Patch _DEFAULT_IRIS_HOME to our tmp dir
+    orig_default = profiles._DEFAULT_IRIS_HOME
+    profiles._DEFAULT_IRIS_HOME = default_home
     # Ensure _active_profile = 'default'
     orig_active = profiles._active_profile
     profiles._active_profile = 'default'
@@ -72,7 +72,7 @@ def test_switch_profile_returns_target_workspace_not_current(tmp_path, monkeypat
             f"Returned default profile workspace ({default_ws}) instead of ayan's"
         )
     finally:
-        profiles._DEFAULT_HERMES_HOME = orig_default
+        profiles._DEFAULT_IRIS_HOME = orig_default
         profiles._active_profile = orig_active
         profiles._tls.profile = None
 
@@ -84,7 +84,7 @@ def test_switch_profile_uses_last_workspace_txt_over_config(tmp_path, monkeypatc
     """
     import api.profiles as profiles
 
-    default_home = tmp_path / '.hermes'
+    default_home = tmp_path / '.iris'
     default_home.mkdir()
     target_home = default_home / 'profiles' / 'myprofile'
     target_home.mkdir(parents=True)
@@ -103,8 +103,8 @@ def test_switch_profile_uses_last_workspace_txt_over_config(tmp_path, monkeypatc
     state_dir.mkdir()
     (state_dir / 'last_workspace.txt').write_text(str(explicit_ws), encoding='utf-8')
 
-    orig_default = profiles._DEFAULT_HERMES_HOME
-    profiles._DEFAULT_HERMES_HOME = default_home
+    orig_default = profiles._DEFAULT_IRIS_HOME
+    profiles._DEFAULT_IRIS_HOME = default_home
     orig_active = profiles._active_profile
     profiles._active_profile = 'default'
     profiles._tls.profile = None
@@ -119,7 +119,7 @@ def test_switch_profile_uses_last_workspace_txt_over_config(tmp_path, monkeypatc
             f"terminal.cwd ({cfg_ws}) should not override last_workspace.txt"
         )
     finally:
-        profiles._DEFAULT_HERMES_HOME = orig_default
+        profiles._DEFAULT_IRIS_HOME = orig_default
         profiles._active_profile = orig_active
         profiles._tls.profile = None
 
@@ -131,7 +131,7 @@ def test_switch_profile_process_wide_false_returns_correct_model(tmp_path, monke
     """
     import api.profiles as profiles
 
-    default_home = tmp_path / '.hermes'
+    default_home = tmp_path / '.iris'
     default_home.mkdir()
     target_home = default_home / 'profiles' / 'aiprofile'
     target_home.mkdir(parents=True)
@@ -144,8 +144,8 @@ def test_switch_profile_process_wide_false_returns_correct_model(tmp_path, monke
         encoding='utf-8',
     )
 
-    orig_default = profiles._DEFAULT_HERMES_HOME
-    profiles._DEFAULT_HERMES_HOME = default_home
+    orig_default = profiles._DEFAULT_IRIS_HOME
+    profiles._DEFAULT_IRIS_HOME = default_home
     orig_active = profiles._active_profile
     profiles._active_profile = 'default'
     profiles._tls.profile = None
@@ -156,7 +156,7 @@ def test_switch_profile_process_wide_false_returns_correct_model(tmp_path, monke
             f"Expected 'kimi-k2-instruct', got: {result.get('default_model')!r}"
         )
     finally:
-        profiles._DEFAULT_HERMES_HOME = orig_default
+        profiles._DEFAULT_IRIS_HOME = orig_default
         profiles._active_profile = orig_active
         profiles._tls.profile = None
 
@@ -253,7 +253,7 @@ def test_regression_switch_profile_default_workspace_not_from_process_global(tmp
     """
     import api.profiles as profiles
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     base.mkdir()
 
     # Old profile (default) has workspace A
@@ -275,9 +275,9 @@ def test_regression_switch_profile_default_workspace_not_from_process_global(tmp
         "model:\n  default: some-model\n", encoding="utf-8"
     )
 
-    orig_default = profiles._DEFAULT_HERMES_HOME
+    orig_default = profiles._DEFAULT_IRIS_HOME
     orig_active = profiles._active_profile
-    profiles._DEFAULT_HERMES_HOME = base
+    profiles._DEFAULT_IRIS_HOME = base
     profiles._active_profile = "default"
     profiles._tls.profile = None
 
@@ -293,7 +293,7 @@ def test_regression_switch_profile_default_workspace_not_from_process_global(tmp
             f"REGRESSION: Returned old profile workspace. Bug 1 regressed."
         )
     finally:
-        profiles._DEFAULT_HERMES_HOME = orig_default
+        profiles._DEFAULT_IRIS_HOME = orig_default
         profiles._active_profile = orig_active
         profiles._tls.profile = None
 
@@ -374,9 +374,9 @@ def test_regression_switch_profile_returns_target_model():
             encoding="utf-8",
         )
 
-        orig = profiles._DEFAULT_HERMES_HOME
+        orig = profiles._DEFAULT_IRIS_HOME
         orig_act = profiles._active_profile
-        profiles._DEFAULT_HERMES_HOME = base
+        profiles._DEFAULT_IRIS_HOME = base
         profiles._active_profile = "default"
         profiles._tls.profile = None
         try:
@@ -386,18 +386,18 @@ def test_regression_switch_profile_returns_target_model():
                 "switch_profile() is not reading from target profile's config. Bug 2 regressed."
             )
         finally:
-            profiles._DEFAULT_HERMES_HOME = orig
+            profiles._DEFAULT_IRIS_HOME = orig
             profiles._active_profile = orig_act
             profiles._tls.profile = None
 
 
 def test_get_config_reloads_when_request_profile_changes(tmp_path, monkeypatch):
     """get_config() must follow the per-request profile, not stale global cache."""
-    monkeypatch.delenv("HERMES_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("IRIS_CONFIG_PATH", raising=False)
     import api.config as config
     import api.profiles as profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".iris"
     work_home = default_home / "profiles" / "work"
     work_home.mkdir(parents=True)
     default_home.mkdir(exist_ok=True)
@@ -416,10 +416,10 @@ def test_get_config_reloads_when_request_profile_changes(tmp_path, monkeypatch):
     monkeypatch.setattr(
         config,
         "_get_config_path",
-        lambda: profiles.get_active_hermes_home() / "config.yaml",
+        lambda: profiles.get_active_iris_home() / "config.yaml",
     )
 
-    orig_default_home = profiles._DEFAULT_HERMES_HOME
+    orig_default_home = profiles._DEFAULT_IRIS_HOME
     orig_active = profiles._active_profile
     orig_cache = dict(config._cfg_cache)
     orig_mtime = config._cfg_mtime
@@ -427,7 +427,7 @@ def test_get_config_reloads_when_request_profile_changes(tmp_path, monkeypatch):
     orig_fingerprint = getattr(config, "_cfg_fingerprint", None)
     profiles._tls.profile = None
     try:
-        profiles._DEFAULT_HERMES_HOME = default_home
+        profiles._DEFAULT_IRIS_HOME = default_home
         profiles._active_profile = "default"
         config._cfg_cache.clear()
         config._cfg_mtime = 0.0
@@ -442,7 +442,7 @@ def test_get_config_reloads_when_request_profile_changes(tmp_path, monkeypatch):
         assert config.get_config()["model"]["provider"] == "openrouter"
     finally:
         profiles.clear_request_profile()
-        profiles._DEFAULT_HERMES_HOME = orig_default_home
+        profiles._DEFAULT_IRIS_HOME = orig_default_home
         profiles._active_profile = orig_active
         config._cfg_cache.clear()
         config._cfg_cache.update(orig_cache)
@@ -457,11 +457,11 @@ def test_get_config_reloads_when_request_profile_changes_even_with_in_memory_ove
     tmp_path, monkeypatch
 ):
     """A pinned override on one profile must not survive a request-profile switch."""
-    monkeypatch.delenv("HERMES_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("IRIS_CONFIG_PATH", raising=False)
     import api.config as config
     import api.profiles as profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".iris"
     work_home = default_home / "profiles" / "work"
     work_home.mkdir(parents=True)
     default_home.mkdir(exist_ok=True)
@@ -481,10 +481,10 @@ def test_get_config_reloads_when_request_profile_changes_even_with_in_memory_ove
     monkeypatch.setattr(
         config,
         "_get_config_path",
-        lambda: profiles.get_active_hermes_home() / "config.yaml",
+        lambda: profiles.get_active_iris_home() / "config.yaml",
     )
 
-    orig_default_home = profiles._DEFAULT_HERMES_HOME
+    orig_default_home = profiles._DEFAULT_IRIS_HOME
     orig_active = profiles._active_profile
     orig_cache = dict(config._cfg_cache)
     orig_mtime = config._cfg_mtime
@@ -492,7 +492,7 @@ def test_get_config_reloads_when_request_profile_changes_even_with_in_memory_ove
     orig_fingerprint = getattr(config, "_cfg_fingerprint", None)
     profiles._tls.profile = None
     try:
-        profiles._DEFAULT_HERMES_HOME = default_home
+        profiles._DEFAULT_IRIS_HOME = default_home
         profiles._active_profile = "default"
         config.reload_config()
         config._cfg_cache["__test_override"] = "pinned-default"
@@ -507,7 +507,7 @@ def test_get_config_reloads_when_request_profile_changes_even_with_in_memory_ove
         assert result["custom_providers"]["llamacpp"]["api_key"] == "work-key"
     finally:
         profiles.clear_request_profile()
-        profiles._DEFAULT_HERMES_HOME = orig_default_home
+        profiles._DEFAULT_IRIS_HOME = orig_default_home
         profiles._active_profile = orig_active
         config._cfg_cache.clear()
         config._cfg_cache.update(orig_cache)
@@ -522,11 +522,11 @@ def test_get_config_reloads_when_request_profile_changes_even_with_rebound_cfg_o
     tmp_path, monkeypatch
 ):
     """A rebound cfg override must not survive a request-profile switch."""
-    monkeypatch.delenv("HERMES_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("IRIS_CONFIG_PATH", raising=False)
     import api.config as config
     import api.profiles as profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".iris"
     work_home = default_home / "profiles" / "work"
     work_home.mkdir(parents=True)
     default_home.mkdir(exist_ok=True)
@@ -546,10 +546,10 @@ def test_get_config_reloads_when_request_profile_changes_even_with_rebound_cfg_o
     monkeypatch.setattr(
         config,
         "_get_config_path",
-        lambda: profiles.get_active_hermes_home() / "config.yaml",
+        lambda: profiles.get_active_iris_home() / "config.yaml",
     )
 
-    orig_default_home = profiles._DEFAULT_HERMES_HOME
+    orig_default_home = profiles._DEFAULT_IRIS_HOME
     orig_active = profiles._active_profile
     orig_cache = dict(config._cfg_cache)
     orig_mtime = config._cfg_mtime
@@ -558,7 +558,7 @@ def test_get_config_reloads_when_request_profile_changes_even_with_rebound_cfg_o
     orig_cfg = config.cfg
     profiles._tls.profile = None
     try:
-        profiles._DEFAULT_HERMES_HOME = default_home
+        profiles._DEFAULT_IRIS_HOME = default_home
         profiles._active_profile = "default"
         config.reload_config()
         monkeypatch.setattr(
@@ -579,7 +579,7 @@ def test_get_config_reloads_when_request_profile_changes_even_with_rebound_cfg_o
         assert config.cfg is config._cfg_cache
     finally:
         profiles.clear_request_profile()
-        profiles._DEFAULT_HERMES_HOME = orig_default_home
+        profiles._DEFAULT_IRIS_HOME = orig_default_home
         profiles._active_profile = orig_active
         config._cfg_cache.clear()
         config._cfg_cache.update(orig_cache)
@@ -595,11 +595,11 @@ def test_get_available_models_reloads_when_request_profile_changes_even_with_reb
     tmp_path, monkeypatch
 ):
     """The models payload must follow the new profile even when cfg was rebound."""
-    monkeypatch.delenv("HERMES_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("IRIS_CONFIG_PATH", raising=False)
     import api.config as config
     import api.profiles as profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".iris"
     work_home = default_home / "profiles" / "work"
     work_home.mkdir(parents=True)
     default_home.mkdir(exist_ok=True)
@@ -619,11 +619,11 @@ def test_get_available_models_reloads_when_request_profile_changes_even_with_reb
     monkeypatch.setattr(
         config,
         "_get_config_path",
-        lambda: profiles.get_active_hermes_home() / "config.yaml",
+        lambda: profiles.get_active_iris_home() / "config.yaml",
     )
     monkeypatch.setattr(config, "_LIVE_REBUILD_BUDGET_SECONDS", 0.0, raising=False)
 
-    orig_default_home = profiles._DEFAULT_HERMES_HOME
+    orig_default_home = profiles._DEFAULT_IRIS_HOME
     orig_active = profiles._active_profile
     orig_cache = dict(config._cfg_cache)
     orig_mtime = config._cfg_mtime
@@ -632,7 +632,7 @@ def test_get_available_models_reloads_when_request_profile_changes_even_with_reb
     orig_cfg = config.cfg
     profiles._tls.profile = None
     try:
-        profiles._DEFAULT_HERMES_HOME = default_home
+        profiles._DEFAULT_IRIS_HOME = default_home
         profiles._active_profile = "default"
         config.reload_config()
         config.invalidate_models_cache()
@@ -651,7 +651,7 @@ def test_get_available_models_reloads_when_request_profile_changes_even_with_reb
         assert config.cfg is config._cfg_cache
     finally:
         profiles.clear_request_profile()
-        profiles._DEFAULT_HERMES_HOME = orig_default_home
+        profiles._DEFAULT_IRIS_HOME = orig_default_home
         profiles._active_profile = orig_active
         config._cfg_cache.clear()
         config._cfg_cache.update(orig_cache)

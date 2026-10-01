@@ -21,7 +21,7 @@ import pytest
 
 REPO = pathlib.Path(__file__).parent.parent
 sys.path.insert(0, str(REPO))
-sys.path.insert(0, str(REPO.parent / ".hermes" / "hermes-agent"))
+sys.path.insert(0, str(REPO.parent / ".iris" / "iris-agent"))
 
 from api.config import CUSTOM_MODELS_ENDPOINT_TIMEOUT_SECONDS
 
@@ -73,7 +73,7 @@ class TestActiveProviderNormalization:
         fake_prov = mock.MagicMock()
         fake_prov.return_value = []
         try:
-            import hermes_cli.models as hm
+            import iris_cli.models as hm
             monkeypatch.setattr(hm, "list_available_providers", fake_prov)
         except Exception:
             pass
@@ -151,8 +151,8 @@ class TestLiveModelsProviderNormalization:
             "alias normalization must occur before ids = _pmi(provider)"
         )
 
-    def test_alias_resolver_works_without_hermes_cli(self):
-        """Normalization must work even when hermes_cli is not importable —
+    def test_alias_resolver_works_without_iris_cli(self):
+        """Normalization must work even when iris_cli is not importable —
         CI and installs without the agent cloned alongside the WebUI.
         The WebUI ships its own _PROVIDER_ALIASES table; the agent's table
         is merged only when available."""
@@ -196,12 +196,12 @@ class TestLiveModelsCustomProviderFallback:
     def _install_provider_model_ids(monkeypatch, fn):
         import types
 
-        hermes_cli = types.ModuleType("hermes_cli")
-        hermes_cli.__path__ = []
-        models = types.ModuleType("hermes_cli.models")
+        iris_cli = types.ModuleType("iris_cli")
+        iris_cli.__path__ = []
+        models = types.ModuleType("iris_cli.models")
         models.provider_model_ids = fn
-        monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli)
-        monkeypatch.setitem(sys.modules, "hermes_cli.models", models)
+        monkeypatch.setitem(sys.modules, "iris_cli", iris_cli)
+        monkeypatch.setitem(sys.modules, "iris_cli.models", models)
 
     @staticmethod
     def _call_live_models(monkeypatch, cfg, provider):
@@ -265,7 +265,7 @@ class TestLiveModelsCustomProviderFallback:
 
         # Mock provider_model_ids to return [] (simulating no live endpoint)
         try:
-            import hermes_cli.models as hm
+            import iris_cli.models as hm
             monkeypatch.setattr(hm, "provider_model_ids", lambda p: [])
         except Exception:
             pass
@@ -544,12 +544,12 @@ class TestKnownProvidersUnaffected:
     def test_custom_unaffected(self):
         """'custom' is not in _PROVIDER_ALIASES so normalization is a no-op."""
         try:
-            from hermes_cli.models import _PROVIDER_ALIASES
+            from iris_cli.models import _PROVIDER_ALIASES
             assert "custom" not in _PROVIDER_ALIASES, (
                 "'custom' must not be aliased to anything — it's a special sentinel"
             )
         except ImportError:
-            pass  # hermes-agent not available in this env — skip
+            pass  # iris-agent not available in this env — skip
 
 
 # ── Source-level: active_provider returned to browser is canonical ─────────────
@@ -569,11 +569,11 @@ class TestProviderIdInGroupResponse:
         monkeypatch.setattr(c, "_get_config_path", lambda: cfgfile)
         c.reload_config()
         try:
-            import hermes_cli.models as hm
+            import iris_cli.models as hm
             monkeypatch.setattr(hm, "list_available_providers", lambda: [
                 {"id": "zai", "authenticated": True}
             ])
-            import hermes_cli.auth as ha
+            import iris_cli.auth as ha
             monkeypatch.setattr(ha, "get_auth_status", lambda p: {"key_source": "env"})
         except Exception:
             pass
@@ -623,7 +623,7 @@ class TestOllamaAliasEdgeCase:
         """'ollama' maps to 'custom' in _PROVIDER_ALIASES — verify this is the
         intended behavior post-normalization (not a silent breakage)."""
         try:
-            from hermes_cli.models import _PROVIDER_ALIASES
+            from iris_cli.models import _PROVIDER_ALIASES
             # 'ollama' -> 'custom' means ollama users hit the custom_providers path
             # This is fine — ollama models appear via base_url auto-detection (step 3)
             # in get_available_models, not via _PROVIDER_MODELS lookup.
@@ -633,7 +633,7 @@ class TestOllamaAliasEdgeCase:
                 f"Unexpected ollama alias: {ollama_target}"
             )
         except ImportError:
-            pass  # hermes-agent not available
+            pass  # iris-agent not available
 
 
 class TestGetAvailableModelsReturnsCanonicalProvider:
@@ -651,7 +651,7 @@ class TestGetAvailableModelsReturnsCanonicalProvider:
         monkeypatch.setattr(c, "_get_config_path", lambda: cfgfile)
         c.reload_config()
         try:
-            import hermes_cli.models as hm
+            import iris_cli.models as hm
             monkeypatch.setattr(hm, "list_available_providers", lambda: [])
         except Exception:
             pass

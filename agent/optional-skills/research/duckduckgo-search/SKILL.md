@@ -6,7 +6,7 @@ author: gamedevCloudy
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [search, duckduckgo, web-search, free, fallback]
     related_skills: [arxiv]
     fallback_for_toolsets: [web]

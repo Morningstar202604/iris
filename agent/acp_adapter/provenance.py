@@ -1,12 +1,12 @@
 """Derive ACP session-provenance metadata from the existing compression chain.
 
-Additive Hermes extension under ACP ``_meta.hermes`` (unknown to other clients,
+Additive Iris extension under ACP ``_meta.iris`` (unknown to other clients,
 so ignored). No new persisted state: everything is derived from the ``sessions``
 table (``parent_session_id`` / ``end_reason``), which already models
 compression-continuation chains.
 
 The ACP/editor ``session_id`` stays the stable public handle; when compression
-rotates the internal Hermes head, ``build_session_provenance`` exposes the
+rotates the internal Iris head, ``build_session_provenance`` exposes the
 previous/current internal ids and lineage root without parsing status text.
 """
 
@@ -30,15 +30,15 @@ def _is_compression_end(row: Any) -> bool:
 
 
 def build_session_provenance(
-    db: Any, acp_session_id: str, current_hermes_session_id: str, *, previous_hermes_session_id: Optional[str] = None,
+    db: Any, acp_session_id: str, current_iris_session_id: str, *, previous_iris_session_id: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Build ``_meta.hermes.sessionProvenance`` for an ACP session.
+    """Build ``_meta.iris.sessionProvenance`` for an ACP session.
 
-    ``db`` must expose ``get_session``. ``current_hermes_session_id`` is the live
-    internal id (``state.agent.session_id``); ``previous_hermes_session_id`` is
+    ``db`` must expose ``get_session``. ``current_iris_session_id`` is the live
+    internal id (``state.agent.session_id``); ``previous_iris_session_id`` is
     the id before the most recent turn, supplied by ``prompt()`` to flag a
     rotation. Returns ``None`` if the session can't be read."""
-    row = _get_row(db, current_hermes_session_id)
+    row = _get_row(db, current_iris_session_id)
     if not row:
         return None
     parent_id = row.get("parent_session_id")
@@ -46,8 +46,8 @@ def build_session_provenance(
     # Walk parents to the lineage root. Only compression-split parents
     # (parent.end_reason == 'compression') count toward depth — delegate/branch
     # children share the parent_session_id column but are not compaction boundaries.
-    root_id, compression_depth, cursor_parent = current_hermes_session_id, 0, parent_id
-    seen = {current_hermes_session_id}
+    root_id, compression_depth, cursor_parent = current_iris_session_id, 0, parent_id
+    seen = {current_iris_session_id}
     for _ in range(_MAX_WALK):
         if not cursor_parent or cursor_parent in seen:
             break
@@ -63,13 +63,13 @@ def build_session_provenance(
     is_continuation = bool(parent_id) and _is_compression_end(_get_row(db, parent_id))
 
     provenance: Dict[str, Any] = {
-        "acpSessionId": acp_session_id, "currentHermesSessionId": current_hermes_session_id,
-        "rootHermesSessionId": root_id, "parentHermesSessionId": parent_id,
+        "acpSessionId": acp_session_id, "currentIrisSessionId": current_iris_session_id,
+        "rootIrisSessionId": root_id, "parentIrisSessionId": parent_id,
         "sessionKind": "continuation" if is_continuation else "root", "compressionDepth": compression_depth,
     }
-    if previous_hermes_session_id:
-        provenance["previousHermesSessionId"] = previous_hermes_session_id
-        if previous_hermes_session_id != current_hermes_session_id:
+    if previous_iris_session_id:
+        provenance["previousIrisSessionId"] = previous_iris_session_id
+        if previous_iris_session_id != current_iris_session_id:
             # The only mechanism that rotates the internal id mid-turn is
             # compression-driven session splitting.
             provenance["reason"] = "compression"
@@ -78,9 +78,9 @@ def build_session_provenance(
 
 
 def session_provenance_meta(
-    db: Any, acp_session_id: str, current_hermes_session_id: str, *, previous_hermes_session_id: Optional[str] = None,
+    db: Any, acp_session_id: str, current_iris_session_id: str, *, previous_iris_session_id: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Return a ready ``_meta`` payload: ``{"hermes": {"sessionProvenance": ...}}``."""
-    prov = build_session_provenance(db, acp_session_id, current_hermes_session_id,
-                                    previous_hermes_session_id=previous_hermes_session_id)
-    return None if prov is None else {"hermes": {"sessionProvenance": prov}}
+    """Return a ready ``_meta`` payload: ``{"iris": {"sessionProvenance": ...}}``."""
+    prov = build_session_provenance(db, acp_session_id, current_iris_session_id,
+                                    previous_iris_session_id=previous_iris_session_id)
+    return None if prov is None else {"iris": {"sessionProvenance": prov}}

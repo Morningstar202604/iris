@@ -183,10 +183,10 @@ def compute_session_context_breakdown(agent: Any, messages: Optional[List[dict]]
 def compute_context_details(agent: Any) -> Dict[str, Any]:
     """Expanded per-skill / per-toolset cost listing for ``/context all``.
 
-    Reuses the ``hermes prompt-size`` attribution (index-line bytes from the
+    Reuses the ``iris prompt-size`` attribution (index-line bytes from the
     live skills block; schema bytes via the registry's tool→toolset map).
     """
-    from hermes_cli.prompt_size import _compute_skills_breakdown, _compute_toolsets_breakdown
+    from iris_cli.prompt_size import _compute_skills_breakdown, _compute_toolsets_breakdown
     from agent.system_prompt import build_system_prompt_parts
 
     skills_block = _skills_block(build_system_prompt_parts(agent).get("stable", "") or "")

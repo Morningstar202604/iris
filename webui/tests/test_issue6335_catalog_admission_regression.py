@@ -4,22 +4,22 @@ Issue #6335: after removing a provider's API key, a metadata-only
 ``providers.<name>: {name: ...}`` entry in config.yaml still rendered the
 provider in the chat model selector.  The fix gates known-provider admission
 on credential evidence: a provider listed in config.yaml is only admitted
-when it was *already* detected from a credential source (env vars, hermes
+when it was *already* detected from a credential source (env vars, iris
 auth, credential pool) — or carries an explicit route (``api`` /
 ``base_url`` / ``api_key`` / ``key_env``), or is the active provider with a
 configured models allowlist.
 
-Follow-up #6338: Hermes reports detected credentials under canonical alias
+Follow-up #6338: Iris reports detected credentials under canonical alias
 names (``xai``, ``gemini``) while WebUI preserves config.yaml keys as
 ``x-ai``, ``google``.  The credential check must compare in an
 alias-normalised identity space or authenticated providers disappear from
 the selector.
 
 This test drives ``api/config.py::get_available_models()`` end-to-end with
-a stubbed ``hermes_cli`` (deterministic, offline) and asserts the
+a stubbed ``iris_cli`` (deterministic, offline) and asserts the
 catalog-builder admission behaviour:
 
-1. Mocked Hermes provider detection reports authenticated ``xai`` and
+1. Mocked Iris provider detection reports authenticated ``xai`` and
    ``gemini`` (the agent's canonical alias names).
 2. ``providers.x-ai`` and ``providers.google`` are metadata-only entries
    (name only — no route, no models allowlist).
@@ -41,8 +41,8 @@ import api.config as config
 import api.profiles as profiles
 
 
-def _install_fake_hermes_cli(monkeypatch):
-    """Stub hermes_cli so detection is deterministic and offline.
+def _install_fake_iris_cli(monkeypatch):
+    """Stub iris_cli so detection is deterministic and offline.
 
     ``list_available_providers()`` reports authenticated ``xai`` and
     ``gemini`` — the agent's canonical alias names — so the ONLY way the
@@ -50,10 +50,10 @@ def _install_fake_hermes_cli(monkeypatch):
     admitted is via the alias-normalised ``_already_credentialed`` gate
     under test.
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": "xai", "authenticated": True},
         {"id": "gemini", "authenticated": True},
@@ -68,12 +68,12 @@ def _install_fake_hermes_cli(monkeypatch):
         "google-ai-studio": "gemini",
     }
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
     # Remove the real agent.credential_pool so no pool evidence leaks in
     # from the host environment.
@@ -82,7 +82,7 @@ def _install_fake_hermes_cli(monkeypatch):
 
 
 def _call_get_available_models(monkeypatch, tmp_path):
-    _install_fake_hermes_cli(monkeypatch)
+    _install_fake_iris_cli(monkeypatch)
 
     # Active provider is a DIFFERENT provider (openai-codex), so the
     # x-ai/google entries can only be admitted through the credential gate,
@@ -109,12 +109,12 @@ def _call_get_available_models(monkeypatch, tmp_path):
         "  openai-api:\n    name: OpenAI API\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     for var in (
         "OPENAI_API_KEY",
-        "HERMES_API_KEY",
-        "HERMES_OPENAI_API_KEY",
+        "IRIS_API_KEY",
+        "IRIS_OPENAI_API_KEY",
         "LOCAL_API_KEY",
         "OPENROUTER_API_KEY",
         "API_KEY",

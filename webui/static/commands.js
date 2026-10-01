@@ -55,12 +55,12 @@ function parseCommand(text){
 const DESKTOP_COMPANION_EXTENSION_ID='desktop-companion';
 const DESKTOP_COMPANION_NAME='Desktop Companion';
 const DESKTOP_COMPANION_INSTALL_PATH='Settings -> Extensions -> Gallery -> Desktop Companion';
-const DESKTOP_COMPANION_SETUP_GUIDE_URL='https://github.com/franksong2702/hermes-webui-desktop-companion#after-gallery-install';
+const DESKTOP_COMPANION_SETUP_GUIDE_URL='https://github.com/franksong2702/iris-webui-desktop-companion#after-gallery-install';
 const DESKTOP_COMPANION_LOCAL_APP_LABEL='Desktop Companion app';
 
 function _getDesktopCompanionStatusGlobal(){
   if(typeof window==='undefined') return null;
-  return window.__HERMES_WEBUI_DESKTOP_COMPANION_STATUS__||null;
+  return window.__IRIS_WEBUI_DESKTOP_COMPANION_STATUS__||null;
 }
 
 function _getDesktopCompanionExtensionStatus(status){
@@ -146,7 +146,7 @@ async function handlePetSlashCommand(rawCommandText,meta){
   if(companionStatus.connected!==true){
     return {handled:false,message:_desktopCompanionConnectMessage()};
   }
-  const hook=typeof window!=='undefined'&&window.__hermesHandlePetSlashCommand;
+  const hook=typeof window!=='undefined'&&window.__irisHandlePetSlashCommand;
   if(typeof hook==='function'){
     try{
       const result=await hook({
@@ -165,7 +165,7 @@ async function handlePetSlashCommand(rawCommandText,meta){
       }
     }catch(_e){
       if(typeof console!=='undefined'&&console.error){
-        console.error('[hermes] Desktop Companion /pet hook error:',_e);
+        console.error('[iris] Desktop Companion /pet hook error:',_e);
       }
       return {handled:false,message:_desktopCompanionHookErrorMessage()};
     }
@@ -483,7 +483,7 @@ function cliOnlyCommandResponse(cmdName, meta){
   const detail=desc?`\n\n${desc}`:'';
   let extra='';
   if(name==='browser'){
-    extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in `hermes chat`.';
+    extra='\n\nBrowser tools in WebUI must be configured server-side with the agent/browser environment. Once configured, ask the model to use browser tools directly; `/browser` itself only works in `iris chat`.';
   }
   return t('cmd_webui_only_notice', name, detail, extra);
 }
@@ -928,7 +928,7 @@ async function _applyManualCompressionResult(data, focusTopic, visibleCount, com
       S.messages=data.session.messages||[];
       S.toolCalls=data.session.tool_calls||[];
       clearLiveToolCards();
-      try{localStorage.setItem('hermes-webui-session',S.session.session_id);}catch(_){}
+      try{localStorage.setItem('iris-webui-session',S.session.session_id);}catch(_){}
       if(typeof _setActiveSessionUrl==='function') _setActiveSessionUrl(S.session.session_id);
       syncTopbar();
       renderMessages();
@@ -1128,10 +1128,10 @@ async function cmdTheme(args){
   if(themes.includes(val)||legacyThemes.includes(val)){
     const appearance=_normalizeAppearance(
       val,
-      legacyThemes.includes(val)?null:localStorage.getItem('hermes-skin')
+      legacyThemes.includes(val)?null:localStorage.getItem('iris-skin')
     );
-    localStorage.setItem('hermes-theme',appearance.theme);
-    localStorage.setItem('hermes-skin',appearance.skin);
+    localStorage.setItem('iris-theme',appearance.theme);
+    localStorage.setItem('iris-skin',appearance.skin);
     _applyTheme(appearance.theme);
     _applySkin(appearance.skin);
     try{await api('/api/settings',{method:'POST',body:JSON.stringify({theme:appearance.theme,skin:appearance.skin})});}catch(e){}
@@ -1146,9 +1146,9 @@ async function cmdTheme(args){
   }
   // Check if it's a skin
   if(skins.includes(val)){
-    const appearance=_normalizeAppearance(localStorage.getItem('hermes-theme'),val);
-    localStorage.setItem('hermes-theme',appearance.theme);
-    localStorage.setItem('hermes-skin',appearance.skin);
+    const appearance=_normalizeAppearance(localStorage.getItem('iris-theme'),val);
+    localStorage.setItem('iris-theme',appearance.theme);
+    localStorage.setItem('iris-skin',appearance.skin);
     _applyTheme(appearance.theme);
     _applySkin(appearance.skin);
     try{await api('/api/settings',{method:'POST',body:JSON.stringify({theme:appearance.theme,skin:appearance.skin})});}catch(e){}
@@ -1165,7 +1165,7 @@ async function cmdTheme(args){
 }
 
 // Subcommands owned by the agent's own /skills write-approval handler
-// (hermes_cli/write_approval_commands.py via gateway/slash_commands.py) — these must
+// (iris_cli/write_approval_commands.py via gateway/slash_commands.py) — these must
 // fall through to the normal send path rather than be swallowed by the local search below.
 // Includes every alias that handler accepts: approve/apply, reject/deny/drop, approval/mode.
 // Keep in sync with handle_pending_subcommand() — a missing alias is silently swallowed here.
@@ -1459,7 +1459,7 @@ async function cmdInterrupt(args){
  * next iteration — same pathway as the CLI's /steer command.
  *
  * Leaves the active stream alone when the agent isn't running, isn't cached,
- * or doesn't support steer (older hermes-agent versions). The failed steer text
+ * or doesn't support steer (older iris-agent versions). The failed steer text
  * is restored to the composer so the user can choose Queue or Interrupt
  * explicitly instead of WebUI silently cancelling the current run.
  */
@@ -1945,8 +1945,8 @@ function cmdStatus(){
 function cmdReasoning(args){
   const arg=(args||'').trim().toLowerCase();
   const BRAIN='\uD83E\uDDE0';
-  // Matches hermes_constants.VALID_REASONING_EFFORTS + 'none' (CLI parity).
-  // Keep this WebUI effort list in sync with hermes-agent#29248.
+  // Matches iris_constants.VALID_REASONING_EFFORTS + 'none' (CLI parity).
+  // Keep this WebUI effort list in sync with iris-agent#29248.
   const EFFORTS=['none','minimal','low','medium','high','xhigh','max'];
   // Shared status renderer used by the no-args branch and as a fallback.
   function _fmtStatus(st){

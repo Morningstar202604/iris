@@ -1,6 +1,6 @@
 """Drain thread for terminal(notify_on_complete=true) agent wakeup.
 
-The hermes-agent ``tools.process_registry.ProcessRegistry`` exposes a thread-safe
+The iris-agent ``tools.process_registry.ProcessRegistry`` exposes a thread-safe
 ``completion_queue`` (a ``queue.Queue``) that any background process pushes onto
 when it exits or matches a ``watch_patterns`` rule. In the CLI and in the
 gateway adapter this queue is drained by the host's main loop; in WebUI the
@@ -500,7 +500,7 @@ def start_session_channel_reaper() -> bool:
         _REAPER_STOP.clear()
         _REAPER_THREAD = threading.Thread(
             target=_reaper_loop,
-            name="hermes-webui-session-channel-reaper",
+            name="iris-webui-session-channel-reaper",
             daemon=True,
         )
         _REAPER_THREAD.start()
@@ -896,7 +896,7 @@ def _mark_registry_completion_consumed(process_id: str) -> None:
 # suppresses a legitimate Option Z wakeup on uncertainty (Option Z must keep
 # working).
 _ENV_IMMUNE_OWNER_ATTRS = (
-    "origin_ui_session_id",  # modern hermes-agent exact browser-tab return address
+    "origin_ui_session_id",  # modern iris-agent exact browser-tab return address
     "spawn_session_id",
     "owner_session_id",
     "turn_session_id",
@@ -1131,7 +1131,7 @@ def _start_async_delegation_wakeup_turn(
 
     threading.Thread(
         target=_runner,
-        name=f"hermes-webui-delegation-wakeup-{str(session_id)[:8]}",
+        name=f"iris-webui-delegation-wakeup-{str(session_id)[:8]}",
         daemon=True,
     ).start()
 
@@ -1282,7 +1282,7 @@ def _resolve_completion_target(
 ) -> str:
     """Return the WebUI session that owns a detached completion event.
 
-    Modern Hermes Agent events carry ``origin_ui_session_id`` as an exact,
+    Modern Iris Agent events carry ``origin_ui_session_id`` as an exact,
     immutable return address captured from the commissioning browser turn.
     It is authoritative over the mutable/legacy session-key index. Older
     Agent events omit it and retain the existing session-key fallback.
@@ -1802,7 +1802,7 @@ def _start_server_side_wakeup_turn(
 
     threading.Thread(
         target=_runner,
-        name=f"hermes-webui-process-wakeup-{str(session_id)[:8]}",
+        name=f"iris-webui-process-wakeup-{str(session_id)[:8]}",
         daemon=True,
     ).start()
 
@@ -1859,10 +1859,10 @@ def recover_processes_for_webui(process_registry=None, get_session_fn=None) -> i
         try:
             from tools.process_registry import process_registry
         except ImportError:
-            # Hermes Agent is optional in isolated WebUI/test environments.
+            # Iris Agent is optional in isolated WebUI/test environments.
             # The drain loop already treats a missing registry as unavailable;
             # startup recovery must preserve that fail-soft contract.
-            logger.debug("process recovery unavailable: Hermes Agent is not installed")
+            logger.debug("process recovery unavailable: Iris Agent is not installed")
             return 0
     if get_session_fn is None:
         from api.models import get_session as get_session_fn
@@ -1919,7 +1919,7 @@ def register_process_session(session_key: str, session_id: str) -> None:
 
     Called at chat-start time, before the agent thread spawns any background
     processes. The same ``session_key`` is exported to the child via
-    ``HERMES_SESSION_KEY`` (already done by streaming.py), so when the child
+    ``IRIS_SESSION_KEY`` (already done by streaming.py), so when the child
     pushes onto ``completion_queue`` it carries the key we registered.
     """
     if not session_key or not session_id:
@@ -1969,7 +1969,7 @@ def start_drain_thread() -> bool:
         _DRAIN_STOP.clear()
         _DRAIN_THREAD = threading.Thread(
             target=_drain_loop,
-            name="hermes-webui-bg-task-complete-drain",
+            name="iris-webui-bg-task-complete-drain",
             daemon=True,
         )
         _DRAIN_THREAD.start()

@@ -422,13 +422,13 @@ export interface Translations {
       loadingSessions: string
       retryingRemoteBackend: string
       startingDesktopConnection: string
-      startingHermesDesktop: string
+      startingIrisDesktop: string
     }
     errors: {
       backgroundExited: string
       backgroundExitedDuringStartup: string
       backendStopped: string
-      restartHermes: string
+      restartIris: string
       openLogs: string
       desktopBootFailed: string
       gatewayConnectionLost: string
@@ -495,7 +495,7 @@ export interface Translations {
     backendOutOfDateTitle: string
     backendOutOfDateMessage: string
     installMethodUnsupportedTitle: string
-    updateHermes: string
+    updateIris: string
     updateReadyTitle: string
     updateReadyMessage: (count: number) => string
     updateReadyMessageUnknown: string
@@ -523,10 +523,10 @@ export interface Translations {
       openaiTtsNeedsKey: string
       codeSkewRestartRequired: string
       rpcOutOfSync: string
-      restartHermesFailed: string
+      restartIrisFailed: string
     }
     actions: {
-      restartHermes: string
+      restartIris: string
       openKeys: string
       openGateways: string
       openMaintenance: string
@@ -988,7 +988,7 @@ export interface Translations {
     uninstallSection: {
       dangerZone: string
       checkingInstalled: string
-      uninstallHermes: string
+      uninstallIris: string
       chooseHowMuch: string
       confirmUninstall: string
       confirmBody: (what: string) => string
@@ -1365,9 +1365,9 @@ export interface Translations {
       sshPortDesc: string
       sshKeyTitle: string
       sshKeyDesc: string
-      sshHermesPathTitle: string
-      sshHermesPathDesc: string
-      sshHermesPathPlaceholder: string
+      sshIrisPathTitle: string
+      sshIrisPathDesc: string
+      sshIrisPathPlaceholder: string
       sshTestConnection: string
       sshConnect: string
       sshButtonsHint: string
@@ -2311,7 +2311,7 @@ export interface Translations {
     noSessions: string
     gatewayRunning: string
     gatewayStopped: string
-    hermesActiveSessions: (version: string, count: number) => string
+    irisActiveSessions: (version: string, count: number) => string
     restartGateway: string
     openBrowser: string
     gatewayRestartFailed: string
@@ -2319,7 +2319,7 @@ export interface Translations {
     sharedGatewayRestartDescription: (bots: string) => string
     sharedGatewayRestartConfirm: string
     sharedGatewayRestarted: (count: number) => string
-    updateHermes: string
+    updateIris: string
     reloadWindow: string
     actionRunning: string
     actionDone: string
@@ -3625,8 +3625,8 @@ export interface Translations {
     alreadySignedInHeading: string
     alreadySignedInBody: string
     // First-launch set-up failure notice: the free tier could not be created at boot.
-    // One sentence per backend code (`hermes_cli/anon_auth.py::ANON_*`); the copy never says
-    // the free MODEL is off — what is unavailable is using Hermes without signing in.
+    // One sentence per backend code (`iris_cli/anon_auth.py::ANON_*`); the copy never says
+    // the free MODEL is off — what is unavailable is using Iris without signing in.
     setupFailed: {
       gateClosed: string
       paused: string
@@ -4130,8 +4130,8 @@ export interface Translations {
       errorChooseModel: string
       errorCompressConversation: string
       errorCompressFailed: string
-      errorOpenHermesFolder: string
-      errorOpenHermesFolderFailed: string
+      errorOpenIrisFolder: string
+      errorOpenIrisFolderFailed: string
       errorUpdateApiKey: string
       /** One-click recovery for an expired/revoked OAuth grant: re-runs that
        *  provider's sign-in flow (auth layer, authKind 'oauth'). */

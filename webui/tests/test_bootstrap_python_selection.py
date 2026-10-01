@@ -67,7 +67,7 @@ def test_ensure_python_fails_loudly_when_no_interpreter_can_import_agent(monkeyp
     try:
         bootstrap.ensure_python_has_webui_deps(str(local_python), tmp_path / "agent")
     except RuntimeError as exc:
-        assert "cannot import both WebUI dependencies and Hermes Agent" in str(exc)
+        assert "cannot import both WebUI dependencies and Iris Agent" in str(exc)
     else:
         raise AssertionError("expected RuntimeError")
 
@@ -75,7 +75,7 @@ def test_ensure_python_fails_loudly_when_no_interpreter_can_import_agent(monkeyp
 def test_packaged_launch_disables_repo_local_venv_creation(monkeypatch, tmp_path):
     local_python = tmp_path / "webui" / ".venv" / "bin" / "python"
     monkeypatch.setattr(bootstrap, "REPO_ROOT", tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_DISABLE_LOCAL_VENV", "1")
+    monkeypatch.setenv("IRIS_WEBUI_DISABLE_LOCAL_VENV", "1")
     monkeypatch.setattr(bootstrap, "_python_can_run_webui_and_agent", lambda *a, **k: False)
 
     with patch.object(bootstrap.venv, "EnvBuilder") as mock_builder:
@@ -83,7 +83,7 @@ def test_packaged_launch_disables_repo_local_venv_creation(monkeypatch, tmp_path
             bootstrap.ensure_python_has_webui_deps(str(local_python), tmp_path / "agent")
         except RuntimeError as exc:
             assert "local .venv creation is disabled" in str(exc)
-            assert "HERMES_WEBUI_PYTHON" in str(exc)
+            assert "IRIS_WEBUI_PYTHON" in str(exc)
         else:
             raise AssertionError("expected RuntimeError")
 

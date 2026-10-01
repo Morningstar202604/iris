@@ -162,7 +162,7 @@ def test_streaming_passes_target_model_and_prefers_runtime_base_url(monkeypatch)
     fake_stream_id = "stream-3895"
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     resolve_runtime_provider = mock.Mock(
         return_value={
             "provider": "opencode-go",
@@ -171,10 +171,10 @@ def test_streaming_passes_target_model_and_prefers_runtime_base_url(monkeypatch)
         }
     )
     fake_runtime_module.resolve_runtime_provider = resolve_runtime_provider
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=object())
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=object())
 
     def fake_runtime_lock(resolver, **kwargs):
         return resolver(**kwargs)
@@ -197,9 +197,9 @@ def test_streaming_passes_target_model_and_prefers_runtime_base_url(monkeypatch)
     )
     monkeypatch.setattr("api.config.get_config", lambda: {})
     monkeypatch.setattr("api.config._resolve_cli_toolsets", lambda *_args, **_kwargs: [])
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
-    monkeypatch.setitem(sys.modules, "hermes_state", fake_hermes_state)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
+    monkeypatch.setitem(sys.modules, "iris_state", fake_iris_state)
 
     try:
         streaming.STREAMS[fake_stream_id] = fake_queue
@@ -245,7 +245,7 @@ def test_runtime_provider_lock_wrapper_forwards_target_model():
 
 def test_attempt_credential_self_heal_passes_target_model(monkeypatch):
     calls = {}
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
 
     def fake_resolve_runtime_provider(**kwargs):
         calls["resolver_kwargs"] = kwargs
@@ -280,7 +280,7 @@ def test_attempt_credential_self_heal_passes_target_model(monkeypatch):
         "_close_cached_agent_entry_at_session_boundary",
         lambda session_id, entry: closed.append((session_id, entry)),
     )
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     result = streaming._attempt_credential_self_heal(
         "opencode-go",

@@ -80,7 +80,7 @@ def test_stale_completion_is_dropped_and_fresh_is_delivered(streaming, monkeypat
     reg._owner["fresh"] = "websess-1"
     reg._owner["stale"] = "websess-1"
     # default cap = 6h
-    monkeypatch.delenv("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", raising=False)
 
     out = streaming._drain_webui_process_notifications("websess-1")
 
@@ -98,7 +98,7 @@ def test_event_without_completed_at_is_never_dropped(streaming, monkeypatch):
     legacy = _make_event("legacy", None)  # no completed_at -> backward compat keep
     reg = _install_fake_registry(monkeypatch, [legacy])
     reg._owner["legacy"] = "websess-1"
-    monkeypatch.delenv("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", raising=False)
 
     out = streaming._drain_webui_process_notifications("websess-1")
 
@@ -110,7 +110,7 @@ def test_env_zero_disables_age_gate(streaming, monkeypatch):
     ancient = _make_event("ancient", now - 10 * 24 * 3600)  # 10 days old
     reg = _install_fake_registry(monkeypatch, [ancient])
     reg._owner["ancient"] = "websess-1"
-    monkeypatch.setenv("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "0")
+    monkeypatch.setenv("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "0")
 
     out = streaming._drain_webui_process_notifications("websess-1")
 
@@ -118,8 +118,8 @@ def test_env_zero_disables_age_gate(streaming, monkeypatch):
 
 
 def test_helper_reads_env_override(streaming, monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "120")
+    monkeypatch.setenv("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "120")
     assert streaming._stale_completion_max_age_seconds() == 120.0
-    monkeypatch.setenv("HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "not-a-number")
+    monkeypatch.setenv("IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS", "not-a-number")
     # invalid -> falls back to default 6h
     assert streaming._stale_completion_max_age_seconds() == 6 * 60 * 60

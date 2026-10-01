@@ -156,7 +156,7 @@ def test_handoff_summary_card_rendering_uses_persisted_messages():
 
 
 def test_handoff_summary_does_not_call_removed_agent_get_response():
-    """Current Hermes Agent exposes run_conversation/private transports, not get_response."""
+    """Current Iris Agent exposes run_conversation/private transports, not get_response."""
     handoff_start = ROUTES.index("def _handle_handoff_summary")
     next_handler = ROUTES.index("\ndef _handle_skill_save", handoff_start)
     handoff_body = ROUTES[handoff_start:next_handler]
@@ -251,13 +251,13 @@ def test_no_api_key_handoff_summary_persists_fallback_summary(monkeypatch):
     )
     monkeypatch.setattr(cfg, "resolve_model_provider", lambda resolved_model=None: ("gpt-test", "openrouter", None))
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {"api_key": "", "provider": "openrouter", "base_url": None}
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     response = routes._handle_handoff_summary(object(), {"session_id": "session-without-api-key"})
 
@@ -361,17 +361,17 @@ def test_exception_handoff_summary_persists_fallback_summary(monkeypatch):
     )
     monkeypatch.setattr(cfg, "resolve_model_provider", lambda resolved_model=None: ("gpt-test", "openrouter", None))
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "api_key": "x",
         "provider": "openrouter",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     class _Client:
         class completions:
@@ -456,17 +456,17 @@ def test_ambiguous_custom_provider_handoff_returns_400_not_fallback(monkeypatch)
         ],
     )
 
-    # require_ai_agent_class() imports run_agent and hermes_cli.runtime_provider
+    # require_ai_agent_class() imports run_agent and iris_cli.runtime_provider
     # before model resolution; stub them so execution reaches resolve_model_provider.
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "api_key": "x", "provider": "openrouter", "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     class _DummyAgent:
         def __init__(self, *args, **kwargs):
@@ -580,17 +580,17 @@ def test_handoff_summary_retries_once_when_length_limit_reached(monkeypatch):
     fake_run_agent.AIAgent = _LengthAwareAgent
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "api_key": "x",
         "provider": "openrouter",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     response = routes._handle_handoff_summary(object(), {"session_id": "session-length-retry"})
 
@@ -690,7 +690,7 @@ def test_handoff_summary_codex_output_cap_matches_provider_compatibility(
             return object()
 
         def _get_transport(self, mode=None):
-            # hermes-agent v0.21 contract: normalization goes through the
+            # iris-agent v0.21 contract: normalization goes through the
             # provider transport (CodexTransport.normalize_response returns
             # NormalizedResponse with .content); the old
             # AIAgent._normalize_codex_response method no longer exists.
@@ -708,17 +708,17 @@ def test_handoff_summary_codex_output_cap_matches_provider_compatibility(
     fake_run_agent.AIAgent = _CodexAgent
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "api_key": "x",
         "provider": provider,
         "base_url": base_url,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     response = routes._handle_handoff_summary(object(), {"session_id": "session-codex-summary"})
 
@@ -802,17 +802,17 @@ def test_handoff_summary_falls_back_when_retry_still_incomplete(monkeypatch):
     fake_run_agent.AIAgent = _LengthAwareAgent
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "api_key": "x",
         "provider": "openrouter",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
 
     response = routes._handle_handoff_summary(object(), {"session_id": "session-length-fallback"})
 
@@ -832,12 +832,12 @@ def test_handoff_summary_persistence_targets_both_backends_for_messaging_session
     import api.profiles as profiles
 
     sid = "messaging_1013_both_backends_01"
-    mock_home = tmp_path / "hermes_home"
+    mock_home = tmp_path / "iris_home"
     mock_home.mkdir()
     mock_sessions = tmp_path / "sessions"
     mock_sessions.mkdir()
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: mock_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: mock_home)
     monkeypatch.setattr(models, "SESSION_DIR", mock_sessions)
 
     conn = _new_state_db(mock_home / "state.db")
@@ -897,11 +897,11 @@ def test_persisted_handoff_summary_deduplicates_identical_tail_markers(tmp_path,
     import api.profiles as profiles
 
     sid = "messaging_1013_dedupe_tail"
-    mock_home = tmp_path / "hermes_home"
+    mock_home = tmp_path / "iris_home"
     mock_home.mkdir()
     mock_sessions = tmp_path / "sessions"
     mock_sessions.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: mock_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: mock_home)
     monkeypatch.setattr(models, "SESSION_DIR", mock_sessions)
 
     conn = _new_state_db(mock_home / "state.db")
@@ -958,10 +958,10 @@ def test_persist_handoff_summary_falls_back_when_local_session_file_missing(tmp_
     import api.profiles as profiles
 
     sid = "messaging_1013_no_local_file"
-    mock_home = tmp_path / "hermes_home"
+    mock_home = tmp_path / "iris_home"
     mock_home.mkdir()
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: mock_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: mock_home)
     conn = _new_state_db(mock_home / "state.db")
 
     # Force messaging classification while keeping the local shell absent.

@@ -1,7 +1,7 @@
-"""Iris 个人文档知识库 — SQLite FTS5 + hermes cjk_unicode61 中文分词。
+"""Iris 个人文档知识库 — SQLite FTS5 + iris cjk_unicode61 中文分词。
 
 上传文档 → 分块索引 → 对话中 agent 经 kb_search 工具自动检索。
-零第三方依赖：标准库 sqlite3 + hermes_state_fts.load_fts5_cjk_extension。
+零第三方依赖：标准库 sqlite3 + iris_state_fts.load_fts5_cjk_extension。
 """
 
 from __future__ import annotations
@@ -21,9 +21,9 @@ _MAX_CHUNK = 1000  # 每块最大字符数
 
 
 def _home_dir() -> Path:
-    from api.profiles import get_active_hermes_home
+    from api.profiles import get_active_iris_home
 
-    return get_active_hermes_home()
+    return get_active_iris_home()
 
 
 def _db_path() -> Path:
@@ -40,7 +40,7 @@ def _connect() -> sqlite3.Connection:
     con = sqlite3.connect(str(_db_path()), timeout=8)
     con.row_factory = sqlite3.Row
     try:
-        from hermes_state_fts import load_fts5_cjk_extension
+        from iris_state_fts import load_fts5_cjk_extension
         load_fts5_cjk_extension(con)
     except Exception:  # noqa: BLE001
         pass
@@ -56,7 +56,7 @@ def _ensure_db(con: sqlite3.Connection) -> None:
         "CREATE TABLE IF NOT EXISTS chunks ("
         " chunk_id INTEGER PRIMARY KEY AUTOINCREMENT, doc_id TEXT,"
         " seq INTEGER, content TEXT)")
-    # 优先 hermes 原生 cjk_unicode61（中文精确），.so 缺失时降级 SQLite 内置 trigram
+    # 优先 iris 原生 cjk_unicode61（中文精确），.so 缺失时降级 SQLite 内置 trigram
     try:
         con.execute("CREATE VIRTUAL TABLE IF NOT EXISTS chunk_fts USING fts5(content, tokenize='cjk_unicode61')")
     except sqlite3.OperationalError:

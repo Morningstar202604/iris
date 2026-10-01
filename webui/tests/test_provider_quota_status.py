@@ -65,7 +65,7 @@ def _restore_config(old_cfg, old_mtime):
 
 def test_openrouter_quota_fetches_key_endpoint_and_sanitizes_response(monkeypatch, tmp_path):
     """OpenRouter's documented key endpoint should be called server-side only."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-openrouter-key-private\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -107,7 +107,7 @@ def test_openrouter_quota_fetches_key_endpoint_and_sanitizes_response(monkeypatc
 
 def test_openrouter_quota_no_key_returns_safe_no_key_without_network(monkeypatch, tmp_path):
     """No-key state must not call OpenRouter or leak environment details."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
 
@@ -132,7 +132,7 @@ def test_openrouter_quota_no_key_returns_safe_no_key_without_network(monkeypatch
 
 def test_openrouter_quota_invalid_key_and_timeout_are_sanitized(monkeypatch, tmp_path):
     """Invalid-key and timeout/error paths should expose statuses, not secrets."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-openrouter-key-private\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -161,7 +161,7 @@ def test_openrouter_quota_invalid_key_and_timeout_are_sanitized(monkeypatch, tmp
 
 def test_unsupported_provider_reports_followup_state(monkeypatch, tmp_path):
     """Providers without safe quota APIs should return a clear unsupported state."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai"})
 
     import api.providers as providers
@@ -179,13 +179,13 @@ def test_unsupported_provider_reports_followup_state(monkeypatch, tmp_path):
 
 
 def test_codex_account_usage_is_fetched_under_active_profile_home(monkeypatch, tmp_path):
-    """Codex account limits must use the selected WebUI profile's HERMES_HOME."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    """Codex account limits must use the selected WebUI profile's IRIS_HOME."""
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
 
     import api.providers as providers
     seen = {}
-    previous_home = os.environ.get("HERMES_HOME")
+    previous_home = os.environ.get("IRIS_HOME")
 
     def fake_fetch(provider, home, api_key=None):
         seen["provider"] = provider
@@ -227,7 +227,7 @@ def test_codex_account_usage_is_fetched_under_active_profile_home(monkeypatch, t
         "home": str(tmp_path),
         "api_key": None,
     }
-    assert os.environ.get("HERMES_HOME") == previous_home
+    assert os.environ.get("IRIS_HOME") == previous_home
     assert result["ok"] is True
     assert result["provider"] == "openai-codex"
     assert result["supported"] is True
@@ -263,7 +263,7 @@ def test_codex_account_usage_is_fetched_under_active_profile_home(monkeypatch, t
 
 def test_codex_account_usage_unavailable_is_sanitized(monkeypatch, tmp_path):
     """Auth/network failures should not leak raw token or exception details."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
 
     import api.providers as providers
@@ -783,8 +783,8 @@ def test_account_usage_pool_payload_round_trips_to_provider_quota_status():
 
 
 def test_anthropic_oauth_usage_unavailable_reason_is_reported(monkeypatch, tmp_path):
-    """Hermes Agent can report why account limits are not available."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    """Iris Agent can report why account limits are not available."""
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "anthropic"})
 
     import api.providers as providers
@@ -837,7 +837,7 @@ def test_account_usage_profile_env_is_child_scoped(monkeypatch, tmp_path):
 
     env = providers._account_usage_subprocess_env(home, "anthropic", None)
 
-    assert env["HERMES_HOME"] == str(home)
+    assert env["IRIS_HOME"] == str(home)
     assert env["ANTHROPIC_API_KEY"] == "profile-key"
     assert os.environ["ANTHROPIC_API_KEY"] == "process-key"
 
@@ -846,7 +846,7 @@ def test_account_usage_profile_fetch_uses_short_lived_cache(monkeypatch, tmp_pat
     """Repeated Settings refreshes should not re-query pooled account usage immediately."""
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
     providers._account_usage_status_cache.clear()
     calls = []
@@ -905,7 +905,7 @@ def test_account_usage_forced_refresh_failure_preserves_warm_snapshot(monkeypatc
     """A failed manual refresh should not discard the last usable account snapshot."""
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
     providers._account_usage_status_cache.clear()
     calls = []
@@ -953,7 +953,7 @@ def test_account_usage_profile_cache_invalidates_with_credential_pool_cache(monk
     """Credential-pool invalidation should also clear pooled account usage."""
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
     providers._account_usage_status_cache.clear()
     calls = []
@@ -1010,7 +1010,7 @@ def test_account_usage_profile_fetch_caches_unavailable_snapshots(monkeypatch, t
     """Known unavailable account snapshots should be cached like available ones."""
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
     providers._account_usage_status_cache.clear()
     calls = []
@@ -1048,7 +1048,7 @@ def test_account_usage_profile_fetch_does_not_cache_transient_none_results(monke
     """Transient None probe results should not mask the next successful status check."""
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "openai-codex"})
     providers._account_usage_status_cache.clear()
     calls = []
@@ -1110,7 +1110,7 @@ def test_account_usage_profile_fetches_can_overlap_for_different_homes(monkeypat
         events.append(("exit", str(home)))
         return None
 
-    monkeypatch.setattr(providers, "_get_hermes_home", fake_home)
+    monkeypatch.setattr(providers, "_get_iris_home", fake_home)
     monkeypatch.setattr(providers, "_agent_fetch_account_usage_for_home", fake_fetch)
 
     def worker():
@@ -1134,7 +1134,7 @@ def test_account_usage_profile_fetches_can_overlap_for_different_homes(monkeypat
 
 def test_openai_api_key_detection_ignores_codex_oauth_jwt(monkeypatch, tmp_path):
     """A Codex OAuth JWT in OPENAI_API_KEY should not show a bare OpenAI card."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     def b64url(payload: bytes) -> str:
@@ -1165,7 +1165,7 @@ def test_openai_api_key_detection_ignores_codex_oauth_jwt(monkeypatch, tmp_path)
 
 def test_openai_api_key_detection_still_accepts_real_api_keys(monkeypatch, tmp_path):
     """Filtering Codex OAuth tokens must not hide real OpenAI API keys."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENAI_API_KEY=sk-test-real-openai-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openai"})
@@ -1181,7 +1181,7 @@ def test_openai_api_key_detection_still_accepts_real_api_keys(monkeypatch, tmp_p
 
 def test_openai_api_key_detection_falls_through_after_codex_jwt_config_value(monkeypatch, tmp_path):
     """A filtered OpenAI config value should not mask a later real API key source."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     def b64url(payload: bytes) -> str:
@@ -1230,7 +1230,7 @@ def test_provider_quota_card_is_rendered_in_providers_panel():
     assert "provider-quota-pool-row" in panels
     assert "_buildProviderQuotaPoolBreakdown" in panels
     assert "_providerQuotaPoolShouldDefaultOpen" in panels
-    assert "hermes-provider-quota-pool-open" in panels
+    assert "iris-provider-quota-pool-open" in panels
     assert "provider-quota-pool-chevron" in panels
     assert 'aria-hidden="true"' in panels
     assert "count>0&&count<=3" in panels
@@ -1525,7 +1525,7 @@ def test_provider_key_mutation_invalidates_warm_account_usage_workers(monkeypatc
 
     invalidated = []
 
-    monkeypatch.setattr(providers, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(providers, "_get_iris_home", lambda: tmp_path)
     monkeypatch.setattr(providers, "invalidate_models_cache", lambda: None)
     monkeypatch.setattr(
         providers,
@@ -1575,7 +1575,7 @@ def test_account_usage_probe_semaphore_has_correct_bound(monkeypatch, tmp_path):
     """
     import api.providers as providers
 
-    monkeypatch.setattr(profiles, 'get_active_hermes_home', lambda: tmp_path)
+    monkeypatch.setattr(profiles, 'get_active_iris_home', lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={'provider': 'openai-codex'})
 
     sem = providers._get_account_usage_probe_semaphore()
@@ -1641,7 +1641,7 @@ def test_account_usage_semaphore_caps_concurrency(monkeypatch, tmp_path):
     import api.providers as providers
     import threading
 
-    monkeypatch.setattr(profiles, 'get_active_hermes_home', lambda: tmp_path)
+    monkeypatch.setattr(profiles, 'get_active_iris_home', lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={'provider': 'openai-codex'})
 
     active = 0

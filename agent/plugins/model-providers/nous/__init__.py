@@ -14,7 +14,7 @@ class NousProfile(ProviderProfile):
     def resolve_aux_model(self, *, vision: bool = False) -> str:
         """Portal's tier-aware ``/api/nous/recommended-models`` pick (cached, offline-safe)."""
         try:
-            from hermes_cli.models import get_nous_recommended_aux_model
+            from iris_cli.models import get_nous_recommended_aux_model
 
             return get_nous_recommended_aux_model(vision=vision) or ""
         except Exception:
@@ -40,7 +40,7 @@ class NousProfile(ProviderProfile):
         """True when ``reasoning: {enabled: false}`` would 400 on *model*. Cache-only catalog
         lookup; unknown/cold (warmer kicked) and no-reasoning routes both answer True (omit > 400)."""
         try:
-            from hermes_cli.models_reasoning_caps import nous_model_reasoning_capabilities, warm_nous_reasoning_caps_async
+            from iris_cli.models_reasoning_caps import nous_model_reasoning_capabilities, warm_nous_reasoning_caps_async
 
             caps = nous_model_reasoning_capabilities(model)
             if caps is None:
@@ -68,8 +68,8 @@ class NousProfile(ProviderProfile):
 
 nous = NousProfile(
     name="nous", aliases=("nous-portal", "nousresearch"), env_vars=("NOUS_API_KEY",),
-    display_name="Nous Research", description="Nous Research — Hermes model family",
-    signup_url="https://nousresearch.com/", fallback_models=("hermes-3-405b", "hermes-3-70b"),
+    display_name="Nous Research", description="Nous Research — Iris model family",
+    signup_url="https://nousresearch.com/", fallback_models=("iris-3-405b", "iris-3-70b"),
     base_url="https://inference-api.nousresearch.com/v1", auth_type="oauth_device_code",
 )
 

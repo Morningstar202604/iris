@@ -6,7 +6,7 @@ it('does not save the temporary onboarding layout as the Advanced workspace', as
   window.localStorage.clear()
   vi.resetModules()
   const grow = vi.fn()
-  vi.stubGlobal('hermesDesktop', { guestOnboardingEnabled: true, chatOnboarding: { grow } })
+  vi.stubGlobal('irisDesktop', { guestOnboardingEnabled: true, chatOnboarding: { grow } })
   const { DEFAULT_TREE, BASIC_TREE, registerLayoutPresets } = await import('@/app/contrib/layout-presets')
   const tree = await import('@/components/pane-shell/tree/store')
   const mode = await import('@/store/interface-mode')

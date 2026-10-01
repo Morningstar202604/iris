@@ -8,7 +8,7 @@ Z.AI's official API (docs.z.ai) defines two distinct parameters:
 * ``reasoning_effort`` — the effort intensity (max/xhigh/high/medium/low/
   minimal/none), supported by **GLM-5.2 and above ONLY**.
 
-Before this fix, hermes-webui advertised the full 6-level ``reasoning_effort``
+Before this fix, iris-webui advertised the full 6-level ``reasoning_effort``
 ladder (plus ``none``) for *every* GLM model, because ``_candidate_supports_reasoning``
 has an unconditional ``glm`` token match and ``_filter_reasoning_efforts_for_provider``
 had no ZAI branch. Six of seven catalog models therefore showed a selector whose

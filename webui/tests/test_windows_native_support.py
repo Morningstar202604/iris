@@ -9,7 +9,7 @@ terminal.py guards:
 
 bootstrap.py unblock:
 - ensure_supported_platform does not raise on Windows
-- install_hermes_agent raises RuntimeError on Windows (calls /bin/bash)
+- install_iris_agent raises RuntimeError on Windows (calls /bin/bash)
 - Foreground path uses Popen + sys.exit on Windows instead of os.execv
 """
 from __future__ import annotations
@@ -110,13 +110,13 @@ class TestBootstrapWindowsUnblock:
         monkeypatch.setattr("platform.system", lambda: "Linux")
         import_bootstrap.ensure_supported_platform()
 
-    def test_install_hermes_agent_raises_on_windows(self, import_bootstrap, monkeypatch):
+    def test_install_iris_agent_raises_on_windows(self, import_bootstrap, monkeypatch):
         monkeypatch.setattr("platform.system", lambda: "Windows")
         monkeypatch.setattr(import_bootstrap, "is_wsl", lambda: False)
         with pytest.raises(RuntimeError, match="not supported on native Windows"):
-            import_bootstrap.install_hermes_agent()
+            import_bootstrap.install_iris_agent()
 
-    def test_install_hermes_agent_allowed_in_wsl(self, import_bootstrap, monkeypatch):
+    def test_install_iris_agent_allowed_in_wsl(self, import_bootstrap, monkeypatch):
         """WSL should still be able to auto-install (it has /bin/bash) — the
         Windows guard must NOT fire. Stub subprocess.run so the test proves the
         guard was passed without actually launching the real installer."""
@@ -129,7 +129,7 @@ class TestBootstrapWindowsUnblock:
         )
         # Must NOT raise the native-Windows guard; instead it reaches the
         # (stubbed) install subprocess.
-        import_bootstrap.install_hermes_agent()
+        import_bootstrap.install_iris_agent()
         assert len(run_calls) == 1, "WSL install should reach the install subprocess"
 
 
@@ -141,13 +141,13 @@ class TestBootstrapForegroundWindows:
         import bootstrap as bs
         monkeypatch.setattr(bs, "ensure_supported_platform", lambda: None)
         monkeypatch.setattr(bs, "discover_agent_dir", lambda: tmp_path / "agent")
-        monkeypatch.setattr(bs, "hermes_command_exists", lambda: True)
+        monkeypatch.setattr(bs, "iris_command_exists", lambda: True)
         python_exe = sys.executable
         monkeypatch.setattr(bs, "discover_launcher_python", lambda *a: python_exe)
         monkeypatch.setattr(bs, "ensure_python_has_webui_deps", lambda *a, **kw: a[0])
         monkeypatch.setattr(bs, "wait_for_health", lambda *a, **kw: True)
         monkeypatch.setattr(bs, "open_browser", lambda *a, **kw: None)
-        monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(tmp_path / "state"))
+        monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(tmp_path / "state"))
         (tmp_path / "agent").mkdir(parents=True, exist_ok=True)
         return bs
 
@@ -160,7 +160,7 @@ class TestBootstrapForegroundWindows:
 
         # Strip supervisor env vars that would interfere
         for var in ("INVOCATION_ID", "JOURNAL_STREAM", "NOTIFY_SOCKET",
-                    "XPC_SERVICE_NAME", "SUPERVISOR_ENABLED", "HERMES_WEBUI_FOREGROUND"):
+                    "XPC_SERVICE_NAME", "SUPERVISOR_ENABLED", "IRIS_WEBUI_FOREGROUND"):
             monkeypatch.delenv(var, raising=False)
 
         popen_calls = []
@@ -188,7 +188,7 @@ class TestBootstrapForegroundWindows:
         monkeypatch.setattr(os, "chdir", lambda p: None)
 
         for var in ("INVOCATION_ID", "JOURNAL_STREAM", "NOTIFY_SOCKET",
-                    "XPC_SERVICE_NAME", "SUPERVISOR_ENABLED", "HERMES_WEBUI_FOREGROUND"):
+                    "XPC_SERVICE_NAME", "SUPERVISOR_ENABLED", "IRIS_WEBUI_FOREGROUND"):
             monkeypatch.delenv(var, raising=False)
 
         execv_calls = []

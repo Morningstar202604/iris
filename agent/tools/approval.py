@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 # Frozen at import: reading os.environ per call would let any skill running in the process set
 # this and bypass every approval check (prompt-injection escalation path).
-_YOLO_MODE_FROZEN: bool = is_truthy_value(os.getenv("HERMES_YOLO_MODE", ""))
+_YOLO_MODE_FROZEN: bool = is_truthy_value(os.getenv("IRIS_YOLO_MODE", ""))
 
 
 # --- Per-session approval state (thread-safe) -----------------------------------------------------------------------
@@ -253,7 +253,7 @@ def approve_session(session_key: str, pattern_key: str):
 
 
 def _release_permission_mode_dependents(session_key: str) -> None:
-    """Drop resources whose immutable mode derives from Hermes YOLO. Lazy import so approval-only
+    """Drop resources whose immutable mode derives from Iris YOLO. Lazy import so approval-only
     sessions never load computer-use; releasing on BOTH edges makes enabling YOLO replace a
     standard backend and disabling it revoke a private unrestricted daemon immediately."""
     try:
@@ -328,14 +328,14 @@ def _yolo_active() -> bool:
 def _permanent_set() -> set:
     """The permanent allowlist that governs the ACTIVE profile. Unscoped (single-profile process,
     or the multiplexer's own launch profile) → the module-level set tests and the CLI seed. A routed
-    profile (HERMES_HOME override) → its own set, lazily loaded from ITS ``command_allowlist``: the
+    profile (IRIS_HOME override) → its own set, lazily loaded from ITS ``command_allowlist``: the
     launch profile's "always" approvals must not pre-approve commands for a secondary, nor may a
     secondary's "always" choice be written back into the launch profile's config. Callers hold ``_lock``.
     """
-    from hermes_constants import get_hermes_home_override, hermes_home_key
-    if get_hermes_home_override() is None:
+    from iris_constants import get_iris_home_override, iris_home_key
+    if get_iris_home_override() is None:
         return _permanent_approved
-    home_key = hermes_home_key()
+    home_key = iris_home_key()
     approved = _permanent_approved_by_home.get(home_key)
     if approved is None:
         try:
@@ -396,7 +396,7 @@ def _persist_choice(session_key: str, choice: str, warnings: list[tuple]) -> Non
 
 def _read_permanent_allowlist() -> set:
     """``command_allowlist`` of the active profile's config as a set (empty on malformed input)."""
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     config = load_config_readonly()
     raw = config.get("command_allowlist")
     legacy = isinstance(raw, str)
@@ -427,8 +427,8 @@ _permanent_baseline_by_home: dict[str, set] = {}
 
 
 def _baseline_key() -> str:
-    from hermes_constants import get_hermes_home_override, hermes_home_key
-    return "" if get_hermes_home_override() is None else hermes_home_key()
+    from iris_constants import get_iris_home_override, iris_home_key
+    return "" if get_iris_home_override() is None else iris_home_key()
 
 
 def load_permanent_allowlist() -> set:
@@ -462,7 +462,7 @@ def save_permanent_allowlist(patterns: set):
     entries by editing ``command_allowlist`` in config.yaml.
     """
     try:
-        from hermes_cli.config import load_config, save_config
+        from iris_cli.config import load_config, save_config
         config = load_config()
         on_disk = set(config.get("command_allowlist", []) or [])
         with _lock:
@@ -616,8 +616,8 @@ _CRON_CTX = _Unattended(
 
 
 def _unattended_contexts() -> list[_Unattended]:
-    """Active unattended contexts in evaluation order: single-query first (``hermes chat -q``
-    exports HERMES_INTERACTIVE=1 but nobody answers); cron beats a platform marker because
+    """Active unattended contexts in evaluation order: single-query first (``iris chat -q``
+    exports IRIS_INTERACTIVE=1 but nobody answers); cron beats a platform marker because
     cron binds the platform for delivery routing only."""
     contexts = []
     if _is_single_query_approval_context():
@@ -934,15 +934,15 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
 def _presence(approval_callback=None) -> tuple:
     """``(approval_callback, is_cli, is_gateway, is_ask)`` for the current context.
 
-    Single-query ``-q`` and cron clear the presence trio: ``hermes chat -q`` exports
-    HERMES_INTERACTIVE=1 for sudo prompts, and a gateway sets HERMES_EXEC_ASK=1 at startup and
+    Single-query ``-q`` and cron clear the presence trio: ``iris chat -q`` exports
+    IRIS_INTERACTIVE=1 for sudo prompts, and a gateway sets IRIS_EXEC_ASK=1 at startup and
     passes its environ to every external cron worker (#110932) — in neither can a human answer
     the card, so the gate must resolve from ``approvals.<ctx>_mode`` instead of parking on a
     pending approval. Unattended *platforms* keep ``is_ask``: api_server relies on it for the
     ``/v1/runs`` approval bridge (``approval.request`` → ``POST /v1/runs/{id}/approval``)."""
     approval_callback = _resolve_cli_approval_callback(approval_callback)
     is_cli, is_gateway = _is_interactive_cli(), _is_gateway_approval_context()
-    is_ask = env_var_enabled("HERMES_EXEC_ASK")
+    is_ask = env_var_enabled("IRIS_EXEC_ASK")
     if _is_single_query_approval_context() or _is_cron_approval_context():
         is_cli = is_gateway = is_ask = False
     return approval_callback, is_cli, is_gateway, is_ask
@@ -1004,14 +1004,14 @@ def _run_approval_gate(
         else:
             if fail_closed_when_no_human:
                 logger.warning("%s (pattern: %s): %s — no interactive user/gateway present; "
-                               "BLOCKED (fail-closed). Set HERMES_INTERACTIVE or "
-                               "HERMES_GATEWAY_SESSION to answer the prompt.", *log_args)
+                               "BLOCKED (fail-closed). Set IRIS_INTERACTIVE or "
+                               "IRIS_GATEWAY_SESSION to answer the prompt.", *log_args)
                 return _blocked(no_human_block_message or (
                     f"BLOCKED: approval required ({description}) but no "
                     "interactive user or gateway is present to approve it."),
                     pattern_key=pattern_key, description=description)
-        logger.warning("%s (pattern: %s): %s — set HERMES_INTERACTIVE or "
-                       "HERMES_GATEWAY_SESSION to require approval.", *log_args)
+        logger.warning("%s (pattern: %s): %s — set IRIS_INTERACTIVE or "
+                       "IRIS_GATEWAY_SESSION to require approval.", *log_args)
         return _approved()
 
     return _human_decision(
@@ -1327,7 +1327,7 @@ _PLUGIN_COMPAT_LAZY = {
     'HARDLINE_PATTERNS': ('tools.approval_detection', 'HARDLINE_PATTERNS'),
     'HARDLINE_PATTERNS_COMPILED': ('tools.approval_detection', 'HARDLINE_PATTERNS_COMPILED'),
     'HUMAN_WAIT_MARGIN_S': ('tools.approval_human_wait', 'HUMAN_WAIT_MARGIN_S'),
-    'cfg_get': ('hermes_cli.config', 'cfg_get'),
+    'cfg_get': ('iris_cli.config', 'cfg_get'),
     'get_plugin_manager': ('tools.approval_prompt', 'get_plugin_manager'),
     'human_wait_ceiling': ('tools.approval_human_wait', 'human_wait_ceiling'),
     'human_wait_seconds': ('tools.approval_human_wait', 'human_wait_seconds'),
@@ -1336,10 +1336,10 @@ _PLUGIN_COMPAT_LAZY = {
     'request_elicitation_consent': ('tools.approval_prompt', 'request_elicitation_consent'),
     'reset_current_observability_context': ('tools.approval_context', 'reset_current_observability_context'),
     'reset_current_session_key': ('tools.approval_context', 'reset_current_session_key'),
-    'reset_hermes_interactive_context': ('tools.approval_context', 'reset_hermes_interactive_context'),
+    'reset_iris_interactive_context': ('tools.approval_context', 'reset_iris_interactive_context'),
     'set_current_observability_context': ('tools.approval_context', 'set_current_observability_context'),
     'set_current_session_key': ('tools.approval_context', 'set_current_session_key'),
-    'set_hermes_interactive_context': ('tools.approval_context', 'set_hermes_interactive_context'),
+    'set_iris_interactive_context': ('tools.approval_context', 'set_iris_interactive_context'),
 }
 
 
@@ -1348,7 +1348,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

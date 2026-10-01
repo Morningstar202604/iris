@@ -1,4 +1,4 @@
-import type { ModelOptionProvider } from '@hermes/shared'
+import type { ModelOptionProvider } from '@iris/shared'
 import { atom } from 'nanostores'
 
 import { persistString, storedString } from '@/lib/storage'
@@ -21,7 +21,7 @@ export interface CustomModel {
   provider: string
 }
 
-const STORAGE_KEY = 'hermes.desktop.custom-models'
+const STORAGE_KEY = 'iris.desktop.custom-models'
 
 function loadCustomModels(): CustomModel[] {
   const raw = storedString(STORAGE_KEY)

@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 BOOT_JS = ROOT / "static" / "boot.js"
 NODE = shutil.which("node")
-BOOT_MARKER_KEY = "hermes-webui-active-profile-bootstrap-401"
+BOOT_MARKER_KEY = "iris-webui-active-profile-bootstrap-401"
 
 
 pytestmark = pytest.mark.skipif(
@@ -176,7 +176,7 @@ return (async () => {
 (async () => {
   const attempts = Array.isArray(scenario.attempts) ? scenario.attempts : [];
   const markerKey =
-    scenario.markerKey || 'hermes-webui-active-profile-bootstrap-401';
+    scenario.markerKey || 'iris-webui-active-profile-bootstrap-401';
   const storage = new FakeStorage(scenario.initialStorage || {});
   const redirectUrls = [];
   const results = [];

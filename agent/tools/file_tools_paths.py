@@ -23,13 +23,13 @@ def _expand_tilde(path: str) -> str:
     """Expand ``~`` using the effective profile home (``get_subprocess_home``) so
     gateway/cron runs, whose process HOME may differ, agree with interactive CLI sessions.
 
-    This mirrors ``hermes_constants.get_subprocess_home()`` so that ``~`` resolves consistently regardless
+    This mirrors ``iris_constants.get_subprocess_home()`` so that ``~`` resolves consistently regardless
     of whether the tool runs interactively or inside a gateway-driven cron job (#48552).
     """
     if not path or "~" not in path:
         return path
     try:
-        from hermes_constants import get_subprocess_home
+        from iris_constants import get_subprocess_home
 
         home = get_subprocess_home()
     except Exception:
@@ -54,7 +54,7 @@ def _terminal_env_type_for_task(task_id: str = "default") -> str:
         if env is not None:
             name = env.__class__.__name__.lower()
             hint = next((h for h in _ENV_CLASS_NAME_HINTS if h in name), None)
-            stamped = getattr(env, "_hermes_backend_name", None)
+            stamped = getattr(env, "_iris_backend_name", None)
             if hint or (isinstance(stamped, str) and stamped):
                 return hint or stamped
         return str(_get_env_config().get("env_type") or os.getenv("TERMINAL_ENV") or "local").lower()

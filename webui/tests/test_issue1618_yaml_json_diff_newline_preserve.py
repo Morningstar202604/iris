@@ -288,7 +288,7 @@ def test_yaml_block_renders_multiline_html_shape(driver_path):
     Pre-fix this collapsed to a single space-joined string. Post-fix the
     line count should equal the original input line count.
     """
-    md = "```yaml\nname: hermes\nport: 8787\nfeatures:\n  - chat\n  - tasks\n```"
+    md = "```yaml\nname: iris\nport: 8787\nfeatures:\n  - chat\n  - tasks\n```"
     out = _render(driver_path, md)
 
     pre_inner = _extract_pre_inner(out)

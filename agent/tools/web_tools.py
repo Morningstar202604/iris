@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generic web_search / web_extract tools over pluggable backends.
 
-Backend is selected during ``hermes tools`` (``web.backend`` in config.yaml; per
+Backend is selected during ``iris tools`` (``web.backend`` in config.yaml; per
 capability via ``web.search_backend`` / ``web.extract_backend``). Every vendor
 implementation lives in ``plugins/web/<vendor>/provider.py`` and registers with
 ``agent.web_search_registry``; this module owns selection, safety gates,
@@ -33,15 +33,15 @@ logger = logging.getLogger(__name__)
 # ─── Backend Selection ────────────────────────────────────────────────────────
 
 def _env_value(name: str) -> str:
-    """Resolve ``name`` via the config-aware env layer (``hermes config set`` values), then process env.
+    """Resolve ``name`` via the config-aware env layer (``iris config set`` values), then process env.
 
-    Mirrors the SearXNG provider's ``_searxng_url()`` so that values set through Hermes' config/.env layer
-    (``hermes config set``, ``hermes tools``) are honored here too — not just raw process-env exports.
+    Mirrors the SearXNG provider's ``_searxng_url()`` so that values set through Iris' config/.env layer
+    (``iris config set``, ``iris tools``) are honored here too — not just raw process-env exports.
     Without this, a config-only ``SEARXNG_URL`` (or any provider key) leaves the backend auto-detect cascade
     and ``check_web_api_key()`` blind to it. See #34290.
     """
     try:
-        from hermes_cli.config import get_env_value
+        from iris_cli.config import get_env_value
         val = get_env_value(name)
     except Exception:
         val = None
@@ -55,7 +55,7 @@ def _has_env(name: str) -> bool:
 def _load_web_config() -> dict:
     """Load the ``web:`` section from config.yaml; always a dict (a null section yields ``{}``)."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         return load_config().get("web") or {}
     except Exception:
         return {}
@@ -252,7 +252,7 @@ def _ensure_web_plugins_loaded() -> None:
     configured and ``FIRECRAWL_API_KEY`` set. See #27580.
     """
     try:
-        from hermes_cli.plugins import _ensure_plugins_discovered
+        from iris_cli.plugins import _ensure_plugins_discovered
         _ensure_plugins_discovered()
     except Exception as exc:  # noqa: BLE001
         # Warning, not debug: a broken plugin import is otherwise invisible.
@@ -302,7 +302,7 @@ def web_search_tool(query: str, limit: int = 5) -> str:
             provider = get_active_search_provider()
 
         if provider is None:
-            fallback = "No web search provider configured. Run `hermes tools` to set one up."
+            fallback = "No web search provider configured. Run `iris tools` to set one up."
             response_data = {"success": False, "error": _no_provider_error("search", fallback)}
         else:
             logger.info("Web search via %s: '%s' (limit: %d)", provider.name, query, limit)
@@ -415,7 +415,7 @@ def _provider_is_ready(provider) -> bool:
     """True when *provider* is keyed-available OR keyless-capable, without raising.
 
     ``get_active_*_provider()`` returns an explicitly configured backend even when ``is_available()`` is
-    False (so dispatch can emit a precise error), so readiness gates (tool check_fn, ``hermes doctor``)
+    False (so dispatch can emit a precise error), so readiness gates (tool check_fn, ``iris doctor``)
     must probe for real. Keyless mode (Exa/Parallel free tier) is a working state, not a misconfig.
 
     See #78412.
@@ -563,7 +563,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

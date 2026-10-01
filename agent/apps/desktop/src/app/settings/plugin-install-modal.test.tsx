@@ -13,7 +13,7 @@ const { requestGateway } = vi.hoisted(() => ({
 vi.mock('@/app/gateway/hooks/use-gateway-request', () => ({
   useGatewayRequest: () => ({ requestGateway })
 }))
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/iris', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getProfiles: async () => ({ profiles: [] })
 }))
@@ -73,7 +73,7 @@ beforeEach(() => {
     }
   ])
   probePluginRepo.mockResolvedValue({ ok: true, agent: true, desktop: true, warnings: [] })
-  vi.stubGlobal('hermesDesktop', { probePluginRepo, installDesktopPlugin })
+  vi.stubGlobal('irisDesktop', { probePluginRepo, installDesktopPlugin })
 })
 afterEach(() => {
   cleanup()

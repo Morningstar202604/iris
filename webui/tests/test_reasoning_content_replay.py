@@ -381,7 +381,7 @@ def test_oob_terminal_marker_behavior_unchanged_with_reasoning_strip():
         _user("Q"),
         {
             "role": "assistant",
-            "content": "Here is the answer. [[hermes:agent:terminal]]\n\nDone.",
+            "content": "Here is the answer. [[iris:agent:terminal]]\n\nDone.",
             "reasoning_content": "I should not leak this.",
         },
     ]
@@ -390,7 +390,7 @@ def test_oob_terminal_marker_behavior_unchanged_with_reasoning_strip():
     result = _sanitize_messages_for_api(msgs, cfg=cfg)
 
     asst_msg = _assistant(result)
-    assert asst_msg.get("content") == "Here is the answer. [[hermes:agent:terminal]]\n\nDone."
+    assert asst_msg.get("content") == "Here is the answer. [[iris:agent:terminal]]\n\nDone."
     assert "reasoning_content" not in asst_msg
 
 

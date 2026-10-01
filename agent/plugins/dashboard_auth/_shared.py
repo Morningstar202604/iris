@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, Optional
 
 import httpx
 
-from hermes_cli.dashboard_auth import (
+from iris_cli.dashboard_auth import (
     DashboardAuthProvider, InvalidCodeError, LoginStart, ProviderError, RefreshExpiredError, Session,
     classify_jwks_lookup_error)
 
@@ -33,7 +33,7 @@ def load_config_section(logger: logging.Logger, tag: str, *path: str) -> dict:
     """The ``config.yaml`` block at ``path`` as a dict, or ``{}`` — robust to load_config()
     raising (fresh install, malformed YAML), absent keys, or a non-dict value."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from iris_cli.config import cfg_get, load_config
 
         cfg = load_config()
     except Exception as exc:  # noqa: BLE001 — broad catch is intentional
@@ -104,7 +104,7 @@ def validate_redirect_uri(redirect_uri: str) -> None:
 def pkce_login_start(authorize_url: str, *, client_id: str, scope: str, redirect_uri: str) -> LoginStart:
     """Build the authorization-code + PKCE (S256) redirect and cookie payload. Callers
     validate ``redirect_uri`` first. The auth-route layer expects
-    ``cookie_payload["hermes_session_pkce"]`` as a flat ``state=…;verifier=…`` string
+    ``cookie_payload["iris_session_pkce"]`` as a flat ``state=…;verifier=…`` string
     (it prepends ``provider=``)."""
     code_verifier = b64url_no_pad(secrets.token_bytes(64))  # ~86 chars
     state = b64url_no_pad(secrets.token_bytes(32))
@@ -114,7 +114,7 @@ def pkce_login_start(authorize_url: str, *, client_id: str, scope: str, redirect
         "code_challenge_method": "S256"}
     return LoginStart(
         redirect_url=f"{authorize_url}?{urllib.parse.urlencode(params)}",
-        cookie_payload={"hermes_session_pkce": f"state={state};verifier={code_verifier}"})
+        cookie_payload={"iris_session_pkce": f"state={state};verifier={code_verifier}"})
 
 
 def parse_json_body(response: httpx.Response) -> Dict[str, Any]:
@@ -186,7 +186,7 @@ def make_jwks_client(jwks_url: str) -> Any:
 
     return PyJWKClient(
         jwks_url, cache_keys=True, lifespan=JWKS_CACHE_SECONDS,
-        headers={"Accept": "application/json", "User-Agent": "HermesAgent/1.0"})
+        headers={"Accept": "application/json", "User-Agent": "IrisAgent/1.0"})
 
 
 def verify_jwt(

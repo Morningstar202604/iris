@@ -37,7 +37,7 @@ def _consume_detached_handler_exception(task: "asyncio.Task") -> None:
 
 
 # Audio exts for native audio delivery; Telegram's narrower sets stay separate (.m2a is audio to
-# Hermes but not to sendAudio).
+# Iris but not to sendAudio).
 _AUDIO_MIME_TYPES = {
     ".ogg": "audio/ogg", ".opus": "audio/opus", ".mp3": "audio/mpeg", ".m2a": "audio/mpeg",
     ".wav": "audio/wav", ".m4a": "audio/m4a", ".flac": "audio/flac"}
@@ -136,7 +136,7 @@ def _thread_metadata_for_source(source, reply_to_message_id: str | None = None) 
     # adapter's static profile stamp.
     profile = str(getattr(source, "profile", None) or "").strip()
     if profile:
-        metadata["hermes_profile"] = profile
+        metadata["iris_profile"] = profile
     return metadata
 
 
@@ -162,7 +162,7 @@ def _reply_anchor_for_event(event) -> str | None:
     thread_id = getattr(source, "thread_id", None)
     raw_message = getattr(event, "raw_message", None)
     if (platform == "slack" and isinstance(raw_message, dict)
-            and raw_message.get("_hermes_no_thread_response")):
+            and raw_message.get("_iris_no_thread_response")):
         # Slack reaction handoff = new top-level message; a message_id anchor would make
         # _resolve_thread_ts() reply in a nonexistent thread.
         return None
@@ -200,7 +200,7 @@ def build_auto_tts_output_path(platform) -> str:
     """Unique temp output path for gateway auto-TTS: ``.ogg`` for ``OPUS_VOICE_PLATFORMS``
     (the tool's ``_repair_ogg_container`` then guarantees real Opus bytes), else ``.mp3``.
     Platform-awareness lives HERE because ``_clear_session_env`` wipes the TTS tool's
-    ``HERMES_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
+    ``IRIS_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
 
     Platforms whose native voice bubbles require Ogg/Opus (``tools.tts_tool.OPUS_VOICE_PLATFORMS`` — the
     single source of truth) get an explicit ``.ogg`` path; the tool's central container repair
@@ -210,7 +210,7 @@ def build_auto_tts_output_path(platform) -> str:
     from tools.tts_tool import OPUS_VOICE_PLATFORMS
     ext = "ogg" if _platform_name(platform) in OPUS_VOICE_PLATFORMS else "mp3"
     audio_path = os.path.join(
-        tempfile.gettempdir(), "hermes_voice", f"tts_reply_{uuid.uuid4().hex[:12]}.{ext}")
+        tempfile.gettempdir(), "iris_voice", f"tts_reply_{uuid.uuid4().hex[:12]}.{ext}")
     os.makedirs(os.path.dirname(audio_path), exist_ok=True)
     return audio_path
 
@@ -332,7 +332,7 @@ def resolve_proxy_url(
     process env another profile's ``TELEGRAM_PROXY``/``DISCORD_PROXY``/etc. may hold; the YAML
     value is the same profile's, so a secondary keeps its configured route without any env
     bridge (#108440). The generic ``HTTPS_PROXY``/``HTTP_PROXY``/``ALL_PROXY`` fallback stays a raw
-    process-env read — those are OS/system-level network settings, not a per-profile Hermes concept."""
+    process-env read — those are OS/system-level network settings, not a per-profile Iris concept."""
     from gateway.platforms._shared import get_scoped_secret as _get_scoped_proxy_var
     value = (_get_scoped_proxy_var(platform_env_var, "") or "").strip() if platform_env_var else ""
     if not value:
@@ -373,7 +373,7 @@ def proxy_kwargs_for_bot(proxy_url: str | None) -> dict:
 def _config_section(name: str) -> dict:
     """Read-only ``config.yaml`` section ``name``; ``{}`` when unreadable/missing/not a dict."""
     try:
-        from hermes_cli.config import load_config_readonly as _load_config
+        from iris_cli.config import load_config_readonly as _load_config
         cfg = _load_config()  # read-only: .get() only, never mutated
     except Exception:
         return {}
@@ -424,7 +424,7 @@ from gateway.platforms.event import MessageEvent, MessageType, ProcessingOutcome
 from gateway.warning_notifications import diagnostic_wake_muted
 from gateway.session import SessionSource, build_session_key
 from gateway.session_transcript import TranscriptReadError
-from hermes_constants import get_default_hermes_root, get_hermes_dir, get_hermes_home
+from iris_constants import get_default_iris_root, get_iris_dir, get_iris_home
 
 if TYPE_CHECKING:
     from agent.display import ToolPreview
@@ -472,15 +472,15 @@ def streaming_tts_should_skip_whole_file(completed_turns: set[str], session_key:
 
 GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
     "Secure secret entry is not supported over messaging. "
-    "Load this skill in the local CLI to be prompted, or add the key to ~/.hermes/.env manually.")
+    "Load this skill in the local CLI to be prompted, or add the key to ~/.iris/.env manually.")
 
 # One sentence for every "you may not press/run this" refusal on every platform (slash commands,
 # approval buttons, pickers, prompts). ``{platform}`` is the ``Platform.value`` for the
-# ``hermes pairing approve`` command (hermes_cli/subcommands/pairing.py) that lets the owner fix it.
+# ``iris pairing approve`` command (iris_cli/subcommands/pairing.py) that lets the owner fix it.
 # Kept under 200 chars: Telegram's answerCallbackQuery truncates longer text.
 UNAUTHORIZED_ACTION_NOTICE = (
     "This bot is private and you're not on its allowed list. If you own it, run "
-    "`hermes pairing approve {platform} <request-id>` on the host (`hermes pairing list` shows the id).")
+    "`iris pairing approve {platform} <request-id>` on the host (`iris pairing list` shows the id).")
 
 
 def unauthorized_action_notice(platform: Any) -> str:
@@ -521,7 +521,7 @@ async def _ssrf_redirect_guard(response):
 
 # Inbound images are cached locally for the vision tool (platform URLs are ephemeral).
 # Import-time default; tests monkeypatch it, getters re-resolve per call.
-IMAGE_CACHE_DIR = get_hermes_dir("cache/images", "image_cache")
+IMAGE_CACHE_DIR = get_iris_dir("cache/images", "image_cache")
 
 
 # Inbound media cap (``gateway.max_inbound_media_bytes``): payloads are buffered fully in memory,
@@ -577,11 +577,11 @@ async def _read_httpx_body_with_limit(response, *, media_type: str) -> bytes:
 
 def _cache_dir_accessors(kind: str, constant_name: str, new_subpath: str, old_name: str):
     """``(get_<kind>_cache_dir, cleanup_<kind>_cache)`` pair. The getter resolves fresh via
-    get_hermes_dir (active profile) unless a test monkeypatched the module constant away from
+    get_iris_dir (active profile) unless a test monkeypatched the module constant away from
     its import-time default, and creates the directory; ``cleanup(max_age_hours=24)`` deletes
     older files and returns the count."""
     def get_dir() -> Path:
-        d = get_hermes_dir(new_subpath, old_name)
+        d = get_iris_dir(new_subpath, old_name)
         current = globals().get(constant_name)
         default = _CACHE_DIR_IMPORT_DEFAULTS.get(constant_name)
         if current is not None and default is not None and current != default:
@@ -637,7 +637,7 @@ async def _cache_media_from_url(url: str, ext: str, retries: int, *, media_type:
     import httpx
     if not is_safe_url(url):
         raise ValueError(f"Blocked unsafe URL (SSRF protection): {safe_url_for_log(url)}")
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)", "Accept": accept}
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; IrisAgent/1.0)", "Accept": accept}
     async with create_ssrf_safe_async_client(
         timeout=30.0, follow_redirects=True, event_hooks={"response": [_ssrf_redirect_guard]},
     ) as client:
@@ -679,7 +679,7 @@ def _cleanup_cache_dir(cache_dir: Path, max_age_hours: int) -> int:
 
 
 # Audio cache utilities (same pattern as images; feeds the STT tool).
-AUDIO_CACHE_DIR = get_hermes_dir("cache/audio", "audio_cache")
+AUDIO_CACHE_DIR = get_iris_dir("cache/audio", "audio_cache")
 get_audio_cache_dir, cleanup_audio_cache = _cache_dir_accessors(
     "audio", "AUDIO_CACHE_DIR", "cache/audio", "audio_cache")
 
@@ -705,7 +705,7 @@ async def cache_audio_from_url(url: str, ext: str = ".ogg", retries: int = 2) ->
 
 
 # Video cache utilities (same pattern; referenced by local path).
-VIDEO_CACHE_DIR = get_hermes_dir("cache/videos", "video_cache")
+VIDEO_CACHE_DIR = get_iris_dir("cache/videos", "video_cache")
 get_video_cache_dir, cleanup_video_cache = _cache_dir_accessors(
     "video", "VIDEO_CACHE_DIR", "cache/videos", "video_cache")
 
@@ -726,8 +726,8 @@ async def cache_video_from_bytes_async(data: bytes, ext: str = ".mp4") -> str:
 
 
 # Document / screenshot cache utilities (same pattern; referenced by local path).
-DOCUMENT_CACHE_DIR = get_hermes_dir("cache/documents", "document_cache")
-SCREENSHOT_CACHE_DIR = get_hermes_dir("cache/screenshots", "browser_screenshots")
+DOCUMENT_CACHE_DIR = get_iris_dir("cache/documents", "document_cache")
+SCREENSHOT_CACHE_DIR = get_iris_dir("cache/screenshots", "browser_screenshots")
 get_document_cache_dir, cleanup_document_cache = _cache_dir_accessors(
     "document", "DOCUMENT_CACHE_DIR", "cache/documents", "document_cache")
 get_screenshot_cache_dir, cleanup_screenshot_cache = _cache_dir_accessors(
@@ -741,22 +741,22 @@ _CACHE_DIR_IMPORT_DEFAULTS = {
 
 # Launch-time homes: fine for the static ALLOW roots below (per-profile cache roots are
 # enumerated at check time), never for the credential DENY side — see _credential_home_roots.
-_HERMES_HOME = get_hermes_home()
-_HERMES_ROOT = get_default_hermes_root()
-MEDIA_DELIVERY_ALLOW_DIRS_ENV = "HERMES_MEDIA_ALLOW_DIRS"
-MEDIA_DELIVERY_TRUST_RECENT_ENV = "HERMES_MEDIA_TRUST_RECENT_FILES"
-MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "HERMES_MEDIA_TRUST_RECENT_SECONDS"
+_IRIS_HOME = get_iris_home()
+_IRIS_ROOT = get_default_iris_root()
+MEDIA_DELIVERY_ALLOW_DIRS_ENV = "IRIS_MEDIA_ALLOW_DIRS"
+MEDIA_DELIVERY_TRUST_RECENT_ENV = "IRIS_MEDIA_TRUST_RECENT_FILES"
+MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "IRIS_MEDIA_TRUST_RECENT_SECONDS"
 # Strict mode = allowlist+recency validation; off by default (the denylist still blocks
 # credential / system paths). Set true on public-facing gateways.
-MEDIA_DELIVERY_STRICT_ENV = "HERMES_MEDIA_DELIVERY_STRICT"
+MEDIA_DELIVERY_STRICT_ENV = "IRIS_MEDIA_DELIVERY_STRICT"
 # Canonical cache subdirs of deliverable artifacts; also enumerates per-profile cache roots.
 _MEDIA_DELIVERY_CACHE_SUBDIRS = ("images", "audio", "videos", "documents", "screenshots")
 MEDIA_DELIVERY_SAFE_ROOTS = (
     IMAGE_CACHE_DIR, AUDIO_CACHE_DIR, VIDEO_CACHE_DIR, DOCUMENT_CACHE_DIR, SCREENSHOT_CACHE_DIR,
-    *(_HERMES_HOME / d for d in (
+    *(_IRIS_HOME / d for d in (
         "image_cache", "audio_cache", "video_cache", "document_cache", "browser_screenshots")),
     # Canonical cache layout, alongside the legacy *_cache dirs (installs may have both).
-    *(_HERMES_HOME / "cache" / d for d in _MEDIA_DELIVERY_CACHE_SUBDIRS))
+    *(_IRIS_HOME / "cache" / d for d in _MEDIA_DELIVERY_CACHE_SUBDIRS))
 
 # Recency window (s) for trusting fresh files: artifacts land seconds before delivery,
 # pre-existing host files (/etc/passwd, ~/.ssh/id_rsa) are days/months old.
@@ -777,7 +777,7 @@ def _sqlite_files(name: str) -> tuple[str, ...]:
     return (name, f"{name}-wal", f"{name}-shm", f"{name}-journal")
 
 
-# Credential stores at the HERMES_HOME root, denied per-file so skills/, logs/ and agent-written
+# Credential stores at the IRIS_HOME root, denied per-file so skills/, logs/ and agent-written
 # files stay deliverable (cache subdirs are allowlisted BEFORE this). A superset of the
 # agent/file_safety.py read+write denies so exfil never trails the read guard. google_token.json's mtime bumps every turn (defeats the
 # recency window); pairing/ and mcp-tokens/ (live OAuth tokens) are denied as whole trees.
@@ -794,13 +794,13 @@ _ROOT_CREDENTIAL_PATHS = (
 
 def _profile_cache_roots() -> List[Path]:
     """Per-profile cache roots ``<root>/profiles/<name>/cache/{images,...}`` (the static safe
-    roots cover only the active HERMES_HOME). Enumerated at check time so profiles created after
-    startup count and are allowlisted BEFORE the ``/root`` denylist (HERMES_HOME symlinked).
+    roots cover only the active IRIS_HOME). Enumerated at check time so profiles created after
+    startup count and are allowlisted BEFORE the ``/root`` denylist (IRIS_HOME symlinked).
 
-    ``HERMES_HOME=/opt/data``) while the model emits a profile-scoped path silently fails delivery.
+    ``IRIS_HOME=/opt/data``) while the model emits a profile-scoped path silently fails delivery.
     Enumerated dynamically at check time so profiles created after startup are covered, and so the resolved
     profile path is allowlisted *before* the ``/root`` system denylist is consulted (which otherwise wins
-    when HERMES_HOME is symlinked under a denied prefix and $HOME is not that prefix). See issue #31733.
+    when IRIS_HOME is symlinked under a denied prefix and $HOME is not that prefix). See issue #31733.
     """
     return [p / "cache" / subdir for p in _profile_dirs() for subdir in _MEDIA_DELIVERY_CACHE_SUBDIRS]
 
@@ -808,23 +808,23 @@ def _profile_cache_roots() -> List[Path]:
 def _profile_dirs() -> List[Path]:
     """Every ``<root>/profiles/<name>`` directory, read at check time."""
     try:
-        return [p for p in (_HERMES_ROOT / "profiles").iterdir() if p.is_dir()]
+        return [p for p in (_IRIS_ROOT / "profiles").iterdir() if p.is_dir()]
     except OSError:
         return []
 
 
 def _credential_home_roots() -> List[Path]:
-    """Every Hermes home whose credential stores the denylist must cover: the ACTIVE home
-    (the per-turn HERMES_HOME override under ``gateway.multiplex_profiles``), the shared root
+    """Every Iris home whose credential stores the denylist must cover: the ACTIVE home
+    (the per-turn IRIS_HOME override under ``gateway.multiplex_profiles``), the shared root
     and every ``<root>/profiles/*``. Enumerated at check time like ``_profile_cache_roots`` on
     the allow side — a denylist frozen at import covers only the launch profile, so a
     ``MEDIA:<root>/profiles/<other>/.env`` emitted in any profile's turn would upload it."""
-    return list(dict.fromkeys((get_hermes_home(), _HERMES_ROOT, *_profile_dirs())))
+    return list(dict.fromkeys((get_iris_home(), _IRIS_ROOT, *_profile_dirs())))
 
 
 def _kanban_root() -> Path:
     """Kanban is root-shared across profiles by design (``kanban_db.kanban_home``)."""
-    return Path(os.environ.get("HERMES_KANBAN_HOME", "").strip() or _HERMES_ROOT).expanduser()
+    return Path(os.environ.get("IRIS_KANBAN_HOME", "").strip() or _IRIS_ROOT).expanduser()
 
 
 def _kanban_board_dirs() -> List[Path]:
@@ -837,7 +837,7 @@ def _kanban_board_dirs() -> List[Path]:
 
 def _kanban_attachment_roots() -> List[Path]:
     """Return durable Kanban attachment roots without importing kanban_db."""
-    override = os.environ.get("HERMES_KANBAN_ATTACHMENTS_ROOT", "").strip()
+    override = os.environ.get("IRIS_KANBAN_ATTACHMENTS_ROOT", "").strip()
     if override:
         return [Path(override).expanduser()]
     roots = [_kanban_root() / "kanban" / "attachments"]
@@ -896,7 +896,7 @@ def _path_under_denied_prefix(resolved: Path) -> bool:
     """True if ``resolved`` lives under a deny-listed system path — except a denied prefix that
     IS the running user's own home: ``/root`` is listed so a non-root gateway can't deliver
     another user's home, but a root-run gateway's own deliverables live under ``$HOME=/root``.
-    Credential sub-dirs (``~/.ssh``, ``~/.hermes/.env``) stay blocked (more-specific entries)."""
+    Credential sub-dirs (``~/.ssh``, ``~/.iris/.env``) stay blocked (more-specific entries)."""
     home = _resolve_path(Path(os.path.expanduser("~")))
     for denied in _media_delivery_denied_paths():
         resolved_denied = _resolve_path(denied, expand=True)
@@ -979,7 +979,7 @@ def _docker_sandbox_dir_candidates(session_key: str = "") -> List[str]:
     except Exception:
         return ["default"]
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from iris_cli.profiles import get_active_profile_name
         profile = get_active_profile_name() or "default"
     except Exception:
         profile = "default"
@@ -1037,7 +1037,7 @@ def _default_docker_workspace_host_roots(session_key: str = "") -> List[Path]:
 
 
 def _cache_dir_container_mounts() -> List[Tuple[Path, Path]]:
-    """(host, container) pairs for the auto-mounted Hermes cache dirs (``/root/.hermes/...`` in
+    """(host, container) pairs for the auto-mounted Iris cache dirs (``/root/.iris/...`` in
     MEDIA tags); longer prefixes than the ``/root`` home mount, so longest-prefix match wins."""
     if not _docker_env_active():
         return []
@@ -1064,10 +1064,10 @@ def _warn_unresolved_docker_media(candidate: Path, session_key: str, reason: str
 
 def _translate_docker_container_media_path(candidate: Path, session_key: str = "") -> Optional[Path]:
     """Container-absolute path -> host path via longest-prefix match over ``docker_volumes``, the
-    auto-mounted cache dirs (``/root/.hermes/...``), persistent ``/workspace`` and ``/root``."""
+    auto-mounted cache dirs (``/root/.iris/...``), persistent ``/workspace`` and ``/root``."""
     if not candidate.is_absolute():
         return None
-    # In-process gateways (Desktop, `hermes serve`) may not have bridged terminal.* config into
+    # In-process gateways (Desktop, `iris serve`) may not have bridged terminal.* config into
     # TERMINAL_* env yet; the bridge is idempotent.
     with contextlib.suppress(Exception):
         from tools.terminal_tool import _ensure_terminal_env_bridged
@@ -1078,9 +1078,9 @@ def _translate_docker_container_media_path(candidate: Path, session_key: str = "
     if "/workspace" not in mounted:
         mounts.extend((root, Path("/workspace")) for root in _default_docker_workspace_host_roots(session_key))
     # Synthetic /root mounts catch stray home writes (/root/out.png; cache mounts are longer
-    # prefixes). /root/.hermes/* that missed a cache mount is the container's credential surface —
+    # prefixes). /root/.iris/* that missed a cache mount is the container's credential surface —
     # translating it via the home mount would dodge the host denylist.
-    if "/root" not in mounted and not candidate.as_posix().startswith("/root/.hermes"):
+    if "/root" not in mounted and not candidate.as_posix().startswith("/root/.iris"):
         mounts.extend(
             (root, Path("/root")) for root in _docker_persistent_sandbox_roots(session_key, "home"))
     if not mounts:
@@ -1106,8 +1106,8 @@ def _translate_docker_container_media_path(candidate: Path, session_key: str = "
 def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[str]:
     """Safe absolute file path for native media delivery, else None. Default: any existing
     regular file outside the credential / system denylist (symmetric with inbound). Strict
-    (``HERMES_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
-    host secrets): MUST be under a Hermes cache, an operator root (``HERMES_MEDIA_ALLOW_DIRS``),
+    (``IRIS_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
+    host secrets): MUST be under a Iris cache, an operator root (``IRIS_MEDIA_ALLOW_DIRS``),
     or freshly produced within the recency window. Symlinks are resolved before any check."""
     candidate = _normalize_media_tag_path(path)
     if not candidate:
@@ -1130,7 +1130,7 @@ def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[s
         resolved_root = _resolve_path(root, expand=True)
         if resolved_root is not None and _path_is_within(resolved, resolved_root):
             return str(resolved)
-    # Non-strict (default): anything not denylisted (/etc, /proc, ~/.ssh, Hermes-root secrets).
+    # Non-strict (default): anything not denylisted (/etc, /proc, ~/.ssh, Iris-root secrets).
     from gateway.media_policy import media_delivery_strict
     if not media_delivery_strict():
         return None if _path_under_denied_prefix(resolved) else str(resolved)
@@ -1594,8 +1594,8 @@ class _ExtractedResponse:
 
 _PLAINTEXT_GATEWAY_RESTART_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?gateway[.!?\s]*$", re.IGNORECASE),
-    re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?hermes\s+gateway[.!?\s]*$", re.IGNORECASE),
-    re.compile(r"^(?:please\s+)?restart\s+hermes[.!?\s]*$", re.IGNORECASE))
+    re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?iris\s+gateway[.!?\s]*$", re.IGNORECASE),
+    re.compile(r"^(?:please\s+)?restart\s+iris[.!?\s]*$", re.IGNORECASE))
 
 
 def coerce_plaintext_gateway_command(event: "MessageEvent") -> None:
@@ -1869,12 +1869,12 @@ class BasePlatformAdapter(ABC):
             store.pop(str(chat_id), None)
 
     # Can wake a fresh turn AFTER a turn ends (detached-subagent completions); False for stateless
-    # adapters (API server). Propagated to ``HERMES_SESSION_ASYNC_DELIVERY`` so tools never promise
+    # adapters (API server). Propagated to ``IRIS_SESSION_ASYNC_DELIVERY`` so tools never promise
     # a delivery they can't keep.
     supports_async_delivery: bool = True
     # ``send()`` chunks natively via ``truncate_message()`` -> the router skips its truncation.
     splits_long_messages: bool = False
-    # Prefix users can always TYPE for Hermes commands ("!" where the client eats a leading "/").
+    # Prefix users can always TYPE for Iris commands ("!" where the client eats a leading "/").
     typed_command_prefix: str = "/"
     # ``in_channel`` continuable-cron surface: job delivered FLAT, plain replies continue it via
     # the whole-channel bucket ``(platform, chat_id, None)``; needs a flat-reply outbound gate too
@@ -1891,7 +1891,7 @@ class BasePlatformAdapter(ABC):
     interactive_resume: bool = True
     # Port-binding adapter that answers ``/p/<profile>/...`` for every served profile on the default
     # listener under ``gateway.multiplex_profiles``. Declared per adapter (not in a central list) so
-    # ``hermes gateway migrate`` can tell "URL changes" from "this profile would be skipped" as new
+    # ``iris gateway migrate`` can tell "URL changes" from "this profile would be skipped" as new
     # HTTP-inbound adapters gain the prefix.
     serves_profile_prefix: bool = False
     # Back-reference to the running ``GatewayRunner`` (set by gateway/run.py); ``build_source``
@@ -2183,7 +2183,7 @@ class BasePlatformAdapter(ABC):
                 raise
 
     def _acquire_platform_lock(self, scope: str, identity: str, resource_desc: str) -> bool:
-        """Acquire a scoped lock for this adapter; True on success. A live cross-HERMES_HOME
+        """Acquire a scoped lock for this adapter; True on success. A live cross-IRIS_HOME
         holder is replaced only when the runner armed this adapter for its initial
         ``--replace`` connect (the status module validates ownership and terminates)."""
         from gateway.status import (
@@ -2213,7 +2213,7 @@ class BasePlatformAdapter(ABC):
         owner_profile = scoped_lock_owner_label(existing)
         pid_part = f" (PID {owner_pid})" if owner_pid else ""
         holder = f" by the '{owner_profile}' profile gateway{pid_part}" if owner_profile else pid_part
-        remedy = (f" Stop that gateway first (hermes --profile {owner_profile} gateway stop)."
+        remedy = (f" Stop that gateway first (iris --profile {owner_profile} gateway stop)."
                   if owner_profile else " Stop the other gateway first.")
         message = f"{resource_desc} already in use{holder}.{remedy}"
         logger.error('[%s] %s', self.name, message)
@@ -2244,7 +2244,7 @@ class BasePlatformAdapter(ABC):
         plugin, so identity alone would double-register). Each factory is isolated so a bad plugin
         can't block connecting."""
         try:
-            from hermes_cli.plugins import get_plugin_manager
+            from iris_cli.plugins import get_plugin_manager
             factories = get_plugin_manager().get_platform_handler_factories(
                 getattr(self.platform, "value", str(self.platform)))
         except Exception as e:  # pragma: no cover - defensive
@@ -4001,7 +4001,7 @@ class BasePlatformAdapter(ABC):
         # runner. Without this, they are queued as pending messages and either: See #4926.
         self._canonicalize(event.source)  # identity FIRST (direct callers may skip handle_message)
         cmd = event.get_command()
-        from hermes_cli.commands import (is_interrupt_then_dispatch, should_bypass_active_session)
+        from iris_cli.commands import (is_interrupt_then_dispatch, should_bypass_active_session)
         if should_bypass_active_session(cmd):
             try:
                 # /stop, /new, /reset: cancel + response + drain; other bypasses don't cancel.
@@ -4074,7 +4074,7 @@ class BasePlatformAdapter(ABC):
 
     async def _synthesize_auto_tts(self, text_content: str) -> Tuple[List[str], Optional[str]]:
         """Synthesize auto-TTS audio -> ``(existing_paths, requested_path)``; empty/None on failure
-        (logged, never raised). Path built platform-aware HERE: HERMES_SESSION_PLATFORM is cleared
+        (logged, never raised). Path built platform-aware HERE: IRIS_SESSION_PLATFORM is cleared
         post-handler."""
         paths: List[str] = []
         requested_path = None
@@ -4099,7 +4099,7 @@ class BasePlatformAdapter(ABC):
                         text_content: str, media_files: list) -> bool:
         """Auto-TTS on voice input (voice-first), gated by /voice or voice.auto_tts;
         skipped when streaming TTS already delivered audio this turn."""
-        generation = getattr(interrupt_event, "_hermes_run_generation", None)
+        generation = getattr(interrupt_event, "_iris_run_generation", None)
         return bool(
             self._should_auto_tts_for_chat(event.source.chat_id)
             and event.message_type == MessageType.VOICE and text_content and not media_files
@@ -4404,7 +4404,7 @@ class BasePlatformAdapter(ABC):
         read HERE — stamped on the interrupt event DURING the handler await; an earlier snapshot
         would let stale runs fire a fresher run's callbacks."""
         _post_cb = self.pop_post_delivery_callback(
-            session_key, generation=getattr(interrupt_event, "_hermes_run_generation", None))
+            session_key, generation=getattr(interrupt_event, "_iris_run_generation", None))
         if callable(_post_cb):
             with contextlib.suppress(asyncio.TimeoutError, Exception):
                 _post_result = _post_cb()
@@ -4515,7 +4515,7 @@ class BasePlatformAdapter(ABC):
             processing_ok = delivery_succeeded if delivery_attempted else not bool(response)
             # Clean up the per-turn streaming-TTS flag.
             self._streaming_tts_completed_turns.discard(self._streaming_tts_turn_key(
-                session_key, getattr(interrupt_event, "_hermes_run_generation", None),
+                session_key, getattr(interrupt_event, "_iris_run_generation", None),
                 event=event) or "")
             await self._run_processing_hook(
                 "on_processing_complete", event,
@@ -4638,7 +4638,7 @@ class BasePlatformAdapter(ABC):
         role_authorized: bool = False, auto_thread_created: bool = False,
         auto_thread_initial_name: Optional[str] = None) -> SessionSource:
         """Build a SessionSource; with ``gateway.profile_routes`` configured the matching
-        profile is stamped on ``source.profile`` for per-profile HERMES_HOME isolation."""
+        profile is stamped on ``source.profile`` for per-profile IRIS_HOME isolation."""
         def _opt(value) -> Optional[str]:
             return str(value) if value else None
         fields = dict(

@@ -14,16 +14,16 @@ def _install_fake_cron(monkeypatch, run_job, events):
     cron_pkg.__path__ = []
 
     cron_jobs = types.ModuleType("cron.jobs")
-    cron_jobs.HERMES_DIR = Path("/tmp/hermes")
-    cron_jobs.CRON_DIR = cron_jobs.HERMES_DIR / "cron"
+    cron_jobs.IRIS_DIR = Path("/tmp/iris")
+    cron_jobs.CRON_DIR = cron_jobs.IRIS_DIR / "cron"
     cron_jobs.JOBS_FILE = cron_jobs.CRON_DIR / "jobs.json"
     cron_jobs.OUTPUT_DIR = cron_jobs.CRON_DIR / "output"
     cron_jobs.save_job_output = lambda job_id, output: events.append(("save", job_id, output))
     cron_jobs.mark_job_run = lambda job_id, success, error=None: events.append(("mark", job_id, success, error))
 
     cron_scheduler = types.ModuleType("cron.scheduler")
-    cron_scheduler._hermes_home = Path("/tmp/hermes")
-    cron_scheduler._LOCK_DIR = cron_scheduler._hermes_home / "cron"
+    cron_scheduler._iris_home = Path("/tmp/iris")
+    cron_scheduler._LOCK_DIR = cron_scheduler._iris_home / "cron"
     cron_scheduler._LOCK_FILE = cron_scheduler._LOCK_DIR / ".tick.lock"
     cron_scheduler.run_job = run_job
 
@@ -42,16 +42,16 @@ def _write_spawn_fake_agent(root: Path, *, run_job_body: str):
     (cron_dir / "__init__.py").write_text("", encoding="utf-8")
     (cron_dir / "jobs.py").write_text(
         "from pathlib import Path\n"
-        "HERMES_DIR = Path('/tmp/hermes')\n"
-        "CRON_DIR = HERMES_DIR / 'cron'\n"
+        "IRIS_DIR = Path('/tmp/iris')\n"
+        "CRON_DIR = IRIS_DIR / 'cron'\n"
         "JOBS_FILE = CRON_DIR / 'jobs.json'\n"
         "OUTPUT_DIR = CRON_DIR / 'output'\n",
         encoding="utf-8",
     )
     (cron_dir / "scheduler.py").write_text(
         "from pathlib import Path\n"
-        "_hermes_home = Path('/tmp/hermes')\n"
-        "_LOCK_DIR = _hermes_home / 'cron'\n"
+        "_iris_home = Path('/tmp/iris')\n"
+        "_LOCK_DIR = _iris_home / 'cron'\n"
         "_LOCK_FILE = _LOCK_DIR / '.tick.lock'\n"
         "def run_job(job):\n"
         f"{run_job_body}",
@@ -62,11 +62,11 @@ def _write_spawn_fake_agent(root: Path, *, run_job_body: str):
 def _activate_spawn_fake_agent(fake_agent_root: Path):
     """Repoint the agent at ``fake_agent_root`` and return a restore callable.
 
-    This mutates process-global state (``HERMES_WEBUI_AGENT_DIR``, ``PYTHONPATH``,
+    This mutates process-global state (``IRIS_WEBUI_AGENT_DIR``, ``PYTHONPATH``,
     ``sys.path``) directly rather than via monkeypatch, because the callers run it
     inside a spawned/forked child process. Leaving those mutations unrestored
     poisons any later in-process consumer — a subsequent test that spawns
-    ``server.py`` as a subprocess would inherit a stale ``HERMES_WEBUI_AGENT_DIR``
+    ``server.py`` as a subprocess would inherit a stale ``IRIS_WEBUI_AGENT_DIR``
     / ``PYTHONPATH`` pointing at a torn-down fake dir and the child could not
     import the real agent (the chronic full-suite
     ``test_tls_support::test_tls_startup_failure_fallback_to_http`` failure).
@@ -79,22 +79,22 @@ def _activate_spawn_fake_agent(fake_agent_root: Path):
     fake_path = str(fake_agent_root)
     _saved_env = {
         k: os.environ.get(k)
-        for k in ("HERMES_WEBUI_AGENT_DIR", "PYTHONPATH")
+        for k in ("IRIS_WEBUI_AGENT_DIR", "PYTHONPATH")
     }
     _saved_sys_path = list(sys.path)
 
-    os.environ["HERMES_WEBUI_AGENT_DIR"] = fake_path
+    os.environ["IRIS_WEBUI_AGENT_DIR"] = fake_path
     existing = os.environ.get("PYTHONPATH", "")
     parts = [
         p
         for p in existing.split(os.pathsep)
-        if p and ("hermes-agent" not in p or p == fake_path)
+        if p and ("iris-agent" not in p or p == fake_path)
     ]
     os.environ["PYTHONPATH"] = os.pathsep.join([fake_path, *[p for p in parts if p != fake_path]])
     sys.path[:] = [
         p
         for p in sys.path
-        if not p or "hermes-agent" not in p or p == fake_path
+        if not p or "iris-agent" not in p or p == fake_path
     ]
     if fake_path not in sys.path:
         sys.path.insert(0, fake_path)
@@ -119,15 +119,15 @@ def _activate_spawn_fake_agent(fake_agent_root: Path):
     return _restore
 
 
-def _real_hermes_agent_editable_install_present() -> bool:
-    """Detect a developer-machine editable install of hermes-agent.
+def _real_iris_agent_editable_install_present() -> bool:
+    """Detect a developer-machine editable install of iris-agent.
 
     The two tests that spawn a real subprocess + import the fake `cron.scheduler`
-    from ``HERMES_WEBUI_AGENT_DIR`` only work when the spawn child does NOT have
+    from ``IRIS_WEBUI_AGENT_DIR`` only work when the spawn child does NOT have
     a competing real `cron.scheduler` reachable via the venv's editable finder.
     On CI runners (and most production installs) there's no editable install,
     so the fake at ``fake_agent_root`` is the only `cron.scheduler` Python can
-    resolve; on a maintainer's dev machine an editable install of hermes-agent
+    resolve; on a maintainer's dev machine an editable install of iris-agent
     is registered through a `.pth` file in site-packages, and the spawn child
     will resolve the real `cron.scheduler` first — which then fails because the
     real `run_job` requires a configured inference provider.
@@ -188,7 +188,7 @@ def _selected_profile_home_runner(profile_home, result_queue):
             fake_agent_root,
             run_job_body=(
                 "    import cron.scheduler as scheduler\n"
-                "    return True, str(scheduler._hermes_home), 'final', None\n"
+                "    return True, str(scheduler._iris_home), 'final', None\n"
             ),
         )
         _activate_restore = _activate_spawn_fake_agent(fake_agent_root)
@@ -289,12 +289,12 @@ def test_spawn_context_does_not_inherit_parent_thread_locks(tmp_path):
 @requires_fork
 def test_manual_cron_subprocess_drains_large_result_before_join(tmp_path):
     """A >100 KB result must not deadlock the parent before it can persist output."""
-    if _real_hermes_agent_editable_install_present():
+    if _real_iris_agent_editable_install_present():
         import pytest as _pytest
         _pytest.skip(
-            "skipped on dev machines with an editable hermes-agent install — "
+            "skipped on dev machines with an editable iris-agent install — "
             "the spawn child resolves the real cron.scheduler first instead of "
-            "the fake one written under HERMES_WEBUI_AGENT_DIR. Runs cleanly on CI."
+            "the fake one written under IRIS_WEBUI_AGENT_DIR. Runs cleanly on CI."
         )
     # Use fork only for the outer test harness so this pytest module does not
     # need to be importable as a package. The product helper under test owns its
@@ -394,12 +394,12 @@ def test_manual_cron_run_does_not_hold_profile_lock_for_job_duration(tmp_path, m
 
 @requires_fork
 def test_cron_job_subprocess_executes_under_selected_profile_home(tmp_path, monkeypatch):
-    if _real_hermes_agent_editable_install_present():
+    if _real_iris_agent_editable_install_present():
         import pytest as _pytest
         _pytest.skip(
-            "skipped on dev machines with an editable hermes-agent install — "
+            "skipped on dev machines with an editable iris-agent install — "
             "the spawn child resolves the real cron.scheduler first instead of "
-            "the fake one written under HERMES_WEBUI_AGENT_DIR. Runs cleanly on CI."
+            "the fake one written under IRIS_WEBUI_AGENT_DIR. Runs cleanly on CI."
         )
     exec_home = tmp_path / "exec-profile"
     ctx = multiprocessing.get_context("fork")

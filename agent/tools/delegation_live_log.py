@@ -1,6 +1,6 @@
 """Live, tail-able transcripts for delegated subagents.
 
-One append-only log per child under ``<hermes_home>/cache/delegation/live/
+One append-only log per child under ``<iris_home>/cache/delegation/live/
 <delegation_id>/task-<n>.log``, pre-created with a header at dispatch (so
 ``tail -f`` attaches immediately); paths are returned from ``delegate_task``.
 ``cache/delegation`` is mounted read-only into remote terminal backends, so
@@ -38,9 +38,9 @@ _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 def live_transcript_root() -> Path:
-    """Root directory for live transcripts (profile-safe, never ~/.hermes)."""
-    from hermes_constants import get_hermes_dir
-    return get_hermes_dir("cache/delegation", "delegation_cache") / "live"
+    """Root directory for live transcripts (profile-safe, never ~/.iris)."""
+    from iris_constants import get_iris_dir
+    return get_iris_dir("cache/delegation", "delegation_cache") / "live"
 
 
 @contextmanager
@@ -99,7 +99,7 @@ class LiveTranscriptWriter:
             d.mkdir(parents=True, exist_ok=True)
             path = d / f"task-{task_index}.log"
             path.write_text(
-                "=== Hermes subagent live transcript ===\n"
+                "=== Iris subagent live transcript ===\n"
                 f"delegation: {delegation_id}   task: {task_index}\n"
                 f"goal: {_redact(goal_line)}\n"  # header bypasses event(), so redact here too
                 f"started: {time.strftime(_TIME_FMT)}\n"

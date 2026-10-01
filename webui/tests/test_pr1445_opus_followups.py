@@ -63,9 +63,9 @@ def test_quadruple_encoded_traversal_url_now_rejected(tmp_path, monkeypatch):
     """
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
         "/extensions/%2525252e%2525252e/api/session, /extensions/legit.js",
     )
 
@@ -83,11 +83,11 @@ def test_url_list_caps_at_max(tmp_path, monkeypatch):
     """
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
 
     # Build 100 valid URLs
     urls = ", ".join(f"/extensions/script{i}.js" for i in range(100))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", urls)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", urls)
 
     from api.extensions import get_extension_config, _MAX_URL_LIST
 
@@ -105,9 +105,9 @@ def test_url_list_logs_rejected_urls_once(tmp_path, monkeypatch, caplog):
     """
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
         "https://evil.example.com/x.js, /extensions/legit.js",
     )
 
@@ -154,7 +154,7 @@ def test_expanded_mime_map_serves_fonts_and_wasm(tmp_path, monkeypatch):
     (root / "font.otf").write_bytes(b"fake otf binary")
     (root / "module.wasm").write_bytes(b"\x00asm" + b"\x01" * 8)
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
 
     from api.extensions import serve_extension_static
 

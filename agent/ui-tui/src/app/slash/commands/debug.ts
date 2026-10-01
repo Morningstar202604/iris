@@ -1,7 +1,7 @@
 // Importing the apps barrel registers the reference apps before launch.
 import '../../../sdk/apps/index.js'
 
-import { terminalBackgroundHex } from '@hermes/ink'
+import { terminalBackgroundHex } from '@iris/ink'
 
 import { formatBytes, performHeapDump } from '../../../lib/memory.js'
 import { launchWidget } from '../../../sdk/host.js'
@@ -30,7 +30,7 @@ export const debugCommands: SlashCommand[] = [
   ...widgetAppCommands,
 
   {
-    help: 'rescan $HERMES_HOME/tui-widgets and (re)register user widget apps',
+    help: 'rescan $IRIS_HOME/tui-widgets and (re)register user widget apps',
     name: 'widgets-reload',
     run: (_arg, ctx) => {
       void loadUserWidgets().then(({ errors, loaded }) => {
@@ -45,7 +45,7 @@ export const debugCommands: SlashCommand[] = [
   },
 
   {
-    help: 'write a V8 heap snapshot + memory diagnostics (see HERMES_HEAPDUMP_DIR)',
+    help: 'write a V8 heap snapshot + memory diagnostics (see IRIS_HEAPDUMP_DIR)',
     name: 'heapdump',
     run: (_arg, ctx) => {
       const { heapUsed, rss } = process.memoryUsage()
@@ -77,8 +77,8 @@ export const debugCommands: SlashCommand[] = [
         {
           rows: [
             ['OSC-11 background', terminalBackgroundHex() ?? '(no reply)'],
-            ['HERMES_TUI_BACKGROUND', process.env.HERMES_TUI_BACKGROUND ?? '(unset)'],
-            ['HERMES_TUI_THEME', process.env.HERMES_TUI_THEME ?? '(unset)'],
+            ['IRIS_TUI_BACKGROUND', process.env.IRIS_TUI_BACKGROUND ?? '(unset)'],
+            ['IRIS_TUI_THEME', process.env.IRIS_TUI_THEME ?? '(unset)'],
             ['COLORFGBG', process.env.COLORFGBG ?? '(unset)'],
             ['TERM_PROGRAM', process.env.TERM_PROGRAM ?? '(unset)'],
             ['detected mode', detectLightMode() ? 'light' : 'dark'],

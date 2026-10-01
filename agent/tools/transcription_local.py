@@ -69,10 +69,10 @@ def _try_lazy_install_stt() -> bool:
     except Exception as exc:
         logger.warning(
             "Lazy install of faster-whisper failed: %s. "
-            "This is often a permission issue: the Hermes process user cannot "
+            "This is often a permission issue: the Iris process user cannot "
             "write to the virtual environment. Try running manually as the "
             "venv owner: `stat -c '%%u' '$(dirname $(dirname $(which python3)))'` "
-            "then `su - <owner> -c 'VIRTUAL_ENV=/opt/hermes/.venv "
+            "then `su - <owner> -c 'VIRTUAL_ENV=/opt/iris/.venv "
             "uv pip install faster-whisper==1.2.1'`",
             exc)
     return False
@@ -272,18 +272,18 @@ def _transcribe_local_command(
     language = language or _resolve_stt_language("local") or DEFAULT_LOCAL_STT_LANGUAGE
     normalized_model = _normalize_local_model(model_name)
     try:
-        with tempfile.TemporaryDirectory(prefix="hermes-local-stt-") as output_dir:
+        with tempfile.TemporaryDirectory(prefix="iris-local-stt-") as output_dir:
             prepared_input, prep_error = _prepare_local_audio(file_path, output_dir)
             if prep_error:
                 return _error_result(prep_error)
             command = command_template.format(
                 input_path=shlex.quote(prepared_input), output_dir=shlex.quote(output_dir),
                 language=shlex.quote(language), model=shlex.quote(normalized_model))
-            # Scrub Hermes secrets from the child env (same policy as _run_command_stt).
-            # Scrub Hermes secrets from the child env (sibling path to #56332 / _run_command_stt — this
+            # Scrub Iris secrets from the child env (same policy as _run_command_stt).
+            # Scrub Iris secrets from the child env (sibling path to #56332 / _run_command_stt — this
             # local-whisper path previously inherited the full process environment).
-            from tools.environments.local import hermes_subprocess_env
-            _run_quiet(shlex.split(command), timeout=300, env=hermes_subprocess_env(inherit_credentials=False))
+            from tools.environments.local import iris_subprocess_env
+            _run_quiet(shlex.split(command), timeout=300, env=iris_subprocess_env(inherit_credentials=False))
             txt_files = sorted(Path(output_dir).glob("*.txt"))
             if not txt_files:
                 return _error_result("Local STT command completed but did not produce a .txt transcript")

@@ -17,7 +17,7 @@ function config(overrides: Partial<ProfileRouteConfig> = {}): ProfileRouteConfig
     remoteUrl: '',
     sshHost: '',
     sshPort: null,
-    sshRemoteHermesPath: '',
+    sshRemoteIrisPath: '',
     sshRemoteProfile: '',
     sshUser: '',
     ...overrides
@@ -32,7 +32,7 @@ describe('buildOpaqueProfileRoutes', () => {
         config({
           mode: 'ssh',
           sshHost: 'lab-a',
-          sshRemoteHermesPath: '~/.hermes',
+          sshRemoteIrisPath: '~/.iris',
           sshRemoteProfile: 'remote-research'
         })
       ],
@@ -41,13 +41,13 @@ describe('buildOpaqueProfileRoutes', () => {
         config({
           mode: 'ssh',
           sshHost: 'lab-b',
-          sshRemoteHermesPath: '~/.hermes',
+          sshRemoteIrisPath: '~/.iris',
           sshRemoteProfile: 'remote-writing'
         })
       ]
     ])
 
-    const resolveSsh = vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'hermes' }))
+    const resolveSsh = vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'iris' }))
 
     const routes = await buildOpaqueProfileRoutes({
       getProfileConfig: profile => configs.get(profile) ?? config(),
@@ -69,12 +69,12 @@ describe('buildOpaqueProfileRoutes', () => {
     expect(routes[0].connectionId).not.toBe(routes[1].connectionId)
     expect(JSON.stringify(routes)).not.toContain('gateway.example')
     expect(JSON.stringify(routes)).not.toContain('lab-a')
-    expect(JSON.stringify(routes)).not.toContain('.hermes')
+    expect(JSON.stringify(routes)).not.toContain('.iris')
   })
 
   it('changes opaque IDs when the effective SSH destination changes', async () => {
     const options = {
-      getProfileConfig: () => config({ mode: 'ssh', sshHost: 'lab', sshRemoteHermesPath: '~/.hermes' }),
+      getProfileConfig: () => config({ mode: 'ssh', sshHost: 'lab', sshRemoteIrisPath: '~/.iris' }),
       globalConfig: config(),
       installationId: 'install-a-secret',
       primaryProfile: 'default',
@@ -83,12 +83,12 @@ describe('buildOpaqueProfileRoutes', () => {
 
     const before = await buildOpaqueProfileRoutes({
       ...options,
-      resolveSsh: async () => ({ hostname: 'old.example', port: 22, user: 'hermes' })
+      resolveSsh: async () => ({ hostname: 'old.example', port: 22, user: 'iris' })
     })
 
     const after = await buildOpaqueProfileRoutes({
       ...options,
-      resolveSsh: async () => ({ hostname: 'new.example', port: 22, user: 'hermes' })
+      resolveSsh: async () => ({ hostname: 'new.example', port: 22, user: 'iris' })
     })
 
     expect(before[1].connectionId).not.toBe(after[1].connectionId)
@@ -113,7 +113,7 @@ describe('buildOpaqueProfileRoutes', () => {
     const options = {
       getProfileConfig: (profile: string) =>
         profile === 'broken'
-          ? config({ mode: 'ssh', sshHost: 'unreachable', sshPort: 2222, sshUser: 'hermes' })
+          ? config({ mode: 'ssh', sshHost: 'unreachable', sshPort: 2222, sshUser: 'iris' })
           : config(),
       globalConfig: config(),
       installationId: 'install-a-secret',
@@ -177,7 +177,7 @@ describe('buildOpaqueProfileRoutes', () => {
       installationId: 'install-a-secret',
       primaryProfile: 'default',
       profileNames: ['default', 'desktop-alias'],
-      resolveSsh: vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'hermes' }))
+      resolveSsh: vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'iris' }))
     })
 
     expect(routes.map(route => route.targetProfile)).toEqual(['remote-primary', 'remote-primary'])

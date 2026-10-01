@@ -2,11 +2,11 @@
 name: yuanbao
 description: "Yuanbao (元宝) groups: @mention users, query info/members."
 version: 1.0.0
-author: Teknium (teknium1), Hermes Agent
+author: Teknium (teknium1), Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [yuanbao, mention, at, group, members, 元宝, 派, 艾特]
     related_skills: []
 ---

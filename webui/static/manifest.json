@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Hermes",
-  "short_name": "Hermes",
-  "description": "Hermes AI Agent Web UI",
+  "name": "Iris",
+  "short_name": "Iris",
+  "description": "Iris AI Agent Web UI",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -15,7 +15,7 @@
     {
       "name": "New conversation",
       "short_name": "New chat",
-      "description": "Open Hermes ready for a new chat",
+      "description": "Open Iris ready for a new chat",
       "url": "./?source=pwa&action=new-chat",
       "icons": [
         {

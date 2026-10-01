@@ -1,4 +1,4 @@
-"""HTTP client boundary for a supervised Hermes WebUI runner backend.
+"""HTTP client boundary for a supervised Iris WebUI runner backend.
 
 This module intentionally contains no process-local run maps, stream queues,
 cancellation registries, approval/clarify queues, or cached agent instances. It
@@ -16,8 +16,8 @@ from api.http_client import no_redirect_opener
 from typing import Any
 
 
-_RUNNER_BASE_URL_ENV = "HERMES_WEBUI_RUNNER_BASE_URL"
-_RUNNER_API_KEY_ENV = "HERMES_WEBUI_RUNNER_API_KEY"
+_RUNNER_BASE_URL_ENV = "IRIS_WEBUI_RUNNER_BASE_URL"
+_RUNNER_API_KEY_ENV = "IRIS_WEBUI_RUNNER_API_KEY"
 
 
 class RunnerClientError(RuntimeError):
@@ -37,7 +37,7 @@ class HttpRunnerClient:
         if not self.base_url:
             raise ValueError("runner base_url is required")
         # Hardening: the runner endpoint is operator-configured, but reject any
-        # non-HTTP(S) scheme so a misconfigured HERMES_WEBUI_RUNNER_BASE_URL
+        # non-HTTP(S) scheme so a misconfigured IRIS_WEBUI_RUNNER_BASE_URL
         # (e.g. file:///etc/passwd or ftp://) can never be handed to urlopen.
         _scheme = urllib.parse.urlsplit(self.base_url).scheme.lower()
         if _scheme not in ("http", "https"):
@@ -108,7 +108,7 @@ class HttpRunnerClient:
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "User-Agent": "Hermes-WebUI-RunnerClient",
+            "User-Agent": "Iris-WebUI-RunnerClient",
         }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"

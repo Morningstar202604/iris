@@ -59,7 +59,7 @@ class _ModelsResponse:
 def _isolate_config(monkeypatch, tmp_path):
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     for var in _API_KEY_ENV_VARS:
         monkeypatch.delenv(var, raising=False)
     config.invalidate_models_cache()

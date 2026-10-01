@@ -43,8 +43,8 @@ def _seed_session(
     )
 
 
-def _seed_transcript_artifacts(hermes_home, session_ids):
-    sessions_dir = hermes_home / "sessions"
+def _seed_transcript_artifacts(iris_home, session_ids):
+    sessions_dir = iris_home / "sessions"
     sessions_dir.mkdir(exist_ok=True)
     for sid in session_ids:
         (sessions_dir / f"{sid}.json").write_text("{}", encoding="utf-8")
@@ -74,9 +74,9 @@ def _assert_all_artifacts_exist(sessions_dir, session_ids):
 
 @pytest.mark.requires_agent_modules
 def test_delete_cli_session_cascades_delegates_but_preserves_branch(tmp_path, monkeypatch):
-    """Current Hermes removes delegates while preserving all other child kinds."""
-    hermes_state = pytest.importorskip("hermes_state")
-    SessionDB = hermes_state.SessionDB
+    """Current Iris removes delegates while preserving all other child kinds."""
+    iris_state = pytest.importorskip("iris_state")
+    SessionDB = iris_state.SessionDB
 
     state_db = tmp_path / "state.db"
     db = SessionDB(db_path=state_db)
@@ -122,10 +122,10 @@ def test_delete_cli_session_cascades_delegates_but_preserves_branch(tmp_path, mo
             "generic-child", "compression-parent", "compression-child",
         },
     )
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -235,7 +235,7 @@ def test_delete_cli_session_cascades_marked_and_legacy_subagents(
     )
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -457,7 +457,7 @@ def test_delete_cli_session_preserves_ambiguous_and_inherited_marker_branches(
     )
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -513,12 +513,12 @@ def test_delete_cli_session_profile_resolution_failure_does_not_guess_fallback(
 
     import api.profiles
 
-    monkeypatch.setenv("HERMES_HOME", str(fallback_home))
+    monkeypatch.setenv("IRIS_HOME", str(fallback_home))
 
     def _resolution_failure():
         raise RuntimeError("active profile unavailable")
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", _resolution_failure)
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", _resolution_failure)
 
     from api.models import delete_cli_session
 
@@ -579,7 +579,7 @@ def test_delete_cli_session_reports_artifact_cleanup_failure(
     monkeypatch.setattr(Path, "unlink", _locked_unlink)
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -655,7 +655,7 @@ def test_delete_cli_session_deletes_explicit_migrated_delegate_without_source_ta
     )
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -740,9 +740,9 @@ artifact_violation = Path(sys.argv[8])
 artifact_seen = Path(sys.argv[9])
 original = models._process_stale_cleanup_manifests
 original_unlink = Path.unlink
-profiles.get_active_hermes_home = lambda: home
+profiles.get_active_iris_home = lambda: home
 
-def observed_recovery(hermes_home):
+def observed_recovery(iris_home):
     owns_marker = False
     try:
         fd = os.open(active, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
@@ -753,7 +753,7 @@ def observed_recovery(hermes_home):
         owns_marker = True
     try:
         time.sleep(0.5)
-        return original(hermes_home)
+        return original(iris_home)
     finally:
         if owns_marker:
             active.unlink(missing_ok=True)
@@ -802,8 +802,8 @@ print(f"RESULT={models.delete_cli_session(sid)}", flush=True)
 """
     repo_root = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(tmp_path)
-    env["HERMES_WEBUI_ISOLATED_PROFILE"] = "1"
+    env["IRIS_HOME"] = str(tmp_path)
+    env["IRIS_WEBUI_ISOLATED_PROFILE"] = "1"
     env["PYTHONPATH"] = os.pathsep.join(
         part for part in (str(repo_root), env.get("PYTHONPATH", "")) if part
     )
@@ -925,7 +925,7 @@ def test_delete_cli_session_thread_lock_does_not_block_different_profiles(
 
     monkeypatch.setattr(
         profiles,
-        "get_active_hermes_home",
+        "get_active_iris_home",
         lambda: homes[threading.current_thread().name],
     )
     original_recovery = models._process_stale_cleanup_manifests
@@ -933,14 +933,14 @@ def test_delete_cli_session_thread_lock_does_not_block_different_profiles(
     profile_b_entered = threading.Event()
     release_profile_a = threading.Event()
 
-    def observed_recovery(hermes_home):
-        if Path(hermes_home) == homes["profile-a"]:
+    def observed_recovery(iris_home):
+        if Path(iris_home) == homes["profile-a"]:
             profile_a_entered.set()
             if not release_profile_a.wait(timeout=10):
                 raise TimeoutError("profile-a release timeout")
         else:
             profile_b_entered.set()
-        return original_recovery(hermes_home)
+        return original_recovery(iris_home)
 
     monkeypatch.setattr(models, "_process_stale_cleanup_manifests", observed_recovery)
     results = {}
@@ -1077,7 +1077,7 @@ def test_delete_cli_session_cleans_referential_tables(tmp_path, monkeypatch):
     _seed_transcript_artifacts(tmp_path, {"parent", "delegate", "bystander"})
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -1166,7 +1166,7 @@ def test_delete_cli_session_artifact_cleanup_is_idempotent(tmp_path, monkeypatch
     monkeypatch.setattr(Path, "unlink", _locked_once_unlink)
     import api.profiles
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 
@@ -1224,7 +1224,7 @@ def test_delete_cli_session_stale_manifest_preserves_live_session(tmp_path, monk
 
     import api.profiles
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     from api.models import delete_cli_session
 
@@ -1287,7 +1287,7 @@ def test_delete_cli_session_concurrent_unique_manifests(tmp_path, monkeypatch):
 
     import api.profiles
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     from api.models import delete_cli_session
 
@@ -1356,7 +1356,7 @@ def test_delete_cli_session_releases_manifest_lock_after_unlink_error(
     import api.models as models
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     original_unlink = Path.unlink
 
@@ -1417,7 +1417,7 @@ def test_delete_cli_session_missing_db_preserves_manifested_live_artifacts(
     from api.models import delete_cli_session
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     assert delete_cli_session("unrelated") is False
 
@@ -1470,7 +1470,7 @@ def test_delete_cli_session_unqueryable_db_preserves_manifested_live_artifacts(
     import api.models as models
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     original_connect = sqlite3.connect
 
@@ -1537,7 +1537,7 @@ def test_delete_cli_session_uses_delegate_lineage_parent_for_compression(
     from api.models import delete_cli_session
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     assert delete_cli_session("compression-parent") is True
 
@@ -1586,7 +1586,7 @@ def test_delete_cli_session_manifest_publish_failure_rolls_back(
     from api.models import delete_cli_session
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     original_write_text = Path.write_text
 
@@ -1647,7 +1647,7 @@ def test_delete_cli_session_preserves_malformed_manifest_and_reports_failure(
     from api.models import delete_cli_session
 
     monkeypatch.setattr(
-        api.profiles, "get_active_hermes_home", lambda: str(tmp_path)
+        api.profiles, "get_active_iris_home", lambda: str(tmp_path)
     )
     assert delete_cli_session("victim") is False
 

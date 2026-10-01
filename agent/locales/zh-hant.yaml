@@ -1,4 +1,4 @@
-# Hermes 靜態訊息目錄 -- 繁體中文（台灣／香港）
+# Iris 靜態訊息目錄 -- 繁體中文（台灣／香港）
 # See locales/en.yaml for the source of truth; keep keys in sync.
 
 approval:
@@ -11,7 +11,7 @@ approval:
   prompt_smart_deny: "      選擇 [o/D]: "
   smart_deny_once_inputs: "o,once"
   smart_deny_deny_inputs: "d,deny"
-  timeout:         "      ⏱ {waited} 內沒有回應——未執行該指令。再次要求即可重試，或提高上限：hermes config set approvals.timeout {suggested}"
+  timeout:         "      ⏱ {waited} 內沒有回應——未執行該指令。再次要求即可重試，或提高上限：iris config set approvals.timeout {suggested}"
   allowed_once:    "      ✓ 本次允許"
   allowed_session: "      ✓ 本次工作階段內允許"
   allowed_always:  "      ✓ 已加入永久允許清單"
@@ -116,8 +116,8 @@ gateway:
     upload_failed:         "✗ 無法上傳除錯報告：{error}"
     header:                "**除錯報告已上傳：**"
     auto_delete:           "⏱ 貼上的內容將於 6 小時後自動刪除。"
-    full_logs_hint:        "如需上傳完整紀錄，請在 CLI 中使用 `hermes debug share`。"
-    share_hint:            "請將這些連結分享給 Hermes 團隊以取得支援。"
+    full_logs_hint:        "如需上傳完整紀錄，請在 CLI 中使用 `iris debug share`。"
+    share_hint:            "請將這些連結分享給 Iris 團隊以取得支援。"
 
   deny:
     stale:                 "❌ 指令已拒絕（批准已過期）。"
@@ -161,7 +161,7 @@ gateway:
     set:                   "⊙ 目標已設定（{budget} 輪預算）：{goal}\n我會持續工作直到目標完成、你暫停／清除目標，或預算耗盡。\n控制指令：/goal status · /goal pause · /goal resume · /goal clear"
 
   help:
-    header:                "📖 **Hermes 指令**\n"
+    header:                "📖 **Iris 指令**\n"
     skill_header:          "\n⚡ **技能指令**（{count} 個作用中）："
     more_use_commands:     "\n... 還有 {count} 個。使用 `/commands` 檢視完整分頁清單。"
 
@@ -172,7 +172,7 @@ gateway:
   kanban:
     error_prefix:          "⚠ kanban 錯誤：{error}"
     subscribed_suffix:     "（已訂閱 — 當 {task_id} 完成或被封鎖時將通知您）"
-    truncated_suffix:      "…（已截斷；如需完整輸出請在終端機執行 `hermes kanban …`）"
+    truncated_suffix:      "…（已截斷；如需完整輸出請在終端機執行 `iris kanban …`）"
     no_output:             "（無輸出）"
     wake:
       completed:           "completed"
@@ -260,7 +260,7 @@ gateway:
 
   restart:
     in_progress:           "⏳ 閘道重新啟動已在進行中……"
-    restarting:            "♻ 正在重新啟動閘道。如果 60 秒內未收到通知，請在主控台執行 `hermes gateway restart` 重新啟動。"
+    restarting:            "♻ 正在重新啟動閘道。如果 60 秒內未收到通知，請在主控台執行 `iris gateway restart` 重新啟動。"
 
   resume:
     db_unavailable:        "工作階段資料庫無法使用。"
@@ -268,7 +268,7 @@ gateway:
 Use quotes around titles with spaces, for example: `/resume \"Project A Plan\"`."
     matrix_no_named_sessions: "No named sessions found for this Matrix room.
 Use `/title My Session` to name the current room session, `/resume --all` to list all Matrix sessions, or `/resume --cross-room <session name>` to explicitly cross room boundaries."
-    matrix_blocked_no_origin: "⚠️ Matrix /resume blocked: this named session has no recorded room origin, so Hermes will not resume it inside the current room by default. Use `/resume --cross-room {name}` if you intentionally want to cross room boundaries."
+    matrix_blocked_no_origin: "⚠️ Matrix /resume blocked: this named session has no recorded room origin, so Iris will not resume it inside the current room by default. Use `/resume --cross-room {name}` if you intentionally want to cross room boundaries."
     matrix_blocked_other_room: "⚠️ Matrix /resume blocked: that session belongs to a different Matrix room ({room}). Use `/resume --cross-room {name}` if you intentionally want to resume it here."
     matrix_cross_room_success: "⚠️ Cross-room resume: resumed **{title}** inside Matrix room **{room}**.
 Future messages in this room will use that transcript until `/reset` or another `/resume`.{msg_part}"
@@ -331,7 +331,7 @@ Future messages in this room will use that transcript until `/reset` or another 
     no_data:               "No context data available yet. Send a message to start a session."
 
   status:
-    header:                "📊 **Hermes 閘道狀態**"
+    header:                "📊 **Iris 閘道狀態**"
     matrix_scope_header:   "**Matrix scope:**"
     matrix_scope_room:     "  room: {room}"
     matrix_scope_room_id:  "  room_id: {room_id}"
@@ -377,7 +377,7 @@ Future messages in this room will use that transcript until `/reset` or another 
     topics_user_disallowed:  "Telegram topics 已啟用，但不允許使用者建立 topics。\n\n開啟 @BotFather → 選擇您的 bot → Bot Settings → Threads Settings，然後關閉 'Disallow users to create new threads'。\n\n然後再次傳送 /topic。"
     enable_failed:           "啟用 Telegram topic 模式失敗：{error}"
     bound_status:            "此 topic 已連結至：\n工作階段：{label}\nID：{session_id}\n\n使用 /new 將此 topic 取代為新工作階段。\n如需平行作業，請開啟 All Messages 並在其中傳送訊息以建立另一個 topic。"
-    thread_ready:            "Telegram 多工作階段 topics 已啟用。\n\n此 topic 將作為獨立的 Hermes 工作階段使用。使用 /new 取代此 topic 目前的工作階段。如需平行作業，請開啟 All Messages 並在其中傳送訊息以建立另一個 topic。"
+    thread_ready:            "Telegram 多工作階段 topics 已啟用。\n\n此 topic 將作為獨立的 Iris 工作階段使用。使用 /new 取代此 topic 目前的工作階段。如需平行作業，請開啟 All Messages 並在其中傳送訊息以建立另一個 topic。"
     untitled_session:        "未命名工作階段"
 
   undo:
@@ -386,11 +386,11 @@ Future messages in this room will use that transcript until `/reset` or another 
     invalid_count:         "無效的數量「{arg}」—— 請使用 /undo 或 /undo N。"
 
   update:
-    platform_not_messaging:  "✗ /update 僅在訊息平台上可用。請在終端機執行 `hermes update`。"
+    platform_not_messaging:  "✗ /update 僅在訊息平台上可用。請在終端機執行 `iris update`。"
     not_git_repo:            "✗ 不是 git 儲存庫 — 無法更新。"
-    hermes_cmd_not_found:    "✗ 找不到 `hermes` 指令。Hermes 正在執行，但更新指令無法在 PATH 上或透過目前的 Python 解譯器找到執行檔。請嘗試在終端機中手動執行 `hermes update`。"
+    iris_cmd_not_found:    "✗ 找不到 `iris` 指令。Iris 正在執行，但更新指令無法在 PATH 上或透過目前的 Python 解譯器找到執行檔。請嘗試在終端機中手動執行 `iris update`。"
     start_failed:            "✗ 啟動更新失敗：{error}"
-    starting:                "☤ 正在啟動 Hermes 更新…… 進度將在此處顯示。"
+    starting:                "☤ 正在啟動 Iris 更新…… 進度將在此處顯示。"
 
   usage:
     rate_limits:              "⏱️ **速率限制：** {state}"
@@ -433,7 +433,7 @@ Future messages in this room will use that transcript until `/reset` or another 
     mode_new:              "⚙️ 工具進度：**NEW** — 工具變更時顯示（預覽長度：`display.tool_preview_length`，預設 40）。"
     mode_all:              "⚙️ 工具進度：**ALL** — 顯示每次工具呼叫（預覽長度：`display.tool_preview_length`，預設 40）。"
     mode_verbose:          "⚙️ 工具進度：**VERBOSE** — 顯示每次工具呼叫及完整參數。"
-    mode_log:              "⚙️ 工具進度：**LOG** — 聊天中保持靜默；工具呼叫寫入 ~/.hermes/logs/tool_calls.log。"
+    mode_log:              "⚙️ 工具進度：**LOG** — 聊天中保持靜默；工具呼叫寫入 ~/.iris/logs/tool_calls.log。"
     saved_suffix:          "_（已為 **{platform}** 儲存 — 下一則訊息生效）_"
     save_failed:           "_（無法儲存到設定：{error}）_"
 

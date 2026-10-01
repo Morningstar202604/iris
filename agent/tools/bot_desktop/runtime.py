@@ -1,11 +1,11 @@
-"""Bot Desktop runtime: one headless Xfce desktop per Hermes profile, served over RFB on a private
-Unix socket, viewed and driven from Hermes Desktop.
+"""Bot Desktop runtime: one headless Xfce desktop per Iris profile, served over RFB on a private
+Unix socket, viewed and driven from Iris Desktop.
 
-Layout under ``<HERMES_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
+Layout under ``<IRIS_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
 (Xvnc RFB Unix socket, 0600), ``Xauthority``, ``env`` (DISPLAY/XAUTHORITY/DBUS_SESSION_BUS_ADDRESS
 published by the launcher once Xfce's bus exists), ``launcher.pid``, ``launcher.log``, ``xdg/``
 (per-profile XDG_CONFIG_HOME so two profiles never share xfconf). Everything is profile-scoped via
-``get_hermes_home()`` so N profiles in one gateway get N desktops: one screen per bot on the shared
+``get_iris_home()`` so N profiles in one gateway get N desktops: one screen per bot on the shared
 machine.
 
 The launcher is ``launcher.sh`` next to this module; :func:`desktop_env` is what cua-driver and headed
@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ PACKAGES = {
 
 
 def state_dir() -> Path:
-    return get_hermes_home() / "bot-desktop"
+    return get_iris_home() / "bot-desktop"
 
 
 def is_supported_host() -> bool:
@@ -92,7 +92,7 @@ def package_manager() -> Optional[str]:
 
 def install_command() -> Optional[str]:
     """The distro command that installs the Bot Desktop packages, as the human would type it on THIS host:
-    prefixed with ``sudo`` unless Hermes already runs as root (the official Docker image is uid 0 with no
+    prefixed with ``sudo`` unless Iris already runs as root (the official Docker image is uid 0 with no
     sudo binary), so it is both what the pane shows and what :mod:`tools.bot_desktop.install` runs."""
     pm = package_manager()
     if pm is None:
@@ -287,7 +287,7 @@ def _kill_group_then_wait(pgid: Optional[int], pid: int, grace: float = 2.0) -> 
 
 # Host-wide (every profile allocates from one band), so it lives outside any profile home — but not in
 # world-writable /tmp, where a predictable name lets another local user pre-create or squat the file.
-_ALLOC_LOCK = Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "hermes-bot-desktop-alloc.lock"
+_ALLOC_LOCK = Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "iris-bot-desktop-alloc.lock"
 
 
 @contextlib.contextmanager
@@ -355,7 +355,7 @@ def _should_auto_start(env: Dict[str, str]) -> bool:
         return False
     if missing_binaries():
         return False
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return bool(cfg.get("auto_start", False))
 
@@ -389,7 +389,7 @@ def idle_seconds() -> Optional[float]:
 
 
 def idle_stop_seconds() -> float:
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     try:
         minutes = float(cfg.get("idle_stop_minutes", DEFAULT_IDLE_STOP_MINUTES))
@@ -435,7 +435,7 @@ def rfb_socket_path() -> Optional[Path]:
 
 
 def geometry() -> str:
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return str(cfg.get("geometry") or "1440x900")
 
@@ -469,7 +469,7 @@ def status(profile: Optional[str] = None) -> DesktopStatus:
 
 def _profile_name() -> str:
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from iris_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
         return "default"
@@ -523,19 +523,19 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
         child_env = {k: v for k, v in os.environ.items() if k not in {
             "DISPLAY", "XAUTHORITY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "SESSION_MANAGER"}}
         child_env.update({
-            "HERMES_BD_PROFILE": _profile_name(),
-            "HERMES_BD_DISPLAY_NUM": str(num),
-            "HERMES_BD_SOCKET": str(sd / "rfb.sock"),
-            "HERMES_BD_XAUTH": str(sd / "Xauthority"),
-            "HERMES_BD_ENV_FILE": str(env_file),
-            "HERMES_BD_CONFIG_HOME": str(sd / "xdg"),
-            "HERMES_BD_GEOMETRY": geometry(),
+            "IRIS_BD_PROFILE": _profile_name(),
+            "IRIS_BD_DISPLAY_NUM": str(num),
+            "IRIS_BD_SOCKET": str(sd / "rfb.sock"),
+            "IRIS_BD_XAUTH": str(sd / "Xauthority"),
+            "IRIS_BD_ENV_FILE": str(env_file),
+            "IRIS_BD_CONFIG_HOME": str(sd / "xdg"),
+            "IRIS_BD_GEOMETRY": geometry(),
         })
         from tools.bot_desktop.browser import dock_exec_line, dock_launch
         if (browser := dock_launch()) is not None:
             # The bare executable (the launcher checks it exists) and the ready-made, spec-quoted Exec= line.
-            child_env["HERMES_BD_BROWSER_EXEC"] = browser[0]
-            child_env["HERMES_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
+            child_env["IRIS_BD_BROWSER_EXEC"] = browser[0]
+            child_env["IRIS_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
         # Truncated per start: the log is a diagnostic for THIS launch, and nothing rotates it otherwise.
         log = open(sd / "launcher.log", "wb")  # noqa: SIM115 — handed to the child, closed by it
         proc = subprocess.Popen(  # windows-footgun: ok — Linux-only runtime (is_supported_host)

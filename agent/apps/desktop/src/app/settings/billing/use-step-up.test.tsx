@@ -81,7 +81,7 @@ describe('useStepUpFlow', () => {
     const invalidate = vi.spyOn(client, 'invalidateQueries')
 
     apiMocks.stepUp.mockReturnValue(stepUpPromise)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'irisDesktop', {
       configurable: true,
       value: {
         openExternal: vi.fn()
@@ -114,7 +114,7 @@ describe('useStepUpFlow', () => {
     })
 
     result.current.openVerification()
-    expect(window.hermesDesktop?.openExternal).toHaveBeenCalledWith('https://portal.nousresearch.com/device')
+    expect(window.irisDesktop?.openExternal).toHaveBeenCalledWith('https://portal.nousresearch.com/device')
 
     await act(async () => {
       resolveStepUp({ data: { granted: true, ok: true }, ok: true })

@@ -87,13 +87,14 @@ id; native Responses/Codex compaction paths are provider-specific. A stalled sum
 once on `auxiliary.compression.fallback_chain`, and a repeated stall (a stall-class failure already on
 the cooldown ladder) ends with the deterministic fallback summary through the same pipeline — never a
 prune committed outside the lease/fence. Compression is the sanctioned
-cache break — keep it the only one. Full detail:
-`website/docs/developer-guide/context-compression-and-caching.md`.
+cache break — keep it the only one. Full detail lives in the
+`agent/context_compressor.py` and `agent/native_compaction.py` modules.
 
 ## Model and provider resolution
 
-- Runtime provider/model resolution and its precedence: `website/docs/developer-guide/provider-runtime.md`.
-  Provider profiles are plugins (`plugins/model-providers/<name>/`, see `plugins/AGENTS.md`);
+- Runtime provider/model resolution and its precedence: see `agent/auxiliary_client.py`
+  and `agent/provider_registry.py`. Provider profiles are plugins
+  (`plugins/model-providers/<name>/`, see `plugins/AGENTS.md`);
   `agent/model_metadata.py` holds context lengths and capabilities.
 - **Auxiliary (side-LLM) work** — curator, vision, embedding, title generation, session_search,
   compression — resolves through `agent/auxiliary_client.py::_resolve_auto_route`; each task can pin
@@ -103,7 +104,7 @@ cache break — keep it the only one. Full detail:
   `post_auxiliary_call` (observer-only, fail-open, `aux_task` set); the main-loop
   `pre/post_api_request` events must NOT fire for aux calls (#79733).
 - Fallback models and credential pools are resolution-chain code: E2E them with real imports
-  against a temp `HERMES_HOME`, not mocks (root rubric).
+  against a temp `IRIS_HOME`, not mocks (root rubric).
 
 ## Memory, context engines, curator
 
@@ -133,6 +134,8 @@ Loop/phase tests go in `tests/agent/`; patch the binding the phase actually read
 message-shape invariants (alternation, byte-stable system prompt) rather than snapshotting prompt
 text.
 
-Long-form: `website/docs/developer-guide/agent-loop.md`, `prompt-assembly.md`,
-`context-compression-and-caching.md`, `provider-runtime.md`, `session-storage.md`,
-`subagent-lifecycle-api.md`.
+Long-form background lives in the turn-phase modules themselves:
+`agent/turn_*.py` (loop), `agent/prompt_builder.py` (prompt-assembly),
+`agent/context_compressor.py` + `agent/native_compaction.py` (compression),
+`agent/auxiliary_client.py` (provider-runtime), `agent/iris_state_*.py`
+(session-storage), `agent/subagent_lifecycle.py` (subagent lifecycle).

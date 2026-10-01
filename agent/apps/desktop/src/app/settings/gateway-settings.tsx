@@ -50,7 +50,7 @@ import { enrichSelectedSshHost, selectSshHost } from './ssh-host-selection'
 type Mode = 'local' | 'remote' | 'cloud' | 'ssh'
 type AuthMode = 'oauth' | 'token'
 type ProbeStatus = 'idle' | 'probing' | 'done' | 'error'
-// Hermes Cloud discovery lifecycle for the cloud-mode panel.
+// Iris Cloud discovery lifecycle for the cloud-mode panel.
 type CloudDiscoverStatus = 'idle' | 'loading' | 'done' | 'error'
 
 export interface GatewaySettingsState {
@@ -72,7 +72,7 @@ export interface GatewaySettingsState {
   sshUser: string
   sshPort: number | null
   sshKeyPath: string
-  sshRemoteHermesPath: string
+  sshRemoteIrisPath: string
   sshRemoteProfile: string
 }
 
@@ -93,7 +93,7 @@ const EMPTY_STATE: GatewaySettingsState = {
   sshUser: '',
   sshPort: null,
   sshKeyPath: '',
-  sshRemoteHermesPath: '',
+  sshRemoteIrisPath: '',
   sshRemoteProfile: ''
 }
 
@@ -280,7 +280,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   useEffect(() => {
     let cancelled = false
 
-    void window.hermesDesktop
+    void window.irisDesktop
       ?.getSecretStorageEncryption?.()
       .then(res => {
         if (!cancelled && res) {
@@ -300,7 +300,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     setKeychainEncryptionState(on)
 
     try {
-      const res = await window.hermesDesktop.setSecretStorageEncryption(on)
+      const res = await window.irisDesktop.setSecretStorageEncryption(on)
 
       setKeychainEncryptionState(res?.on === true)
     } catch (err) {
@@ -322,7 +322,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   // so confirm resumes the right one.
   const [plainTextConfirm, setPlainTextConfirm] = useState<null | { apply: boolean }>(null)
 
-  // --- Hermes Cloud (cloud mode) state ---
+  // --- Iris Cloud (cloud mode) state ---
   // One portal session powers discovery + the silent per-agent cascade. These
   // track the cloud panel: whether we're signed in, the discovered agent list,
   // and which agent is mid-connect.
@@ -357,7 +357,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
 
   useEffect(() => {
     let cancelled = false
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
 
     if (!desktop?.getConnectionConfig) {
       setLoading(false)
@@ -433,7 +433,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
       return
     }
 
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
 
     if (!desktop?.probeConnectionConfig) {
       return
@@ -536,12 +536,12 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   }, [state.sshHost, sshHostSuggestions])
 
   useEffect(() => {
-    if (state.mode !== 'ssh' || !window.hermesDesktop?.sshConfigHosts) {
+    if (state.mode !== 'ssh' || !window.irisDesktop?.sshConfigHosts) {
       return
     }
 
     let cancelled = false
-    void window.hermesDesktop
+    void window.irisDesktop
       .sshConfigHosts()
       .then(result => {
         if (!cancelled) {
@@ -571,7 +571,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     state.sshUser,
     state.sshPort,
     state.sshKeyPath,
-    state.sshRemoteHermesPath,
+    state.sshRemoteIrisPath,
     state.sshRemoteProfile
   ])
 
@@ -598,7 +598,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     sshUser: state.sshUser.trim() || undefined,
     sshPort: state.sshPort,
     sshKeyPath: state.sshKeyPath.trim() || undefined,
-    sshRemoteHermesPath: state.sshRemoteHermesPath.trim(),
+    sshRemoteIrisPath: state.sshRemoteIrisPath.trim(),
     // Preserve an intentional blank so an existing remote-profile mapping can
     // be cleared instead of being mistaken for an omitted field.
     sshRemoteProfile: state.sshRemoteProfile.trim(),
@@ -621,8 +621,8 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
 
     try {
       const next = apply
-        ? await window.hermesDesktop.applyConnectionConfig(payload(allowPlainTextToken))
-        : await window.hermesDesktop.saveConnectionConfig(payload(allowPlainTextToken))
+        ? await window.irisDesktop.applyConnectionConfig(payload(allowPlainTextToken))
+        : await window.irisDesktop.saveConnectionConfig(payload(allowPlainTextToken))
 
       if (seq !== saveSeq.current) {
         return
@@ -651,7 +651,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
 
       const errors = {
         'auth-failed': g.sshErrAuth,
-        'hermes-not-found': g.sshErrNotInstalled,
+        'iris-not-found': g.sshErrNotInstalled,
         'host-key-changed': g.sshErrHostKey,
         timeout: g.sshErrTimeout,
         unreachable: g.sshErrUnreachable,
@@ -713,7 +713,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     try {
       // Save (don't apply/restart) so the login window has a URL to use and the
       // oauth mode is persisted, without yet flipping the live connection.
-      const saved = await window.hermesDesktop.saveConnectionConfig({
+      const saved = await window.irisDesktop.saveConnectionConfig({
         mode: state.mode,
         remoteAuthMode: 'oauth',
         remoteUrl: trimmedUrl
@@ -725,14 +725,14 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
 
       acceptSavedConfig(saved)
 
-      const result = await window.hermesDesktop.oauthLoginConnectionConfig(trimmedUrl)
+      const result = await window.irisDesktop.oauthLoginConnectionConfig(trimmedUrl)
 
       if (seq !== signingSeq.current) {
         return
       }
 
       if (result.connected) {
-        const refreshed = await window.hermesDesktop.getConnectionConfig(null)
+        const refreshed = await window.irisDesktop.getConnectionConfig(null)
         acceptSavedConfig(refreshed)
         notify({ kind: 'success', title: g.signedIn, message: g.connectedTo(providerLabel) })
       } else {
@@ -762,8 +762,8 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     setSigningIn(true)
 
     try {
-      await window.hermesDesktop.oauthLogoutConnectionConfig(trimmedUrl)
-      const refreshed = await window.hermesDesktop.getConnectionConfig(null)
+      await window.irisDesktop.oauthLogoutConnectionConfig(trimmedUrl)
+      const refreshed = await window.irisDesktop.getConnectionConfig(null)
 
       if (seq !== signingSeq.current) {
         return
@@ -782,14 +782,14 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     }
   }
 
-  // --- Hermes Cloud handlers ---
+  // --- Iris Cloud handlers ---
 
   // Pull the discovered agent list over the shared portal session. Tolerant of
   // a lapsed session: a needsCloudLogin error flips us back to signed-out.
   // `org` scopes discovery for multi-org users; when discovery comes back with
   // needsOrgSelection we surface the org list and show a picker instead.
   const discoverCloud = async (org?: string) => {
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
     const seq = contextSeq.current
 
     if (!desktop?.cloud) {
@@ -874,7 +874,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
       return
     }
 
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
 
     if (!desktop?.cloud) {
       return
@@ -920,7 +920,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   }, [state.mode])
 
   const cloudSignIn = async () => {
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
     const seq = ++signingSeq.current
 
     if (!desktop?.cloud) {
@@ -953,7 +953,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   }
 
   const cloudSignOut = async () => {
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
     const seq = ++signingSeq.current
 
     if (!desktop?.cloud) {
@@ -996,7 +996,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
       return
     }
 
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
 
     if (!desktop?.cloud) {
       return
@@ -1089,14 +1089,14 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
   }
 
   const resolveSshHost = async (host: string) => {
-    if (!host || !window.hermesDesktop?.sshResolveHost) {
+    if (!host || !window.irisDesktop?.sshResolveHost) {
       return
     }
 
     const seq = ++sshResolveSeq.current
 
     try {
-      const resolved = await window.hermesDesktop.sshResolveHost(host)
+      const resolved = await window.irisDesktop.sshResolveHost(host)
 
       if (seq !== sshResolveSeq.current) {
         return
@@ -1134,7 +1134,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     setLastTest(null)
 
     try {
-      const result = await window.hermesDesktop.testConnectionConfig(payload())
+      const result = await window.irisDesktop.testConnectionConfig(payload())
 
       if (seq !== sshTestSeq.current) {
         return
@@ -1143,7 +1143,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
       if (!result.reachable) {
         const errors = {
           'auth-failed': g.sshErrAuth,
-          'hermes-not-found': g.sshErrNotInstalled,
+          'iris-not-found': g.sshErrNotInstalled,
           'host-key-changed': g.sshErrHostKey,
           timeout: g.sshErrTimeout,
           unreachable: g.sshErrUnreachable,
@@ -1186,7 +1186,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     setLastTest(null)
 
     try {
-      const result = await window.hermesDesktop.testConnectionConfig({
+      const result = await window.irisDesktop.testConnectionConfig({
         mode: 'remote',
         remoteAuthMode: authMode,
         remoteToken: authMode === 'token' ? remoteToken.trim() || undefined : undefined,
@@ -1222,7 +1222,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
     )
   }
 
-  if (!window.hermesDesktop?.getConnectionConfig) {
+  if (!window.irisDesktop?.getConnectionConfig) {
     return <EmptyState description={g.unavailableDesc} title={g.unavailableTitle} />
   }
 
@@ -1293,7 +1293,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
         </div>
       </div>
 
-      {/* Hermes Cloud panel: one portal sign-in, then a discovered-agent picker
+      {/* Iris Cloud panel: one portal sign-in, then a discovered-agent picker
           whose selection drives the silent per-agent cascade + a cloud
           connection. Replaces the URL/token form while in cloud mode. */}
       {state.mode === 'cloud' && !state.envOverride ? (
@@ -1474,7 +1474,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
         </div>
       ) : null}
 
-      {/* An env-pinned remote (HERMES_DESKTOP_REMOTE_URL) still renders this
+      {/* An env-pinned remote (IRIS_DESKTOP_REMOTE_URL) still renders this
           block: the override pins the URL/mode, but the browser SESSION is not
           env-owned — docs promise "you still sign in from the Gateway settings
           panel" (user-guide/desktop.md). Hiding it left a lapsed session with
@@ -1489,7 +1489,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
                 className={cn('h-8', CONTROL_TEXT)}
                 disabled={state.envOverride}
                 onChange={event => setState(current => ({ ...current, remoteUrl: event.target.value }))}
-                placeholder="https://gateway.example.com/hermes"
+                placeholder="https://gateway.example.com/iris"
                 value={state.remoteUrl}
               />
             }
@@ -1679,13 +1679,13 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
             action={
               <Input
                 className={cn('h-8 font-mono', CONTROL_TEXT)}
-                onChange={event => setState(current => ({ ...current, sshRemoteHermesPath: event.target.value }))}
-                placeholder={g.sshHermesPathPlaceholder}
-                value={state.sshRemoteHermesPath}
+                onChange={event => setState(current => ({ ...current, sshRemoteIrisPath: event.target.value }))}
+                placeholder={g.sshIrisPathPlaceholder}
+                value={state.sshRemoteIrisPath}
               />
             }
-            description={g.sshHermesPathDesc}
-            title={g.sshHermesPathTitle}
+            description={g.sshIrisPathDesc}
+            title={g.sshIrisPathTitle}
           />
         </div>
       ) : null}
@@ -1748,7 +1748,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
           />
           <ListRow
             action={
-              <Button onClick={() => void window.hermesDesktop?.revealLogs()} size="sm" variant="textStrong">
+              <Button onClick={() => void window.irisDesktop?.revealLogs()} size="sm" variant="textStrong">
                 <FileText />
                 {g.openLogs}
               </Button>

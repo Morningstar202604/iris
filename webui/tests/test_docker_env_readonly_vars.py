@@ -5,7 +5,7 @@ Background: docker-compose.yml's macOS instructions document
 fixing.  The repo-level .env file is then read by both:
 
   1. ``docker-compose.yml`` itself (for ${UID}/${GID} variable substitution)
-  2. ``start.sh`` (which `source`s the .env to load HERMES_WEBUI_* settings)
+  2. ``start.sh`` (which `source`s the .env to load IRIS_WEBUI_* settings)
   3. ``bootstrap.py`` (via ``_load_repo_dotenv()``)
 
 The old ``set -a; source "${REPO_ROOT}/.env"; set +a`` pattern in start.sh
@@ -122,7 +122,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
             REPO_ROOT={str(tmp_path)!r}
             {loader}
             # Print loaded values (or "unset") for the test to assert against.
-            echo "PORT=${{HERMES_WEBUI_PORT:-unset}}"
+            echo "PORT=${{IRIS_WEBUI_PORT:-unset}}"
             echo "SOME=${{SOME_KEY:-unset}}"
             echo "ANOTHER=${{ANOTHER:-unset}}"
             echo "EXIT_OK"
@@ -140,7 +140,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
         env_contents = textwrap.dedent("""\
             UID=501
             GID=20
-            HERMES_WEBUI_PORT=8888
+            IRIS_WEBUI_PORT=8888
             SOME_KEY=normal-value
         """)
         result = self._run_loader(env_contents, tmp_path)
@@ -161,7 +161,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
         env_contents = textwrap.dedent("""\
             export UID=501
             export GID=20
-            HERMES_WEBUI_PORT=9000
+            IRIS_WEBUI_PORT=9000
         """)
         result = self._run_loader(env_contents, tmp_path)
         assert "EXIT_OK" in result.stdout
@@ -176,7 +176,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
             EUID=501
             EGID=20
             PPID=12345
-            HERMES_WEBUI_PORT=7777
+            IRIS_WEBUI_PORT=7777
         """)
         result = self._run_loader(env_contents, tmp_path)
         assert "EXIT_OK" in result.stdout, (
@@ -188,7 +188,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
     def test_normal_env_still_loads(self, tmp_path):
         """A .env without readonly vars must still load all keys."""
         env_contents = textwrap.dedent("""\
-            HERMES_WEBUI_PORT=8787
+            IRIS_WEBUI_PORT=8787
             SOME_KEY=hello
             ANOTHER=world
         """)
@@ -203,7 +203,7 @@ class TestStartShReadonlyEnvFilterBehavioral:
         env_contents = textwrap.dedent("""\
             UID=501
             export ANOTHER=exported-value
-            HERMES_WEBUI_PORT=6543
+            IRIS_WEBUI_PORT=6543
         """)
         result = self._run_loader(env_contents, tmp_path)
         assert "EXIT_OK" in result.stdout

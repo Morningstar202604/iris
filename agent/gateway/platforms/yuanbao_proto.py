@@ -31,7 +31,7 @@ BIZ_SERVICES = {
     )
 }
 
-HERMES_INSTANCE_ID = 17  # openclaw instance_id（固定值）
+IRIS_INSTANCE_ID = 17  # openclaw instance_id（固定值）
 WS_HEARTBEAT_RUNNING = 1
 WS_HEARTBEAT_FINISH = 2
 
@@ -450,7 +450,7 @@ def encode_auth_bind(
       5 env_name
     """
     dev_buf = _encode_parts([
-        (1, "s", app_version), (2, "s", operation_system), (10, "S", str(HERMES_INSTANCE_ID)), (24, "s", bot_version),
+        (1, "s", app_version), (2, "s", operation_system), (10, "S", str(IRIS_INSTANCE_ID)), (24, "s", bot_version),
     ])
     req_buf = _encode_parts([
         (1, "S", biz_id), (2, "m", _s(1, uid) + _s(2, source) + _s(3, token)), (3, "m", dev_buf), (5, "s", route_env),
@@ -612,7 +612,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

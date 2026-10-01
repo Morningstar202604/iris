@@ -27,7 +27,7 @@ For a custom provider the handler consults these signals:
 1. **Discovered catalog → no allowlist (live probe wins).**
    When the provider entry carries `models_discovered: true` and discovery is
    allowed (`discover_models` is not an explicit opt-out), the `models:`
-   mapping is a *snapshot Hermes persisted from a past discovery*, not a
+   mapping is a *snapshot Iris persisted from a past discovery*, not a
    hand-curated list. It must not gate the live probe: a model the user pulls
    into LM Studio / Ollama after discovery has to appear in the picker.
    Detected by the shared predicate
@@ -56,7 +56,7 @@ For a custom provider the handler consults these signals:
 
 ### Serialized shapes
 
-`hermes config set` and the JSON-mode editor persist lists as quoted
+`iris config set` and the JSON-mode editor persist lists as quoted
 JSON-array strings (`'["chat-a","chat-b"]'`) or Python literals
 (`"['chat-a']"`). The plural value is decoded through the shared
 `_parse_config_string_list()` before id extraction — but only when the value
@@ -68,8 +68,8 @@ picker — the same bug class as `skills.disabled` (#7120 / #7134).
 ### Dict-shaped `models:`
 
 A dict-shaped `models:` mapping (e.g. `{chat-a: {context_length: 128000}}`)
-is *per-model metadata* written by the Hermes Agent setup flow —
-`hermes_cli/model_switch.py::_save_custom_provider` and the setup wizard —
+is *per-model metadata* written by the Iris Agent setup flow —
+`iris_cli/model_switch.py::_save_custom_provider` and the setup wizard —
 **not** a catalog narrow. Treating its keys as an allowlist would collapse the
 live picker to the single saved default (keyless Ollama) while the CLI
 live-probe shows the full catalog. So a dict is **never** a plain allowlist:

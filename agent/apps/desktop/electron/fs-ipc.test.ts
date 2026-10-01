@@ -1,5 +1,5 @@
 /**
- * `hermes:fs:reveal` answers what it did (#115167). `shell.showItemInFolder`
+ * `iris:fs:reveal` answers what it did (#115167). `shell.showItemInFolder`
  * selects an existing item and silently no-ops on a missing one, and a remote
  * backend's paths are missing on this computer by construction — a `true` for
  * them left the renderer nothing to say.
@@ -35,10 +35,10 @@ vi.mock('./desktop-plugins-root', () => ({
 
 import { registerFsIpc } from './fs-ipc'
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-fs-ipc-'))
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-fs-ipc-'))
 
 registerFsIpc({
-  hermesHome: scratch,
+  irisHome: scratch,
   readActiveDesktopProfile: () => null,
   // `~/` resolves under the scratch dir so tilde paths can be exercised.
   expandUserPath: value => (value.startsWith('~/') ? path.join(scratch, value.slice(2)) : value),
@@ -47,13 +47,13 @@ registerFsIpc({
   resolveGitBinary: () => 'git'
 })
 
-const reveal = (target: string) => electron.handlers.get('hermes:fs:reveal')!({}, target)
+const reveal = (target: string) => electron.handlers.get('iris:fs:reveal')!({}, target)
 
 afterEach(() => {
   electron.showItemInFolder.mockClear()
 })
 
-describe('hermes:fs:reveal', () => {
+describe('iris:fs:reveal', () => {
   it('reveals a path that exists on this computer', async () => {
     const file = path.join(scratch, 'workspace')
     fs.mkdirSync(file)

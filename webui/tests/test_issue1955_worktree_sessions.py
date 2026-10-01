@@ -25,38 +25,38 @@ def _isolate_sessions(tmp_path, monkeypatch):
 def test_worktree_metadata_round_trips_through_session_file(_isolate_sessions):
     s = Session(
         session_id="worktree001",
-        workspace=str(_isolate_sessions.parent / "repo" / ".worktrees" / "hermes-1234"),
-        worktree_path=str(_isolate_sessions.parent / "repo" / ".worktrees" / "hermes-1234"),
-        worktree_branch="hermes/hermes-1234",
+        workspace=str(_isolate_sessions.parent / "repo" / ".worktrees" / "iris-1234"),
+        worktree_path=str(_isolate_sessions.parent / "repo" / ".worktrees" / "iris-1234"),
+        worktree_branch="iris/iris-1234",
         worktree_repo_root=str(_isolate_sessions.parent / "repo"),
         worktree_created_at=123.5,
     )
     s.save()
 
     raw = json.loads(s.path.read_text(encoding="utf-8"))
-    assert Path(raw["worktree_path"]).as_posix().endswith(".worktrees/hermes-1234")
-    assert raw["worktree_branch"] == "hermes/hermes-1234"
+    assert Path(raw["worktree_path"]).as_posix().endswith(".worktrees/iris-1234")
+    assert raw["worktree_branch"] == "iris/iris-1234"
     assert raw["worktree_repo_root"].endswith("repo")
     assert raw["worktree_created_at"] == 123.5
 
     loaded = Session.load("worktree001")
     assert loaded.worktree_path == s.worktree_path
-    assert loaded.worktree_branch == "hermes/hermes-1234"
+    assert loaded.worktree_branch == "iris/iris-1234"
     assert loaded.worktree_repo_root == s.worktree_repo_root
     assert loaded.worktree_created_at == 123.5
-    assert loaded.compact()["worktree_branch"] == "hermes/hermes-1234"
+    assert loaded.compact()["worktree_branch"] == "iris/iris-1234"
 
 
 def test_new_session_with_worktree_info_persists_immediately(_isolate_sessions):
     repo = _isolate_sessions.parent / "repo"
-    worktree = repo / ".worktrees" / "hermes-abcd1234"
+    worktree = repo / ".worktrees" / "iris-abcd1234"
     worktree.mkdir(parents=True)
 
     s = new_session(
         workspace=str(worktree),
         worktree_info={
             "path": str(worktree),
-            "branch": "hermes/hermes-abcd1234",
+            "branch": "iris/iris-abcd1234",
             "repo_root": str(repo),
             "created_at": 456.0,
         },
@@ -67,21 +67,21 @@ def test_new_session_with_worktree_info_persists_immediately(_isolate_sessions):
         "real filesystem worktree is not orphaned by a browser/server restart"
     )
     assert s.worktree_path == str(worktree.resolve())
-    assert s.worktree_branch == "hermes/hermes-abcd1234"
+    assert s.worktree_branch == "iris/iris-abcd1234"
     assert s.worktree_repo_root == str(repo.resolve())
     assert s.worktree_created_at == 456.0
 
 
 def test_empty_worktree_session_remains_visible_in_sidebar(_isolate_sessions):
     repo = _isolate_sessions.parent / "repo"
-    worktree = repo / ".worktrees" / "hermes-visible"
+    worktree = repo / ".worktrees" / "iris-visible"
     worktree.mkdir(parents=True)
 
     s = new_session(
         workspace=str(worktree),
         worktree_info={
             "path": str(worktree),
-            "branch": "hermes/hermes-visible",
+            "branch": "iris/iris-visible",
             "repo_root": str(repo),
             "created_at": 789.0,
         },
@@ -124,8 +124,8 @@ def test_create_worktree_for_workspace_calls_agent_setup_with_repo_root(tmp_path
     def fake_setup(repo_root):
         seen["repo_root"] = repo_root
         return {
-            "path": str(repo / ".worktrees" / "hermes-test"),
-            "branch": "hermes/hermes-test",
+            "path": str(repo / ".worktrees" / "iris-test"),
+            "branch": "iris/iris-test",
             "repo_root": str(repo),
         }
 
@@ -135,8 +135,8 @@ def test_create_worktree_for_workspace_calls_agent_setup_with_repo_root(tmp_path
     info = worktrees.create_worktree_for_workspace(nested)
 
     assert seen["repo_root"] == str(repo.resolve())
-    assert Path(info["path"]).as_posix().endswith(".worktrees/hermes-test")
-    assert info["branch"] == "hermes/hermes-test"
+    assert Path(info["path"]).as_posix().endswith(".worktrees/iris-test")
+    assert info["branch"] == "iris/iris-test"
     assert info["repo_root"] == str(repo.resolve())
     assert info["created_at"] >= now
 
@@ -146,7 +146,7 @@ def test_session_new_route_creates_worktree_backed_session(tmp_path, monkeypatch
     import api.worktrees as worktrees
 
     repo = tmp_path / "repo"
-    worktree = repo / ".worktrees" / "hermes-route"
+    worktree = repo / ".worktrees" / "iris-route"
     repo.mkdir()
     worktree.mkdir(parents=True)
 
@@ -166,7 +166,7 @@ def test_session_new_route_creates_worktree_backed_session(tmp_path, monkeypatch
         "create_worktree_for_workspace",
         lambda workspace: {
             "path": str(worktree),
-            "branch": "hermes/hermes-route",
+            "branch": "iris/iris-route",
             "repo_root": str(repo),
             "created_at": 321.0,
         },
@@ -186,7 +186,7 @@ def test_session_new_route_creates_worktree_backed_session(tmp_path, monkeypatch
     session = captured["payload"]["session"]
     assert session["workspace"] == str(worktree.resolve())
     assert session["worktree_path"] == str(worktree.resolve())
-    assert session["worktree_branch"] == "hermes/hermes-route"
+    assert session["worktree_branch"] == "iris/iris-route"
 
 
 def test_session_new_worktree_fallback_workspace_is_resolved(tmp_path, monkeypatch):
@@ -194,7 +194,7 @@ def test_session_new_worktree_fallback_workspace_is_resolved(tmp_path, monkeypat
     import api.worktrees as worktrees
 
     repo = tmp_path / "repo"
-    worktree = repo / ".worktrees" / "hermes-route"
+    worktree = repo / ".worktrees" / "iris-route"
     repo.mkdir()
     worktree.mkdir(parents=True)
     seen = {"resolved": []}
@@ -220,7 +220,7 @@ def test_session_new_worktree_fallback_workspace_is_resolved(tmp_path, monkeypat
         "create_worktree_for_workspace",
         lambda workspace: {
             "path": str(worktree),
-            "branch": "hermes/hermes-route",
+            "branch": "iris/iris-route",
             "repo_root": str(repo),
             "created_at": 321.0,
         },

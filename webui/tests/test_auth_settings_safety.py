@@ -25,9 +25,9 @@ def _isolate_auth_settings_state(tmp_path, monkeypatch):
 
     monkeypatch.setattr(cfg, "SETTINGS_FILE", tmp_path / "settings.json")
     _invalidate_password_hash_cache()
-    os.environ.pop("HERMES_WEBUI_PASSWORD", None)
+    os.environ.pop("IRIS_WEBUI_PASSWORD", None)
     yield
-    os.environ.pop("HERMES_WEBUI_PASSWORD", None)
+    os.environ.pop("IRIS_WEBUI_PASSWORD", None)
     _invalidate_password_hash_cache()
 
 
@@ -178,12 +178,12 @@ class TestFirstTimePasswordNoCurrentRequired:
 
 class TestEnvVarPasswordLockStillRejects:
     def test_env_var_lock_rejects_password_change(self):
-        os.environ["HERMES_WEBUI_PASSWORD"] = "envpw"
+        os.environ["IRIS_WEBUI_PASSWORD"] = "envpw"
         handler = _post_settings({"_set_password": "newpw", "_current_password": "envpw"})
         assert handler.status == 409
 
     def test_env_var_lock_rejects_password_clear(self):
-        os.environ["HERMES_WEBUI_PASSWORD"] = "envpw"
+        os.environ["IRIS_WEBUI_PASSWORD"] = "envpw"
         handler = _post_settings({"_clear_password": True, "_current_password": "envpw"})
         assert handler.status == 409
 

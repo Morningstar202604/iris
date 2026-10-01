@@ -164,7 +164,7 @@ def test_handle_transcribe_capability_reports_named_command_provider(monkeypatch
         "providers": {
             "elevenlabs-gemini": {
                 "type": "command",
-                "command": "/home/user/.hermes/scripts/hermes-elevenlabs-stt.sh {input}",
+                "command": "/home/user/.iris/scripts/iris-elevenlabs-stt.sh {input}",
             }
         },
     }

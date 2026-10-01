@@ -98,7 +98,7 @@ export function BootFailureOverlay() {
       return
     }
 
-    void window.hermesDesktop
+    void window.irisDesktop
       ?.getRecentLogs()
       .then(res => setLogs(res.lines ?? []))
       .catch(() => undefined)
@@ -120,7 +120,7 @@ export function BootFailureOverlay() {
     let cancelled = false
 
     void (async () => {
-      const desktop = window.hermesDesktop
+      const desktop = window.irisDesktop
 
       if (!desktop?.getConnectionConfig) {
         return
@@ -173,25 +173,25 @@ export function BootFailureOverlay() {
 
   const retry = async () => {
     setBusy('retry')
-    await window.hermesDesktop?.resetBootstrap().catch(() => undefined)
+    await window.irisDesktop?.resetBootstrap().catch(() => undefined)
     window.location.reload()
   }
 
   const repair = async () => {
     setBusy('repair')
-    await window.hermesDesktop?.repairBootstrap().catch(() => undefined)
+    await window.irisDesktop?.repairBootstrap().catch(() => undefined)
     window.location.reload()
   }
 
   const switchToLocalGateway = async () => {
     setBusy('local')
     // Soft apply: tears down the primary and re-dials in place (shell stays).
-    await window.hermesDesktop?.applyConnectionConfig({ mode: 'local' }).catch(() => undefined)
+    await window.irisDesktop?.applyConnectionConfig({ mode: 'local' }).catch(() => undefined)
     setBusy(null)
   }
 
   // Clear this gateway's stale auth first, then re-establish it through the
-  // connection's owning login flow. Hermes Cloud must reuse its portal session
+  // connection's owning login flow. Iris Cloud must reuse its portal session
   // and per-agent cascade; generic remote gateways use native/embedded OAuth.
   // Reload after success so boot mints a fresh ticket against the new session.
   const signInRemote = async () => {
@@ -202,7 +202,7 @@ export function BootFailureOverlay() {
     setBusy('signin')
 
     try {
-      const desktop = window.hermesDesktop
+      const desktop = window.irisDesktop
 
       await desktop?.oauthLogoutConnectionConfig?.(remoteReauth.url)
 
@@ -253,7 +253,7 @@ export function BootFailureOverlay() {
     }
   }
 
-  const openLogs = () => void window.hermesDesktop?.revealLogs().catch(() => undefined)
+  const openLogs = () => void window.irisDesktop?.revealLogs().catch(() => undefined)
   const copy = t.boot.failure
 
   // SSH failures keep their own gloss; every other local failure is classified

@@ -10,7 +10,7 @@ description: Turn a pilot-scale eval score into a deployment decision — Wilson
 maintainer: keppy
 tier: community
 category: tools
-requires_hermes: ">=0.21"
+requires_iris: ">=0.21"
 version: "0.1.0"
 docs_url: https://github.com/keppy/hermes-plugin-gonogo#readme
 capabilities:

@@ -2,9 +2,9 @@
 // so the copy — and the "what happened / what to do" shape — is unit-testable
 // without rendering. Every slash command cited here exists in
 // ui-tui/src/app/slash/commands (/logs, /retry, /model, /update, /resume,
-// /sessions, /quit) and `hermes doctor` is a real subcommand.
+// /sessions, /quit) and `iris doctor` is a real subcommand.
 
-import type { ErrorSurface } from '@hermes/shared/gateway-events'
+import type { ErrorSurface } from '@iris/shared/gateway-events'
 
 /** JSON-RPC error codes the gateway answers with. */
 export const RPC_INVALID_PARAMS = 4000
@@ -35,13 +35,13 @@ const detailLine = (raw: string | undefined): string | null => {
 // ── Backend process lifecycle ─────────────────────────────────────────────
 
 export const BACKEND_RESTARTING =
-  'Hermes stopped unexpectedly — restarting and reopening your chat (the reply in progress was lost).'
+  'Iris stopped unexpectedly — restarting and reopening your chat (the reply in progress was lost).'
 
-export const BACKEND_RESTARTING_ACTIVITY = 'Hermes stopped unexpectedly · restarting…'
+export const BACKEND_RESTARTING_ACTIVITY = 'Iris stopped unexpectedly · restarting…'
 
-// Attached (dashboard / embedded) mode: only the socket dropped; Hermes and any
+// Attached (dashboard / embedded) mode: only the socket dropped; Iris and any
 // reply in progress are still alive on the backend and come back on reconnect.
-export const CONNECTION_LOST = 'Connection to Hermes lost — reconnecting and reopening your chat…'
+export const CONNECTION_LOST = 'Connection to Iris lost — reconnecting and reopening your chat…'
 
 export const CONNECTION_LOST_ACTIVITY = 'connection lost · reconnecting…'
 
@@ -50,16 +50,16 @@ export const backendGaveUp = (code: null | number, lastLine?: string): string =>
   const detail = detailLine(lastLine)
 
   return [
-    `Hermes stopped${exit} and could not be restarted. Your chat is saved.`,
+    `Iris stopped${exit} and could not be restarted. Your chat is saved.`,
     detail,
-    'Hermes keeps trying to reconnect in the background and reopens this chat when it succeeds; if it does not, type /resume.',
-    'Type /logs for the full log, or /quit and run `hermes doctor` to check the install.'
+    'Iris keeps trying to reconnect in the background and reopens this chat when it succeeds; if it does not, type /resume.',
+    'Type /logs for the full log, or /quit and run `iris doctor` to check the install.'
   ]
     .filter(Boolean)
     .join('\n')
 }
 
-export const BACKEND_GAVE_UP_ACTIVITY = 'Hermes stopped · /logs for details'
+export const BACKEND_GAVE_UP_ACTIVITY = 'Iris stopped · /logs for details'
 
 /** Last line of the backend log tail that is not our own [lifecycle]/[startup] bookkeeping. */
 export const lastStderrLine = (tail: string): string | undefined =>
@@ -77,7 +77,7 @@ export const backendReconnecting = (attempt: number | undefined, delayMs: number
 }
 
 export const BACKEND_SLOW_START =
-  'Hermes is taking longer than usual to start. Still waiting… If it never connects: /logs shows the last backend output; /quit and run `hermes doctor`.'
+  'Iris is taking longer than usual to start. Still waiting… If it never connects: /logs shows the last backend output; /quit and run `iris doctor`.'
 
 export const BACKEND_SLOW_START_STATUS = 'still starting…'
 
@@ -95,7 +95,7 @@ export const stderrProblemActivity = (line: string): string => {
   const m = /([A-Z][A-Za-z]*(?:Error|Exception)):/.exec(line)
   const what = m ? ` (${m[1]})` : ''
 
-  return `Something went wrong inside Hermes${what} · /logs for details`
+  return `Something went wrong inside Iris${what} · /logs for details`
 }
 
 // ── RPC errors ────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ export const isVersionSkewError = (err: unknown): boolean => {
 }
 
 export const VERSION_SKEW_MESSAGE =
-  'The terminal UI and the Hermes backend are out of sync (different versions). Run /update, or exit and run `hermes update`, then start the TUI again.'
+  'The terminal UI and the Iris backend are out of sync (different versions). Run /update, or exit and run `iris update`, then start the TUI again.'
 
 const SESSION_NOT_FOUND_RE = /session not found/i
 const NOT_CONNECTED_RE = /^gateway not (?:connected|running)\b/
@@ -137,12 +137,12 @@ const RPC_ERROR_ROWS: RpcErrorRow[] = [
   [
     (_code, text) => NOT_CONNECTED_RE.test(text),
     () =>
-      'Hermes is not connected right now, so that was not sent. It reconnects automatically; wait a moment and try again, or type /logs if this persists.'
+      'Iris is not connected right now, so that was not sent. It reconnects automatically; wait a moment and try again, or type /logs if this persists.'
   ],
   [
     (_code, text) => TIMED_OUT_RE.exec(text),
     m =>
-      `Hermes did not answer within ${m?.[1] ?? '?'}s. Try again; if it keeps happening, type /logs and report the last lines.`
+      `Iris did not answer within ${m?.[1] ?? '?'}s. Try again; if it keeps happening, type /logs and report the last lines.`
   ]
 ]
 
@@ -255,9 +255,9 @@ const TURN_CODE_COPY: Record<string, [string, string]> = {
 const TURN_LAYER_COPY: Record<string, [string, string]> = {
   auth: ['The model provider rejected the credentials', 'Fix them with /model, then /retry.'],
   billing: ['The model provider reports no credit left', 'Top up the account or switch with /model.'],
-  disk: ['The disk is full, so Hermes could not save the turn', 'Free some space, then /retry.'],
+  disk: ['The disk is full, so Iris could not save the turn', 'Free some space, then /retry.'],
   endpoint: ['Your custom model endpoint did not answer', 'Check the endpoint is running, then /retry.'],
-  gateway: ['Hermes hit an internal error while running this turn', 'Send /retry; type /logs for the trace.'],
+  gateway: ['Iris hit an internal error while running this turn', 'Send /retry; type /logs for the trace.'],
   provider: ['The model provider returned an error', 'Send /retry, or switch with /model.'],
   streaming: ['The connection to the model provider dropped mid-reply', 'Send /retry.']
 }

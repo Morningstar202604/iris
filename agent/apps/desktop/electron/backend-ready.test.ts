@@ -8,7 +8,7 @@
  * starts before the backend binds its port, so a tight 45s deadline killed a
  * healthy-but-still-compiling backend on cold Windows installs. The default is
  * now cold-start tolerant and overridable via
- * HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS, clamped to a 45s floor.
+ * IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS, clamped to a 45s floor.
  */
 
 import assert from 'node:assert/strict'
@@ -55,24 +55,24 @@ test('default is cold-start tolerant (> the historical 45s floor)', () => {
   )
 })
 
-test('honors a valid HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS override', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '120000' }
+test('honors a valid IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS override', () => {
+  const env = { IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '120000' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), 120_000)
 })
 
 test('clamps an override below the floor up to the 45s minimum', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '1000' }
+  const env = { IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '1000' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), MIN_PORT_ANNOUNCE_TIMEOUT_MS)
 })
 
 test('rounds a fractional override', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '60000.7' }
+  const env = { IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '60000.7' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), 60_001)
 })
 
 test('falls back to the default for malformed / non-positive overrides', () => {
   for (const bad of ['', 'abc', '0', '-5', 'NaN', undefined]) {
-    const env = bad === undefined ? {} : { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: bad }
+    const env = bad === undefined ? {} : { IRIS_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: bad }
     assert.equal(
       resolvePortAnnounceTimeoutMs(env),
       DEFAULT_PORT_ANNOUNCE_TIMEOUT_MS,
@@ -88,21 +88,21 @@ test('falls back to the default for malformed / non-positive overrides', () => {
 test('resolves with the announced port', async () => {
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 1000)
-  child.stdout.emit('data', 'noise before\nHERMES_DASHBOARD_READY port=54321\n')
+  child.stdout.emit('data', 'noise before\nIRIS_DASHBOARD_READY port=54321\n')
   assert.equal(await p, 54321)
 })
 
-test('resolves with a HERMES_BACKEND_READY port (headless `serve`)', async () => {
+test('resolves with a IRIS_BACKEND_READY port (headless `serve`)', async () => {
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 1000)
-  child.stdout.emit('data', 'HERMES_BACKEND_READY port=43210\n')
+  child.stdout.emit('data', 'IRIS_BACKEND_READY port=43210\n')
   assert.equal(await p, 43210)
 })
 
 test('parses the port even when the line arrives split across chunks', async () => {
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 1000)
-  child.stdout.emit('data', 'HERMES_DASHBOARD_READY po')
+  child.stdout.emit('data', 'IRIS_DASHBOARD_READY po')
   child.stdout.emit('data', 'rt=8080\n')
   assert.equal(await p, 8080)
 })
@@ -127,7 +127,7 @@ test('a late announcement after timeout does not throw (listeners torn down)', a
   // The orphaned backend may still print its READY line later; the watcher
   // must have detached so this emit is a no-op rather than a double-settle.
   assert.doesNotThrow(() => {
-    child.stdout.emit('data', 'HERMES_DASHBOARD_READY port=9999\n')
+    child.stdout.emit('data', 'IRIS_DASHBOARD_READY port=9999\n')
   })
 })
 
@@ -136,7 +136,7 @@ test('a late announcement after timeout does not throw (listeners torn down)', a
 // ---------------------------------------------------------------------------
 
 function mkTmpReadyFile() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ready-test-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-ready-test-'))
 
   return {
     dir,
@@ -217,17 +217,17 @@ test('exit-before-announcement error carries the buffered output tail (stdout pa
   const child = makeFakeChild()
 
   const wait = waitForDashboardPortAnnouncement(child, {
-    describeOutputTail: () => '\nRecent backend output:\nModuleNotFoundError: hermes_cli'
+    describeOutputTail: () => '\nRecent backend output:\nModuleNotFoundError: iris_cli'
   })
 
   child.emit('exit', 1, null)
 
-  await assert.rejects(wait, /exited before port announcement \(1\)[\s\S]*ModuleNotFoundError: hermes_cli/)
+  await assert.rejects(wait, /exited before port announcement \(1\)[\s\S]*ModuleNotFoundError: iris_cli/)
 })
 
 test('exit-before-announcement error carries the buffered output tail (ready-file path)', async () => {
   const child = makeFakeChild()
-  const readyFile = path.join(os.tmpdir(), `hermes-ready-${process.pid}-${Date.now()}.json`)
+  const readyFile = path.join(os.tmpdir(), `iris-ready-${process.pid}-${Date.now()}.json`)
 
   const wait = waitForDashboardPortAnnouncement(child, {
     describeOutputTail: () => '\nRecent backend output:\nTraceback (most recent call last)',
@@ -251,7 +251,7 @@ test('resolves from bufferedOutput when the sentinel was consumed before the wai
 
   // Simulate the spawn-time output tail: it consumed the READY line already,
   // and no further stdout data will ever arrive.
-  const alreadyConsumed = 'boot noise\nHERMES_BACKEND_READY port=43211\n'
+  const alreadyConsumed = 'boot noise\nIRIS_BACKEND_READY port=43211\n'
 
   const port = await waitForDashboardPortAnnouncement(child, {
     bufferedOutput: () => alreadyConsumed,
@@ -261,11 +261,11 @@ test('resolves from bufferedOutput when the sentinel was consumed before the wai
   assert.equal(port, 43211)
 })
 
-test('bufferedOutput accepts the legacy HERMES_DASHBOARD_READY sentinel too', async () => {
+test('bufferedOutput accepts the legacy IRIS_DASHBOARD_READY sentinel too', async () => {
   const child = makeFakeChild()
 
   const port = await waitForDashboardPortAnnouncement(child, {
-    bufferedOutput: () => 'HERMES_DASHBOARD_READY port=43212\n',
+    bufferedOutput: () => 'IRIS_DASHBOARD_READY port=43212\n',
     timeoutMs: 500
   })
 
@@ -280,7 +280,7 @@ test('bufferedOutput without a sentinel still resolves from later live stdout', 
     timeoutMs: 1000
   })
 
-  child.stdout.emit('data', Buffer.from('HERMES_BACKEND_READY port=43213\n'))
+  child.stdout.emit('data', Buffer.from('IRIS_BACKEND_READY port=43213\n'))
 
   assert.equal(await wait, 43213)
 })
@@ -303,7 +303,7 @@ test('the merged-tail seed recovers a sentinel spliced onto a partial stderr lin
 
   // uvicorn's stderr chunk has no trailing newline, so the tail is not line-accurate.
   const port = await waitForDashboardPortAnnouncement(child, {
-    bufferedOutput: () => 'INFO  Started server process [4711]HERMES_BACKEND_READY port=65238',
+    bufferedOutput: () => 'INFO  Started server process [4711]IRIS_BACKEND_READY port=65238',
     timeoutMs: 500
   })
 
@@ -317,7 +317,7 @@ test('the merged-tail seed does not match prose that merely names the sentinel',
     child,
     50,
     () => '',
-    () => 'still waiting for HERMES_BACKEND_READY from the backend\n'
+    () => 'still waiting for IRIS_BACKEND_READY from the backend\n'
   )
 
   await assert.rejects(wait, /Timed out waiting/)

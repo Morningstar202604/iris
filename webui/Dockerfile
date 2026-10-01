@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 LABEL maintainer="nesquena"
-LABEL description="Hermes Web UI — browser interface for Hermes Agent"
+LABEL description="Iris Web UI — browser interface for Iris Agent"
 
 # Install system packages
 ENV DEBIAN_FRONTEND=noninteractive
@@ -108,14 +108,14 @@ WORKDIR /apptoo
 
 # Create the unprivileged runtime user. The entrypoint starts as root only for
 # UID/GID alignment and filesystem preparation, then execs the server as this user.
-RUN groupadd -g 1024 hermeswebui \
-    && useradd -u 1024 -d /home/hermeswebui -g hermeswebui -G users -s /bin/bash -m hermeswebui \
+RUN groupadd -g 1024 iriswebui \
+    && useradd -u 1024 -d /home/iriswebui -g iriswebui -G users -s /bin/bash -m iriswebui \
     && mkdir -p /app /uv_cache /workspace \
-    && chown -R hermeswebui:hermeswebui /home/hermeswebui /app /uv_cache /workspace \
-    && chmod 0755 /home/hermeswebui \
+    && chown -R iriswebui:iriswebui /home/iriswebui /app /uv_cache /workspace \
+    && chmod 0755 /home/iriswebui \
     && chmod 1777 /app /uv_cache /workspace
 
-COPY --chmod=555 docker_init.bash /hermeswebui_init.bash
+COPY --chmod=555 docker_init.bash /iriswebui_init.bash
 
 RUN touch /.within_container
 
@@ -134,22 +134,22 @@ COPY --chown=root:root . /apptoo
 
 # Bake the git version tag into the image so the settings badge works even
 # when .git is not present (it is excluded by .dockerignore).
-# CI passes: --build-arg HERMES_VERSION=$(git describe --tags --always)
+# CI passes: --build-arg IRIS_VERSION=$(git describe --tags --always)
 # Local builds that omit the arg get "unknown" as the fallback.
-ARG HERMES_VERSION=unknown
-RUN echo "__version__ = '${HERMES_VERSION}'" > /apptoo/api/_version.py
+ARG IRIS_VERSION=unknown
+RUN echo "__version__ = '${IRIS_VERSION}'" > /apptoo/api/_version.py
 
 # Default to binding all interfaces (required for container networking)
-ENV HERMES_WEBUI_HOST=0.0.0.0
-ENV HERMES_WEBUI_PORT=8787
+ENV IRIS_WEBUI_HOST=0.0.0.0
+ENV IRIS_WEBUI_PORT=8787
 
 EXPOSE 8787
 
 HEALTHCHECK --interval=30s --timeout=8s --start-period=10s --retries=3 \
   CMD bash /apptoo/scripts/lib/health_probe.sh localhost 8787 /health 2 >/dev/null || exit 1
 
-# docker_init.bash performs root-only bind-mount setup, then drops to hermeswebui
+# docker_init.bash performs root-only bind-mount setup, then drops to iriswebui
 # before starting the WebUI server. The production image does not ship sudo.
 USER root
-CMD ["/hermeswebui_init.bash"]
+CMD ["/iriswebui_init.bash"]
 

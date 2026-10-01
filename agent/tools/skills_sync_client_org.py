@@ -1,4 +1,4 @@
-"""Org-shared skills: org pull + propose (``~/.hermes/skills/_org/<org_id>/``).
+"""Org-shared skills: org pull + propose (``~/.iris/skills/_org/<org_id>/``).
 Org skills live in a DISTINCT local namespace (read-only to the runtime; a local edit is a personal
 fork until proposed); the canonical set is ``refs/org/<org_id>/HEAD`` with the SAME object model.
 PERSONAL-ORG GATE: NAS stamps ``org_role`` ONLY for multi-member orgs; no claim => pull/propose

@@ -205,18 +205,18 @@ class TestHookRegistration:
 
     def test_register_dedupe_and_type_guard(self, tmp_path):
         body = (
-            _fn_body(BOOT_JS, "registerHermesSessionOpenHandler",
-                     "registerHermesSessionOpenHandler",
-                     dep_vars=["_HERMES_SESSION_OPEN_HANDLERS"])
-            + _fn_body(BOOT_JS, "_hermesNotifySessionOpen",
-                       "_hermesNotifySessionOpen")
+            _fn_body(BOOT_JS, "registerIrisSessionOpenHandler",
+                     "registerIrisSessionOpenHandler",
+                     dep_vars=["_IRIS_SESSION_OPEN_HANDLERS"])
+            + _fn_body(BOOT_JS, "_irisNotifySessionOpen",
+                       "_irisNotifySessionOpen")
             + textwrap.dedent("""
                 var calls = 0;
                 function handler(sid, data, opts) { calls++; return null; }
-                var r1 = registerHermesSessionOpenHandler(handler);
-                var r2 = registerHermesSessionOpenHandler("nope");
-                var r3 = registerHermesSessionOpenHandler(handler);
-                _hermesNotifySessionOpen("s1", null, {preload:true});
+                var r1 = registerIrisSessionOpenHandler(handler);
+                var r2 = registerIrisSessionOpenHandler("nope");
+                var r3 = registerIrisSessionOpenHandler(handler);
+                _irisNotifySessionOpen("s1", null, {preload:true});
                 process.stdout.write(JSON.stringify({
                     r1:r1,r2:r2,r3:r3,calls:calls
                 }));
@@ -231,15 +231,15 @@ class TestHookRegistration:
 
     def test_preload_cancel_honored(self, tmp_path):
         body = (
-            _fn_body(BOOT_JS, "registerHermesSessionOpenHandler",
-                     "registerHermesSessionOpenHandler",
-                     dep_vars=["_HERMES_SESSION_OPEN_HANDLERS"])
-            + _fn_body(BOOT_JS, "_hermesNotifySessionOpen",
-                       "_hermesNotifySessionOpen")
+            _fn_body(BOOT_JS, "registerIrisSessionOpenHandler",
+                     "registerIrisSessionOpenHandler",
+                     dep_vars=["_IRIS_SESSION_OPEN_HANDLERS"])
+            + _fn_body(BOOT_JS, "_irisNotifySessionOpen",
+                       "_irisNotifySessionOpen")
             + textwrap.dedent("""
                 function blocker(){ return {cancel:true}; }
-                registerHermesSessionOpenHandler(blocker);
-                var r = _hermesNotifySessionOpen("s1", null, {preload:true});
+                registerIrisSessionOpenHandler(blocker);
+                var r = _irisNotifySessionOpen("s1", null, {preload:true});
                 process.stdout.write(JSON.stringify(r));
             """)
         )
@@ -249,16 +249,16 @@ class TestHookRegistration:
 
     def test_loaded_remains_non_cancellable(self, tmp_path):
         body = (
-            _fn_body(BOOT_JS, "registerHermesSessionOpenHandler",
-                     "registerHermesSessionOpenHandler",
-                     dep_vars=["_HERMES_SESSION_OPEN_HANDLERS"])
-            + _fn_body(BOOT_JS, "_hermesNotifySessionOpen",
-                       "_hermesNotifySessionOpen")
+            _fn_body(BOOT_JS, "registerIrisSessionOpenHandler",
+                     "registerIrisSessionOpenHandler",
+                     dep_vars=["_IRIS_SESSION_OPEN_HANDLERS"])
+            + _fn_body(BOOT_JS, "_irisNotifySessionOpen",
+                       "_irisNotifySessionOpen")
             + textwrap.dedent("""
                 var called = false;
                 function h(){ called = true; return {cancel:true}; }
-                registerHermesSessionOpenHandler(h);
-                _hermesNotifySessionOpen("s2", {session_id:"s2"}, {loaded:true});
+                registerIrisSessionOpenHandler(h);
+                _irisNotifySessionOpen("s2", {session_id:"s2"}, {loaded:true});
                 process.stdout.write(JSON.stringify({called:called}));
             """)
         )
@@ -268,18 +268,18 @@ class TestHookRegistration:
 
     def test_each_handler_sees_one_event(self, tmp_path):
         body = (
-            _fn_body(BOOT_JS, "registerHermesSessionOpenHandler",
-                     "registerHermesSessionOpenHandler",
-                     dep_vars=["_HERMES_SESSION_OPEN_HANDLERS"])
-            + _fn_body(BOOT_JS, "_hermesNotifySessionOpen",
-                       "_hermesNotifySessionOpen")
+            _fn_body(BOOT_JS, "registerIrisSessionOpenHandler",
+                     "registerIrisSessionOpenHandler",
+                     dep_vars=["_IRIS_SESSION_OPEN_HANDLERS"])
+            + _fn_body(BOOT_JS, "_irisNotifySessionOpen",
+                       "_irisNotifySessionOpen")
             + textwrap.dedent("""
                 var events = [];
                 function h1(sid,d,o){events.push({h:1,sid:sid,preload:!!o.preload});}
                 function h2(sid,d,o){events.push({h:2,sid:sid,preload:!!o.preload});}
-                registerHermesSessionOpenHandler(h1);
-                registerHermesSessionOpenHandler(h2);
-                _hermesNotifySessionOpen("target", null, {preload:true});
+                registerIrisSessionOpenHandler(h1);
+                registerIrisSessionOpenHandler(h2);
+                _irisNotifySessionOpen("target", null, {preload:true});
                 process.stdout.write(JSON.stringify(events));
             """)
         )
@@ -296,12 +296,12 @@ class TestHookRegistration:
 def test_canonical_sid_resolved_before_preload_notification():
     body = _extract_block(SESSIONS_JS, "async function loadSession(sid)")
     idx_resolve = body.index("_resolveSessionIdFromSidebarLineage")
-    idx_preload = body.index("_hermesNotifySessionOpen")
+    idx_preload = body.index("_irisNotifySessionOpen")
     assert idx_resolve < idx_preload
 
 
 def test_preload_veto_only_on_preload_phase():
-    body = _extract_block(BOOT_JS, "window._hermesNotifySessionOpen=function")
+    body = _extract_block(BOOT_JS, "window._irisNotifySessionOpen=function")
     assert "opts.preload" in body
 
 

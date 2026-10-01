@@ -2,7 +2,7 @@
 
 Providers register via :meth:`PluginContext.register_transcription_provider`; the one named
 by ``stt.provider`` services :func:`tools.transcription_tools.transcribe_audio` **when that
-name is not a built-in** (built-ins always win; ``HERMES_LOCAL_STT_COMMAND`` stays on the
+name is not a built-in** (built-ins always win; ``IRIS_LOCAL_STT_COMMAND`` stays on the
 built-in ``local_command`` path). :meth:`TranscriptionProvider.transcribe` envelope:
 ``success`` bool, ``transcript`` str (empty on failure), ``provider`` str, ``error`` str
 (only when success=False).
@@ -54,7 +54,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

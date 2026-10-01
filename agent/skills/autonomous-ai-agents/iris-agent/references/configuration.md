@@ -1,7 +1,7 @@
 # Configuration, Toolsets & Voice
 
-Edit with `hermes config edit` or `hermes config set section.key value`.
-Full reference: https://hermes-agent.nousresearch.com/docs/user-guide/configuration
+Edit with `iris config edit` or `iris config set section.key value`.
+Full reference: https://gitcode.com/badhope/iris/tree/main/docs
 
 ### Config Sections (most-used keys)
 
@@ -21,12 +21,12 @@ Full reference: https://hermes-agent.nousresearch.com/docs/user-guide/configurat
 | `checkpoints` | `enabled`, `max_snapshots` (50) |
 | `curator` | `enabled`, `consolidate` (false, opt-in aux-model consolidation), `interval_hours`, `stale_after_days` |
 
-`hermes config check` reports sections missing from an older config.
+`iris config check` reports sections missing from an older config.
 
 ### Toolsets
 
-Enable/disable via `hermes tools` (interactive) or `hermes tools enable/disable NAME`.
-Full enumeration: `TOOLSETS` dict in `toolsets.py` (`_HERMES_CORE_TOOLS` is the default bundle most platforms inherit).
+Enable/disable via `iris tools` (interactive) or `iris tools enable/disable NAME`.
+Full enumeration: `TOOLSETS` dict in `toolsets.py` (`_IRIS_CORE_TOOLS` is the default bundle most platforms inherit).
 
 | Toolset | What it provides |
 |---------|-----------------|

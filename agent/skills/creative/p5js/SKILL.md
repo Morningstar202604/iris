@@ -2,11 +2,11 @@
 name: p5js
 description: "p5.js sketches: gen art, shaders, interactive, 3D."
 version: 1.0.0
-author: SHL0MS, Hermes Agent
+author: SHL0MS, Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [creative-coding, generative-art, p5js, canvas, interactive, visualization, webgl, shaders, animation]
     related_skills: [ascii-video, manim-video, excalidraw]
 ---
@@ -266,7 +266,7 @@ Key implementation patterns:
 | Format | Method | Command |
 |--------|--------|---------|
 | **PNG** | `saveCanvas('output', 'png')` in `keyPressed()` | Press 's' to save |
-| **High-res PNG** | Puppeteer headless capture | `node scripts/export-frames.js sketch.html --width 3840 --height 2160 --frames 1` |
+| **High-res PNG** | Puppeteer headless capture | No bundled export script; implement a Puppeteer capture script on demand (the bundled `scripts/render.sh` covers MP4) |
 | **GIF** | `saveGif('output', 5)` — captures N seconds | Press 'g' to save |
 | **Frame sequence** | `saveFrames('frame', 'png', 10, 30)` — 10s at 30fps | Then `ffmpeg -i frame-%04d.png -c:v libx264 output.mp4` |
 | **MP4** | Puppeteer frame capture + ffmpeg | `bash scripts/render.sh sketch.html output.mp4 --duration 30 --fps 30` |
@@ -339,7 +339,7 @@ noiseSeed(SEED);
 let x = rng() * width;  // instead of random(width)
 ```
 
-See `references/export-pipeline.md` § Platform Export.
+Platform export (e.g. fxhash) follows the same seeded-RNG rules above; no dedicated export-pipeline reference is bundled — implement headless capture as needed.
 
 ### Color Mode — Use HSB
 
@@ -478,9 +478,9 @@ function setup() {
 }
 ```
 
-The bundled `scripts/export-frames.js` detects `_p5Ready` and calls `redraw()` once per capture for exact 1:1 frame correspondence. See `references/export-pipeline.md` § Deterministic Capture.
+For exact 1:1 frame correspondence, the sketch signals readiness via `window._p5Ready = true` and a user-supplied headless capture script calls `redraw()` once per frame. No bundled `export-frames` script is provided — implement capture on demand.
 
-For multi-scene videos, use the per-clip architecture: one HTML per scene, render independently, stitch with `ffmpeg -f concat`. See `references/export-pipeline.md` § Per-Clip Architecture.
+For multi-scene videos, use the per-clip architecture: one HTML per scene, render independently (via the bundled `scripts/render.sh`), then stitch with `ffmpeg -f concat`.
 
 ### Agent Workflow
 
@@ -490,7 +490,7 @@ When building p5.js sketches:
 2. **Open in browser** — `open sketch.html` (macOS) or `xdg-open sketch.html` (Linux)
 3. **Local assets** (fonts, images) require a server: `python -m http.server 8080` in the project directory, then open `http://localhost:8080/sketch.html`
 4. **Export PNG/GIF** — add `keyPressed()` shortcuts as shown above, tell the user which key to press
-5. **Headless export** — `node scripts/export-frames.js sketch.html --frames 300` for automated frame capture (sketch must use `noLoop()` + `_p5Ready`)
+5. **Headless export** — for automated frame capture, supply a headless Puppeteer script on demand (sketch uses `noLoop()` + `window._p5Ready`); the bundled `scripts/render.sh` renders MP4 directly
 6. **MP4 rendering** — `bash scripts/render.sh sketch.html output.mp4 --duration 30`
 7. **Iterative refinement** — edit the HTML file, user refreshes browser to see changes
 8. **Load references on demand** — use `skill_view(name="p5js", file_path="references/...")` to load specific reference files as needed during implementation
@@ -519,7 +519,6 @@ When building p5.js sketches:
 | `references/color-systems.md` | `colorMode()`, HSB/HSL/RGB, `lerpColor()`, `paletteLerp()`, procedural palettes, color harmony, `blendMode()`, gradient rendering, curated palette library |
 | `references/webgl-and-3d.md` | WEBGL renderer, 3D primitives, camera, lighting, materials, custom geometry, GLSL shaders (`createShader()`, `createFilterShader()`), framebuffers, post-processing |
 | `references/interaction.md` | Mouse events, keyboard state, touch input, DOM elements, `createSlider()`/`createButton()`, audio input (p5.sound FFT/amplitude), scroll-driven animation, responsive events |
-| `references/export-pipeline.md` | `saveCanvas()`, `saveGif()`, `saveFrames()`, deterministic headless capture, ffmpeg frame-to-video, CCapture.js, SVG export, per-clip architecture, platform export (fxhash), video gotchas |
 | `references/troubleshooting.md` | Performance profiling, per-pixel budgets, common mistakes, browser compatibility, WebGL debugging, font loading issues, pixel density traps, memory leaks, CORS |
 | `templates/viewer.html` | Interactive viewer template: seed navigation (prev/next/random/jump), parameter sliders, download PNG, responsive canvas. Start from this for explorable generative art |
 

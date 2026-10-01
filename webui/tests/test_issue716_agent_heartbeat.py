@@ -1,4 +1,4 @@
-"""Regression coverage for #716 Hermes agent/gateway heartbeat monitor."""
+"""Regression coverage for #716 Iris agent/gateway heartbeat monitor."""
 
 from __future__ import annotations
 
@@ -66,16 +66,16 @@ def _runtime_status(**overrides):
         },
         # Sensitive/raw process fields that must never reach the browser.
         "pid": 12345,
-        "argv": ["hermes", "gateway", "--token", "secret-token"],
-        "command": "hermes gateway --token secret-token",
-        "executable": "/home/user/.hermes/hermes-agent/venv/bin/python",
+        "argv": ["iris", "gateway", "--token", "secret-token"],
+        "command": "iris gateway --token secret-token",
+        "executable": "/home/user/.iris/iris-agent/venv/bin/python",
         "env": {"API_KEY": "secret"},
     }
     payload.update(overrides)
     return payload
 
 
-def test_agent_health_uses_root_gateway_state_when_hermes_home_is_profile(monkeypatch, tmp_path):
+def test_agent_health_uses_root_gateway_state_when_iris_home_is_profile(monkeypatch, tmp_path):
     from api import agent_health
 
     root_home = tmp_path / "root-home"
@@ -85,11 +85,11 @@ def test_agent_health_uses_root_gateway_state_when_hermes_home_is_profile(monkey
     (root_home / "gateway_state.json").write_text(json.dumps(_runtime_status()), encoding="utf-8")
     fake_gateway_status = _PathSensitiveGatewayStatus(root_home)
 
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("IRIS_HOME", str(profile_home))
     monkeypatch.setitem(
         sys.modules,
-        "hermes_constants",
-        types.SimpleNamespace(get_default_hermes_root=lambda: root_home),
+        "iris_constants",
+        types.SimpleNamespace(get_default_iris_root=lambda: root_home),
     )
     monkeypatch.setattr(agent_health, "_gateway_status_module", lambda: fake_gateway_status)
 
@@ -137,7 +137,7 @@ def test_active_profile_gateway_running_pid_uses_active_profile_path(monkeypatch
     active_home = tmp_path / "profiles" / "active"
     gateway_status = _PathSensitiveGatewayStatus(active_home)
     monkeypatch.setattr(agent_health, "_gateway_status_module", lambda: gateway_status)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: active_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: active_home)
 
     assert agent_health.get_active_profile_gateway_running_pid() == 98765
     assert gateway_status.running_pid_path == active_home / "gateway.pid"

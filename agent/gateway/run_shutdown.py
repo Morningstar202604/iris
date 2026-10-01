@@ -65,10 +65,10 @@ def _resolve_gateway_exit_verdict(runner, signal_initiated_shutdown: bool) -> bo
     return True
 
 # Windows has no bash/setsid chain: a tiny detached Python watcher waits for the gateway PID to
-# exit (bounded), then spawns ``hermes gateway restart``.
+# exit (bounded), then spawns ``iris gateway restart``.
 _WINDOWS_RESTART_WATCHER = """
 import os, subprocess, sys, time
-from hermes_cli._subprocess_compat import windows_detach_flags_without_breakaway
+from iris_cli._subprocess_compat import windows_detach_flags_without_breakaway
 pid = int(sys.argv[1])
 restart_after_s = float(sys.argv[2])
 cmd = sys.argv[3:]
@@ -303,11 +303,11 @@ class GatewayShutdownMixin:
     def _scale_to_zero_has_live_background_work(self) -> bool:
         """Live background work (delegations, processes, pending watchers) that must block a suspend.
 
-        PERMANENT supervised watchers (_hermes_supervised_watcher, incl. the scale-to-zero watcher
+        PERMANENT supervised watchers (_iris_supervised_watcher, incl. the scale-to-zero watcher
         itself) are excluded, else this would be True forever and the gateway could never go dormant.
         """
         if any(
-            not t.done() and not getattr(t, "_hermes_supervised_watcher", False)
+            not t.done() and not getattr(t, "_iris_supervised_watcher", False)
             for t in self._background_tasks
         ):
             return True
@@ -765,7 +765,7 @@ class GatewayShutdownMixin:
         )
         logger.warning(
             "%s paused after %d consecutive failures (%s) — fix the underlying issue then run `/platform "
-            "resume %s` to retry, or `hermes gateway restart` to restart the gateway.",
+            "resume %s` to retry, or `iris gateway restart` to restart the gateway.",
             platform.value, info.get("attempts", 0), info["pause_reason"], platform.value,
         )
 
@@ -924,9 +924,9 @@ class GatewayShutdownMixin:
                 continue
             job_name = job.get("name") or job_id
             msg = (
-                f"⚠️ Scheduled job '{job_name}' was cut short because Hermes is {action}; "
+                f"⚠️ Scheduled job '{job_name}' was cut short because Iris is {action}; "
                 "no result this run. It will run again on schedule, or run it now with "
-                f"`hermes cron run {job_name}` once Hermes is back."
+                f"`iris cron run {job_name}` once Iris is back."
             )
             for target in targets or ():
                 try:
@@ -1011,12 +1011,12 @@ class GatewayShutdownMixin:
         """
         restart_source = self._restart_command_source if self._restart_requested else None
         msg = (
-            "⚠️ Hermes is shutting down — your current task will be interrupted. "
+            "⚠️ Iris is shutting down — your current task will be interrupted. "
             "When it is back online, send any message and I'll try to pick up where we left off."
         )
         if self._restart_requested:
             msg = (
-                "⚠️ Hermes is restarting — your current task will be interrupted. "
+                "⚠️ Iris is restarting — your current task will be interrupted. "
                 "Send any message after the restart and I'll try to resume where you left off."
             )
         restart_key = None
@@ -1211,13 +1211,13 @@ class GatewayShutdownMixin:
     async def _finalize_session_off_loop(
         self, *, session_id: Any, platform: str, reason: str, session_key: Optional[str] = None, **extra: Any,
     ) -> None:
-        """Run hermes_cli.lifecycle.finalize_session off-loop, bounded; on timeout the worker is left alone.
+        """Run iris_cli.lifecycle.finalize_session off-loop, bounded; on timeout the worker is left alone.
         ``session_key`` lets an unscoped caller (shutdown) enter the owning profile's scope: plugin
         ``on_session_finalize`` observers and the Relay coordinator (``current_profile_key``) resolve
         profile state at call time."""
 
         def _call() -> None:
-            from hermes_cli.lifecycle import finalize_session
+            from iris_cli.lifecycle import finalize_session
             finalize_session(session_id=session_id, platform=platform, reason=reason, **extra)
 
         try:
@@ -1309,8 +1309,8 @@ class GatewayShutdownMixin:
 
     # Stuck-loop (restart failure) counters
     def _stuck_loop_counts_path(self) -> Path:
-        from gateway.run import _hermes_home
-        return _hermes_home / self._STUCK_LOOP_FILE
+        from gateway.run import _iris_home
+        return _iris_home / self._STUCK_LOOP_FILE
 
     @staticmethod
     def _read_json_counts(path: Path) -> Optional[dict]:
@@ -1377,18 +1377,18 @@ class GatewayShutdownMixin:
     # Restart orchestration
     @staticmethod
     def _restart_watcher_env() -> dict:
-        """Watcher env minus ``_HERMES_GATEWAY`` (else the CLI's self-restart guard refuses; gateway stays down)."""
+        """Watcher env minus ``_IRIS_GATEWAY`` (else the CLI's self-restart guard refuses; gateway stays down)."""
         from gateway.config_loader import drop_bridged_env
         from tools.environments.local import build_subprocess_env
         watcher_env = drop_bridged_env(build_subprocess_env(scrub_secrets=False, inherit_profile_home=True))
-        watcher_env.pop("_HERMES_GATEWAY", None)
+        watcher_env.pop("_IRIS_GATEWAY", None)
         return watcher_env
 
     @staticmethod
-    def _spawn_windows_restart_watcher(hermes_cmd: list, current_pid: int, restart_after_s: float) -> None:
+    def _spawn_windows_restart_watcher(iris_cmd: list, current_pid: int, restart_after_s: float) -> None:
         """Spawn the detached Windows watcher (``python -c``), retrying once without job breakaway."""
         import subprocess
-        from hermes_cli._subprocess_compat import (
+        from iris_cli._subprocess_compat import (
             windows_detach_flags_without_breakaway, windows_detach_popen_kwargs
         )
         watcher_env = GatewayShutdownMixin._restart_watcher_env()
@@ -1396,7 +1396,7 @@ class GatewayShutdownMixin:
         # Console python under CREATE_NO_WINDOW: nothing flashes. NOT pythonw.exe — a console-less
         # watcher makes every console-subsystem descendant allocate a visible conhost (#54220/#56747).
         # The watcher runs sys.executable (console python) under the CREATE_NO_WINDOW detach kwargs below:
-        # it owns one hidden console, inherited by the `hermes gateway restart` child, so nothing flashes.
+        # it owns one hidden console, inherited by the `iris gateway restart` child, so nothing flashes.
         # See #54220, #56747.
         watcher_python = sys.executable
         venv_dir = Path(watcher_env.get("VIRTUAL_ENV") or project_root / "venv")
@@ -1409,7 +1409,7 @@ class GatewayShutdownMixin:
             watcher_env["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(pythonpath))
         watcher_argv = [
             watcher_python, "-c", _WINDOWS_RESTART_WATCHER,
-            str(current_pid), str(restart_after_s), *hermes_cmd, "gateway", "restart",
+            str(current_pid), str(restart_after_s), *iris_cmd, "gateway", "restart",
         ]
         popen_kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=watcher_env)
         # Break away from the parent CLI's job object or be reaped when the CLI exits; a job without
@@ -1434,12 +1434,12 @@ class GatewayShutdownMixin:
                 )
 
     async def _launch_detached_restart_command(self) -> None:
-        from gateway.run import _resolve_hermes_bin
+        from gateway.run import _resolve_iris_bin
         import shutil
         import subprocess
-        hermes_cmd = _resolve_hermes_bin()
-        if not hermes_cmd:
-            logger.error("Could not locate hermes binary for detached /restart")
+        iris_cmd = _resolve_iris_bin()
+        if not iris_cmd:
+            logger.error("Could not locate iris binary for detached /restart")
             return
         if self._detached_restart_helper_started:
             return
@@ -1447,9 +1447,9 @@ class GatewayShutdownMixin:
         current_pid = os.getpid()
         restart_after_s = max(float(getattr(self, "_restart_drain_timeout", 0.0) or 0.0) + 5.0, 5.0)
         if sys.platform == "win32":
-            GatewayShutdownMixin._spawn_windows_restart_watcher(hermes_cmd, current_pid, restart_after_s)
+            GatewayShutdownMixin._spawn_windows_restart_watcher(iris_cmd, current_pid, restart_after_s)
             return
-        cmd = " ".join(shlex.quote(part) for part in hermes_cmd)
+        cmd = " ".join(shlex.quote(part) for part in iris_cmd)
         shell_cmd = (
             f"deadline=$(( $(date +%s) + {int(restart_after_s)} )); "
             f"while kill -0 {current_pid} 2>/dev/null && [ $(date +%s) -lt $deadline ]; do sleep 0.2; done; "
@@ -1483,7 +1483,7 @@ class GatewayShutdownMixin:
         an unreadable activity summary means "not wedged".
         """
         from gateway.run import _AGENT_PENDING_SENTINEL, _float_env
-        timeout = _float_env("HERMES_AGENT_TIMEOUT", 1800)
+        timeout = _float_env("IRIS_AGENT_TIMEOUT", 1800)
         if timeout <= 0:
             return 0
 
@@ -1510,7 +1510,7 @@ class GatewayShutdownMixin:
 
     def _describe_active_work(self) -> list:
         """One dict per in-flight work unit the restart wait is holding for, so an observer
-        (``hermes update``, ``hermes gateway status``) can name it instead of printing a bare count.
+        (``iris update``, ``iris gateway status``) can name it instead of printing a bare count.
 
         ``kind`` ∈ ``chat`` (session turn), ``cron`` (job id + external worker pid when the run was
         handed to a restart-safe scope), ``api`` / ``deferred`` (count only — those sources expose
@@ -1637,7 +1637,7 @@ class GatewayShutdownMixin:
         # may garbage-collect a still-pending task mid-flight. The cancel loop in _stop_impl explicitly
         # skips _restart_task for the same reason it skips _stop_task.
         # Empty Context: /restart is handled inside the requester's profile scope, and a copied context
-        # would run the HOST restart as that profile (watcher HERMES_HOME, stop()'s flushes).
+        # would run the HOST restart as that profile (watcher IRIS_HOME, stop()'s flushes).
         self._restart_task = Context().run(lambda: asyncio.create_task(_run_restart()))
         return True
 
@@ -1652,7 +1652,7 @@ class GatewayShutdownMixin:
         if not watchdog.start():
             return False
         self._systemd_watchdog = watchdog
-        watchdog.ready("Hermes Gateway running")
+        watchdog.ready("Iris Gateway running")
         return True
 
     async def _stop_systemd_watchdog(self) -> None:
@@ -2028,7 +2028,7 @@ class GatewayShutdownMixin:
             # Shared SessionDB instances still held by the process-wide registry (tools, cron, mirror).
             # This is the safety net that guarantees no WAL write lock survives past gateway shutdown
             # (#90837).
-            from hermes_state_registry import close_all
+            from iris_state_registry import close_all
             closed = close_all()
             if closed:
                 logger.debug("Closed %d shared SessionDB instance(s) at shutdown", closed)
@@ -2038,7 +2038,7 @@ class GatewayShutdownMixin:
 
     async def _stop_persist_exit_state(self, ctx: "GatewayShutdownMixin._StopContext") -> None:
         """PID/lock release, clean-shutdown marker, restart markers, terminal runtime status."""
-        from gateway.run import _hermes_home, _planned_restart_notification_path, _shutdown_gateway_health_export
+        from gateway.run import _iris_home, _planned_restart_notification_path, _shutdown_gateway_health_export
         from utils import atomic_json_write
         from gateway.status import remove_pid_file, release_gateway_runtime_lock
         remove_pid_file()
@@ -2047,7 +2047,7 @@ class GatewayShutdownMixin:
         # half-finished sessions, so no marker — the next startup recovers their turn markers.
         if not ctx.timed_out:
             with suppress(Exception):
-                (_hermes_home / ".clean_shutdown").touch()
+                (_iris_home / ".clean_shutdown").touch()
         else:
             logger.info(
                 "Skipping .clean_shutdown marker — drain timed out with "

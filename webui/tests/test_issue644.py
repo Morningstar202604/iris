@@ -117,7 +117,7 @@ class TestConfigYamlModelsLoading:
                 break
 
     def test_provider_in_provider_models_but_no_cfg_override_uses_static_fallback(self, monkeypatch):
-        """When Hermes CLI has no live catalog, _PROVIDER_MODELS remains fallback."""
+        """When Iris CLI has no live catalog, _PROVIDER_MODELS remains fallback."""
         monkeypatch.setattr(_cfg, "_read_live_provider_model_ids", lambda _pid: [])
         cfg = {
             "model": {"provider": "anthropic"},

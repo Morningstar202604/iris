@@ -34,7 +34,7 @@ def _directives(policy: str):
 
 
 def test_security_helper_sends_enforcing_csp_with_hardening_directives(monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_CSP_CONNECT_EXTRA", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_CSP_CONNECT_EXTRA", raising=False)
 
     headers = _headers_from_security_helper()
 
@@ -55,7 +55,7 @@ def test_security_helper_sends_enforcing_csp_with_hardening_directives(monkeypat
 
 def test_enforcing_csp_honors_valid_extra_connect_origins(monkeypatch):
     monkeypatch.setenv(
-        "HERMES_WEBUI_CSP_CONNECT_EXTRA",
+        "IRIS_WEBUI_CSP_CONNECT_EXTRA",
         "https://metrics.example.com wss://events.example.com:443",
     )
 
@@ -71,7 +71,7 @@ def test_enforcing_csp_honors_valid_extra_connect_origins(monkeypatch):
 
 
 def test_enforcing_csp_allows_trusted_loopback_sidecars_by_default(monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_CSP_CONNECT_EXTRA", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_CSP_CONNECT_EXTRA", raising=False)
 
     policy = _headers_from_security_helper()["Content-Security-Policy"]
 
@@ -85,7 +85,7 @@ def test_enforcing_csp_allows_trusted_loopback_sidecars_by_default(monkeypatch):
 
 
 def test_enforcing_and_report_only_csp_share_validated_connect_extra(monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_CSP_CONNECT_EXTRA", "https://metrics.example.com")
+    monkeypatch.setenv("IRIS_WEBUI_CSP_CONNECT_EXTRA", "https://metrics.example.com")
 
     enforced = _headers_from_security_helper()["Content-Security-Policy"]
     report_only = Handler.csp_report_only_policy()
@@ -95,7 +95,7 @@ def test_enforcing_and_report_only_csp_share_validated_connect_extra(monkeypatch
 
 
 def test_report_only_policy_tracks_enforced_directives(monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_CSP_CONNECT_EXTRA", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_CSP_CONNECT_EXTRA", raising=False)
 
     enforced = _directives(_headers_from_security_helper()["Content-Security-Policy"])
     report_only = _directives(Handler.csp_report_only_policy())
@@ -125,7 +125,7 @@ def test_report_only_csp_headers_still_point_to_collector(monkeypatch):
 
 def test_end_headers_reuses_cached_extra_connect_validation(monkeypatch, caplog):
     monkeypatch.setenv(
-        "HERMES_WEBUI_CSP_CONNECT_EXTRA",
+        "IRIS_WEBUI_CSP_CONNECT_EXTRA",
         "https://metrics.example.com; script-src *",
     )
 
@@ -137,4 +137,4 @@ def test_end_headers_reuses_cached_extra_connect_validation(monkeypatch, caplog)
     _security_headers(handler)
     Handler.end_headers(handler)
 
-    assert caplog.text.count("Ignoring invalid HERMES_WEBUI_CSP_CONNECT_EXTRA value") == 1
+    assert caplog.text.count("Ignoring invalid IRIS_WEBUI_CSP_CONNECT_EXTRA value") == 1

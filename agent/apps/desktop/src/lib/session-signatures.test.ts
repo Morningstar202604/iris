@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/iris'
 
 import { sameCronSignature, sessionMessagesSignature } from './session-signatures'
 

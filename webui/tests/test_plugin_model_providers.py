@@ -1,7 +1,7 @@
 """Regression tests for model-provider plugin discovery in WebUI.
 
 Plugin profiles under ``plugins/model-providers/<name>/`` are auto-registered
-in the Hermes agent CLI.  WebUI must expose them in Settings → Providers and
+in the Iris agent CLI.  WebUI must expose them in Settings → Providers and
 the model picker without hardcoding each slug.
 """
 
@@ -34,11 +34,11 @@ def _install_fake_yandex_plugin(monkeypatch):
     invalidate_plugin_model_provider_cache()
 
 
-def _install_fake_hermes_cli(monkeypatch, *, authenticated: bool = True, model_ids: list[str] | None = None):
-    fake_pkg = types.ModuleType("hermes_cli")
+def _install_fake_iris_cli(monkeypatch, *, authenticated: bool = True, model_ids: list[str] | None = None):
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {
             "id": "yandex",
@@ -49,7 +49,7 @@ def _install_fake_hermes_cli(monkeypatch, *, authenticated: bool = True, model_i
     ]
     fake_models.provider_model_ids = lambda pid: list(model_ids or []) if pid == "yandex" else []
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda pid: (
         {
             "logged_in": True,
@@ -60,16 +60,16 @@ def _install_fake_hermes_cli(monkeypatch, *, authenticated: bool = True, model_i
         else {}
     )
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
 
 class TestPluginModelProvidersSettings:
     def test_get_providers_includes_plugin_model_provider(self, monkeypatch, tmp_path):
         _install_fake_yandex_plugin(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, model_ids=["deepseek-v4-flash/latest"])
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, model_ids=["deepseek-v4-flash/latest"])
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         env_path = tmp_path / ".env"
         env_path.write_text("YANDEX_API_KEY=test-yandex-key-12345\n", encoding="utf-8")
@@ -104,12 +104,12 @@ class TestPluginModelProvidersSettings:
         """Credential-pool auth must not be misreported as config_yaml."""
         _install_fake_yandex_plugin(monkeypatch)
 
-        fake_pkg = types.ModuleType("hermes_cli")
+        fake_pkg = types.ModuleType("iris_cli")
         fake_pkg.__path__ = []
-        fake_models = types.ModuleType("hermes_cli.models")
+        fake_models = types.ModuleType("iris_cli.models")
         fake_models.list_available_providers = lambda: []
         fake_models.provider_model_ids = lambda pid: []
-        fake_auth = types.ModuleType("hermes_cli.auth")
+        fake_auth = types.ModuleType("iris_cli.auth")
         fake_auth.get_auth_status = lambda pid: (
             {
                 "logged_in": True,
@@ -119,10 +119,10 @@ class TestPluginModelProvidersSettings:
             if pid == "yandex"
             else {}
         )
-        monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-        monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-        monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+        monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+        monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         old_cfg = dict(config.cfg)
         old_mtime = config._cfg_mtime
@@ -150,7 +150,7 @@ class TestPluginModelProvidersSettings:
 
     def test_set_provider_key_accepts_plugin_env_var(self, monkeypatch, tmp_path):
         _install_fake_yandex_plugin(monkeypatch)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         from api.providers import set_provider_key
 
@@ -190,13 +190,13 @@ class TestPluginModelProvidersPanelFilter:
 class TestPluginModelProvidersPicker:
     def test_model_picker_includes_authenticated_plugin_provider(self, monkeypatch, tmp_path):
         _install_fake_yandex_plugin(monkeypatch)
-        _install_fake_hermes_cli(
+        _install_fake_iris_cli(
             monkeypatch,
             authenticated=True,
             model_ids=["gpt://folder/deepseek-v4-flash/latest"],
         )
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+        monkeypatch.setenv("IRIS_HOME", str(tmp_path))
 
         old_cfg = dict(config.cfg)
         old_mtime = config._cfg_mtime
@@ -241,9 +241,9 @@ class TestPluginFallbackModelsInStaticCatalog:
         self, monkeypatch, tmp_path
     ):
         _install_fake_yandex_plugin(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, authenticated=True, model_ids=[])
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        _install_fake_iris_cli(monkeypatch, authenticated=True, model_ids=[])
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+        monkeypatch.setenv("IRIS_HOME", str(tmp_path))
         # _provider_has_key reads the env var directly, not the .env file.
         # Set it so the static catalog's plugin-detection branch fires.
         monkeypatch.setenv("YANDEX_API_KEY", "test-y...n")
@@ -319,29 +319,29 @@ class TestPluginFallbackModelsInStaticCatalog:
 
         invalidate_plugin_model_provider_cache()
 
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+        monkeypatch.setenv("IRIS_HOME", str(tmp_path))
         # _provider_has_key reads the env var directly.
         monkeypatch.setenv("MYPLUGIN_API_KEY", "test-m...n")
         (tmp_path / ".env").write_text(
             "MYPLUGIN_API_KEY=test-m...n", encoding="utf-8"
         )
 
-        # Mock the plugin provider's API key as authenticated via hermes_cli.auth
-        fake_pkg = types.ModuleType("hermes_cli")
+        # Mock the plugin provider's API key as authenticated via iris_cli.auth
+        fake_pkg = types.ModuleType("iris_cli")
         fake_pkg.__path__ = []
-        fake_models = types.ModuleType("hermes_cli.models")
+        fake_models = types.ModuleType("iris_cli.models")
         fake_models.list_available_providers = lambda: []
         fake_models.provider_model_ids = lambda pid: []
-        fake_auth = types.ModuleType("hermes_cli.auth")
+        fake_auth = types.ModuleType("iris_cli.auth")
         fake_auth.get_auth_status = lambda pid: (
             {"logged_in": True, "configured": True, "key_source": "env_file"}
             if pid == "myplugin"
             else {}
         )
-        monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-        monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-        monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+        monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+        monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+        monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
         old_cfg = dict(config.cfg)
         old_mtime = config._cfg_mtime

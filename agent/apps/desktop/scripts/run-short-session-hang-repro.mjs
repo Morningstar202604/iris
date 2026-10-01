@@ -29,7 +29,7 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const DESKTOP_ROOT = resolve(HERE, '..')
 const REPO_ROOT = resolve(DESKTOP_ROOT, '..', '..')
 const HARNESS_SOURCE = resolve(DESKTOP_ROOT, 'src/app/chat/short-session-hang-repro.tsx')
-const UPSTREAM_URL = 'https://github.com/NousResearch/hermes-agent.git'
+const UPSTREAM_URL = 'https://github.com/X33834/iris.git'
 const DEFAULT_BASELINE = '3651627d88858912e8460e6f949b7125725600c3'
 const DEFAULT_CANDIDATE = '3651627d88858912e8460e6f949b7125725600c3'
 const FREEZE_MS = 5_000
@@ -37,8 +37,8 @@ const JOURNAL_SEED_TIMEOUT_MS = 30_000
 const STREAM_RESPONSE_TIMEOUT_MS = 30_000
 const STREAM_RESPONSE_EVALUATION_TIMEOUT_MS = 30_000
 const STREAM_PAYLOAD_BYTES = 512 * 1024
-const LEGACY_STORAGE_KEY = 'hermes.desktop.inflightTurnJournal.v1'
-const LEGACY_MIGRATION_KEY = 'hermes.desktop.inflightTurnJournal.v2.migrated'
+const LEGACY_STORAGE_KEY = 'iris.desktop.inflightTurnJournal.v1'
+const LEGACY_MIGRATION_KEY = 'iris.desktop.inflightTurnJournal.v2.migrated'
 const LEGACY_SEED_ENTRY_COUNT = 15
 const MAX_LEGACY_SEED_BYTES = 1.9 * 1024 * 1024
 // Reserve space for the JSON envelope and per-entry metadata so the generated
@@ -802,7 +802,7 @@ async function verifyInteractiveSurfaces(cdp, timed, measure, label) {
     throw new Error(`composer did not paint sentinel at ${label}`)
   }
 
-  const version = await timed(`version.ipc.${label}`, () => cdp.eval('window.hermesDesktop.getVersion()'))
+  const version = await timed(`version.ipc.${label}`, () => cdp.eval('window.irisDesktop.getVersion()'))
 
   if (typeof version?.appVersion !== 'string' || version.appVersion.length === 0) {
     throw new Error(`version IPC returned no appVersion at ${label}: ${JSON.stringify(version)}`)
@@ -1183,7 +1183,7 @@ async function runRendererChecks(cdp, label, runDir, mock, appPid, journalContra
 }
 
 async function withTemporarySandbox(label, body) {
-  const sandbox = mkdtempSync(join(tmpdir(), `hermes-short-session-${label}-`))
+  const sandbox = mkdtempSync(join(tmpdir(), `iris-short-session-${label}-`))
 
   try {
     return await body(sandbox)
@@ -1254,9 +1254,9 @@ function promoteAttemptArtifacts(output, label, index, warmup, attempt) {
 
 async function executeRunInSandboxAttempt(target, index, warmup, mock, output, sandbox, attempt) {
   const runDir = runDirForAttempt(output, target.label, index, warmup, attempt)
-  const hermesHome = join(sandbox, 'hermes-home')
+  const irisHome = join(sandbox, 'iris-home')
   const userData = join(sandbox, 'electron-user-data')
-  const desktopLog = join(hermesHome, 'logs', 'desktop.log')
+  const desktopLog = join(irisHome, 'logs', 'desktop.log')
   const stdoutPath = join(runDir, 'electron.stdout.log')
   const stderrPath = join(runDir, 'electron.stderr.log')
   const eventsPath = join(runDir, 'events.jsonl')
@@ -1264,7 +1264,7 @@ async function executeRunInSandboxAttempt(target, index, warmup, mock, output, s
 
   mkdirSync(runDir, { recursive: true })
   mkdirSync(userData, { recursive: true })
-  writeSandboxConfig(hermesHome, mock.url)
+  writeSandboxConfig(irisHome, mock.url)
 
   const electron = require('electron')
   const stdoutLog = createWriteStream(stdoutPath)
@@ -1283,11 +1283,11 @@ async function executeRunInSandboxAttempt(target, index, warmup, mock, output, s
     {
       cwd: target.targetDesktop,
       env: sanitizedEnv({
-        HERMES_DESKTOP_APP_NAME: `HermesShortSession-${target.label}-${process.pid}-${index}-${warmup ? 'w' : 'm'}-${attempt}`,
-        HERMES_DESKTOP_HERMES_ROOT: target.targetRoot,
-        HERMES_DESKTOP_IGNORE_EXISTING: '1',
-        HERMES_DESKTOP_USER_DATA_DIR: userData,
-        HERMES_HOME: hermesHome,
+        IRIS_DESKTOP_APP_NAME: `IrisShortSession-${target.label}-${process.pid}-${index}-${warmup ? 'w' : 'm'}-${attempt}`,
+        IRIS_DESKTOP_IRIS_ROOT: target.targetRoot,
+        IRIS_DESKTOP_IGNORE_EXISTING: '1',
+        IRIS_DESKTOP_USER_DATA_DIR: userData,
+        IRIS_HOME: irisHome,
         SHORT_SESSION_API_KEY: 'local-diagnostic-only'
       }),
       stdio: ['ignore', 'pipe', 'pipe']
@@ -1616,7 +1616,7 @@ async function main() {
   mkdirSync(options.output, { recursive: true })
   writeFileSync(join(options.output, 'environment.json'), `${JSON.stringify(plan, null, 2)}\n`)
 
-  const ephemeralRoot = mkdtempSync(join(tmpdir(), 'hermes-short-session-ab-'))
+  const ephemeralRoot = mkdtempSync(join(tmpdir(), 'iris-short-session-ab-'))
   const prepared = []
   const mock = await startMockInference()
 

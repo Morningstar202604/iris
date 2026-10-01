@@ -33,10 +33,10 @@ import { expect, test } from './test'
 // — roster, routines pane, hero, pane, store, listeners — is the shipped renderer.
 //
 // The orphan-row branch (a source-scoped row whose connection was deleted) is
-// not reachable in this single-local-source rig: `window.hermesDesktop` is a
+// not reachable in this single-local-source rig: `window.irisDesktop` is a
 // non-writable contextBridge object, so the union roster cannot be seeded with
 // a connection-less agent. That branch stays covered by
-// `src/plugins/hermes-bots/screen-connection.test.ts`; the second test here
+// `src/plugins/iris-bots/screen-connection.test.ts`; the second test here
 // drives the same shipped `display.lease` / `display.status` listeners with
 // pushed events through the real client and asserts they keep updating without
 // a page error.
@@ -63,8 +63,8 @@ async function capture(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: path.join(dir, `${name}.png`) })
 }
 
-async function seedBot(hermesHome: string, mockUrl: string, name: string): Promise<void> {
-  const dir = path.join(hermesHome, 'profiles', name)
+async function seedBot(irisHome: string, mockUrl: string, name: string): Promise<void> {
+  const dir = path.join(irisHome, 'profiles', name)
   fs.mkdirSync(dir, { recursive: true })
   writeMockProviderConfig(dir, mockUrl)
   writeEnvFile(dir)
@@ -78,7 +78,7 @@ async function seedBot(hermesHome: string, mockUrl: string, name: string): Promi
   }
 }
 
-const PROFILE_KEY = '/e2e/alpha/.hermes'
+const PROFILE_KEY = '/e2e/alpha/.iris'
 
 function snapshot(running: boolean) {
   return {
@@ -171,9 +171,9 @@ const hero = (page: Page) => page.locator('button[aria-label^="Screen:"]').first
 test.beforeAll(async () => {
   const mock = await startMockServer()
   const sandbox = createSandbox('bots-screen-stale')
-  writeMockProviderConfig(sandbox.hermesHome, mock.url)
-  writeEnvFile(sandbox.hermesHome)
-  await seedBot(sandbox.hermesHome, mock.url, 'alpha')
+  writeMockProviderConfig(sandbox.irisHome, mock.url)
+  writeEnvFile(sandbox.irisHome)
+  await seedBot(sandbox.irisHome, mock.url, 'alpha')
 
   const { app, page } = await launchDesktop(buildAppEnv(sandbox))
   page.on('pageerror', error => pageErrors.push(String(error)))
@@ -278,7 +278,7 @@ test('pushed display.status / display.lease events keep updating the shipped lis
 
   // An event for another screen (different profile_key) is ignored by every listener.
   await pushEvent(page, 'display.lease', {
-    profile_key: '/e2e/other/.hermes',
+    profile_key: '/e2e/other/.iris',
     lease: { holder: 'human', viewer_id: null, viewer_hash: 'someone-else', since: 2, epoch: 2, reason: '' }
   })
   await page.waitForTimeout(500)

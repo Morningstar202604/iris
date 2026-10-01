@@ -40,21 +40,21 @@ from urllib.parse import urlparse
 import httpx
 
 from agent.web_search_provider import WebSearchProvider
-from hermes_cli import __version__ as _HERMES_VERSION
+from iris_cli import __version__ as _IRIS_VERSION
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_BASE_URL = "https://api.perplexity.ai"
 _KEY_URL = "https://www.perplexity.ai/account/api"
 
-# Identify Hermes to Perplexity: the same static harness identity Hermes sends Kimi and
+# Identify Iris to Perplexity: the same static harness identity Iris sends Kimi and
 # OpenCode, plus Perplexity's integration header. No per-user identifier and no separate
 # request; the call already carries the user's own API key.
 _HEADERS = {
-    "HTTP-Referer": "https://hermes-agent.nousresearch.com",
-    "X-Title": "Hermes Agent",
-    "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
-    "X-Pplx-Integration": "hermes-agent",
+    "HTTP-Referer": "https://gitcode.com/badhope/iris",
+    "X-Title": "Iris Agent",
+    "User-Agent": f"IrisAgent/{_IRIS_VERSION}",
+    "X-Pplx-Integration": "iris-agent",
 }
 
 

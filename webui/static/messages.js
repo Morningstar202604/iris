@@ -69,7 +69,7 @@ function _isDocumentVisibleAndFocused() {
 let _desktopBackgroundedForNotifications=false;
 // Desktop shells can background a visible document; keep that signal notification-only.
 if(typeof window!=='undefined'){
-  window.__hermesSetBackgrounded=(value)=>{
+  window.__irisSetBackgrounded=(value)=>{
     _desktopBackgroundedForNotifications=!!value;
     if(_desktopBackgroundedForNotifications){
       for(const k in _STREAM_NOTIFICATION_BACKGROUND){
@@ -804,7 +804,7 @@ function _formatSelectedTextReplyQuote(text, includeMarker=true){
   const normalized=String(text||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
   if(!normalized)return '';
   const quote=normalized.split('\n').map(line=>`> ${line}`).join('\n');
-  return includeMarker?`<!-- hermes-selected-context -->\n${quote}`:quote;
+  return includeMarker?`<!-- iris-selected-context -->\n${quote}`:quote;
 }
 
 function _appendComposerText(text){
@@ -1854,7 +1854,7 @@ async function send(){
     // re-inject the dead id via _sessionIdFromLocation(), then reset to the
     // empty state instead of pushing a confusing error bubble into the chat.
     if(e&&e.status===404){
-      try{ localStorage.removeItem('hermes-webui-session'); }catch(_){ }
+      try{ localStorage.removeItem('iris-webui-session'); }catch(_){ }
       try{
         if(typeof _appRootPath==='function') history.replaceState(null,'',_appRootPath());
         else history.replaceState(null,'',window.location.pathname.replace(/\/session\/[^/]+/,'')+window.location.search);
@@ -1934,7 +1934,7 @@ async function send(){
       }
       S.session.model=startData.effective_model;
       S.session.model_provider=startData.effective_model_provider||S.session.model_provider||null;
-      localStorage.setItem('hermes-webui-model', startData.effective_model);
+      localStorage.setItem('iris-webui-model', startData.effective_model);
       if(typeof _writePersistedModelState==='function') _writePersistedModelState(startData.effective_model,S.session.model_provider||null);
       if($('modelSelect')) _applyModelToDropdown(startData.effective_model, $('modelSelect'),S.session.model_provider||null);
       if(typeof syncTopbar==='function') syncTopbar();
@@ -2151,7 +2151,7 @@ function closeOtherLiveStreams(activeSid){
 }
 
 function _dispatchExtensionTurnLifecycle(type,sessionId,streamId,details={}){
-  const runtime=typeof window!=='undefined'&&window.HermesExtensionSettings;
+  const runtime=typeof window!=='undefined'&&window.IrisExtensionSettings;
   const dispatch=runtime&&runtime._dispatchTurnLifecycle;
   if(typeof dispatch!=='function') return false;
   try{
@@ -2777,8 +2777,8 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
   const _STREAM_FADE_MAX_MS=900;
   const _STREAM_FADE_DONE_MAX_MS=1000;
   const _STREAM_FADE_DONE_DRAIN_MAX_MS=1400;
-  const _anchorApi=(typeof window!=='undefined'&&window.HermesAssistantTurnAnchors)
-    ? window.HermesAssistantTurnAnchors
+  const _anchorApi=(typeof window!=='undefined'&&window.IrisAssistantTurnAnchors)
+    ? window.IrisAssistantTurnAnchors
     : null;
   const _anchorRegistryMap=(typeof window!=='undefined')
     ? (window._liveAnchorRegistries=window._liveAnchorRegistries||new Map())
@@ -6332,7 +6332,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
           if(typeof _hydrateTodosFromSession==='function') _hydrateTodosFromSession(S.session);
           if(typeof clearVisibleMessageRowCache==='function') clearVisibleMessageRowCache();
           if(S.session&&S.session.session_id){
-            try{localStorage.setItem('hermes-webui-session',S.session.session_id);}catch(_){}
+            try{localStorage.setItem('iris-webui-session',S.session.session_id);}catch(_){}
             if(typeof _setActiveSessionUrl==='function') _setActiveSessionUrl(S.session.session_id);
           }
           const _markerOnlyAssistantError=_replaceMarkerOnlyAssistantWithStreamError(S.messages);
@@ -6769,7 +6769,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
             _attachProjectedAnchorSceneToLastAssistant(_nextMsgs3018);
             S.messages=_carryForwardEphemeralTurnFields(S.messages||[], _nextMsgs3018);
             if(S.session&&S.session.session_id){
-              try{localStorage.setItem('hermes-webui-session',S.session.session_id);}catch(_){}
+              try{localStorage.setItem('iris-webui-session',S.session.session_id);}catch(_){}
               if(typeof _setActiveSessionUrl==='function') _setActiveSessionUrl(S.session.session_id);
             }
           } else {
@@ -7179,7 +7179,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
         _attachProjectedAnchorSceneToLastAssistant(S.messages);
         if(typeof _hydrateTodosFromSession==='function') _hydrateTodosFromSession(S.session);
         if(S.session&&S.session.session_id){
-          try{localStorage.setItem('hermes-webui-session',S.session.session_id);}catch(_){}
+          try{localStorage.setItem('iris-webui-session',S.session.session_id);}catch(_){}
           if(typeof _setActiveSessionUrl==='function') _setActiveSessionUrl(S.session.session_id);
         }
         if(typeof _adoptRegenerationRevision==='function')_adoptRegenerationRevision(session);
@@ -7585,7 +7585,7 @@ let _approvalResponding = null;
 let _approvalClearedOwner = null;
 let _approvalDisplayedOwner = null;
 
-const _DISMISSED_APPROVALS_KEY = 'hermes_dismissed_approvals';
+const _DISMISSED_APPROVALS_KEY = 'iris_dismissed_approvals';
 
 // Dismissed approvals are namespaced by session so that two sessions carrying
 // the SAME approval_id (e.g. a gateway/run source that reuses externally
@@ -8334,7 +8334,7 @@ function startSessionStream(sid) {
   // Capture the active session id into a dedicated var BEFORE closing, because
   // stopSessionStream() nulls _sessionStreamSessionId — so the reopen path can't
   // rely on it (that was the bug: the stream never reopened on tab re-show).
-  if (typeof document !== 'undefined' && !document._hermesSessionStreamVisibilityHook) {
+  if (typeof document !== 'undefined' && !document._irisSessionStreamVisibilityHook) {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         _sessionStreamHiddenSid = _sessionStreamSessionId;
@@ -8351,7 +8351,7 @@ function startSessionStream(sid) {
         void startSessionStream(resumeSid);
       }
     });
-    document._hermesSessionStreamVisibilityHook = true;
+    document._irisSessionStreamVisibilityHook = true;
   }
   // Don't open when tab is hidden — saves connection pool slots. Preserve the
   // pending session id so the visibility handler reopens it on re-show (a session
@@ -8837,7 +8837,7 @@ function _stashClarifyDraft(reason) {
   const draft = String((input && input.value) || "").trim();
   if (!draft) return false;
   const sid = _clarifySessionId || (S.session && S.session.session_id) || "unknown";
-  const key = `hermes-clarify-draft-${sid}-${_clarifySignature || "unknown"}`;
+  const key = `iris-clarify-draft-${sid}-${_clarifySignature || "unknown"}`;
   try {
     sessionStorage.setItem(key, JSON.stringify({
       draft,
@@ -9360,7 +9360,7 @@ function playAttentionSound(key){
 function _notificationOptions(body,options={}){
   const sid=(options&&options.sid)||(S&&S.session&&S.session.session_id);
   const url=sid?`${location.origin}${_sessionUrlForSid(sid)}`:location.href;
-  return {body:body||'',tag:sid?`hermes-${sid}`:'hermes-webui',renotify:true,icon:'static/favicon-192.png',badge:'static/favicon-32.png',data:{url}};
+  return {body:body||'',tag:sid?`iris-${sid}`:'iris-webui',renotify:true,icon:'static/favicon-192.png',badge:'static/favicon-32.png',data:{url}};
 }
 function _showPwaNotification(title,body,options={}){
   const botName=assistantDisplayName();

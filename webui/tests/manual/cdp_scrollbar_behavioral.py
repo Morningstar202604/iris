@@ -13,13 +13,13 @@ import asyncio
 import urllib.request
 import websockets
 
-async def find_hermes_tab():
-    """Find a Hermes session tab that has the scrollbar drag fix deployed."""
+async def find_iris_tab():
+    """Find a Iris session tab that has the scrollbar drag fix deployed."""
     tabs = json.loads(urllib.request.urlopen("http://localhost:9222/json").read())
-    hermes = [t for t in tabs if "8787" in t.get("url", "") and t["type"] == "page" and "/session/" in t.get("url", "")]
-    if not hermes:
-        raise RuntimeError("No Hermes session tab found on :8787")
-    for t in hermes:
+    iris = [t for t in tabs if "8787" in t.get("url", "") and t["type"] == "page" and "/session/" in t.get("url", "")]
+    if not iris:
+        raise RuntimeError("No Iris session tab found on :8787")
+    for t in iris:
         ws_url = t["webSocketDebuggerUrl"]
         try:
             async with websockets.connect(ws_url, max_size=1*1024*1024) as ws:
@@ -39,7 +39,7 @@ async def find_hermes_tab():
         except Exception:
             continue
     # If none have the fix, reload the first one and retry
-    ws_url = hermes[0]["webSocketDebuggerUrl"]
+    ws_url = iris[0]["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url, max_size=1*1024*1024) as ws:
         msg = {"id": 999, "method": "Page.reload", "params": {"ignoreCache": True}}
         await ws.send(json.dumps(msg))
@@ -81,7 +81,7 @@ async def ev(ws, expr):
     return result
 
 async def run_tests():
-    ws_url = await find_hermes_tab()
+    ws_url = await find_iris_tab()
     print(f"Connecting to {ws_url}")
     passed = 0
     failed = 0

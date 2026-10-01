@@ -1,4 +1,4 @@
-import { looksLikeSlashCommand } from '@hermes/shared/slash'
+import { looksLikeSlashCommand } from '@iris/shared/slash'
 import { useEffect, useRef, useState } from 'react'
 
 import type { CompletionItem } from '../app/interfaces.js'

@@ -8,7 +8,7 @@ Two problems fixed:
 1. uv was downloaded at container startup; fails in air-gapped / firewalled environments.
    Fix: pre-install uv in the Docker image at build time (system-wide in /usr/local/bin).
 2. workspace directory setup must happen before the server drops privileges;
-   bind-mount dirs created by Docker as root are unwritable by hermeswebui.
+   bind-mount dirs created by Docker as root are unwritable by iriswebui.
    Fix: root init mkdir/chown, then runtime verifies access without sudo.
 """
 import pathlib
@@ -39,12 +39,12 @@ class TestDockerfileUvPreinstall:
         )
         assert uv_install_line is not None, "Could not find uv install line in Dockerfile"
         # Must either use UV_INSTALL_DIR pointing to /usr/local/bin, or run as root
-        # (so the default install location is accessible to hermeswebui user)
+        # (so the default install location is accessible to iriswebui user)
         has_system_dir = "/usr/local/bin" in uv_install_line or "UV_INSTALL_DIR=/usr/local/bin" in DOCKERFILE
         assert has_system_dir, (
-            "uv must be installed to /usr/local/bin (system-wide) so hermeswebui user "
-            "can find it. Installing as hermeswebuitoo puts it in /home/hermeswebuitoo/.local/bin "
-            "which is NOT on hermeswebui's PATH."
+            "uv must be installed to /usr/local/bin (system-wide) so iriswebui user "
+            "can find it. Installing as iriswebuitoo puts it in /home/iriswebuitoo/.local/bin "
+            "which is NOT on iriswebui's PATH."
         )
 
     def test_dockerfile_uv_installed_before_copy(self):
@@ -60,8 +60,8 @@ class TestDockerfileUvPreinstall:
 
     def test_dockerfile_uv_installed_as_root_or_before_user_switch(self):
         """uv must be installed as root (USER root) to reach /usr/local/bin.
-        If installed as hermeswebuitoo, it lands in ~hermeswebuitoo/.local/bin,
-        which the hermeswebui user at runtime can't see.
+        If installed as iriswebuitoo, it lands in ~iriswebuitoo/.local/bin,
+        which the iriswebui user at runtime can't see.
         """
         lines = DOCKERFILE.splitlines()
         uv_line_idx = next(i for i, l in enumerate(lines) if "uv/install.sh" in l)
@@ -73,8 +73,8 @@ class TestDockerfileUvPreinstall:
                 break
         assert user_before == "root", (
             f"uv install must run as USER root (found USER {user_before!r}). "
-            "Installing as hermeswebuitoo puts uv in /home/hermeswebuitoo/.local/bin "
-            "which is not accessible to the hermeswebui runtime user."
+            "Installing as iriswebuitoo puts uv in /home/iriswebuitoo/.local/bin "
+            "which is not accessible to the iriswebui runtime user."
         )
 
 
@@ -121,10 +121,10 @@ class TestInitScriptUvSkip:
             "so the container exits with a clear message instead of failing silently"
         )
 
-    def test_init_script_path_includes_hermeswebui_local_bin(self):
-        """PATH must include /home/hermeswebui/.local/bin for fallback runtime install."""
-        assert "/home/hermeswebui/.local/bin" in INIT_SCRIPT, (
-            "docker_init.bash must include /home/hermeswebui/.local/bin in PATH "
+    def test_init_script_path_includes_iriswebui_local_bin(self):
+        """PATH must include /home/iriswebui/.local/bin for fallback runtime install."""
+        assert "/home/iriswebui/.local/bin" in INIT_SCRIPT, (
+            "docker_init.bash must include /home/iriswebui/.local/bin in PATH "
             "for the case where uv is installed at runtime via curl"
         )
 
@@ -137,14 +137,14 @@ class TestWorkspacePermissions:
         """docker_init.bash must create missing workspaces during root init.
 
         Docker auto-creates bind-mount directories as root if they don't exist,
-        leaving them unwritable by hermeswebui. The production image no longer
+        leaving them unwritable by iriswebui. The production image no longer
         ships sudo, so root init handles mkdir before dropping privileges.
         """
         root_section = INIT_SCRIPT[
             INIT_SCRIPT.find('if [ "A${whoami}" == "Aroot" ]; then'):
             INIT_SCRIPT.find('exec su')
         ]
-        assert 'mkdir -p "$HERMES_WEBUI_DEFAULT_WORKSPACE"' in root_section, (
+        assert 'mkdir -p "$IRIS_WEBUI_DEFAULT_WORKSPACE"' in root_section, (
             "docker_init.bash must mkdir the workspace during root init "
             "to handle Docker-created bind-mount dirs (#357)"
         )
@@ -159,32 +159,32 @@ class TestWorkspacePermissions:
             INIT_SCRIPT.find('if [ "A${whoami}" == "Aroot" ]; then'):
             INIT_SCRIPT.find('exec su')
         ]
-        assert 'chown hermeswebui:hermeswebui "$HERMES_WEBUI_DEFAULT_WORKSPACE"' in root_section, (
+        assert 'chown iriswebui:iriswebui "$IRIS_WEBUI_DEFAULT_WORKSPACE"' in root_section, (
             "docker_init.bash must chown the workspace during root init "
             "so the app user can write to it when possible (#357)"
         )
 
     def test_workspace_mkdir_before_chown(self):
         """Root init mkdir must come before root init chown in docker_init.bash."""
-        mkdir_pos = INIT_SCRIPT.find('mkdir -p "$HERMES_WEBUI_DEFAULT_WORKSPACE"')
-        chown_pos = INIT_SCRIPT.find('chown hermeswebui:hermeswebui "$HERMES_WEBUI_DEFAULT_WORKSPACE"')
+        mkdir_pos = INIT_SCRIPT.find('mkdir -p "$IRIS_WEBUI_DEFAULT_WORKSPACE"')
+        chown_pos = INIT_SCRIPT.find('chown iriswebui:iriswebui "$IRIS_WEBUI_DEFAULT_WORKSPACE"')
         assert mkdir_pos != -1, "root init mkdir for workspace not found"
         assert chown_pos != -1, "root init chown for workspace not found"
         assert mkdir_pos < chown_pos, "root init mkdir must come before root init chown"
 
     def test_workspace_error_exit_on_mkdir_failure(self):
         """Root init mkdir must call error_exit on failure."""
-        assert 'mkdir -p "$HERMES_WEBUI_DEFAULT_WORKSPACE" || error_exit' in INIT_SCRIPT, (
+        assert 'mkdir -p "$IRIS_WEBUI_DEFAULT_WORKSPACE" || error_exit' in INIT_SCRIPT, (
             "workspace mkdir must call error_exit on failure"
         )
 
     def test_workspace_write_test_is_conditional_on_writable(self):
         """Write-test must be skipped for read-only workspace mounts (#670).
 
-        The runtime phase must check [ -w "$HERMES_WEBUI_DEFAULT_WORKSPACE" ] before
+        The runtime phase must check [ -w "$IRIS_WEBUI_DEFAULT_WORKSPACE" ] before
         attempting a write test, so :ro bind-mounts don't crash startup.
         """
-        assert '[ -w "$HERMES_WEBUI_DEFAULT_WORKSPACE" ]' in INIT_SCRIPT, (
+        assert '[ -w "$IRIS_WEBUI_DEFAULT_WORKSPACE" ]' in INIT_SCRIPT, (
             "docker_init.bash must guard the workspace write-test with [ -w ] "
             "to support read-only workspace mounts (:ro) without crashing (#670)"
         )

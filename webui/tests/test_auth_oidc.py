@@ -19,10 +19,10 @@ from api.auth_oidc import _enforce_allowlist, _normalize_allow_values, OIDCAuthE
 @pytest.fixture(autouse=True)
 def _clear_oidc_environment(monkeypatch):
     for name in (
-        "HERMES_WEBUI_OIDC_ISSUER",
-        "HERMES_WEBUI_OIDC_CLIENT_ID",
-        "HERMES_WEBUI_OIDC_ALLOW_CLAIM",
-        "HERMES_WEBUI_OIDC_ALLOW_VALUES",
+        "IRIS_WEBUI_OIDC_ISSUER",
+        "IRIS_WEBUI_OIDC_CLIENT_ID",
+        "IRIS_WEBUI_OIDC_ALLOW_CLAIM",
+        "IRIS_WEBUI_OIDC_ALLOW_VALUES",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -62,7 +62,7 @@ def test_startup_warning_treats_empty_allowlist_shapes_as_missing(monkeypatch, a
 
 
 def test_startup_warning_accepts_multi_word_list(monkeypatch):
-    assert _startup_warning(monkeypatch, ["Hermes Users"]) is None
+    assert _startup_warning(monkeypatch, ["Iris Users"]) is None
 
 
 def test_startup_warning_accepts_comma_scalar(monkeypatch):
@@ -78,7 +78,7 @@ def test_startup_warning_reports_whitespace_scalar_migration(monkeypatch):
 
 
 def test_startup_warning_uses_environment_allow_values_precedence(monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_OIDC_ALLOW_VALUES", "")
+    monkeypatch.setenv("IRIS_WEBUI_OIDC_ALLOW_VALUES", "")
 
     warning = _startup_warning(monkeypatch, ["alice@example.com"])
 
@@ -92,9 +92,9 @@ def _resolve(monkeypatch, *, env=None, cfg_list=None):
     Pass env= for a string env-var value, cfg_list= for a list from config.
     Pass neither to simulate absent/None.
     """
-    monkeypatch.delenv("HERMES_WEBUI_OIDC_ALLOW_VALUES", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_OIDC_ALLOW_VALUES", raising=False)
     if env is not None:
-        monkeypatch.setenv("HERMES_WEBUI_OIDC_ALLOW_VALUES", env)
+        monkeypatch.setenv("IRIS_WEBUI_OIDC_ALLOW_VALUES", env)
         webui_cfg = {}
     elif cfg_list is not None:
         webui_cfg = {"allow_values": cfg_list}
@@ -114,8 +114,8 @@ def test_legacy_scalar_warns(monkeypatch, caplog):
         cfg = _resolve(monkeypatch, env="alice@example.com bob@example.com")
 
     assert any(
-        "HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records
-    ), "expected warning naming HERMES_WEBUI_OIDC_ALLOW_VALUES"
+        "IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records
+    ), "expected warning naming IRIS_WEBUI_OIDC_ALLOW_VALUES"
 
     warning_text = " ".join(r.message for r in caplog.records)
     assert "comma" in warning_text.lower(), "warning must mention comma-delimited form"
@@ -188,16 +188,16 @@ def test_enforce_decisions_unchanged(monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_multi_word_group(monkeypatch, caplog):
-    """'Hermes Users' stays one allow_values entry; a 'Hermes' fragment is denied."""
+    """'Iris Users' stays one allow_values entry; a 'Iris' fragment is denied."""
     with caplog.at_level(logging.WARNING, logger="api.auth_oidc"):
-        cfg = _resolve(monkeypatch, env="Hermes Users")
+        cfg = _resolve(monkeypatch, env="Iris Users")
 
     # normalization preserves the full group name as one value
-    assert cfg["allow_values"] == ["Hermes Users"]
+    assert cfg["allow_values"] == ["Iris Users"]
 
     # full group name → allowed
     _enforce_allowlist(
-        {"groups": "Hermes Users"},
+        {"groups": "Iris Users"},
         allow_claim="groups",
         allow_values=cfg["allow_values"],
     )
@@ -205,13 +205,13 @@ def test_multi_word_group(monkeypatch, caplog):
     # fragment → denied
     with pytest.raises(OIDCAuthError):
         _enforce_allowlist(
-            {"groups": "Hermes"},
+            {"groups": "Iris"},
             allow_claim="groups",
             allow_values=cfg["allow_values"],
         )
 
     # warning emitted (operator should confirm intent)
-    assert any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
+    assert any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +257,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # comma-delimited scalar
         cfg = _resolve(monkeypatch, env="alice@example.com,bob@example.com")
         assert cfg["allow_values"] == ["alice@example.com", "bob@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "comma scalar must not emit a warning"
         )
 
@@ -266,7 +266,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # newline-delimited scalar
         cfg = _resolve(monkeypatch, env="alice@example.com\nbob@example.com")
         assert cfg["allow_values"] == ["alice@example.com", "bob@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "newline scalar must not emit a warning"
         )
 
@@ -275,7 +275,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # YAML array (list from config)
         cfg = _resolve(monkeypatch, cfg_list=["alice@example.com", "bob@example.com"])
         assert cfg["allow_values"] == ["alice@example.com", "bob@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "list/array config must not emit a warning"
         )
 
@@ -284,7 +284,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # single token with no inner whitespace
         cfg = _resolve(monkeypatch, env="alice@example.com")
         assert cfg["allow_values"] == ["alice@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "single token without inner whitespace must not emit a warning"
         )
 
@@ -293,7 +293,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # single token with only leading/trailing whitespace (strip removes it, no inner ws)
         cfg = _resolve(monkeypatch, env="  alice@example.com  ")
         assert cfg["allow_values"] == ["alice@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "leading/trailing-only whitespace must not emit a warning"
         )
 
@@ -302,7 +302,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # leading/trailing tab only
         cfg = _resolve(monkeypatch, env="\talice@example.com\t")
         assert cfg["allow_values"] == ["alice@example.com"]
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "leading/trailing-only tab must not emit a warning"
         )
 
@@ -311,7 +311,7 @@ def test_canonical_no_warning(monkeypatch, caplog):
         # absent
         cfg = _resolve(monkeypatch)
         assert cfg["allow_values"] == []
-        assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+        assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
             "absent value must not emit a warning"
         )
 
@@ -326,14 +326,14 @@ def test_allow_values_matrix(monkeypatch, caplog):
         # row 1: whitespace-only scalar, multiple intended values → one combined, warning
         cfg = _resolve(monkeypatch, env="alice@example.com bob@example.com")
         assert cfg["allow_values"] == ["alice@example.com bob@example.com"]
-        assert any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
+        assert any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
         caplog.clear()
         auth_oidc._warned_allow_values.clear()
 
         # row 2: whitespace-only scalar, one intended multi-word group → one value, warning
-        cfg = _resolve(monkeypatch, env="Hermes Users")
-        assert cfg["allow_values"] == ["Hermes Users"]
-        assert any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
+        cfg = _resolve(monkeypatch, env="Iris Users")
+        assert cfg["allow_values"] == ["Iris Users"]
+        assert any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records)
         caplog.clear()
         auth_oidc._warned_allow_values.clear()
 
@@ -374,7 +374,7 @@ def test_warning_not_per_request(monkeypatch, caplog):
 
     matching = [
         r for r in caplog.records
-        if "HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message
+        if "IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message
     ]
     assert len(matching) == 1, (
         f"expected exactly 1 warning, got {len(matching)}"
@@ -391,7 +391,7 @@ def test_tab_separated_scalar_warns(monkeypatch, caplog):
         cfg = _resolve(monkeypatch, env="alice@example.com\tbob@example.com")
 
     assert cfg["allow_values"] == ["alice@example.com\tbob@example.com"]
-    assert any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+    assert any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
         "tab-separated scalar must emit a warning"
     )
     # claim still denied
@@ -410,7 +410,7 @@ def test_nbsp_separated_scalar_warns(monkeypatch, caplog):
         cfg = _resolve(monkeypatch, env=nbsp_val)
 
     assert cfg["allow_values"] == [nbsp_val]
-    assert any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+    assert any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
         "NBSP-separated scalar must emit a warning"
     )
     with pytest.raises(OIDCAuthError):
@@ -427,7 +427,7 @@ def test_leading_trailing_whitespace_only_no_warn(monkeypatch, caplog):
         cfg = _resolve(monkeypatch, env="\t  alice@example.com  \t")
 
     assert cfg["allow_values"] == ["alice@example.com"]
-    assert not any("HERMES_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
+    assert not any("IRIS_WEBUI_OIDC_ALLOW_VALUES" in r.message for r in caplog.records), (
         "leading/trailing-only whitespace must not emit a warning"
     )
 
@@ -443,8 +443,8 @@ def test_mixed_comma_space_scalar_warns(monkeypatch, caplog):
 
     assert cfg["allow_values"] == ["alice@x.com bob@x.com", "carol@x.com"]
     warning_text = " ".join(r.message for r in caplog.records)
-    assert "HERMES_WEBUI_OIDC_ALLOW_VALUES" in warning_text, (
-        "mixed comma-plus-space scalar must emit a warning naming HERMES_WEBUI_OIDC_ALLOW_VALUES"
+    assert "IRIS_WEBUI_OIDC_ALLOW_VALUES" in warning_text, (
+        "mixed comma-plus-space scalar must emit a warning naming IRIS_WEBUI_OIDC_ALLOW_VALUES"
     )
     # The message must describe what was detected, not say the value contains no commas.
     assert "internal whitespace" in warning_text, (

@@ -17,7 +17,7 @@
 // Drives the real pipeline synthetically (no backend, no credits): each tick
 // routes one delta per streaming session through `hook.update` — the same
 // wiring-cache write (journal + publish + view sync) the gateway's delta
-// flush performs — via the __HERMES_SESSION_TILES__ hook.
+// flush performs — via the __IRIS_SESSION_TILES__ hook.
 //
 //   node scripts/perf/run.mjs multitab --spawn [--tiles 5] [--tokens 240]
 //   node scripts/perf/run.mjs multitab --spawn --tiles 16 --zones 4 --sessions 300
@@ -73,7 +73,7 @@ const COLLECT = `
  *  cache, which is exactly where multi-session cost used to hide. */
 const setup = (tiles, seedTurns, streamSeed, zones, seedSessions, streaming, dead, tools) => `
   (() => {
-    const hook = window.__HERMES_SESSION_TILES__
+    const hook = window.__IRIS_SESSION_TILES__
     if (!hook) return 'no-hook'
     if (!hook.update) return 'no-update-hook'
 
@@ -148,7 +148,7 @@ const setup = (tiles, seedTurns, streamSeed, zones, seedSessions, streaming, dea
           id: 'perf-row-' + i, title: 'Seeded session ' + i, ended_at: null,
           input_tokens: 1200, output_tokens: 800, is_active: false,
           last_active: Date.now() - i * 60000, message_count: 12,
-          model: 'hermes-4', preview: 'seeded row', cwd: '/home/perf/proj-' + (i % 7)
+          model: 'iris-4', preview: 'seeded row', cwd: '/home/perf/proj-' + (i % 7)
         })
       }
       hook.seedSessions(rows)
@@ -208,7 +208,7 @@ const setup = (tiles, seedTurns, streamSeed, zones, seedSessions, streaming, dea
 
 // Activate every tab once so keep-alive mounts the full stack (lazy mount:
 // a never-activated tab stays unmounted, which would understate the cost).
-const reveal = sid => `window.__HERMES_LAYOUT_TREE__.reveal(${JSON.stringify(`session-tile:${sid}`)})`
+const reveal = sid => `window.__IRIS_LAYOUT_TREE__.reveal(${JSON.stringify(`session-tile:${sid}`)})`
 
 /** Page-side driver: grow every tile's streaming tail by `chunk` each
  *  `intervalMs`, through the same write path the gateway flush uses.
@@ -222,7 +222,7 @@ const reveal = sid => `window.__HERMES_LAYOUT_TREE__.reveal(${JSON.stringify(`se
  *  touches. */
 const drive = (chunk, intervalMs, totalTokens, tools) => `
   (() => {
-    const hook = window.__HERMES_SESSION_TILES__
+    const hook = window.__IRIS_SESSION_TILES__
     let pushed = 0
     const tick = () => {
       for (const rid of window.__MT__.streaming) {
@@ -269,7 +269,7 @@ const drive = (chunk, intervalMs, totalTokens, tools) => `
 
 const CLEANUP = `
   (() => {
-    const hook = window.__HERMES_SESSION_TILES__
+    const hook = window.__IRIS_SESSION_TILES__
     if (window.__MT_DEAD__) {
       for (const rid of window.__MT_DEAD__) hook.drop?.(rid)
       window.__MT_DEAD__ = null

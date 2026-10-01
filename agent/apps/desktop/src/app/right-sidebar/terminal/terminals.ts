@@ -49,7 +49,7 @@ interface PersistedTerminalState {
   terminals: PersistedTerminalEntry[]
 }
 
-const TERMINALS_STORAGE_KEY = 'hermes.desktop.terminals.v1'
+const TERMINALS_STORAGE_KEY = 'iris.desktop.terminals.v1'
 
 // Cap a single tab's replayed history so the persisted layout can't blow the
 // localStorage quota. Roughly mirrors VS Code's persistentSessionScrollback

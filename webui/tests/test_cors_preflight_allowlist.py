@@ -3,7 +3,7 @@
 server.py's do_OPTIONS previously answered every preflight with
 ``Access-Control-Allow-Origin: *``. It now echoes the request Origin only
 when it is same-origin or explicitly allowlisted via
-HERMES_WEBUI_ALLOWED_ORIGINS — reusing _check_same_origin_browser_request,
+IRIS_WEBUI_ALLOWED_ORIGINS — reusing _check_same_origin_browser_request,
 the same policy enforced for real requests.
 """
 
@@ -74,7 +74,7 @@ class TestPreflightAllowOrigin:
 
     def test_allowlisted_public_origin_echoed(self, monkeypatch):
         monkeypatch.setenv(
-            "HERMES_WEBUI_ALLOWED_ORIGINS", "https://myapp.example.com:8000"
+            "IRIS_WEBUI_ALLOWED_ORIGINS", "https://myapp.example.com:8000"
         )
         assert _preflight({
             "Origin": "https://myapp.example.com:8000",
@@ -83,7 +83,7 @@ class TestPreflightAllowOrigin:
 
     def test_non_allowlisted_public_origin_rejected(self, monkeypatch):
         monkeypatch.setenv(
-            "HERMES_WEBUI_ALLOWED_ORIGINS", "https://myapp.example.com:8000"
+            "IRIS_WEBUI_ALLOWED_ORIGINS", "https://myapp.example.com:8000"
         )
         assert _preflight({
             "Origin": "https://evil.example.com:8000",
@@ -91,8 +91,8 @@ class TestPreflightAllowOrigin:
         }) == ""
 
     def test_forwarded_host_untrusted_by_default(self, monkeypatch):
-        """Without HERMES_WEBUI_TRUST_FORWARDED_HOST, X-Forwarded-Host is ignored."""
-        monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", raising=False)
+        """Without IRIS_WEBUI_TRUST_FORWARDED_HOST, X-Forwarded-Host is ignored."""
+        monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", raising=False)
         assert _preflight({
             "Origin": "https://webui.example.com",
             "Host": "127.0.0.1:8787",
@@ -100,7 +100,7 @@ class TestPreflightAllowOrigin:
         }) == ""
 
     def test_forwarded_host_trusted_when_opted_in(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert _preflight({
             "Origin": "https://webui.example.com",
             "Host": "127.0.0.1:8787",

@@ -9,7 +9,7 @@ Covers:
   3. _provider_oauth_authenticated() returns False for unknown/API-key providers
   4. _status_from_runtime() marks copilot/openai-codex as provider_ready when
      credentials exist
-  5. _status_from_runtime() gives a helpful "hermes auth" note (not "API key")
+  5. _status_from_runtime() gives a helpful "iris auth" note (not "API key")
      for OAuth providers that have no credentials yet
   6. API route /api/onboarding/status reflects OAuth-ready state
 """
@@ -40,7 +40,7 @@ def _make_auth_json_with_credential_pool(
 ) -> pathlib.Path:
     """Write an auth.json with only credential_pool entries for provider_id.
 
-    This reproduces setups where Hermes runtime resolves OAuth credentials from
+    This reproduces setups where Iris runtime resolves OAuth credentials from
     credential_pool while providers[provider_id] is absent or stale.
     """
     store = {"providers": {}, "credential_pool": {provider_id: pool_entries}}
@@ -54,10 +54,10 @@ def _make_auth_json_with_credential_pool(
 class TestProviderOAuthAuthenticated:
     """Unit tests for the new _provider_oauth_authenticated() helper."""
 
-    def _call(self, provider: str, hermes_home: pathlib.Path) -> bool:
+    def _call(self, provider: str, iris_home: pathlib.Path) -> bool:
         # Import fresh so we don't get a stale module reference
         from api.onboarding import _provider_oauth_authenticated
-        return _provider_oauth_authenticated(provider, hermes_home)
+        return _provider_oauth_authenticated(provider, iris_home)
 
     def test_returns_false_when_auth_json_absent(self, tmp_path):
         """No auth.json -> not authenticated."""
@@ -127,21 +127,21 @@ class TestProviderOAuthAuthenticated:
 class TestStatusFromRuntimeOAuth:
     """_status_from_runtime should treat OAuth providers with tokens as ready."""
 
-    def _call(self, provider: str, model: str, hermes_home: pathlib.Path) -> dict:
+    def _call(self, provider: str, model: str, iris_home: pathlib.Path) -> dict:
         from api.onboarding import _status_from_runtime
         import api.onboarding as _ob
-        orig_home = _ob._get_active_hermes_home
-        orig_found = _ob._HERMES_FOUND
-        _ob._get_active_hermes_home = lambda: hermes_home
-        # Simulate hermes-agent being available so we reach the provider logic
+        orig_home = _ob._get_active_iris_home
+        orig_found = _ob._IRIS_FOUND
+        _ob._get_active_iris_home = lambda: iris_home
+        # Simulate iris-agent being available so we reach the provider logic
         # (without this, _status_from_runtime short-circuits to agent_unavailable)
-        _ob._HERMES_FOUND = True
+        _ob._IRIS_FOUND = True
         try:
             cfg = {"model": {"provider": provider, "default": model}}
             return _status_from_runtime(cfg, True)
         finally:
-            _ob._get_active_hermes_home = orig_home
-            _ob._HERMES_FOUND = orig_found
+            _ob._get_active_iris_home = orig_home
+            _ob._IRIS_FOUND = orig_found
 
     def test_copilot_ready_when_api_key_in_auth_json(self, tmp_path):
         """copilot configured + api_key in auth.json -> provider_ready True."""
@@ -166,12 +166,12 @@ class TestStatusFromRuntimeOAuth:
     def test_copilot_not_ready_without_credentials(self, tmp_path):
         """copilot configured but no credentials -> provider_ready False.
 
-        We mock hermes_cli.auth to be unavailable so the function falls through
+        We mock iris_cli.auth to be unavailable so the function falls through
         to the auth.json path.  With no auth.json the result must be False.
         """
         import unittest.mock
 
-        # Prevent the hermes_cli fast path from finding real credentials
+        # Prevent the iris_cli fast path from finding real credentials
         with unittest.mock.patch(
             "api.onboarding._provider_oauth_authenticated",
             return_value=False,
@@ -184,12 +184,12 @@ class TestStatusFromRuntimeOAuth:
         assert result["provider_note_key"] == "onboarding_notice_provider_auth_required"
         assert result["provider_note_args"] == ["copilot"]
 
-    def test_oauth_incomplete_note_mentions_hermes_auth(self, tmp_path):
-        """When OAuth provider is incomplete, note should mention hermes auth/model."""
+    def test_oauth_incomplete_note_mentions_iris_auth(self, tmp_path):
+        """When OAuth provider is incomplete, note should mention iris auth/model."""
         result = self._call("openai-codex", "codex-mini-latest", tmp_path)
         note = result["provider_note"]
-        assert "hermes auth" in note or "hermes model" in note, (
-            f"Expected 'hermes auth' or 'hermes model' in note, got: {note!r}"
+        assert "iris auth" in note or "iris model" in note, (
+            f"Expected 'iris auth' or 'iris model' in note, got: {note!r}"
         )
 
     def test_oauth_incomplete_note_does_not_say_api_key(self, tmp_path):
@@ -288,7 +288,7 @@ class TestApplyOnboardingSetupUnsupportedProvider:
         from api.onboarding import apply_onboarding_setup
 
         with tempfile.TemporaryDirectory() as tmp:
-            with unittest.mock.patch("api.onboarding._get_active_hermes_home",
+            with unittest.mock.patch("api.onboarding._get_active_iris_home",
                                      return_value=pathlib.Path(tmp)), \
                  unittest.mock.patch("api.onboarding._get_config_path",
                                      return_value=pathlib.Path(tmp) / "config.yaml"), \

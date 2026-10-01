@@ -2,7 +2,7 @@
 """Project tools — the agent's INTENTIONAL handle on first-class Projects (per-profile
 ``projects.db``, the desktop sidebar's named workspaces). Creating/switching is an explicit
 tool call, never a side effect of ``cd``. GUI-only: the `project` toolset stays off
-``_HERMES_CORE_TOOLS``; the desktop/TUI gateway folds it in and wires
+``_IRIS_CORE_TOOLS``; the desktop/TUI gateway folds it in and wires
 ``set_project_workspace_callback`` so the live session's cwd and sidebar follow."""
 
 import json
@@ -40,7 +40,7 @@ def _apply_workspace(task_id: Optional[str], path: Optional[str], name: str) -> 
 
 
 def _resolve(conn, token: str):
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     token = (token or "").strip()
     if not token:
         return None
@@ -65,7 +65,7 @@ def _activated(proj, task_id: Optional[str]) -> str:
 
 
 def project_list(task_id: Optional[str] = None) -> str:
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     with pdb.connect_closing() as conn:
         active = pdb.get_active_id(conn)
         projects = pdb.list_projects(conn)
@@ -82,7 +82,7 @@ def project_create(name: str, path: Optional[str] = None, task_id: Optional[str]
     name = (name or "").strip()
     if not name:
         return json.dumps({"success": False, "error": "name is required"})
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     folder = (path or "").strip()
     if folder:
         folder = os.path.abspath(os.path.expanduser(folder))
@@ -107,7 +107,7 @@ def project_create(name: str, path: Optional[str] = None, task_id: Optional[str]
 
 
 def project_switch(project: str, task_id: Optional[str] = None) -> str:
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     with pdb.connect_closing() as conn:
         proj = _resolve(conn, project)
         if proj is None:

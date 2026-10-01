@@ -2,7 +2,7 @@
 
 ROOT CAUSE (RCA t_f62ff1e8, verified line-by-line):
   WebUI's per-turn session identity was bound ONLY to the process-global
-  ``os.environ['HERMES_SESSION_KEY']`` (streaming.py turn-start), and the env
+  ``os.environ['IRIS_SESSION_KEY']`` (streaming.py turn-start), and the env
   lock was released BEFORE the agent ran. WebUI NEVER called
   ``gateway.session_context.set_session_vars`` so the ``_SESSION_KEY``
   contextvar stayed ``_UNSET`` and ``tools.approval.get_current_session_key``
@@ -70,7 +70,7 @@ def test_concurrent_turns_capture_their_own_session_under_env_race():
     import os
 
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("tools.approval", reason="hermes-agent not installed")
+    pytest.importorskip("tools.approval", reason="iris-agent not installed")
     pytest.importorskip("gateway.session_context")
     from tools.approval import get_current_session_key
     from gateway import session_context as sc
@@ -79,12 +79,12 @@ def test_concurrent_turns_capture_their_own_session_under_env_race():
     if bind is None:
         pytest.fail("Option 1 not implemented: _bind_turn_session_identity missing")
 
-    # The two turn() threads below stamp os.environ["HERMES_SESSION_KEY"]
+    # The two turn() threads below stamp os.environ["IRIS_SESSION_KEY"]
     # without owning it. Save/restore the prior value (sentinel for "was
     # unset") so this test does not leak state into sibling tests when
     # collection order interleaves it with another consumer.
     _prev_env_sentinel = object()
-    _prev_env = os.environ.get("HERMES_SESSION_KEY", _prev_env_sentinel)
+    _prev_env = os.environ.get("IRIS_SESSION_KEY", _prev_env_sentinel)
 
     SESS_A = "20260518_161627_60b5f4"   # board claude-code-import
     SESS_B = "47ec28f66dff"             # board mcp-optimize
@@ -101,11 +101,11 @@ def test_concurrent_turns_capture_their_own_session_under_env_race():
         # fallback for non-contextvar consumers; the fix is that session-key
         # ROUTING now binds the contextvar so it no longer races.
         with bind(my_sid):
-            os.environ["HERMES_SESSION_KEY"] = my_sid
+            os.environ["IRIS_SESSION_KEY"] = my_sid
             barrier.wait()
             if label == "B":
                 # B stamps env last while A's "agent" is still mid-turn.
-                os.environ["HERMES_SESSION_KEY"] = my_sid
+                os.environ["IRIS_SESSION_KEY"] = my_sid
                 b_stamped_env.set()
             else:
                 assert b_stamped_env.wait(timeout=5), "B never stamped env"
@@ -139,14 +139,14 @@ def test_concurrent_turns_capture_their_own_session_under_env_race():
             f"MISROUTE: session B captured {captured.get('B')!r}, expected {SESS_B!r}"
         )
     finally:
-        # Restore HERMES_SESSION_KEY to its pre-test value (or unset if it was
+        # Restore IRIS_SESSION_KEY to its pre-test value (or unset if it was
         # never set), independent of which assertion above might have failed —
         # see save/restore note at the top of the test.
         if _prev_env is _prev_env_sentinel:
-            os.environ.pop("HERMES_SESSION_KEY", None)
+            os.environ.pop("IRIS_SESSION_KEY", None)
         else:
             assert isinstance(_prev_env, str)
-            os.environ["HERMES_SESSION_KEY"] = _prev_env
+            os.environ["IRIS_SESSION_KEY"] = _prev_env
 
 
 def test_turn_identity_binder_restores_previous_value():
@@ -155,9 +155,9 @@ def test_turn_identity_binder_restores_previous_value():
     restores _UNSET for the top-level turn so CLI/cron env-fallback compat is
     preserved, and it must NOT touch the platform/chat_id/user session vars
     (those keep their env fallback so the notify_on_complete watcher
-    registration that reads HERMES_SESSION_PLATFORM still works)."""
+    registration that reads IRIS_SESSION_PLATFORM still works)."""
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("tools.approval", reason="hermes-agent not installed")
+    pytest.importorskip("tools.approval", reason="iris-agent not installed")
     from tools.approval import get_current_session_key
     from gateway import session_context as sc
 
@@ -295,17 +295,17 @@ def test_env_immune_owner_prefers_origin_ui_session_id():
 
 
 def test_turn_identity_binder_sets_ui_session_id():
-    """Option 1 must also bind HERMES_UI_SESSION_ID so terminal_tool can stamp
+    """Option 1 must also bind IRIS_UI_SESSION_ID so terminal_tool can stamp
     origin_ui_session_id on notify_on_complete spawns."""
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("gateway.session_context", reason="hermes-agent not installed")
+    pytest.importorskip("gateway.session_context", reason="iris-agent not installed")
     from gateway import session_context as sc
 
     bind = streaming._bind_turn_session_identity
     assert sc._SESSION_UI_SESSION_ID.get() is sc._UNSET
     with bind("webui-sid-42"):
         assert sc._SESSION_UI_SESSION_ID.get() == "webui-sid-42"
-        assert sc.get_session_env("HERMES_UI_SESSION_ID", "") == "webui-sid-42"
+        assert sc.get_session_env("IRIS_UI_SESSION_ID", "") == "webui-sid-42"
     assert sc._SESSION_UI_SESSION_ID.get() is sc._UNSET
 
 
@@ -320,7 +320,7 @@ def test_turn_identity_binder_sets_session_cwd():
 
     The WebUI runs the agent in-process, so any consumer resolving a default
     working directory from the process sees the server's launch directory. That
-    is the Hermes install tree in a normal deployment, which is never a
+    is the Iris install tree in a normal deployment, which is never a
     workspace. ``TERMINAL_CWD`` is already stamped per turn for this purpose but
     is a process-global that concurrent turns overwrite, so routing must use the
     task-local contextvar for the same reason session-key routing does.
@@ -329,7 +329,7 @@ def test_turn_identity_binder_sets_session_cwd():
     stayed ``_UNSET`` for the whole turn (RED).
     """
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("agent.runtime_cwd", reason="hermes-agent not installed")
+    pytest.importorskip("agent.runtime_cwd", reason="iris-agent not installed")
     from agent import runtime_cwd as rc
 
     assert rc._SESSION_CWD.get() is rc._UNSET
@@ -351,7 +351,7 @@ def test_turn_identity_binder_sets_session_cwd():
 def test_turn_identity_binder_omits_session_cwd_without_a_workspace():
     """No workspace means no cwd binding, so non-workspace callers are unchanged."""
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("agent.runtime_cwd", reason="hermes-agent not installed")
+    pytest.importorskip("agent.runtime_cwd", reason="iris-agent not installed")
     from agent import runtime_cwd as rc
 
     tokens = streaming._set_turn_session_identity("sid-cwd-2")
@@ -371,7 +371,7 @@ def test_concurrent_turns_keep_their_own_workspace_cwd():
     The contextvar binding is task-local and must therefore win.
     """
     streaming = importlib.import_module("api.streaming")
-    pytest.importorskip("agent.runtime_cwd", reason="hermes-agent not installed")
+    pytest.importorskip("agent.runtime_cwd", reason="iris-agent not installed")
     from agent import runtime_cwd as rc
 
     seen: dict[str, str] = {}

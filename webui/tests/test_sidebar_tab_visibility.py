@@ -164,7 +164,7 @@ _PANELS_DASHBOARD_DRIVER = textwrap.dedent(
     global._wireTabChipDrag = () => {};
     global._tabVisibilityDragSuppressUntil = 0;
     global._ALWAYS_VISIBLE_TABS = new Set(['chat', 'settings']);
-    global.t = (key) => key === 'tab_dashboard' ? 'Hermes Dashboard' : String(key);
+    global.t = (key) => key === 'tab_dashboard' ? 'Iris Dashboard' : String(key);
 
     let failNextSave = failSave;
     global.api = (url, opts = {}) => {
@@ -216,7 +216,7 @@ _PANELS_DASHBOARD_DRIVER = textwrap.dedent(
 
       if (action === 'render') {
         _renderTabVisibilityChips();
-        const chip = container.children.find((node) => node.getAttribute('data-tab-panel') === '__hermes_dashboard__');
+        const chip = container.children.find((node) => node.getAttribute('data-tab-panel') === '__iris_dashboard__');
         console.log(JSON.stringify({
           chipCount: container.children.length,
           hasChip: !!chip,
@@ -354,9 +354,9 @@ def test_frontend_static_contracts():
     assert "'chat'" in PANELS_JS.split("_ALWAYS_VISIBLE_TABS")[1][:80]
     assert "'settings'" in PANELS_JS.split("_ALWAYS_VISIBLE_TABS")[1][:80]
     assert "_HIDDEN_TABS_LS_KEY" in PANELS_JS
-    assert "hermes-webui-hidden-tabs" in PANELS_JS
+    assert "iris-webui-hidden-tabs" in PANELS_JS
     assert "_TAB_ORDER_LS_KEY" in PANELS_JS
-    assert "hermes-webui-tab-order" in PANELS_JS
+    assert "iris-webui-tab-order" in PANELS_JS
     for fn in ("_getHiddenTabs", "_setHiddenTabs", "_getTabOrder", "_setTabOrder",
                "_applyTabOrder", "_applyTabVisibility", "_renderTabVisibilityChips",
                "_toggleTabVisibilityChip", "_moveTabOrderPanel", "_wireTabChipDrag"):
@@ -383,7 +383,7 @@ def test_frontend_static_contracts():
 
     # No flash-prevention script in <head> (DOM elements don't exist at that point)
     head_end = INDEX_HTML.find("</head>")
-    assert "hermes-webui-hidden-tabs" not in INDEX_HTML[:head_end]
+    assert "iris-webui-hidden-tabs" not in INDEX_HTML[:head_end]
 
 
 def test_boot_restores_visibility_from_localstorage():
@@ -478,7 +478,7 @@ def test_dashboard_chip_renders_in_tab_visibility_grid():
         else:
             assert out["chipIsOff"] is False, out
             assert out["chipAriaChecked"] == "true", out
-        assert out["chipText"] == "Hermes Dashboard", out
+        assert out["chipText"] == "Iris Dashboard", out
         assert out["chipCount"] >= 1, out
 
 

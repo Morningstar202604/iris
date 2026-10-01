@@ -2,7 +2,7 @@
 
 Two distinct bugs produce the identical "Provider 'ollama'…no API key" symptom:
 
-  * #5577 (shipped) — backend HERMES_HOME clobber → init reads a FOREIGN
+  * #5577 (shipped) — backend IRIS_HOME clobber → init reads a FOREIGN
     profile's config.yaml. Fixed at the agent reader (context-local home override).
   * THIS one — the frontend resolver `_modelStateForSelect` read
     `sel.selectedOptions[0]` (the DOM's currently-selected option) instead of the

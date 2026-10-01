@@ -49,7 +49,7 @@ import { tabStripVisibleForZone } from './renderer/strip-visibility'
 
 // v2: v1 trees were saved against placeholder panes with index-order zone
 // assignment (chat could land in a corner cell). Retire them wholesale.
-writeKey('hermes.desktop.layoutTree.v1', null)
+writeKey('iris.desktop.layoutTree.v1', null)
 
 const defaultTrees: Record<InterfaceMode, LayoutNode | null> = { advanced: null, simple: null }
 
@@ -1366,7 +1366,7 @@ interface PaneDockHint {
 // (token burned even when the heal was skipped; $userPlacedPanes exempt) left
 // exactly the users who had fought the old stacked layout stuck with it —
 // enforced docks (`enforce: true`) replaced it. Drop the stale key.
-writeKey('hermes.desktop.paneDockHeals.v1', null)
+writeKey('iris.desktop.paneDockHeals.v1', null)
 
 // Panes already enforced THIS boot: the invariant re-asserts at boot, not
 // against a live user — a mid-session drag out of the anchor strip sticks
@@ -2174,7 +2174,7 @@ export function resetLayoutTree() {
 
 // Dev hook for automation.
 if ((import.meta.env.DEV || import.meta.env.VITE_PERF_PROBE === '1') && typeof window !== 'undefined') {
-  ;(window as unknown as Record<string, unknown>).__HERMES_LAYOUT_TREE__ = {
+  ;(window as unknown as Record<string, unknown>).__IRIS_LAYOUT_TREE__ = {
     close: closeTreePane,
     dismissed: () => $dismissedPanes.get(),
     get: () => $layoutTree.get(),

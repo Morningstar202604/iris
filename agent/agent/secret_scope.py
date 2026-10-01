@@ -7,7 +7,7 @@ context-local secret scope: ``set_secret_scope(mapping)`` installs the active
 profile's secrets for the current task (a contextvar, so it propagates into the
 agent's worker thread via ``copy_context()``); ``get_secret(name)`` reads from
 it and, when multiplexing is active with no scope set, RAISES rather than
-falling back to ``os.environ``. Design: ``website/docs/developer-guide/multiplexing-gateway.md``.
+falling back to ``os.environ``. See ``gateway/AGENTS.md`` § Profile scope.
 """
 from __future__ import annotations
 
@@ -34,26 +34,26 @@ def set_multiplex_active(active: bool) -> None:
     """Mark whether the process is a profile multiplexer (get_secret fails closed).
 
     Activation also pins the launch home for routed-profile decisions
-    (``hermes_constants.pin_process_hermes_home``) unless an embedding host already pinned one:
+    (``iris_constants.pin_process_iris_home``) unless an embedding host already pinned one:
     from here on "is this task routed" compares the override against the home the process was
-    launched with, not against whatever a host later mirrors into ``os.environ["HERMES_HOME"]``.
+    launched with, not against whatever a host later mirrors into ``os.environ["IRIS_HOME"]``.
     Deactivation releases only the pin activation itself created — a transient toggle
     (``gateway_migrate._multiplex_read_mode``, a cron worker restoring the caller's mode) must not
     drop the host's explicit pin (#119242)."""
     global _MULTIPLEX_ACTIVE, _AUTO_PINNED_HOME
-    from hermes_constants import (
-        get_routing_process_hermes_home,
-        pin_process_hermes_home,
-        process_hermes_home_is_pinned,
+    from iris_constants import (
+        get_routing_process_iris_home,
+        pin_process_iris_home,
+        process_iris_home_is_pinned,
     )
     _MULTIPLEX_ACTIVE = bool(active)
     if _MULTIPLEX_ACTIVE:
-        if not process_hermes_home_is_pinned():
-            _AUTO_PINNED_HOME = get_routing_process_hermes_home()
-            pin_process_hermes_home(_AUTO_PINNED_HOME)
+        if not process_iris_home_is_pinned():
+            _AUTO_PINNED_HOME = get_routing_process_iris_home()
+            pin_process_iris_home(_AUTO_PINNED_HOME)
     elif _AUTO_PINNED_HOME is not None:
-        if get_routing_process_hermes_home() == _AUTO_PINNED_HOME:
-            pin_process_hermes_home(None)
+        if get_routing_process_iris_home() == _AUTO_PINNED_HOME:
+            pin_process_iris_home(None)
         _AUTO_PINNED_HOME = None
 
 
@@ -64,7 +64,7 @@ def is_multiplex_active() -> bool:
 class _BoundScope(NamedTuple):
     """An installed secret scope plus the home it was built for, when the binder
     declared one — the provenance ``serves_routed_profile`` needs when the binding
-    deliberately skips the HERMES_HOME override (kanban spawn-env builds, MCP
+    deliberately skips the IRIS_HOME override (kanban spawn-env builds, MCP
     owner scopes)."""
 
     mapping: Mapping[str, str]
@@ -73,21 +73,21 @@ class _BoundScope(NamedTuple):
 
 def serves_routed_profile() -> bool:
     """True when the current task runs for a profile other than the process's own: always under
-    multiplexing, else when a HERMES_HOME override names another home (dashboard/desktop backend,
+    multiplexing, else when a IRIS_HOME override names another home (dashboard/desktop backend,
     per-profile cron ticker) or a secret scope stamped with a foreign home is bound. The MCP
     registry scope and the check_fn cache key both follow this predicate so a served profile's
     view never aliases the launch profile's (#111151). A host that mirrors the turn's profile into
-    ``HERMES_HOME`` pins its own home with ``hermes_constants.pin_process_hermes_home`` so the
+    ``IRIS_HOME`` pins its own home with ``iris_constants.pin_process_iris_home`` so the
     mirror cannot flip this predicate."""
     if is_multiplex_active():
         return True
-    from hermes_constants import get_hermes_home_override, get_routing_process_hermes_home, hermes_home_key
-    own = hermes_home_key(get_routing_process_hermes_home())
+    from iris_constants import get_iris_home_override, get_routing_process_iris_home, iris_home_key
+    own = iris_home_key(get_routing_process_iris_home())
     bound = _SECRET_SCOPE.get()
-    if bound is not None and bound.profile_home and hermes_home_key(bound.profile_home) != own:
+    if bound is not None and bound.profile_home and iris_home_key(bound.profile_home) != own:
         return True
-    override = get_hermes_home_override()
-    return override is not None and hermes_home_key(override) != own
+    override = get_iris_home_override()
+    return override is not None and iris_home_key(override) != own
 
 
 _SECRET_SCOPE: ContextVar[Optional[_BoundScope]] = ContextVar("_SECRET_SCOPE", default=None)
@@ -111,9 +111,9 @@ class UnscopedSecretError(RuntimeError):
             secret_name, developer_detail = "", secret_name
         what = f"this profile's {secret_name}" if secret_name else "this profile's API key"
         super().__init__(
-            f"Hermes could not read {what} (an internal profile-scoping bug on the multiplexed "
-            "gateway, not your configuration). Run `hermes gateway restart`; if it keeps happening, "
-            "report it with `hermes debug share`."
+            f"Iris could not read {what} (an internal profile-scoping bug on the multiplexed "
+            "gateway, not your configuration). Run `iris gateway restart`; if it keeps happening, "
+            "report it with `iris debug share`."
         )
         self.secret_name = secret_name
         self.developer_detail = developer_detail
@@ -126,7 +126,7 @@ def set_secret_scope(secrets: Optional[Mapping[str, str]], *, profile_home: Opti
 
     ``profile_home`` stamps the home the mapping was built for so
     ``serves_routed_profile`` detects a foreign-home scope even when the binder
-    deliberately skips the HERMES_HOME override."""
+    deliberately skips the IRIS_HOME override."""
     if secrets is None:
         return _SECRET_SCOPE.set(None)
     return _SECRET_SCOPE.set(_BoundScope(secrets, str(profile_home) if profile_home else None))
@@ -153,16 +153,16 @@ def current_secret_scope_home() -> Optional[str]:
 # fail-closed path would wrongly crash). Keep this tight — when in doubt a
 # value is a profile secret. Membership is exact name OR prefix.
 _GLOBAL_ENV_EXACT = frozenset({
-    # Hermes runtime / deployment
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_GATEWAY_LOCK_DIR",
-    "HERMES_MAX_ITERATIONS", "HERMES_API_TIMEOUT",
-    "HERMES_REDACT_SECRETS", "HERMES_NOUS_TIMEOUT_SECONDS",
-    "_HERMES_GATEWAY",
+    # Iris runtime / deployment
+    "IRIS_HOME", "IRIS_PROFILE", "IRIS_GATEWAY_LOCK_DIR",
+    "IRIS_MAX_ITERATIONS", "IRIS_API_TIMEOUT",
+    "IRIS_REDACT_SECRETS", "IRIS_NOUS_TIMEOUT_SECONDS",
+    "_IRIS_GATEWAY",
     # OS / interpreter
     "PATH", "HOME", "USER", "LANG", "LC_ALL", "TZ", "PWD", "SHELL", "TMPDIR",
     "VIRTUAL_ENV", "PYTHONPATH", "SSL_CERT_FILE",
     # Kanban paths (per-board, not per-profile-secret)
-    "HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT", "HERMES_KANBAN_BOARD",
+    "IRIS_KANBAN_DB", "IRIS_KANBAN_WORKSPACES_ROOT", "IRIS_KANBAN_BOARD",
     # API-server LISTENER settings — deployment config (compose/systemd env),
     # which the scoped runner reload must keep seeing or containers silently
     # lose the api_server platform. API_SERVER_KEY is a credential: NOT here.
@@ -181,8 +181,8 @@ _GLOBAL_ENV_EXACT = frozenset({
     "GATEWAY_RELAY_WAKE_URL", "GATEWAY_RELAY_DISPLAY_NAME",
 })
 _GLOBAL_ENV_PREFIXES = (
-    "HERMES_KANBAN_",
-    "HERMES_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
+    "IRIS_KANBAN_",
+    "IRIS_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
     "TERMINAL_",          # terminal/sandbox backend settings
 )
 
@@ -222,8 +222,7 @@ def get_secret(name: str, default: Optional[str] = None) -> Optional[str]:
             f"while multiplexing is on. This credential read must run inside a "
             f"set_secret_scope(...) block (the per-turn / per-adapter profile "
             f"scope). Reading os.environ here would risk leaking another "
-            f"profile's value. See website/docs/developer-guide/multiplexing-gateway.md "
-            f"(Workstream A).",
+            f"profile's value. See gateway/AGENTS.md § Profile scope.",
         )
     return _environ_or(name, default)
 
@@ -259,7 +258,7 @@ def _strip_inline_comment(value: str) -> str:
 
 
 def _parse_env_value(raw_value: str) -> str:
-    """Parse the small .env value subset Hermes writes itself (bare, 'single', or "double" with
+    """Parse the small .env value subset Iris writes itself (bare, 'single', or "double" with
     ``\\"`` / ``\\\\`` escapes)."""
     value = raw_value.strip()
     if len(value) >= 2 and value[0] == value[-1] == '"':
@@ -286,8 +285,8 @@ def _parse_env_value(raw_value: str) -> str:
 # revalidation on NFS, a vanished/unreadable file fails the open and is never cached (a transient
 # EACCES must not become "this profile has no secrets"), and the descriptor pins one inode so a
 # symlink repointed mid-read can't file one file's contents under another's identity.
-# ``invalidate_env_file_cache()`` is the explicit knob; ``hermes_cli.config.invalidate_env_cache()``
-# calls it for Hermes's own .env writers.
+# ``invalidate_env_file_cache()`` is the explicit knob; ``iris_cli.config.invalidate_env_cache()``
+# calls it for Iris's own .env writers.
 _ENV_FILE_CACHE: "OrderedDict[str, Tuple[tuple, Dict[str, str]]]" = OrderedDict()
 _ENV_FILE_CACHE_LOCK = threading.Lock()
 _ENV_FILE_CACHE_MAX = 64  # one entry per profile home in practice
@@ -330,7 +329,7 @@ def _parse_env_text(text: str) -> Dict[str, str]:
 
 
 def load_env_file(env_path: Path) -> Dict[str, str]:
-    """THE ``.env`` tokenizer: every reader (profile scope, ``hermes_cli.config.load_env``, the dashboard
+    """THE ``.env`` tokenizer: every reader (profile scope, ``iris_cli.config.load_env``, the dashboard
     scrub, skill secret capture, managed .env, setup prompts) parses through here so no two boundaries
     disagree on which keys/values a file defines. Dict only — never touches ``os.environ``. ``export``
     prefix, ``#`` comments, quote escapes reversed; a BOM is stripped so it doesn't prefix the first key.
@@ -369,14 +368,14 @@ def load_env_file(env_path: Path) -> Dict[str, str]:
     return secrets
 
 
-def build_profile_secret_scope(hermes_home: Path) -> Dict[str, str]:
+def build_profile_secret_scope(iris_home: Path) -> Dict[str, str]:
     """Build a profile's secret mapping from ``<home>/.env`` plus its external
     secret sources. Global vars are NOT copied in — ``get_secret`` reads those
     from ``os.environ`` — so the scope holds only profile secrets."""
-    secrets = load_env_file(Path(hermes_home) / ".env")
+    secrets = load_env_file(Path(iris_home) / ".env")
     try:
-        from hermes_cli.env_loader import get_secret_source_values
-        external_secrets = get_secret_source_values(Path(hermes_home))
+        from iris_cli.env_loader import get_secret_source_values
+        external_secrets = get_secret_source_values(Path(iris_home))
     except Exception:
         external_secrets = {}
     secrets.update((k, v) for k, v in external_secrets.items() if not _is_global_env(k))
@@ -385,17 +384,17 @@ def build_profile_secret_scope(hermes_home: Path) -> Dict[str, str]:
     # into that profile's own mapping. A secondary never inherits it (#80099 class).
     from gateway.config_loader import bridged_allow_all_users
     bridged = bridged_allow_all_users()
-    if bridged is not None and _is_process_home(hermes_home):
+    if bridged is not None and _is_process_home(iris_home):
         secrets.setdefault("GATEWAY_ALLOW_ALL_USERS", bridged)
     return secrets
 
 
-def _is_process_home(hermes_home: Path) -> bool:
-    """Is *hermes_home* the profile this process serves as its own? Same launch-home identity as
-    ``serves_routed_profile()``: a host that mirrors a served profile into ``HERMES_HOME`` would
+def _is_process_home(iris_home: Path) -> bool:
+    """Is *iris_home* the profile this process serves as its own? Same launch-home identity as
+    ``serves_routed_profile()``: a host that mirrors a served profile into ``IRIS_HOME`` would
     otherwise seed the launch profile's bridged allow-all grant into that profile's scope."""
-    from hermes_constants import get_routing_process_hermes_home
+    from iris_constants import get_routing_process_iris_home
     try:
-        return Path(hermes_home).resolve() == get_routing_process_hermes_home().resolve()
+        return Path(iris_home).resolve() == get_routing_process_iris_home().resolve()
     except OSError:
         return False

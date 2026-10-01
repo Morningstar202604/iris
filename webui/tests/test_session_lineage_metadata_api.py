@@ -110,8 +110,8 @@ def test_all_sessions_exposes_state_db_lineage_metadata_for_webui_json_sessions(
     conn = _ensure_state_db(_isolate)
     t0 = time.time() - 100
     try:
-        _save_webui_session("lineage_api_root", title="Hermes WebUI", updated_at=t0)
-        _save_webui_session("lineage_api_tip", title="Hermes WebUI #2", updated_at=t0 + 10)
+        _save_webui_session("lineage_api_root", title="Iris WebUI", updated_at=t0)
+        _save_webui_session("lineage_api_tip", title="Iris WebUI #2", updated_at=t0 + 10)
         _insert_state_row(
             conn,
             "lineage_api_root",
@@ -254,8 +254,8 @@ def test_cli_close_parent_preserves_cross_surface_continuation_lineage(_isolate)
     conn = _ensure_state_db(_isolate)
     t0 = time.time() - 100
     try:
-        _save_webui_session("lineage_api_cli_parent", title="Hermes WebUI #8", updated_at=t0)
-        _save_webui_session("lineage_api_webui_child", title="Hermes WebUI #8", updated_at=t0 + 10)
+        _save_webui_session("lineage_api_cli_parent", title="Iris WebUI #8", updated_at=t0)
+        _save_webui_session("lineage_api_webui_child", title="Iris WebUI #8", updated_at=t0 + 10)
         _insert_state_row(
             conn,
             "lineage_api_cli_parent",
@@ -398,19 +398,19 @@ def test_generic_webui_title_gets_read_only_state_db_display_title(_isolate):
     conn = _ensure_state_db(_isolate)
     t0 = time.time() - 100
     try:
-        _save_webui_session("lineage_api_stale_title", title="Hermes WebUI #8", updated_at=t0)
+        _save_webui_session("lineage_api_stale_title", title="Iris WebUI #8", updated_at=t0)
         _insert_state_row(
             conn,
             "lineage_api_stale_title",
-            title="Hermes WebUI #177",
+            title="Iris WebUI #177",
             started_at=t0,
         )
 
         row = {row["session_id"]: row for row in all_sessions()}["lineage_api_stale_title"]
 
-        assert row["title"] == "Hermes WebUI #8"
-        assert row["display_title"] == "Hermes WebUI #177"
-        assert row["_state_db_title"] == "Hermes WebUI #177"
+        assert row["title"] == "Iris WebUI #8"
+        assert row["display_title"] == "Iris WebUI #177"
+        assert row["_state_db_title"] == "Iris WebUI #177"
     finally:
         conn.close()
 
@@ -544,7 +544,7 @@ def test_generic_subagent_title_respects_sidebar_override_cap(_isolate, monkeypa
     older = time.time() - 200
     newer = time.time() - 100
     try:
-        monkeypatch.setenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", "1")
+        monkeypatch.setenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", "1")
         _save_webui_session("lineage_api_subagent_old", title="Subagent Session", updated_at=older)
         _save_webui_session("lineage_api_subagent_new", title="Subagent Session", updated_at=newer)
         _insert_state_row(
@@ -612,7 +612,7 @@ def test_state_db_display_title_does_not_override_custom_json_title(_isolate):
         _insert_state_row(
             conn,
             "lineage_api_custom_title",
-            title="Hermes WebUI #177",
+            title="Iris WebUI #177",
             started_at=t0,
         )
 
@@ -638,14 +638,14 @@ def test_sessions_route_preserves_visible_child_lineage_when_archived_parent_fil
     try:
         archived_parent = _save_webui_session(
             "lineage_api_archived_parent",
-            title="Hermes WebUI",
+            title="Iris WebUI",
             updated_at=t0,
         )
         archived_parent.archived = True
         archived_parent.save(touch_updated_at=False)
         _save_webui_session(
             "lineage_api_visible_tip",
-            title="Hermes WebUI #2",
+            title="Iris WebUI #2",
             updated_at=t0 + 10,
         )
         _insert_state_row(

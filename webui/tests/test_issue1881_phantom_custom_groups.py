@@ -95,12 +95,12 @@ def _with_ai_gateway_and_custom_provider():
 
 
 def _stub_provider_modules(monkeypatch, detected_provider_ids: list[dict]):
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: detected_provider_ids
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {"key_source": "config_yaml"}
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(
         config, "_get_auth_store_path", lambda: config.Path("/tmp/does-not-exist-auth.json")
     )
@@ -191,14 +191,14 @@ def test_unnamed_custom_provider_id_does_not_inherit_auto_detected(monkeypatch):
 def test_named_custom_group_still_populates_when_active_is_custom_alias(monkeypatch):
     """Named custom_providers groups still appear when the active provider IS
     the named custom slug — preserves test_issue1806 invariants."""
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": "custom:my-custom", "authenticated": True},
     ]
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {"key_source": "config_yaml"}
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(
         config, "_get_auth_store_path", lambda: config.Path("/tmp/does-not-exist-auth.json")
     )

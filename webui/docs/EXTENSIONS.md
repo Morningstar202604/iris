@@ -1,6 +1,6 @@
 # WebUI Extensions
 
-Hermes WebUI supports a small, opt-in extension surface for self-hosted installs.
+Iris WebUI supports a small, opt-in extension surface for self-hosted installs.
 It lets an administrator serve local static assets and inject same-origin CSS or
 JavaScript into the app shell without editing the WebUI source tree.
 
@@ -10,18 +10,18 @@ JavaScript into the app shell without editing the WebUI source tree.
 > and triggering tool actions. **Only enable extensions you wrote yourself or
 > from sources you trust as much as the WebUI source itself.** If your WebUI is
 > shared with users you do not fully trust, do not enable extensions.
-> If you set `HERMES_WEBUI_EXTENSION_DIR` yourself, do not point it at a
+> If you set `IRIS_WEBUI_EXTENSION_DIR` yourself, do not point it at a
 > user-writable directory on a shared host.
 
 This is intentionally not a plugin marketplace or dependency system. It is a
 safe escape hatch for local dashboards, internal tooling, and workflow-specific
-panels that should not live in core Hermes WebUI.
+panels that should not live in core Iris WebUI.
 
 > **The vetted extension library.** The curated, one-click-installable extensions
 > that appear in the gallery live in a separate public repo:
-> **[hermes-webui/hermes-webui-extensions](https://github.com/hermes-webui/hermes-webui-extensions)**.
+> **[iris-webui/iris-webui-extensions](https://github.com/iris-webui/iris-webui-extensions)**.
 > "In the registry == vetted." That repo holds the entries, the authoring
-> conventions ([`docs/extension-entry.md`](https://github.com/hermes-webui/hermes-webui-extensions/blob/main/docs/extension-entry.md)),
+> conventions ([`docs/extension-entry.md`](https://github.com/iris-webui/iris-webui-extensions/blob/main/docs/extension-entry.md)),
 > the JSON schema, and the CI safety gates. This document covers the WebUI-side
 > *infrastructure* (loader, manifest contract, capabilities, install client);
 > see the library repo to browse existing extensions or contribute a new one.
@@ -45,7 +45,7 @@ Extensions cannot, by themselves:
 - load third-party scripts/styles through the built-in injection config
 - register new WebUI backend routes or proxy arbitrary sidecar/backend traffic
   outside the fixed consented extension sidecar path described below
-- change Hermes Agent permissions, models, memory, or tools unless they call
+- change Iris Agent permissions, models, memory, or tools unless they call
   existing authenticated APIs that already allow those changes
 
 ## Configuration
@@ -56,14 +56,14 @@ For a single-user self-hosted instance you do not need to configure anything.
 Open **Settings → Extensions**, pick an extension from the gallery, and click
 **Install** — it just works. The first install creates a WebUI-managed
 extension directory under your state dir (`STATE_DIR/extensions`, e.g.
-`~/.hermes/webui/extensions/`) and installs into it; gallery-installed
+`~/.iris/webui/extensions/`) and installs into it; gallery-installed
 extensions load automatically on the next app-shell render with no environment
 variables and no restart of your shell.
 
 The managed directory lives alongside your sessions and settings in the
 WebUI-owned state dir. That is a different trust domain from "a world-writable
 directory on a shared box": only the WebUI process (and whoever can already
-write your `~/.hermes` state) can place code there. The trust model below still
+write your `~/.iris` state) can place code there. The trust model below still
 applies — installed extension code runs with full session authority — so only
 install extensions from the vetted gallery or sources you trust as much as the
 WebUI source itself.
@@ -77,32 +77,32 @@ app is started.
 
 ### Manual / advanced configuration (optional)
 
-`HERMES_WEBUI_EXTENSION_DIR` is **optional** and overrides the managed default.
+`IRIS_WEBUI_EXTENSION_DIR` is **optional** and overrides the managed default.
 Set it when you want extensions to live in a specific directory you control
 (e.g. a checked-out bundle, or a path mounted into a container). When set it
 must point to an existing directory before any script or stylesheet URLs are
 injected; WebUI never auto-creates an admin-specified path:
 
 ```bash
-export HERMES_WEBUI_EXTENSION_DIR=/path/to/my-extension/static
-export HERMES_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/app.js
-export HERMES_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/app.css
+export IRIS_WEBUI_EXTENSION_DIR=/path/to/my-extension/static
+export IRIS_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/app.js
+export IRIS_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/app.css
 ./start.sh
 ```
 
 Multiple URLs may be comma-separated:
 
 ```bash
-export HERMES_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/runtime.js,/extensions/app.js
-export HERMES_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/base.css,/extensions/theme.css
+export IRIS_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/runtime.js,/extensions/app.js
+export IRIS_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/base.css,/extensions/theme.css
 ```
 
 For bundled or multi-extension installs, you may list assets in a manifest file
-inside `HERMES_WEBUI_EXTENSION_DIR` instead of maintaining long comma-separated
+inside `IRIS_WEBUI_EXTENSION_DIR` instead of maintaining long comma-separated
 environment variables:
 
 ```bash
-cat > ~/.hermes/webui-extension-bundle/extensions.json <<'JSON'
+cat > ~/.iris/webui-extension-bundle/extensions.json <<'JSON'
 {
   "extensions": [
     {
@@ -119,8 +119,8 @@ cat > ~/.hermes/webui-extension-bundle/extensions.json <<'JSON'
 }
 JSON
 
-HERMES_WEBUI_EXTENSION_DIR=~/.hermes/webui-extension-bundle \
-HERMES_WEBUI_EXTENSION_MANIFEST=extensions.json \
+IRIS_WEBUI_EXTENSION_DIR=~/.iris/webui-extension-bundle \
+IRIS_WEBUI_EXTENSION_MANIFEST=extensions.json \
 ./start.sh
 ```
 
@@ -131,20 +131,20 @@ Bare relative entries such as `templates/templates.js` resolve to
 be an object with top-level `scripts` / `stylesheets`, an object with an
 `extensions` array, or a top-level array of extension objects. Disabled entries
 may be kept in the manifest with the JSON boolean `"enabled": false`. Explicit
-`HERMES_WEBUI_EXTENSION_SCRIPT_URLS` and
-`HERMES_WEBUI_EXTENSION_STYLESHEET_URLS` still work and are appended after
+`IRIS_WEBUI_EXTENSION_SCRIPT_URLS` and
+`IRIS_WEBUI_EXTENSION_STYLESHEET_URLS` still work and are appended after
 manifest assets, with duplicates ignored.
 
 When an extension is installed from Settings -> Extensions, WebUI records the
 installed package and loads that package's `manifest.json` automatically on the
 next app-shell render. In this gallery-installed mode, a manifest located at
-`HERMES_WEBUI_EXTENSION_DIR/<extension-id>/manifest.json` resolves bare relative
+`IRIS_WEBUI_EXTENSION_DIR/<extension-id>/manifest.json` resolves bare relative
 assets relative to that package directory. For example,
 `"scripts": ["assets/companion-adapter.js"]` in
 `desktop-companion/manifest.json` injects
 `/extensions/desktop-companion/assets/companion-adapter.js`.
 
-Manual manifests configured with `HERMES_WEBUI_EXTENSION_MANIFEST` follow the
+Manual manifests configured with `IRIS_WEBUI_EXTENSION_MANIFEST` follow the
 same rule: relative assets resolve from the manifest file's directory. A root
 manifest such as `extensions.json` keeps the existing
 `/extensions/<asset-path>` behavior, while a subdirectory manifest such as
@@ -182,17 +182,17 @@ through the fixed per-extension sidecar path for that extension.
 ### Sidecar proxy authentication (`proxy_auth`)
 
 The loopback port a sidecar binds is reachable by **any local process**, and the
-proxy strips every inbound credential (cookies, `Authorization`, CSRF, `x-hermes-*`)
+proxy strips every inbound credential (cookies, `Authorization`, CSRF, `x-iris-*`)
 before forwarding — so a sidecar cannot, on its own, tell a proxied request from a
 direct one. The `proxy_auth` field closes that gap:
 
 - **`token-v1`** (recommended for any sidecar that mutates state) — WebUI mints a
   per-extension secret at `STATE_DIR/sidecar-auth/<id>.token` (mode `0600`) and
-  injects it as the `X-Hermes-Sidecar-Token` header on every proxied request. The
-  sidecar resolves the token file in this order — `HERMES_EXT_SIDECAR_TOKEN_FILE`
-  → `$HERMES_WEBUI_STATE_DIR/sidecar-auth/<id>.token` →
-  `$HERMES_HOME/webui/sidecar-auth/<id>.token` → platform default
-  (`~/.hermes/webui/…`, `%LOCALAPPDATA%\hermes\webui\…` on Windows) — and must
+  injects it as the `X-Iris-Sidecar-Token` header on every proxied request. The
+  sidecar resolves the token file in this order — `IRIS_EXT_SIDECAR_TOKEN_FILE`
+  → `$IRIS_WEBUI_STATE_DIR/sidecar-auth/<id>.token` →
+  `$IRIS_HOME/webui/sidecar-auth/<id>.token` → platform default
+  (`~/.iris/webui/…`, `%LOCALAPPDATA%\iris\webui\…` on Windows) — and must
   validate the header on every route except `/health`, returning **`401` on a
   missing/mismatched token** and **`503` when the token file is absent/unreadable**.
   The canonical scaffold in the extensions repository (`examples/`, see
@@ -255,15 +255,15 @@ match the declared type. `settings_schema` is honored only when
 Extension scripts can use the sanctioned browser accessors:
 
 ```js
-const settings = window.HermesExtensionSettings.settingsForExtension("desktop-companion");
+const settings = window.IrisExtensionSettings.settingsForExtension("desktop-companion");
 const value = settings.get("show_badge");
 settings.set("show_badge", false);
 
-const storage = window.HermesExtensionSettings.storageForExtension("desktop-companion");
+const storage = window.IrisExtensionSettings.storageForExtension("desktop-companion");
 storage.set("lastPanel", "settings");
 
-const sameSettings = window.hermesExt.settings.forExtension("desktop-companion");
-const sameStorage = window.hermesExt.storage.forExtension("desktop-companion");
+const sameSettings = window.irisExt.settings.forExtension("desktop-companion");
+const sameStorage = window.irisExt.storage.forExtension("desktop-companion");
 ```
 
 Settings persist only non-default overrides. Resetting settings removes those
@@ -277,7 +277,7 @@ An injected extension can claim a stable browser-page identity together with its
 existing settings and storage accessors:
 
 ```js
-const ext = window.hermesExt.register("desktop-companion");
+const ext = window.irisExt.register("desktop-companion");
 if (ext) {
   ext.settings.set("show_badge", false);
   ext.storage.set("lastPanel", "settings");
@@ -307,7 +307,7 @@ Extensions with structured configuration that does not fit scalar
 scoped E0 settings handle:
 
 ```js
-const ext = window.hermesExt?.register?.("dictionary-manager");
+const ext = window.irisExt?.register?.("dictionary-manager");
 const unregister = ext?.settings?.registerConfigure?.(({ opener, restoreFocus }) => {
   openDictionaryManager({ opener, restoreFocus });
 });
@@ -348,7 +348,7 @@ A registered extension can react when a session turn observed by the current pag
 starts or reaches a terminal state:
 
 ```js
-const ext = window.hermesExt.register("desktop-companion");
+const ext = window.irisExt.register("desktop-companion");
 const stop = ext && ext.events.on("turn:complete", event => {
   console.log(event.sessionId, event.streamId, event.status);
 });
@@ -445,14 +445,14 @@ ws://localhost:*
 
 The wildcard ports above cover any loopback port, including
 `http://127.0.0.1:17787`. For a trusted non-loopback origin that you explicitly
-control, append the exact origin with `HERMES_WEBUI_CSP_CONNECT_EXTRA` before
+control, append the exact origin with `IRIS_WEBUI_CSP_CONNECT_EXTRA` before
 starting WebUI:
 
 ```bash
-HERMES_WEBUI_CSP_CONNECT_EXTRA=https://companion.example.internal HERMES_WEBUI_EXTENSION_DIR=/path/to/my-extension/static HERMES_WEBUI_EXTENSION_MANIFEST=extensions.json ./start.sh
+IRIS_WEBUI_CSP_CONNECT_EXTRA=https://companion.example.internal IRIS_WEBUI_EXTENSION_DIR=/path/to/my-extension/static IRIS_WEBUI_EXTENSION_MANIFEST=extensions.json ./start.sh
 ```
 
-`HERMES_WEBUI_CSP_CONNECT_EXTRA` accepts space-separated `http(s)://` or
+`IRIS_WEBUI_CSP_CONNECT_EXTRA` accepts space-separated `http(s)://` or
 `ws(s)://` origins only. It rejects paths, directive injection, and invalid port
 numbers. Avoid wildcard or remote origins unless you fully control the target;
 extension JavaScript runs with the logged-in WebUI session's authority.
@@ -487,7 +487,7 @@ operator to widen `frame-src`, opt-in, via an environment variable:
 
 ```bash
 # space-separated http(s) origins; optional *. subdomain wildcard and port.
-export HERMES_WEBUI_CSP_FRAME_EXTRA="https://grafana.example.com https://*.dash.example.com:8443"
+export IRIS_WEBUI_CSP_FRAME_EXTRA="https://grafana.example.com https://*.dash.example.com:8443"
 ```
 
 Rules and guarantees:
@@ -496,7 +496,7 @@ Rules and guarantees:
   Entries may include a `*.` subdomain wildcard and a port or `*` port; a path,
   a `ws://`/`wss://` scheme, an invalid port, or any attempt to inject another
   directive is rejected and the whole value is ignored (with a logged warning).
-- This mirrors the existing `HERMES_WEBUI_CSP_CONNECT_EXTRA` knob (which widens
+- This mirrors the existing `IRIS_WEBUI_CSP_CONNECT_EXTRA` knob (which widens
   `connect-src` for `fetch`/WebSocket); the two are independent.
 - It only governs what the WebUI page may **embed**. It does **not** touch
   `frame-ancestors`, which stays `'none'` — so widening `frame-src` never lets
@@ -510,7 +510,7 @@ policy.
 
 ## Static file serving
 
-When `HERMES_WEBUI_EXTENSION_DIR` points at an existing directory, files under
+When `IRIS_WEBUI_EXTENSION_DIR` points at an existing directory, files under
 that directory are available below `/extensions/`:
 
 ```text
@@ -536,7 +536,7 @@ browser session.
 
 For shared or remotely exposed installations:
 
-- keep `HERMES_WEBUI_PASSWORD` enabled
+- keep `IRIS_WEBUI_PASSWORD` enabled
 - bind to loopback unless you intentionally expose the service
 - review extension code before enabling it
 - prefer small, auditable extension files
@@ -546,11 +546,11 @@ For shared or remotely exposed installations:
 
 Extensions can contribute a custom **skin** that appears in the native
 **Settings → Appearance** skin picker, instead of bolting on a parallel theme
-switcher. Call `window.registerHermesSkin(descriptor)` from your extension
+switcher. Call `window.registerIrisSkin(descriptor)` from your extension
 script:
 
 ```javascript
-window.registerHermesSkin({
+window.registerIrisSkin({
   name: 'E-Ink',            // display name (also the picker label)
   value: 'e-ink',           // optional stable key; slugified from name if omitted
   label: 'E-Ink',           // optional explicit picker label
@@ -612,10 +612,10 @@ Extensions can contribute a **text-to-speech engine** that appears in the
 **Settings → TTS Engine** dropdown alongside the built-ins (Browser / Edge /
 ElevenLabs) and is used by **both** playback paths — the hands-free voice-mode
 auto-read and the per-message "Listen" button. Call
-`window.registerHermesTtsEngine(descriptor)`:
+`window.registerIrisTtsEngine(descriptor)`:
 
 ```javascript
-window.registerHermesTtsEngine({
+window.registerIrisTtsEngine({
   id: 'voicevox',                 // [a-z0-9_-], not a built-in
   label: 'VOICEVOX (local)',      // shown in the dropdown (textContent — escaped)
   // synthesize(text, opts) -> Promise<ArrayBuffer | Blob | TypedArray> of audio.
@@ -703,8 +703,8 @@ If host CSS overrides `[hidden]`, add an extension-scoped rule such as:
 ### Contributing to the extension library
 
 To publish an extension in the vetted gallery, open a PR against
-**[hermes-webui/hermes-webui-extensions](https://github.com/hermes-webui/hermes-webui-extensions)**
-following [`docs/extension-entry.md`](https://github.com/hermes-webui/hermes-webui-extensions/blob/main/docs/extension-entry.md)
+**[iris-webui/iris-webui-extensions](https://github.com/iris-webui/iris-webui-extensions)**
+following [`docs/extension-entry.md`](https://github.com/iris-webui/iris-webui-extensions/blob/main/docs/extension-entry.md)
 (entry layout, `extension.json`/`manifest.json` shape, and the capability +
 best-practice conventions). Every entry PR runs the repo's CI validators and
 safety scan before it can merge, and merged entries are published to the registry
@@ -715,8 +715,8 @@ that powers Settings → Extensions.
 Create a local extension directory:
 
 ```bash
-mkdir -p ~/.hermes/webui-extension
-cat > ~/.hermes/webui-extension/app.css <<'CSS'
+mkdir -p ~/.iris/webui-extension
+cat > ~/.iris/webui-extension/app.css <<'CSS'
 .my-extension-badge {
   position: fixed;
   right: 12px;
@@ -729,7 +729,7 @@ cat > ~/.hermes/webui-extension/app.css <<'CSS'
   z-index: 9999;
 }
 CSS
-cat > ~/.hermes/webui-extension/app.js <<'JS'
+cat > ~/.iris/webui-extension/app.js <<'JS'
 (() => {
   const badge = document.createElement('div');
   badge.className = 'my-extension-badge';
@@ -742,9 +742,9 @@ JS
 Start WebUI with the extension enabled:
 
 ```bash
-HERMES_WEBUI_EXTENSION_DIR=~/.hermes/webui-extension \
-HERMES_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/app.css \
-HERMES_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/app.js \
+IRIS_WEBUI_EXTENSION_DIR=~/.iris/webui-extension \
+IRIS_WEBUI_EXTENSION_STYLESHEET_URLS=/extensions/app.css \
+IRIS_WEBUI_EXTENSION_SCRIPT_URLS=/extensions/app.js \
 ./start.sh
 ```
 
@@ -782,7 +782,7 @@ counts installed manifest entries currently suppressed by the WebUI-managed
 override. `manifest.entry_count` counts the loaded top-level manifest object and
 effectively enabled extension entries that were inspected for injection, not
 every extension object in the file. The endpoint and Settings panel do **not**
-return `HERMES_WEBUI_EXTENSION_DIR`, resolved manifest paths, raw environment
+return `IRIS_WEBUI_EXTENSION_DIR`, resolved manifest paths, raw environment
 values, rejected URL strings, rejected sidecar origins, rejected health paths, or
 the override state-file path.
 
@@ -792,5 +792,5 @@ The same card also exposes proxy consent through `POST /api/extensions/sidecar-p
 
 When sanitized settings are present, Settings -> Extensions renders
 browser-local controls for installed manifest entries. Save, reset, and clear
-storage actions call `window.HermesExtensionSettings`; they do not call backend
+storage actions call `window.IrisExtensionSettings`; they do not call backend
 storage routes and do not write WebUI settings.

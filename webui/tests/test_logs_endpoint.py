@@ -113,6 +113,6 @@ def test_logs_endpoint_tests_use_only_synthetic_fixture_content():
     source = __import__("pathlib").Path(__file__).read_text(encoding="utf-8")
     assert "synthetic-log-marker" in source
     assert "/home/" + "michael" not in source
-    assert "~/" + ".hermes/logs" not in source
+    assert "~/" + ".iris/logs" not in source
     assert "TOK" + "EN=" not in source
     assert "PASS" + "WORD=" not in source

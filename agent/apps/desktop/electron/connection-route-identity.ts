@@ -14,7 +14,7 @@ interface SshRouteConfig {
   keyPath?: string
   mode: 'ssh'
   port?: number
-  remoteHermesPath?: string
+  remoteIrisPath?: string
   remoteProfile?: string
   user?: string
 }
@@ -66,7 +66,7 @@ function routeIdentity(route: StoredRoute): null | string {
       keyPath: ssh.keyPath || '',
       kind: 'ssh',
       port: ssh.port || 22,
-      remoteHermesPath: ssh.remoteHermesPath || '',
+      remoteIrisPath: ssh.remoteIrisPath || '',
       remoteProfile: ssh.remoteProfile || '',
       user: (ssh.user || '').trim().toLowerCase()
     })

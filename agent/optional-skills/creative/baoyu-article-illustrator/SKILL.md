@@ -6,7 +6,7 @@ author: 宝玉 (JimLiu)
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [article-illustration, creative, image-generation]
     category: creative
     homepage: https://github.com/JimLiu/baoyu-skills#baoyu-article-illustrator
@@ -14,7 +14,7 @@ metadata:
 
 # Article Illustrator
 
-Adapted from [baoyu-article-illustrator](https://github.com/JimLiu/baoyu-skills) for Hermes Agent's tool ecosystem.
+Adapted from [baoyu-article-illustrator](https://github.com/JimLiu/baoyu-skills) for Iris Agent's tool ecosystem.
 
 Analyze articles, identify illustration positions, generate images with **Type × Style × Palette** consistency.
 

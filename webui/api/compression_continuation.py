@@ -31,7 +31,7 @@ def durable_compression_continuation(session):
     db = None
     sealed = False
     try:
-        from hermes_state import SessionDB
+        from iris_state import SessionDB
 
         path = Path(_resolve_profile_home_for_name(profile)) / "state.db"
         if not path.is_file():

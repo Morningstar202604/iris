@@ -56,7 +56,7 @@ def test_resolve_profile_home_param_caches_within_one_scope(tmp_path):
 def test_resolve_profile_home_param_caches_within_one_scope_for_profile_name(tmp_path):
     """(a), second branch: a logical profile-NAME STRING (not a Path) resolves
 
-    through `get_hermes_home_for_profile()` before hitting the same
+    through `get_iris_home_for_profile()` before hitting the same
     `_cached_safe_resolve_profile_home()` memoization. Confirms the
     within-scope cache is genuinely hit for named profiles too, not just
     explicit Path callers.
@@ -64,7 +64,7 @@ def test_resolve_profile_home_param_caches_within_one_scope_for_profile_name(tmp
     home_dir = tmp_path / "named_profile_home"
     home_dir.mkdir()
 
-    with patch("api.profiles.get_hermes_home_for_profile", return_value=home_dir), \
+    with patch("api.profiles.get_iris_home_for_profile", return_value=home_dir), \
             patch.object(ws, "_safe_resolve", wraps=ws._safe_resolve) as spy:
         with ws.profile_home_resolve_cache_scope():
             first = ws._resolve_profile_home_param("myprofile")
@@ -290,7 +290,7 @@ def test_load_cli_sessions_uncached_dedupes_profile_home_resolve_on_sidecar_cach
 
     assert len(result) == n
     profile_home_resolves = _count_profile_home_resolve_calls(
-        safe_resolve_spy.call_args_list, profiles._DEFAULT_HERMES_HOME
+        safe_resolve_spy.call_args_list, profiles._DEFAULT_IRIS_HOME
     )
     # Every row's sidecar was a genuine cache miss (fresh clear above), so
     # Session.load_metadata_only() ran -- and therefore Session.__init__() ran
@@ -341,7 +341,7 @@ def test_load_cli_sessions_uncached_profile_home_resolve_scales_with_fix_disable
     # single call pays its own real filesystem resolve.
     import api.profiles as profiles
     profile_home_resolves = _count_profile_home_resolve_calls(
-        safe_resolve_spy.call_args_list, profiles._DEFAULT_HERMES_HOME
+        safe_resolve_spy.call_args_list, profiles._DEFAULT_IRIS_HOME
     )
     assert profile_home_resolves == n, (
         f"expected the profile-home _safe_resolve() to run once per row ({n}) with no "

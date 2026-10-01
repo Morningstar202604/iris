@@ -27,11 +27,11 @@ import statistics
 import sys
 import time
 
-# Isolate from the user's real HERMES_HOME so the catalog cache file we
-# build here does not contaminate the real ~/.hermes/webui/.
-os.environ["HERMES_HOME"] = "/tmp/hwebui-2518-bench/bench-home"
-os.environ["HERMES_WEBUI_STATE_DIR"] = "/tmp/hwebui-2518-bench/bench-home/webui"
-os.makedirs(os.environ["HERMES_WEBUI_STATE_DIR"], exist_ok=True)
+# Isolate from the user's real IRIS_HOME so the catalog cache file we
+# build here does not contaminate the real ~/.iris/webui/.
+os.environ["IRIS_HOME"] = "/tmp/hwebui-2518-bench/bench-home"
+os.environ["IRIS_WEBUI_STATE_DIR"] = "/tmp/hwebui-2518-bench/bench-home/webui"
+os.makedirs(os.environ["IRIS_WEBUI_STATE_DIR"], exist_ok=True)
 
 from api.config import get_available_models  # noqa: E402
 from api.routes import _resolve_compatible_session_model_state  # noqa: E402

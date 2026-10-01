@@ -214,7 +214,7 @@ def test_composer_control_order_move_updates_both_chip_groups():
           getItem(key) {{ return this._items[key] || null; }},
           setItem(key, value) {{ this._items[key] = String(value); }},
         }};
-        const _COMPOSER_CONTROL_ORDER_LS_KEY = 'hermes-webui-composer-control-order';
+        const _COMPOSER_CONTROL_ORDER_LS_KEY = 'iris-webui-composer-control-order';
         window._COMPOSER_CONTROL_TOGGLE_DEFS = [
           {{ key: 'hide_composer_attach', orderGroup: 'left' }},
           {{ key: 'hide_composer_context', orderGroup: 'right' }},

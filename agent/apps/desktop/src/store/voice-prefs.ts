@@ -3,7 +3,7 @@ import { atom } from 'nanostores'
 import { persistBoolean, readKey, storedBoolean } from '@/lib/storage'
 
 // Desktop read-aloud is local; voice.auto_tts belongs to the messaging gateway.
-const AUTO_SPEAK_KEY = 'hermes.desktop.autoSpeakReplies'
+const AUTO_SPEAK_KEY = 'iris.desktop.autoSpeakReplies'
 export const $autoSpeakReplies = atom<boolean>(storedBoolean(AUTO_SPEAK_KEY, false))
 // Best-effort persistence must not give config refresh authority again.
 let autoSpeakChosen = readKey(AUTO_SPEAK_KEY) !== null

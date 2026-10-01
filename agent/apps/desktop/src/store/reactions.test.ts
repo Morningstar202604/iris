@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { applyReaction } from '@/store/reactions'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/iris'
 
 const at = 1_700_000_000
 

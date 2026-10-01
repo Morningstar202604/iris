@@ -1,6 +1,6 @@
 # Slash Commands (In-Session)
 
-Registry of record: `hermes_cli/commands.py` (`COMMAND_REGISTRY`) — every
+Registry of record: `iris_cli/commands.py` (`COMMAND_REGISTRY`) — every
 consumer (autocomplete, `/help`, Telegram menu, Slack mapping) derives from
 it. New commands land often; `/help` in-session is always authoritative.
 (CLI) = interactive CLI/TUI only. (GW) = gateway platforms only.
@@ -17,7 +17,7 @@ it. New commands land often; `/help` in-session is always authoritative.
 /stop                    Kill background processes
 /rollback [N]            List/restore filesystem checkpoints
 /diff [mode] [--stat]    Git changes in cwd (staged|all|session modes)
-/snapshot [sub]          Create/restore Hermes config+state snapshots (CLI)
+/snapshot [sub]          Create/restore Iris config+state snapshots (CLI)
 /bg <prompt>              Run a prompt in a separate background session
 /btw <question>           Ask a side question about the current conversation without interrupting it
 /queue (/q) <prompt>     Queue prompt for next turn
@@ -101,7 +101,7 @@ it. New commands land often; `/help` in-session is always authoritative.
 /copy [N]                Copy last response to clipboard (CLI)
 /paste                   Attach clipboard image (CLI)
 /image <path>            Attach a local image file (CLI)
-/update                  Update Hermes to latest
+/update                  Update Iris to latest
 /version (/v)            Show version
 /debug [nous|local]      Upload debug report, get shareable links
 ```

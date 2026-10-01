@@ -1,0 +1,17 @@
+name: gitiris
+repo: https://github.com/claudioorjunior/gitiris
+sha: 09d5b566da650290dc0d639ea1e77def4bcdab31
+description: GitHub PRs and issues as a right workspace pane in Iris Desktop, via the connected gh CLI. Disclosure — shells out to your logged-in gh CLI; the in-pane update pill only runs `iris plugins update gitiris` (no fetch-and-replace) and currently compares against upstream main rather than the pinned sha.
+maintainer: claudioorjunior
+tier: community
+category: desktop
+requires_iris: ">=0.21.1"
+docs_url: https://github.com/claudioorjunior/gitiris#readme
+version: "0.5.0"
+image: https://raw.githubusercontent.com/claudioorjunior/gitiris/09d5b566da650290dc0d639ea1e77def4bcdab31/docs/social-preview.png
+platforms: []
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []

@@ -38,10 +38,10 @@ function expectRequestHeaders(
 ) {
   const callback = vi.fn()
 
-  applyRemoteRequestHeaders({ url, requestHeaders: { Origin: 'app://hermes' } }, callback, store.headersFor)
+  applyRemoteRequestHeaders({ url, requestHeaders: { Origin: 'app://iris' } }, callback, store.headersFor)
 
   expect(callback).toHaveBeenCalledOnce()
-  expect(callback).toHaveBeenCalledWith(expected ? { requestHeaders: { Origin: 'app://hermes', ...expected } } : {})
+  expect(callback).toHaveBeenCalledWith(expected ? { requestHeaders: { Origin: 'app://iris', ...expected } } : {})
 }
 
 function expectNoHeadersForNearbyUrls(store: ReturnType<typeof createRemoteWsHeaderStore>, exactUrl: string) {
@@ -205,11 +205,11 @@ describe('OAuth login and registry extra headers', () => {
     attachRemoteRequestHeaderListener(oauthSession, url => resolveRemoteRequestHeaders(url, { sources }))
 
     const callback = vi.fn()
-    listeners[0]({ url: 'https://gateway.example/login', requestHeaders: { Origin: 'app://hermes' } }, callback)
+    listeners[0]({ url: 'https://gateway.example/login', requestHeaders: { Origin: 'app://iris' } }, callback)
 
     expect(listeners).toHaveLength(1)
     expect(callback).toHaveBeenCalledWith({
-      requestHeaders: { Origin: 'app://hermes', ...accessHeaders }
+      requestHeaders: { Origin: 'app://iris', ...accessHeaders }
     })
   })
 })

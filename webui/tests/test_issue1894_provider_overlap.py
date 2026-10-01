@@ -1,4 +1,4 @@
-# Copyright 2025 the Hermes WebUI contributors
+# Copyright 2025 the Iris WebUI contributors
 # SPDX-License-Identifier: MIT
 
 """Regression tests for GitHub issue #1894.

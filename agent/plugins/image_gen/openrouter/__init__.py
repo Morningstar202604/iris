@@ -3,7 +3,7 @@
 Both speak the OpenAI-style ``/chat/completions`` image protocol (``modalities:
 ["image","text"]``, references as ``image_url`` parts, output in
 ``choices[0].message.images[].image_url.url``); only ``(base_url, api_key)`` differs,
-via :func:`hermes_cli.runtime_provider.resolve_runtime_provider`. OpenRouter alone also
+via :func:`iris_cli.runtime_provider.resolve_runtime_provider`. OpenRouter alone also
 has the Dedicated Image API (``POST /images/generations``, own catalog, exact ratios,
 up to 16 references) — see :func:`_select_surface`.
 """
@@ -172,8 +172,8 @@ _IMAGE_API_INTS = (
 _ATTRIBUTION_HEADERS = {
     "Content-Type": "application/json",
     # OpenRouter attribution headers (harmless against Nous Portal).
-    "HTTP-Referer": "https://github.com/NousResearch/hermes-agent",
-    "X-Title": "Hermes Agent",
+    "HTTP-Referer": "https://github.com/X33834/iris",
+    "X-Title": "Iris Agent",
 }
 
 
@@ -527,7 +527,7 @@ class OpenRouterCompatImageProvider(ImageGenProvider):
 
     def _credentials(self) -> Tuple[str, str]:
         """``(api_key, base_url)`` — either may be ``""``; raises on resolution failure."""
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from iris_cli.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested=self._runtime_name)
         return (
@@ -761,7 +761,7 @@ class OpenRouterCompatImageProvider(ImageGenProvider):
         if not api_key or not base_url:
             return fail(
                 f"No {self._display} credentials found. "
-                f"Configure {self._display} in `hermes tools` → Image Generation.",
+                f"Configure {self._display} in `iris tools` → Image Generation.",
                 "missing_api_key")
 
         model_chain = self._resolve_model_chain(kwargs.get("model"))

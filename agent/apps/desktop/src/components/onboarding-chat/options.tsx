@@ -23,8 +23,8 @@ export const CONNECTOR_LEAD_ORDER = [
   'todoist'
 ]
 
-// Connectors are the apps Hermes reads and acts on for the user. Chat channels
-// (Discord, Telegram, WhatsApp) are how a user talks to Hermes; those live on
+// Connectors are the apps Iris reads and acts on for the user. Chat channels
+// (Discord, Telegram, WhatsApp) are how a user talks to Iris; those live on
 // the Messaging page, and offering them here as if they were data sources
 // taught users the wrong thing about what "connect" does. The catalog
 // carries them for the agent's sake; the first-run picker leaves them out.
@@ -122,13 +122,13 @@ export type MiniNode = 1 | { dir: 'column' | 'row'; children: MiniNode[]; weight
 export const ELITE_LAYOUT_ID = 'terminal-deck'
 
 // Each pick is an arrangement AND an interface mode. First launch is the one
-// place a single question can answer both: someone here to talk to Hermes
+// place a single question can answer both: someone here to talk to Iris
 // should not have to find Simple mode afterwards, and a developer who asked
 // for the terminal deck wants the tooling on. Basic applies Simple's own
 // preset so its shelf shows the pick as active.
 export const LAYOUTS: Array<{ description: string; id: string; mode: InterfaceMode; name: string; tree: MiniNode }> = [
   {
-    description: 'For talking to Hermes.',
+    description: 'For talking to Iris.',
     id: 'sidebar-left',
     mode: 'simple',
     name: 'Basic',

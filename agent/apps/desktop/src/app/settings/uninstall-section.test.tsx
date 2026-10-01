@@ -22,8 +22,8 @@ it.each(['gui', 'lite', 'full'] as const)(
   'localizes confirmation for %s without changing mode or running before confirmation',
   async mode => {
     const run = vi.fn().mockResolvedValue({ ok: false })
-    vi.stubGlobal('hermesDesktop', {
-      uninstall: { summary: async () => ({ agent_installed: true, running_app_path: '/fixture/Hermes.app' }), run }
+    vi.stubGlobal('irisDesktop', {
+      uninstall: { summary: async () => ({ agent_installed: true, running_app_path: '/fixture/Iris.app' }), run }
     })
     render(
       <I18nProvider configClient={null} initialLocale="zh">
@@ -31,7 +31,7 @@ it.each(['gui', 'lite', 'full'] as const)(
       </I18nProvider>
     )
     const zh = TRANSLATIONS.zh.settings.uninstallSection
-    await screen.findByText(zh.uninstallHermes)
+    await screen.findByText(zh.uninstallIris)
     fireEvent.click(screen.getByRole('button', { name: new RegExp(zh.options[mode].title) }))
     expect(screen.getByText(zh.confirmBody(zh.options[mode].consequence))).toBeTruthy()
     expect(run).not.toHaveBeenCalled()

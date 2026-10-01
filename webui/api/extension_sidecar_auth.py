@@ -8,7 +8,7 @@ local process, and the proxy strips every inbound credential before forwarding
 sidecar cannot tell a proxied request from a direct one.
 
 This module mints a per-extension shared secret that core injects on every
-forwarded request (header ``X-Hermes-Sidecar-Token``) and the sidecar validates.
+forwarded request (header ``X-Iris-Sidecar-Token``) and the sidecar validates.
 It converts "anyone who can send a loopback TCP packet" (other-UID users, host
 containers, sandboxed network-only processes) into "processes that can read the
 user's state dir" — the same protection level core's own signing key already has

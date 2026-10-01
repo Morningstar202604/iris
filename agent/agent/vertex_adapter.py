@@ -40,7 +40,7 @@ _creds_cache: dict = {}
 def _vertex_config() -> dict:
     """Return the ``vertex:`` section of config.yaml, or {} on any failure."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
 
         section = load_config().get("vertex")
         return section if isinstance(section, dict) else {}
@@ -186,10 +186,10 @@ def has_vertex_credentials() -> bool:
 
 
 def has_explicit_vertex_config() -> bool:
-    """True only when the user deliberately pointed Hermes at Vertex.
+    """True only when the user deliberately pointed Iris at Vertex.
 
     Stricter than :func:`has_vertex_credentials`: an ambient ``GOOGLE_APPLICATION_CREDENTIALS``
-    must NOT gate the model picker open (unknowing spend). Only Hermes-scoped signals count.
+    must NOT gate the model picker open (unknowing spend). Only Iris-scoped signals count.
     """
     if _resolve_project_override():
         return True

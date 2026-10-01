@@ -1,6 +1,6 @@
-# Contribuir a Hermes Agent
+# Contribuir a Iris Agent
 
-¡Gracias por contribuir a Hermes Agent! Esta guía cubre todo lo que necesitas: configurar tu entorno de desarrollo, entender la arquitectura, decidir qué construir y conseguir que tu PR sea aceptado.
+¡Gracias por contribuir a Iris Agent! Esta guía cubre todo lo que necesitas: configurar tu entorno de desarrollo, entender la arquitectura, decidir qué construir y conseguir que tu PR sea aceptado.
 
 ---
 
@@ -9,7 +9,7 @@
 Valoramos las contribuciones en este orden:
 
 1. **Correcciones de errores** — bloqueos, comportamiento incorrecto, pérdida de datos. Siempre la máxima prioridad.
-2. **Compatibilidad entre plataformas** — macOS, diferentes distribuciones de Linux y WSL2 en Windows. Queremos que Hermes funcione en todas partes.
+2. **Compatibilidad entre plataformas** — macOS, diferentes distribuciones de Linux y WSL2 en Windows. Queremos que Iris funcione en todas partes.
 3. **Fortalecimiento de seguridad** — inyección de shell, inyección de prompts, traversal de rutas, escalada de privilegios. Ver [Consideraciones de Seguridad](#consideraciones-de-seguridad).
 4. **Rendimiento y robustez** — lógica de reintento, manejo de errores, degradación elegante.
 5. **Nuevas habilidades** — pero solo las ampliamente útiles. Ver [¿Debería ser una Habilidad o una Herramienta?](#debería-ser-una-habilidad-o-una-herramienta)
@@ -38,26 +38,26 @@ Esta es la pregunta más común para los nuevos colaboradores. La respuesta casi
 
 ### ¿Debería la Habilidad estar incluida?
 
-Las habilidades incluidas (en `skills/`) se envían con cada instalación de Hermes. Deben ser **ampliamente útiles para la mayoría de los usuarios**:
+Las habilidades incluidas (en `skills/`) se envían con cada instalación de Iris. Deben ser **ampliamente útiles para la mayoría de los usuarios**:
 
 - Manejo de documentos, investigación web, flujos de trabajo de desarrollo comunes, administración de sistemas
 - Usadas regularmente por una amplia gama de personas
 
-Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** — se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `hermes skills browse` (etiquetada como "oficial") e instalarla con `hermes skills install` (sin advertencia de terceros, confianza integrada).
+Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** — se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `iris skills browse` (etiquetada como "oficial") e instalarla con `iris skills install` (sin advertencia de terceros, confianza integrada).
 
-Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** — súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `hermes skills install`.
+Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** — súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `iris skills install`.
 
 ---
 
 ## Proveedores de Memoria: Publicar como Plugin Independiente
 
-**Ya no aceptamos nuevos proveedores de memoria en este repositorio.** El conjunto de proveedores integrados en `plugins/memory/` (honcho, mem0, supermemory, byterover, holographic, openviking, retaindb) está cerrado. Si quieres añadir un nuevo backend de memoria, publícalo como un **repositorio de plugin independiente** que los usuarios instalen en `~/.hermes/plugins/` (o a través de un entry point de pip).
+**Ya no aceptamos nuevos proveedores de memoria en este repositorio.** El conjunto de proveedores integrados en `plugins/memory/` (honcho, mem0, supermemory, byterover, holographic, openviking, retaindb) está cerrado. Si quieres añadir un nuevo backend de memoria, publícalo como un **repositorio de plugin independiente** que los usuarios instalen en `~/.iris/plugins/` (o a través de un entry point de pip).
 
 Los plugins de memoria independientes:
 
-- Implementan el mismo ABC `MemoryProvider` (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown` y opcionalmente `post_setup(hermes_home, config)` para integración con el asistente de configuración
+- Implementan el mismo ABC `MemoryProvider` (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown` y opcionalmente `post_setup(iris_home, config)` para integración con el asistente de configuración
 - Usan el mismo sistema de descubrimiento — `discover_memory_providers()` los recoge desde directorios de plugins de usuario/proyecto y entry points de pip
-- Se integran con `hermes memory setup` a través de `post_setup()` — sin necesidad de tocar el código base
+- Se integran con `iris memory setup` a través de `post_setup()` — sin necesidad de tocar el código base
 - Pueden registrar sus propios subcomandos CLI a través de `register_cli(subparser)` en un archivo `cli.py`
 - Obtienen todos los mismos hooks de ciclo de vida y plomería de configuración que los proveedores incluidos en el árbol
 
@@ -81,8 +81,8 @@ Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimi
 ### Clonar e instalar
 
 ```bash
-git clone https://github.com/NousResearch/hermes-agent.git
-cd hermes-agent
+git clone https://gitcode.com/badhope/iris.git
+cd iris-agent
 
 # Crear venv con Python 3.11
 uv venv venv --python 3.11
@@ -98,12 +98,12 @@ npm install
 ### Configurar para desarrollo
 
 ```bash
-mkdir -p ~/.hermes/{cron,sessions,logs,memories,skills}
-cp cli-config.yaml.example ~/.hermes/config.yaml
-touch ~/.hermes/.env
+mkdir -p ~/.iris/{cron,sessions,logs,memories,skills}
+cp cli-config.yaml.example ~/.iris/config.yaml
+touch ~/.iris/.env
 
 # Añadir al menos una clave de proveedor LLM:
-echo "OPENROUTER_API_KEY=***" >> ~/.hermes/.env
+echo "OPENROUTER_API_KEY=***" >> ~/.iris/.env
 ```
 
 ### Ejecutar
@@ -111,11 +111,11 @@ echo "OPENROUTER_API_KEY=***" >> ~/.hermes/.env
 ```bash
 # Enlace simbólico para acceso global
 mkdir -p ~/.local/bin
-ln -sf "$(pwd)/venv/bin/hermes" ~/.local/bin/hermes
+ln -sf "$(pwd)/venv/bin/iris" ~/.local/bin/iris
 
 # Verificar
-hermes doctor
-hermes chat -q "Hola"
+iris doctor
+iris chat -q "Hola"
 ```
 
 ### Ejecutar tests
@@ -134,12 +134,12 @@ pytest tests/ -v
 ## Estructura del Proyecto
 
 ```
-hermes-agent/
+iris-agent/
 ├── run_agent.py              # Clase AIAgent — bucle de conversación central, despacho de herramientas, persistencia de sesión
-├── cli.py                    # Clase HermesCLI — TUI interactiva, integración prompt_toolkit
+├── cli.py                    # Clase IrisCLI — TUI interactiva, integración prompt_toolkit
 ├── model_tools.py            # Orquestación de herramientas (capa delgada sobre tools/registry.py)
-├── toolsets.py               # Agrupaciones y presets de herramientas (hermes-cli, hermes-telegram, etc.)
-├── hermes_state.py           # Base de datos de sesiones SQLite con búsqueda de texto completo FTS5, títulos de sesión
+├── toolsets.py               # Agrupaciones y presets de herramientas (iris-cli, iris-telegram, etc.)
+├── iris_state.py           # Base de datos de sesiones SQLite con búsqueda de texto completo FTS5, títulos de sesión
 ├── batch_runner.py           # Procesamiento en lote paralelo para generación de trayectorias
 │
 ├── agent/                    # Internos del agente (módulos extraídos)
@@ -150,7 +150,7 @@ hermes-agent/
 │   ├── model_metadata.py         # Longitudes de contexto del modelo, estimación de tokens
 │   └── trajectory.py             # Ayudantes para guardar trayectorias
 │
-├── hermes_cli/               # Implementaciones de comandos CLI
+├── iris_cli/               # Implementaciones de comandos CLI
 │   ├── main.py                   # Punto de entrada, análisis de argumentos, despacho de comandos
 │   ├── config.py                 # Gestión de configuración, migración, definiciones de variables de entorno
 │   ├── setup.py                  # Asistente de configuración interactivo
@@ -191,28 +191,28 @@ hermes-agent/
 │   ├── install.ps1               # Instalador Windows PowerShell
 │   └── whatsapp-bridge/          # Puente WhatsApp Node.js (Baileys)
 │
-├── skills/                   # Habilidades incluidas (copiadas a ~/.hermes/skills/ en la instalación)
+├── skills/                   # Habilidades incluidas (copiadas a ~/.iris/skills/ en la instalación)
 ├── optional-skills/          # Habilidades opcionales oficiales (descubribles vía hub, no activadas por defecto)
 ├── tests/                    # Suite de tests
-├── website/                  # Sitio de documentación (hermes-agent.nousresearch.com)
+├── website/                  # Sitio de documentación (gitcode.com/badhope/iris)
 │
-├── cli-config.yaml.example   # Configuración de ejemplo (copiada a ~/.hermes/config.yaml)
+├── cli-config.yaml.example   # Configuración de ejemplo (copiada a ~/.iris/config.yaml)
 └── AGENTS.md                 # Guía de desarrollo para asistentes de codificación IA
 ```
 
-### Configuración del usuario (almacenada en `~/.hermes/`)
+### Configuración del usuario (almacenada en `~/.iris/`)
 
 | Ruta | Propósito |
 |------|-----------|
-| `~/.hermes/config.yaml` | Configuración (modelo, terminal, toolsets, compresión, etc.) |
-| `~/.hermes/.env` | Claves API y secretos |
-| `~/.hermes/auth.json` | Credenciales OAuth (Nous Portal) |
-| `~/.hermes/skills/` | Todas las habilidades activas (incluidas + instaladas desde hub + creadas por el agente) |
-| `~/.hermes/memories/` | Memoria persistente (MEMORY.md, USER.md) |
-| `~/.hermes/state.db` | Base de datos de sesiones SQLite |
-| `~/.hermes/sessions/` | Índice de enrutamiento del gateway (`sessions.json`), migas de pan de solicitudes, transcripciones `*.jsonl` del gateway y exportaciones explícitas con `/save`. Ya no se escriben snapshots JSON automáticos; los archivos existentes se conservan y state.db es canónica. |
-| `~/.hermes/cron/` | Datos de trabajos programados |
-| `~/.hermes/whatsapp/session/` | Credenciales del puente WhatsApp |
+| `~/.iris/config.yaml` | Configuración (modelo, terminal, toolsets, compresión, etc.) |
+| `~/.iris/.env` | Claves API y secretos |
+| `~/.iris/auth.json` | Credenciales OAuth (Nous Portal) |
+| `~/.iris/skills/` | Todas las habilidades activas (incluidas + instaladas desde hub + creadas por el agente) |
+| `~/.iris/memories/` | Memoria persistente (MEMORY.md, USER.md) |
+| `~/.iris/state.db` | Base de datos de sesiones SQLite |
+| `~/.iris/sessions/` | Índice de enrutamiento del gateway (`sessions.json`), migas de pan de solicitudes, transcripciones `*.jsonl` del gateway y exportaciones explícitas con `/save`. Ya no se escriben snapshots JSON automáticos; los archivos existentes se conservan y state.db es canónica. |
+| `~/.iris/cron/` | Datos de trabajos programados |
+| `~/.iris/whatsapp/session/` | Credenciales del puente WhatsApp |
 
 ---
 
@@ -239,7 +239,7 @@ Mensaje del usuario → AIAgent._run_agent_loop()
 
 - **Herramientas auto-registradas**: Cada archivo de herramienta llama a `registry.register()` en el momento de importación. `model_tools.py` activa el descubrimiento importando todos los módulos de herramientas.
 - **Agrupación en toolsets**: Las herramientas se agrupan en toolsets (`web`, `terminal`, `file`, `browser`, etc.) que pueden habilitarse/deshabilitarse por plataforma.
-- **Persistencia de sesión**: Todas las conversaciones se almacenan en SQLite (`hermes_state.py`) con búsqueda de texto completo y títulos de sesión únicos.
+- **Persistencia de sesión**: Todas las conversaciones se almacenan en SQLite (`iris_state.py`) con búsqueda de texto completo y títulos de sesión únicos.
 - **Inyección efímera**: Los prompts del sistema y los mensajes de relleno se inyectan en el momento de la llamada API, nunca se persisten en la base de datos ni en los logs.
 - **Abstracción de proveedor**: El agente funciona con cualquier API compatible con OpenAI. La resolución del proveedor ocurre en el momento de la inicialización.
 - **Enrutamiento de proveedor**: Al usar OpenRouter, `provider_routing` en config.yaml controla la selección del proveedor.
@@ -311,7 +311,7 @@ importado por `discover_builtin_tools()` en `tools/registry.py` cuando `model_to
 se carga. **No** hay una lista de importaciones manual en `model_tools.py` que mantener.
 
 Todavía debes añadir el nombre de la herramienta a la lista apropiada en `toolsets.py`
-(por ejemplo `_HERMES_CORE_TOOLS` o un toolset dedicado); de lo contrario la herramienta
+(por ejemplo `_IRIS_CORE_TOOLS` o un toolset dedicado); de lo contrario la herramienta
 se registra pero nunca se expone al agente.
 
 Consulta `AGENTS.md` (sección **Adding New Tools**) para rutas conscientes del perfil y
@@ -357,7 +357,7 @@ prerequisites:                     # Requisitos de tiempo de ejecución heredado
   env_vars: [MY_API_KEY]
   commands: [curl, jq]
 metadata:
-  hermes:
+  iris:
     tags: [Categoría, Subcategoría, Palabras clave]
     related_skills: [other-skill-name]
     fallback_for_toolsets: [web]
@@ -390,7 +390,7 @@ Todo skill nuevo o modernizado — incluido, opcional o contribuido — debe cum
 
 1. **`description` ≤ 60 caracteres, una oración, termina con punto.** Las descripciones largas saturan la UI de listado de habilidades. Indica la capacidad, no la implementación. Sin palabras de marketing ("potente", "completo", "fluido", "avanzado").
 
-2. **Las herramientas referenciadas en el cuerpo de SKILL.md deben ser herramientas nativas de Hermes o servidores MCP que la habilidad espere explícitamente.** Usa los nombres de herramientas en comillas invertidas: `` `terminal` ``, `` `web_extract` ``, `` `web_search` ``, `` `read_file` ``, `` `write_file` ``, etc.
+2. **Las herramientas referenciadas en el cuerpo de SKILL.md deben ser herramientas nativas de Iris o servidores MCP que la habilidad espere explícitamente.** Usa los nombres de herramientas en comillas invertidas: `` `terminal` ``, `` `web_extract` ``, `` `web_search` ``, `` `read_file` ``, `` `write_file` ``, etc.
 
 3. **El campo `platforms:` auditado contra las importaciones reales del script.** Las habilidades que usen primitivos solo de POSIX deben declarar sus plataformas soportadas.
 
@@ -408,11 +408,11 @@ Todo skill nuevo o modernizado — incluido, opcional o contribuido — debe cum
 
 ## Añadir una Skin / Tema
 
-Hermes usa un sistema de skins basado en datos — no se necesitan cambios de código para añadir una nueva skin.
+Iris usa un sistema de skins basado en datos — no se necesitan cambios de código para añadir una nueva skin.
 
 **Opción A: Skin de usuario (archivo YAML)**
 
-Crea `~/.hermes/skins/<nombre>.yaml`:
+Crea `~/.iris/skins/<nombre>.yaml`:
 
 ```yaml
 name: mitema
@@ -444,7 +444,7 @@ Todos los campos son opcionales — los valores faltantes se heredan de la skin 
 
 **Opción B: Skin integrada**
 
-Añade al dict `_BUILTIN_SKINS` en `hermes_cli/skin_engine.py`. Usa el mismo esquema que arriba pero como dict de Python.
+Añade al dict `_BUILTIN_SKINS` en `iris_cli/skin_engine.py`. Usa el mismo esquema que arriba pero como dict de Python.
 
 **Activar:**
 - CLI: `/skin mitema` o establece `display.skin: mitema` en config.yaml
@@ -453,7 +453,7 @@ Añade al dict `_BUILTIN_SKINS` en `hermes_cli/skin_engine.py`. Usa el mismo esq
 
 ## Compatibilidad Multiplataforma
 
-Hermes se ejecuta en Linux, macOS y Windows nativo (además de WSL2). Al escribir código
+Iris se ejecuta en Linux, macOS y Windows nativo (además de WSL2). Al escribir código
 que toca el SO, asume que *cualquier* plataforma puede alcanzar tu ruta de código.
 
 > **Antes de hacer PR:** ejecuta `scripts/check-windows-footguns.py` para detectar
@@ -486,7 +486,7 @@ que toca el SO, asume que *cualquier* plataforma puede alcanzar tu ruta de códi
 
 ## Consideraciones de Seguridad
 
-Hermes tiene acceso al terminal. La seguridad importa.
+Iris tiene acceso al terminal. La seguridad importa.
 
 ### Protecciones existentes
 
@@ -538,7 +538,7 @@ refactor/descripcion   # Reestructuración de código
 ### Antes de enviar
 
 1. **Ejecutar tests**: `scripts/run_tests.sh` (recomendado; igual que CI) o `pytest tests/ -v` con el venv del proyecto activado
-2. **Probar manualmente**: Ejecuta `hermes` y ejercita la ruta de código que cambiaste
+2. **Probar manualmente**: Ejecuta `iris` y ejercita la ruta de código que cambiaste
 3. **Verificar impacto multiplataforma**: Si tocas E/S de archivos, gestión de procesos o manejo del terminal, considera macOS, Linux y WSL2
 4. **Mantén los PRs enfocados**: Un cambio lógico por PR. No mezcles una corrección de error con una refactorización con una nueva funcionalidad.
 
@@ -581,8 +581,8 @@ test(tools): añadir tests unitarios para file_operations
 
 ## Reportar Issues
 
-- Usa [GitHub Issues](https://github.com/NousResearch/hermes-agent/issues)
-- Incluye: SO, versión de Python, versión de Hermes (`hermes --version`), traza de error completa
+- Usa [GitHub Issues](https://gitcode.com/badhope/iris/issues)
+- Incluye: SO, versión de Python, versión de Iris (`iris --version`), traza de error completa
 - Incluye pasos para reproducir
 - Verifica los issues existentes antes de crear duplicados
 - Para vulnerabilidades de seguridad, por favor reporta de forma privada

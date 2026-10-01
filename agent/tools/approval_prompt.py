@@ -148,7 +148,7 @@ def _ask_human(command: str, description: str, timeout_seconds: int, allow_perma
     except Exception:
         pass  # prompt_toolkit absent or detection failed: legacy input() path is safe
 
-    os.environ["HERMES_SPINNER_PAUSE"] = "1"
+    os.environ["IRIS_SPINNER_PAUSE"] = "1"
     try:
         from agent.i18n import t
         # (prompt key, menu key) by menu shape: once/deny, full, or no [a]lways.
@@ -176,14 +176,14 @@ def _ask_human(command: str, description: str, timeout_seconds: int, allow_perma
         print("\n" + t("approval.cancelled"))
         return Unanswered("the prompt was interrupted before an answer was given")
     finally:
-        os.environ.pop("HERMES_SPINNER_PAUSE", None)
+        os.environ.pop("IRIS_SPINNER_PAUSE", None)
         print()
         sys.stdout.flush()
 
 
 def get_plugin_manager():
     """Lazy plugin-manager seam used by tests and early tool-only imports."""
-    from hermes_cli.plugins import discover_plugins, get_plugin_manager as _get_manager
+    from iris_cli.plugins import discover_plugins, get_plugin_manager as _get_manager
     # Approval can be imported before model_tools (which triggers discovery); make an explicitly selected transport
     # available on the first approval instead of treating the undiscovered registry as unavailable.
     discover_plugins()
@@ -219,7 +219,7 @@ def _present_with_selected_transport(*, command: str, description: str, pattern_
 
     try:
         from agent.redact import redact_sensitive_text
-        from hermes_cli.approval_transport import ApprovalRequest, invoke_approval_transport
+        from iris_cli.approval_transport import ApprovalRequest, invoke_approval_transport
 
         timeout_seconds = _ctx._get_approval_timeout()
         request = ApprovalRequest.create(

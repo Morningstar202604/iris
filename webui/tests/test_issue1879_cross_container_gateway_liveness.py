@@ -3,7 +3,7 @@
 The gateway's ``get_running_pid()`` uses ``fcntl.flock`` and ``os.kill(pid, 0)``,
 both of which require the caller to share a PID namespace with the gateway
 process. In multi-container deployments (gateway in one container, WebUI in
-another, no ``pid: "service:hermes-agent"`` workaround) those checks always
+another, no ``pid: "service:iris-agent"`` workaround) those checks always
 fail and the dashboard incorrectly reports "Gateway not running".
 
 The fix in ``api/agent_health.py`` adds a freshness fallback: when
@@ -107,9 +107,9 @@ def test_cross_container_alive_path_does_not_leak_raw_process_fields(monkeypatch
     runtime = _runtime_status(
         fresh_ts,
         pid=7,
-        argv=["hermes", "gateway", "--token", "secret-token"],
-        command="hermes gateway --token secret-token",
-        executable="/opt/hermes/.venv/bin/python",
+        argv=["iris", "gateway", "--token", "secret-token"],
+        command="iris gateway --token secret-token",
+        executable="/opt/iris/.venv/bin/python",
         env={"OPENAI_API_KEY": "sk-secret"},
     )
     monkeypatch.setattr(
@@ -142,7 +142,7 @@ def test_cross_container_runtime_status_reads_sibling_runtime_file(monkeypatch, 
         json.dumps(
             {
                 "pid": 2468,
-                "command": "hermes-agent --gateway",
+                "command": "iris-agent --gateway",
             }
         ),
         encoding="utf-8",

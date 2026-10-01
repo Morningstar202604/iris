@@ -74,7 +74,7 @@ def test_prefs_menu_layout():
             for width, height in [(1280, 720), (1024, 600), (480, 320)]:
                 context = browser.new_context(viewport={"width": width, "height": height})
                 page = context.new_page()
-                page.add_init_script("localStorage.setItem('hermes-webui-workspace-panel','open')")
+                page.add_init_script("localStorage.setItem('iris-webui-workspace-panel','open')")
                 menu = _open_workspace_prefs(page, "en")
                 _assert_menu_inside_viewport(page, menu)
                 if width == 1024 and SCREENSHOT:
@@ -91,7 +91,7 @@ def test_prefs_menu_repositions_after_created_sort_support_flip():
         try:
             context = browser.new_context(viewport={"width": 480, "height": 480})
             page = context.new_page()
-            page.add_init_script("localStorage.setItem('hermes-webui-workspace-panel','open')")
+            page.add_init_script("localStorage.setItem('iris-webui-workspace-panel','open')")
             menu = _open_workspace_prefs(page, "en", [
                 {"name": "link", "path": "link", "type": "symlink", "mtime_ns": 1},
                 {"name": "Documents", "path": "Documents", "type": "dir", "mtime_ns": 2},
@@ -132,7 +132,7 @@ def test_prefs_menu_layout_locales(locale):
         browser = playwright.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
         try:
             context = browser.new_context(viewport={"width": 480, "height": 320})
-            context.add_init_script(f"localStorage.setItem('hermes-lang',{locale!r})")
+            context.add_init_script(f"localStorage.setItem('iris-lang',{locale!r})")
             page = context.new_page()
             menu = _open_workspace_prefs(page, locale)
             _assert_menu_inside_viewport(page, menu)

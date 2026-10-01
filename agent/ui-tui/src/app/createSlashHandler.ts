@@ -1,4 +1,4 @@
-import { parseCommandDispatch, parseSlashCommand } from '@hermes/shared/slash'
+import { parseCommandDispatch, parseSlashCommand } from '@iris/shared/slash'
 
 import type { SlashExecResponse } from '../gatewayTypes.js'
 import { rpcErrorMessage } from '../lib/rpc.js'
@@ -51,7 +51,7 @@ export function createSlashHandler(ctx: SlashHandlerContext): (cmd: string) => b
     }
 
     // Registry-first fallback: widget apps registered AFTER the static
-    // command table was built (user widgets from $HERMES_HOME/tui-widgets,
+    // command table was built (user widgets from $IRIS_HOME/tui-widgets,
     // /widgets-reload) dispatch straight off the live registry.
     if (getWidgetApp(parsed.name)) {
       const err = launchWidget(parsed.name, parsed.arg)

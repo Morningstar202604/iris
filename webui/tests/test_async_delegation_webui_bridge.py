@@ -975,28 +975,28 @@ def test_real_core_restart_delivers_async_completion_exactly_once(tmp_path):
     try:
         from tools import async_delegation as ad
     except Exception as exc:
-        pytest.skip(f"hermes-agent async delegation module unavailable: {exc}")
+        pytest.skip(f"iris-agent async delegation module unavailable: {exc}")
     if not all(
         hasattr(ad, name)
         for name in ("claim_event_delivery", "complete_event_delivery", "release_event_delivery")
     ):
-        pytest.skip("installed hermes-agent predates durable completion claims")
+        pytest.skip("installed iris-agent predates durable completion claims")
 
     webui_repo = Path(__file__).resolve().parents[1]
     agent_repo = Path(ad.__file__).resolve().parents[1]
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(tmp_path)
-    env["HERMES_BASE_HOME"] = str(tmp_path)
-    env["HERMES_CONFIG_PATH"] = str(tmp_path / "config.yaml")
-    env["HERMES_WEBUI_STATE_DIR"] = str(tmp_path)
-    env["HERMES_WEBUI_TEST_STATE_DIR"] = str(tmp_path)
-    env["HERMES_WEBUI_NO_DOTENV"] = "1"
-    env["HERMES_WEBUI_AGENT_DIR"] = str(agent_repo)
+    env["IRIS_HOME"] = str(tmp_path)
+    env["IRIS_BASE_HOME"] = str(tmp_path)
+    env["IRIS_CONFIG_PATH"] = str(tmp_path / "config.yaml")
+    env["IRIS_WEBUI_STATE_DIR"] = str(tmp_path)
+    env["IRIS_WEBUI_TEST_STATE_DIR"] = str(tmp_path)
+    env["IRIS_WEBUI_NO_DOTENV"] = "1"
+    env["IRIS_WEBUI_AGENT_DIR"] = str(agent_repo)
     env["PYTHONPATH"] = os.pathsep.join(
         part for part in (str(webui_repo), str(agent_repo), env.get("PYTHONPATH", "")) if part
     )
 
-    python_executable = os.environ.get("HERMES_WEBUI_PYTHON") or sys.executable
+    python_executable = os.environ.get("IRIS_WEBUI_PYTHON") or sys.executable
     consumer = """
 import json
 import time
@@ -1054,7 +1054,7 @@ def test_real_core_active_claim_survives_restart_and_retries_after_lease(tmp_pat
     try:
         from tools import async_delegation as ad
     except Exception as exc:
-        pytest.skip(f"hermes-agent async delegation module unavailable: {exc}")
+        pytest.skip(f"iris-agent async delegation module unavailable: {exc}")
     if not all(
         hasattr(ad, name)
         for name in (
@@ -1064,22 +1064,22 @@ def test_real_core_active_claim_survives_restart_and_retries_after_lease(tmp_pat
             "get_durable_delegation",
         )
     ):
-        pytest.skip("installed hermes-agent predates durable completion claims")
+        pytest.skip("installed iris-agent predates durable completion claims")
 
     webui_repo = Path(__file__).resolve().parents[1]
     agent_repo = Path(ad.__file__).resolve().parents[1]
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(tmp_path)
-    env["HERMES_BASE_HOME"] = str(tmp_path)
-    env["HERMES_CONFIG_PATH"] = str(tmp_path / "config.yaml")
-    env["HERMES_WEBUI_STATE_DIR"] = str(tmp_path)
-    env["HERMES_WEBUI_TEST_STATE_DIR"] = str(tmp_path)
-    env["HERMES_WEBUI_NO_DOTENV"] = "1"
-    env["HERMES_WEBUI_AGENT_DIR"] = str(agent_repo)
+    env["IRIS_HOME"] = str(tmp_path)
+    env["IRIS_BASE_HOME"] = str(tmp_path)
+    env["IRIS_CONFIG_PATH"] = str(tmp_path / "config.yaml")
+    env["IRIS_WEBUI_STATE_DIR"] = str(tmp_path)
+    env["IRIS_WEBUI_TEST_STATE_DIR"] = str(tmp_path)
+    env["IRIS_WEBUI_NO_DOTENV"] = "1"
+    env["IRIS_WEBUI_AGENT_DIR"] = str(agent_repo)
     env["PYTHONPATH"] = os.pathsep.join(
         part for part in (str(webui_repo), str(agent_repo), env.get("PYTHONPATH", "")) if part
     )
-    python_executable = os.environ.get("HERMES_WEBUI_PYTHON") or sys.executable
+    python_executable = os.environ.get("IRIS_WEBUI_PYTHON") or sys.executable
 
     producer = """
 import time

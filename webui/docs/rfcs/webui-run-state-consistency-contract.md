@@ -5,7 +5,7 @@
 - **Created:** 2026-05-16
 - **Updated:** 2026-08-22
 - **Tracking issue:** [#2361](https://github.com/nesquena/hermes-webui/issues/2361)
-- **Related architecture:** [#1925](https://github.com/nesquena/hermes-webui/issues/1925), [`hermes-run-adapter-contract.md`](hermes-run-adapter-contract.md), [`stable-assistant-turn-anchors.md`](stable-assistant-turn-anchors.md)
+- **Related architecture:** [#1925](https://github.com/nesquena/hermes-webui/issues/1925), [`iris-run-adapter-contract.md`](iris-run-adapter-contract.md), [`stable-assistant-turn-anchors.md`](stable-assistant-turn-anchors.md)
 
 ## Problem
 
@@ -162,7 +162,7 @@ and 5; it does not mark every run-state boundary implemented.
    browser-facing timeline renderer as live SSE events so recovery does not
    downgrade a structured Thinking / progress / tool / compression turn into a
    separate flattened presentation.
-   When session loading combines a WebUI sidecar with Hermes Agent `state.db`, a
+   When session loading combines a WebUI sidecar with Iris Agent `state.db`, a
    native-image user turn may appear as both rich multipart content and scalar
    text that replaces each image part with `[screenshot]`. Reconciliation may
    treat those rows as one turn only when the multipart value contains text and
@@ -277,7 +277,7 @@ tracking issue by itself.
 ## Relationship To The Run Adapter RFC
 
 The run adapter RFC defines the longer-term event/control boundary for WebUI and
-Hermes runtime ownership. This RFC defines the consistency rules that the current
+Iris runtime ownership. This RFC defines the consistency rules that the current
 WebUI and any future adapter-backed implementation must preserve.
 
 The two documents should be read together:

@@ -3,13 +3,13 @@
 
 Usage (via cron with --no-agent):
 
-    hermes cron create hermes-issues \\
+    iris cron create iris-issues \\
       --schedule "*/5 * * * *" --no-agent \\
-      --script "$HERMES_HOME/skills/devops/watchers/scripts/watch_github.py" \\
-      --script-args "--name hermes-issues --repo NousResearch/hermes-agent --scope issues"
+      --script "$IRIS_HOME/skills/devops/watchers/scripts/watch_github.py" \\
+      --script-args "--name iris-issues --repo X33834/iris --scope issues"
 
-Set GITHUB_TOKEN (or GH_TOKEN) in the Hermes .env file
-(``${HERMES_HOME:-~/.hermes}/.env``) to avoid the 60 req/hr
+Set GITHUB_TOKEN (or GH_TOKEN) in the Iris .env file
+(``${IRIS_HOME:-~/.iris}/.env``) to avoid the 60 req/hr
 anonymous rate limit.
 
 Scopes: issues | pulls | releases | commits.  Or pass --search QUERY to
@@ -113,7 +113,7 @@ def main() -> int:
 
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "Hermes-Watcher/1.0",
+        "User-Agent": "Iris-Watcher/1.0",
     }
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:

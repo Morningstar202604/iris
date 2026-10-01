@@ -57,7 +57,7 @@ Test design:
   See the "Real-pipeline end-to-end coverage" section below for that proof.
 
 - Tests 13-18 (the real-pipeline tests) stand up the ``SESSION_DIR`` /
-  ``SESSION_INDEX_FILE`` / ``SESSIONS`` / ``HERMES_HOME`` / state.db the
+  ``SESSION_INDEX_FILE`` / ``SESSIONS`` / ``IRIS_HOME`` / state.db the
   way ``api.models.all_sessions()`` reads them in production, write a real
   session sidecar that survives #1171, and assert that the resulting
   ``_build_session_list_cache_payload`` actually calls
@@ -754,7 +754,7 @@ def test_webui_titled_row_with_empty_state_db_messages_is_pruned(monkeypatch):
 #
 # These tests drive a real ``all_sessions()`` (no ``all_sessions``
 # monkeypatch). They stand up the ``SESSION_DIR`` /
-# ``SESSION_INDEX_FILE`` / ``SESSIONS`` / ``HERMES_HOME`` / state.db the
+# ``SESSION_INDEX_FILE`` / ``SESSIONS`` / ``IRIS_HOME`` / state.db the
 # way ``api.models.all_sessions()`` reads them in production, write a real
 # session sidecar that survives #1171's keep-filter, and assert that the
 # resulting ``_build_session_list_cache_payload`` actually fires
@@ -778,7 +778,7 @@ def _real_pipeline(tmp_path, monkeypatch):
 
     Redirects ``SESSION_DIR`` / ``SESSION_INDEX_FILE`` to tmp_path so the
     index file and any saved sidecars land in a throwaway directory, points
-    ``HERMES_HOME`` at a sibling tmp dir with a real agent state.db
+    ``IRIS_HOME`` at a sibling tmp dir with a real agent state.db
     (``messages`` + ``sessions`` tables per test case), and clears
     ``SESSIONS`` so no stale in-memory session leaks across tests.
     """
@@ -791,14 +791,14 @@ def _real_pipeline(tmp_path, monkeypatch):
     monkeypatch.setattr(models, "SESSION_DIR", session_dir)
     monkeypatch.setattr(models, "SESSION_INDEX_FILE", index_file)
 
-    hermes_home = tmp_path / "hermes_home"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    # ``_active_state_db_path`` reads ``HERMES_HOME`` indirectly via
-    # ``api.profiles.get_active_hermes_home``. Force the module-level
-    # default so the helper returns ``hermes_home/state.db`` even when the
+    iris_home = tmp_path / "iris_home"
+    iris_home.mkdir()
+    monkeypatch.setenv("IRIS_HOME", str(iris_home))
+    # ``_active_state_db_path`` reads ``IRIS_HOME`` indirectly via
+    # ``api.profiles.get_active_iris_home``. Force the module-level
+    # default so the helper returns ``iris_home/state.db`` even when the
     # active profile is something other than 'default'.
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", hermes_home)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", iris_home)
 
     models.SESSIONS.clear()
     try:
@@ -973,7 +973,7 @@ def test_real_all_sessions_post1171_titled_orphan_is_pruned(_real_pipeline, monk
         message_count=0,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-titled-orphan": {"source": "webui", "title": "Native WebUI", "messages": 0},
         },
@@ -1026,7 +1026,7 @@ def test_real_all_sessions_post1171_stale_count_orphan_is_pruned(_real_pipeline,
         message_count=5,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-stale-count": {"source": "webui", "title": "Untitled", "messages": 0},
         },
@@ -1110,7 +1110,7 @@ def test_real_all_sessions_post1171_titled_worktree_row_is_retained(_real_pipeli
         worktree_path="some/path",
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-worktree-titled": {
                 "source": "webui",
@@ -1161,7 +1161,7 @@ def test_real_all_sessions_post1171_untitled_uncounted_row_is_filtered_by_1171(
     # We don't need a state.db row at all here — the row is filtered by
     # #1171 before any state.db probe runs. Build a minimal state.db so the
     # test fixture is consistent.
-    _write_state_db(tmp_path / "hermes_home", sessions={})
+    _write_state_db(tmp_path / "iris_home", sessions={})
 
     pruned: list[str] = []
     monkeypatch.setattr(
@@ -1200,7 +1200,7 @@ def test_real_all_sessions_post1171_pending_titled_row_is_retained(_real_pipelin
         pending_user_message="Hello",
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-pending-titled": {
                 "source": "webui",
@@ -1249,7 +1249,7 @@ def test_real_all_sessions_post1171_streaming_titled_row_is_retained(
         active_stream_id="stream-abc-123",
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-streaming-titled": {
                 "source": "webui",
@@ -1485,7 +1485,7 @@ def test_real_all_sessions_post1171_prune_fires_when_show_cli_sessions_false(
         message_count=0,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-titled-orphan-cli-off": {
                 "source": "webui",
@@ -1539,7 +1539,7 @@ def test_real_all_sessions_post1171_prune_fires_when_show_cli_sessions_true(
         message_count=0,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             "webui-titled-orphan-cli-on": {
                 "source": "webui",
@@ -1599,7 +1599,7 @@ def test_tombstone_persists_across_polls(_real_pipeline, monkeypatch):
         message_count=0,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "Native WebUI", "messages": 0},
         },
@@ -1669,7 +1669,7 @@ def test_tombstone_does_not_block_new_session_with_same_id(
         message_count=0,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "Native WebUI", "messages": 0},
         },
@@ -1711,7 +1711,7 @@ def test_tombstone_does_not_block_new_session_with_same_id(
     # Add a row to state.db.messages for this sid (the existing
     # _write_state_db fixture would fail because the table already
     # exists; here we just append a single message row inline).
-    db_path = tmp_path / "hermes_home" / "state.db"
+    db_path = tmp_path / "iris_home" / "state.db"
     _live_conn = sqlite3.connect(str(db_path))
     try:
         _live_conn.execute(
@@ -1839,7 +1839,7 @@ def test_tombstone_self_heals_when_message_added(_real_pipeline, monkeypatch):
         message_count=1,
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "Native WebUI", "messages": 1},
         },
@@ -1982,7 +1982,7 @@ def test_sidecar_only_webui_session_is_retained(_real_pipeline, monkeypatch):
         ],
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             # state.db mirrors the count so #1171 keeps the row past the
             # keep-filter (count > 0 → row survives), but messages=0 means
@@ -2045,7 +2045,7 @@ def test_sidecar_only_webui_session_self_heals_tombstone(_real_pipeline, monkeyp
         ],
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "Native WebUI", "messages": 0},
         },
@@ -2102,7 +2102,7 @@ def test_truly_empty_sidecar_with_title_still_pruned(_real_pipeline, monkeypatch
         message_count=0,  # <-- the sidecar is genuinely empty
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "My Renamed Empty Session", "messages": 0},
         },
@@ -2152,7 +2152,7 @@ def test_sidecar_only_webui_session_retained_when_show_cli_sessions_false(
         ],
     )
     _write_state_db(
-        tmp_path / "hermes_home",
+        tmp_path / "iris_home",
         sessions={
             sid: {"source": "webui", "title": "Native WebUI", "messages": 0},
         },

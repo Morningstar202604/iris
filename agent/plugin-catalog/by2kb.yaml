@@ -1,8 +1,8 @@
 name: by2kb
 repo: https://github.com/Charlesmpc/by2kb
 sha: 300c4938666e7b475605d23fce129f340bfce7c2
-subdir: by2kb/integrations/hermes
-description: Turn Bilibili and YouTube videos into transcripts, short abstracts, and Markdown study notes using the Hermes host model.
+subdir: by2kb/integrations/iris
+description: Turn Bilibili and YouTube videos into transcripts, short abstracts, and Markdown study notes using the Iris host model.
 maintainer: Charlesmpc
 tier: community
 category: tools

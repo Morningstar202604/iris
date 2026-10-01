@@ -1,5 +1,5 @@
 """Regression tests for issue #1560 — Settings password silently no-ops when
-HERMES_WEBUI_PASSWORD env var is set.
+IRIS_WEBUI_PASSWORD env var is set.
 
 Pre-fix behaviour: env-var-precedence in `api.auth.get_password_hash()` meant
 that POST /api/settings with `_set_password` would happily persist a new hash
@@ -113,8 +113,8 @@ class _FakeHandler:
 
 def test_get_settings_exposes_password_env_var_true_when_env_set(monkeypatch):
     """Acceptance criterion: GET /api/settings includes `password_env_var: true`
-    when HERMES_WEBUI_PASSWORD is set."""
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "shadow-pw")
+    when IRIS_WEBUI_PASSWORD is set."""
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "shadow-pw")
 
     from api.routes import handle_get
 
@@ -126,7 +126,7 @@ def test_get_settings_exposes_password_env_var_true_when_env_set(monkeypatch):
     payload = handler.json_body()
     assert payload.get("password_env_var") is True, (
         "GET /api/settings must expose password_env_var=true when "
-        "HERMES_WEBUI_PASSWORD is set so the UI can disable the password field. "
+        "IRIS_WEBUI_PASSWORD is set so the UI can disable the password field. "
         f"Got: {payload!r}"
     )
     # Also confirm the hash is never echoed back to the client (existing
@@ -137,7 +137,7 @@ def test_get_settings_exposes_password_env_var_true_when_env_set(monkeypatch):
 
 def test_get_settings_password_env_var_false_when_env_unset(monkeypatch):
     """Control case: env var unset → password_env_var:false (falsy)."""
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
 
     from api.routes import handle_get
 
@@ -153,7 +153,7 @@ def test_get_settings_password_env_var_false_when_env_unset(monkeypatch):
 def test_get_settings_password_env_var_false_when_env_blank(monkeypatch):
     """Whitespace-only env var must NOT shadow settings — matches the strip()
     guard in api.auth.get_password_hash."""
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "   ")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "   ")
 
     from api.routes import handle_get
 
@@ -180,8 +180,8 @@ def _post_settings(body_dict, cookie=""):
 
 def test_post_set_password_returns_409_when_env_var_set(monkeypatch):
     """Acceptance criterion: POST `_set_password` returns 409 when env var is set,
-    with a message naming HERMES_WEBUI_PASSWORD so the user knows what to fix."""
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "shadow-pw")
+    with a message naming IRIS_WEBUI_PASSWORD so the user knows what to fix."""
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "shadow-pw")
 
     handler = _post_settings({"_set_password": "new-attempt"})
 
@@ -189,8 +189,8 @@ def test_post_set_password_returns_409_when_env_var_set(monkeypatch):
         f"POST _set_password must return 409 when env var is set, got {handler.status}"
     )
     payload = handler.json_body()
-    assert "HERMES_WEBUI_PASSWORD" in payload.get("error", ""), (
-        "409 error message must name HERMES_WEBUI_PASSWORD so the user can "
+    assert "IRIS_WEBUI_PASSWORD" in payload.get("error", ""), (
+        "409 error message must name IRIS_WEBUI_PASSWORD so the user can "
         f"identify the override. Got: {payload!r}"
     )
 
@@ -199,13 +199,13 @@ def test_post_clear_password_returns_409_when_env_var_set(monkeypatch):
     """Acceptance criterion: POST `_clear_password=true` ("Disable Auth") returns
     409 when env var is set — disabling auth via UI is impossible while the env
     var is in force."""
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "shadow-pw")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "shadow-pw")
 
     handler = _post_settings({"_clear_password": True})
 
     assert handler.status == 409
     payload = handler.json_body()
-    assert "HERMES_WEBUI_PASSWORD" in payload.get("error", "")
+    assert "IRIS_WEBUI_PASSWORD" in payload.get("error", "")
 
 
 def test_post_set_password_settings_hash_unchanged_after_409(monkeypatch):
@@ -216,7 +216,7 @@ def test_post_set_password_settings_hash_unchanged_after_409(monkeypatch):
     BEFORE save_settings(), so any pre-existing password_hash on disk must
     survive untouched.
     """
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "shadow-pw")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "shadow-pw")
 
     # Seed settings.json with a known sentinel hash so we can detect any write.
     from api.config import load_settings, save_settings
@@ -249,7 +249,7 @@ def test_post_set_password_succeeds_when_env_var_unset(monkeypatch):
     sets a session cookie and may use a special status flow; the important
     invariant is that the 409 guard ONLY fires when the env var is set.
     """
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
 
     handler = _post_settings({"_set_password": "fresh-pw"})
 

@@ -13,9 +13,9 @@ from contextlib import suppress
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, List, Optional, Tuple
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from tools.registry import registry, tool_error
-from hermes_cli.config import cfg_get
+from iris_cli.config import cfg_get
 from agent.skill_utils import (
     EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS, is_skill_support_path as _is_skill_support_path)
 from tools.skills_tool_setup import (  # noqa: F401
@@ -59,16 +59,16 @@ def _skills_scan_signature(dirs_to_scan, disabled) -> tuple:
     return (tuple(sig), frozenset(disabled), platform)
 
 
-HERMES_HOME = get_hermes_home()  # all skills live in ~/.hermes/skills/ (seeded from bundled)
-SKILLS_DIR = HERMES_HOME / "skills"
+IRIS_HOME = get_iris_home()  # all skills live in ~/.iris/skills/ (seeded from bundled)
+SKILLS_DIR = IRIS_HOME / "skills"
 _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time: the patched ``SKILLS_DIR`` when a patcher changed
-    it, else live profile-scoped HERMES_HOME (long-lived runtimes may import before profile set)."""
+    it, else live profile-scoped IRIS_HOME (long-lived runtimes may import before profile set)."""
     configured = Path(SKILLS_DIR)
-    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
+    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_iris_home() / "skills"
 
 
 _secret_capture_callback = None
@@ -90,11 +90,11 @@ def _skill_lookup_path_error(name: str) -> Optional[str]:
 
 
 def load_env() -> Dict[str, str]:
-    """Snapshot of HERMES_HOME/.env for the post-skill secret-capture diff (same tokenizer that
+    """Snapshot of IRIS_HOME/.env for the post-skill secret-capture diff (same tokenizer that
     installs the profile scope, so a captured value never differs from the served one)."""
     from agent.secret_scope import load_env_file
 
-    return load_env_file(get_hermes_home() / ".env")
+    return load_env_file(get_iris_home() / ".env")
 
 
 def set_secret_capture_callback(callback) -> None:
@@ -124,7 +124,7 @@ def check_skills_requirements() -> bool:
 
 
 def _get_category_from_path(skill_path: Path) -> Optional[str]:
-    """``~/.hermes/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
+    """``~/.iris/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
     (respects test monkeypatching), then skills.external_dirs."""
     dirs_to_check = [_skills_dir()]
     with suppress(Exception):
@@ -150,17 +150,17 @@ def _parse_tags(tags_value) -> List[str]:
 
 
 def _is_skill_disabled(name: str, platform: str = None) -> bool:
-    """Disabled in config? Platform precedence: explicit arg, ``HERMES_PLATFORM``, session
-    ``HERMES_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
+    """Disabled in config? Platform precedence: explicit arg, ``IRIS_PLATFORM``, session
+    ``IRIS_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
     (keep in sync with agent.skill_utils.get_disabled_skill_names)."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         skills_cfg = load_config().get("skills", {})
-        resolved_platform = platform or os.getenv("HERMES_PLATFORM")
+        resolved_platform = platform or os.getenv("IRIS_PLATFORM")
         if not resolved_platform:
             with suppress(Exception):
                 from gateway.session_context import get_session_env
-                resolved_platform = get_session_env("HERMES_SESSION_PLATFORM") or ""
+                resolved_platform = get_session_env("IRIS_SESSION_PLATFORM") or ""
         platform_disabled = None
         if resolved_platform:
             platform_disabled = cfg_get(skills_cfg, "platform_disabled", resolved_platform)
@@ -237,7 +237,7 @@ def skills_list(category: str = None, task_id: str = None) -> str:
         _skills_dir().mkdir(parents=True, exist_ok=True)
         all_skills = _find_all_skills()
         try:
-            from hermes_cli.plugins import discover_plugins, get_plugin_manager
+            from iris_cli.plugins import discover_plugins, get_plugin_manager
             discover_plugins()
             for plugin_skill in get_plugin_manager().list_plugin_skill_metadata():
                 frontmatter = plugin_skill.pop("frontmatter", {})
@@ -266,7 +266,7 @@ def _resolve_plugin_skill(name, file_path, task_id, preprocess):
     local_category_name)`` to fall through to the flat-tree scan — categorized local skills also use
     ``category:skill`` in config/gateway prompts, so the on-disk ``category/skill`` form returns."""
     from agent.skill_utils import is_valid_namespace, parse_qualified_name
-    from hermes_cli.plugins import discover_plugins, get_plugin_manager
+    from iris_cli.plugins import discover_plugins, get_plugin_manager
     namespace, bare = parse_qualified_name(name)
     if not is_valid_namespace(namespace):
         return _fail(f"Invalid namespace '{namespace}' in '{name}'. Namespaces must match [a-zA-Z0-9_-]+."), None
@@ -414,7 +414,7 @@ def _org_provenance_header(skill_dir: Path, active_skills_dir: Path):
         "> team — treat it as third-party instructions rather than your own notes.\n"
         "> You MAY improve it in place like any other skill. Your edits are kept locally\n"
         "> and are never overwritten by org updates; share them back with\n"
-        "> `hermes sync propose` (or automatically, if your org enables it).\n\n")
+        "> `iris sync propose` (or automatically, if your org enables it).\n\n")
     return {"org_id": prov_org, "shared_by": author or None, "as_of": ts or None}, header
 
 
@@ -545,7 +545,7 @@ def _locate_skill(name: str, local_category_name: Optional[str], project_dirs: l
                 f"Project skill '{name}' is quarantined: the security scan flagged its content as "
                 "dangerous. It will not load until the repo's skill content changes and passes a re-scan.",
                 hint="Inspect the skill in the repo checkout, or untrust the repo with "
-                "`hermes skills untrust`."), None, None
+                "`iris skills untrust`."), None, None
     if not skill_md or not skill_md.exists():
         available = [s["name"] for s in _sort_skills(_find_all_skills())[:20]]
         return _fail(f"Skill '{name}' not found.", available_skills=available,
@@ -563,7 +563,7 @@ def _log_security_warnings(name: str, skill_md: Path, content: str, all_dirs, ac
         trusted_dirs.extend(d.resolve() for d in all_dirs)
     warnings = []
     if not _under_any(skill_md, trusted_dirs):
-        warnings.append(f"skill file is outside the trusted skills directory (~/.hermes/skills/): {skill_md}")
+        warnings.append(f"skill file is outside the trusted skills directory (~/.iris/skills/): {skill_md}")
     if any(p in content.lower() for p in _INJECTION_PATTERNS):
         warnings.append("skill content contains patterns that may indicate prompt injection")
     if warnings:
@@ -605,16 +605,16 @@ def skill_view(
             return _fail(f"Skill '{name}' is not supported on this platform.", readiness_status=SkillReadinessStatus.UNSUPPORTED.value)
         resolved_name = frontmatter.get("name", skill_md.parent.name)
         if _is_skill_disabled(resolved_name):
-            return _fail(f"Skill '{resolved_name}' is disabled. Enable it with `hermes skills` or inspect the files directly on disk.")
+            return _fail(f"Skill '{resolved_name}' is disabled. Enable it with `iris skills` or inspect the files directly on disk.")
         if file_path and skill_dir:
             return _serve_skill_file(
                 skill_dir, file_path, name, list_available=True, mark_read=True,
                 hint="Use a relative path within the skill directory")
-        # tags/related_skills: metadata.hermes.* (agentskills.io) first, then top-level.
+        # tags/related_skills: metadata.iris.* (agentskills.io) first, then top-level.
         metadata = frontmatter.get("metadata")
-        hermes_meta = (metadata.get("hermes", {}) or {}) if isinstance(metadata, dict) else {}
+        iris_meta = (metadata.get("iris", {}) or {}) if isinstance(metadata, dict) else {}
         tags, related_skills = (
-            _parse_tags(hermes_meta.get(k) or frontmatter.get(k, "")) for k in ("tags", "related_skills"))
+            _parse_tags(iris_meta.get(k) or frontmatter.get(k, "")) for k in ("tags", "related_skills"))
         linked_files = _skill_linked_files(skill_dir)
         try:
             rel_path = str(skill_md.relative_to(active_skills_dir))
@@ -734,7 +734,7 @@ import threading  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'display_hermes_home': ('hermes_constants', 'display_hermes_home'),
+    'display_iris_home': ('iris_constants', 'display_iris_home'),
     'env_var_enabled': ('utils', 'env_var_enabled'),
 }
 
@@ -744,7 +744,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

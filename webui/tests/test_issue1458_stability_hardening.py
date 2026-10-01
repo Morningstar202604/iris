@@ -35,7 +35,7 @@ def test_deep_health_exercises_session_project_and_sqlite_paths():
     assert isinstance(checks["sessions"].get("count"), int)
     assert checks["projects"]["status"] == "ok"
     assert isinstance(checks["projects"].get("count"), int)
-    # The isolated test home may not have a Hermes state.db yet. Deep health
+    # The isolated test home may not have a Iris state.db yet. Deep health
     # should still report the state-db probe explicitly so watchdogs can tell
     # whether sqlite was checked or absent.
     assert checks["state_db"]["status"] in {"ok", "missing"}

@@ -1,5 +1,5 @@
 import type { ThreadMessage } from '@assistant-ui/react'
-import type { ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionsResult } from '@iris/shared'
 
 import type { QuickModelOption } from '@/app/chat/composer/types'
 import type { ClientSessionState } from '@/app/types'
@@ -7,7 +7,7 @@ import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { type ChatMessage, type ChatMessagePart, chatMessageText, textPart } from '@/lib/chat-messages'
 import { normalize } from '@/lib/text'
 import type { ComposerAttachment } from '@/store/composer'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 export { BUILTIN_PERSONALITIES } from '@/lib/personalities'
 
@@ -114,7 +114,7 @@ export function coerceGatewayText(value: unknown): string {
 /**
  * Normalize a reasoning/thinking text payload from the gateway.
  *
- * Only the leading status prefix (e.g. "Hermes is thinking...") and the
+ * Only the leading status prefix (e.g. "Iris is thinking...") and the
  * obvious placeholder echoes are stripped. We deliberately do NOT trim
  * the delta — reasoning streams as small chunks (often individual tokens
  * with leading or trailing spaces), and trimming each chunk before

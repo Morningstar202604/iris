@@ -6,7 +6,7 @@
 - **Updated:** 2026-07-16
 - **Tracking issue:** [#3926](https://github.com/nesquena/hermes-webui/issues/3926)
 - **Parent contract:** [Live-to-Final Assistant Replies](./live-to-final-assistant-replies.md) ([#3400](https://github.com/nesquena/hermes-webui/issues/3400))
-- **Related RFCs:** [Transparent Stream](./transparent-stream-activity-mode.md), [Hermes Run Adapter Contract](./hermes-run-adapter-contract.md), [WebUI Run State Consistency Contract](./webui-run-state-consistency-contract.md), [Turn Journal](./turn-journal.md), [Pending Intent Controls](./webui-pending-intent-controls.md)
+- **Related RFCs:** [Transparent Stream](./transparent-stream-activity-mode.md), [Iris Run Adapter Contract](./iris-run-adapter-contract.md), [WebUI Run State Consistency Contract](./webui-run-state-consistency-contract.md), [Turn Journal](./turn-journal.md), [Pending Intent Controls](./webui-pending-intent-controls.md)
 
 ## Implementation Status
 
@@ -113,13 +113,13 @@ This RFC proposes that primitive.
 - Insulate the presentation layer from the in-progress RuntimeAdapter substrate
   migration (#1925): the anchor normalizes whatever identity and events the
   current substrate emits, so moving from the WebUI-owned run path to a runner or
-  Hermes runtime changes the anchor's input source, not the UI.
+  Iris runtime changes the anchor's input source, not the UI.
 
 ## Non-goals
 
 - Do not replace the Live-to-Final product model from #3400.
 - Do not implement Transparent Stream in this RFC.
-- Do not implement a RuntimeAdapter, runner process, sidecar, or Hermes runtime
+- Do not implement a RuntimeAdapter, runner process, sidecar, or Iris runtime
   API.
 - Do not require a backend schema migration before the frontend model can start.
 - Do not redefine Queue, Steer, Stop-and-send, or Interrupt product semantics.
@@ -183,7 +183,7 @@ order.
 
 ### RuntimeAdapter
 
-`hermes-run-adapter-contract.md` draws the runtime ownership boundary:
+`iris-run-adapter-contract.md` draws the runtime ownership boundary:
 
 - WebUI should be thin in execution ownership.
 - WebUI should not be thin in product scope.
@@ -203,7 +203,7 @@ already defines the durable event identity this anchor needs —
 `after_seq` reconnect, and dedupe by `run_id + seq` or `event_id` — and the WebUI
 run journal already emits exactly that envelope today. So the anchor does not
 invent identity. It consumes the Artifact 1 envelope, which the current substrate
-emits now and a runner or Hermes runtime will emit later. `run_id` is the durable
+emits now and a runner or Iris runtime will emit later. `run_id` is the durable
 key; `stream_id` is the legacy transport key the contract already lets `run_id`
 outlive.
 
@@ -381,9 +381,9 @@ settled transcript messages, and `INFLIGHT` snapshots. That path should not be
 described as the normal creation strategy.
 
 The anchor consumes the adapter Event Envelope (Artifact 1 of
-`hermes-run-adapter-contract.md`) as its identity source, not a new scheme. That
+`iris-run-adapter-contract.md`) as its identity source, not a new scheme. That
 envelope — `event_id = "run_id:seq"`, monotonic `seq`, `run_id` — is already
-emitted by the WebUI run journal today and will be emitted by a runner or Hermes
+emitted by the WebUI run journal today and will be emitted by a runner or Iris
 runtime later. A future durable `run.started` only upgrades the *source* of those
 keys; the anchor's identity model does not change.
 
@@ -807,7 +807,7 @@ to respect. The substrate under live rendering is actively migrating through
 default-off adapter and runner seams. If the presentation layer keeps reading the
 substrate directly, every migration step risks another live/settled repair. If it
 reads the anchor, and the anchor reads the Artifact 1 envelope, then switching
-from the WebUI run path to a runner or Hermes runtime changes the anchor's input
+from the WebUI run path to a runner or Iris runtime changes the anchor's input
 source and leaves the renderers untouched. The anchor is the buffer that lets
 #1925 land under the UI without rewriting it.
 

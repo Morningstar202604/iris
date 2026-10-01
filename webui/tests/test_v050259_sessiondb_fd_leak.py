@@ -125,9 +125,9 @@ def test_lru_eviction_closes_evicted_agent_session_db():
 def test_session_db_close_is_idempotent():
     """`SessionDB.close()` must be safe to call multiple times."""
     import importlib.util
-    if importlib.util.find_spec("hermes_state") is None:
-        pytest.skip("hermes_state not on import path (CI-only — agent repo not present)")
-    from hermes_state import SessionDB  # type: ignore
+    if importlib.util.find_spec("iris_state") is None:
+        pytest.skip("iris_state not on import path (CI-only — agent repo not present)")
+    from iris_state import SessionDB  # type: ignore
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmpd:

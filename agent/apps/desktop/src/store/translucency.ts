@@ -2,7 +2,7 @@
  * Window translucency (see-through window).
  *
  * One lever, 0–100. Two modes decide HOW the desktop shows through — see
- * `@hermes/shared/translucency`, which owns the mapping both this store and the
+ * `@iris/shared/translucency`, which owns the mapping both this store and the
  * main process read.
  *
  * Settings are kept per light/dark appearance: a tint that reads as a whisper
@@ -15,7 +15,7 @@
  * The renderer owns the value and mirrors the resolved state to the main
  * process over IPC. Glass additionally needs page-level work, which lives
  * here: the field surfaces have to get out of the way for the platform
- * material underneath the web contents to read (see the `[data-hermes-glass]`
+ * material underneath the web contents to read (see the `[data-iris-glass]`
  * block in styles.css).
  */
 
@@ -42,7 +42,7 @@ import {
   type TranslucencyMode,
   type TranslucencyState,
   type TranslucencyValues
-} from '@hermes/shared/translucency'
+} from '@iris/shared/translucency'
 import { atom, computed } from 'nanostores'
 
 import { isMacPlatform, isWindowsPlatform } from '@/lib/platform'
@@ -63,14 +63,14 @@ export type { Appearance }
 
 /**
  * Glass needs a native window material. Electron is authoritative (preload
- * sets `hermesDesktop.glassSupported` from `os.release()` so Win10 cannot
+ * sets `irisDesktop.glassSupported` from `os.release()` so Win10 cannot
  * sneak through). Tests and non-Electron shells fall back to a UA sniff —
  * Mac or Windows — which is why this file pins `navigator.platform` before
  * import.
  */
 export const GLASS_SUPPORTED =
-  typeof window !== 'undefined' && typeof window.hermesDesktop?.glassSupported === 'boolean'
-    ? window.hermesDesktop.glassSupported
+  typeof window !== 'undefined' && typeof window.irisDesktop?.glassSupported === 'boolean'
+    ? window.irisDesktop.glassSupported
     : isMacPlatform() || isWindowsPlatform()
 
 /**
@@ -79,8 +79,8 @@ export const GLASS_SUPPORTED =
  * Settings hides the row rather than offering a lever that does nothing.
  */
 export const TRANSLUCENCY_SUPPORTED =
-  typeof window !== 'undefined' && typeof window.hermesDesktop?.translucencySupported === 'boolean'
-    ? window.hermesDesktop.translucencySupported
+  typeof window !== 'undefined' && typeof window.irisDesktop?.translucencySupported === 'boolean'
+    ? window.irisDesktop.translucencySupported
     : isMacPlatform() || isWindowsPlatform()
 
 /** Windows collapses the frost ladder — see `glassMaterialsFor`. */
@@ -90,8 +90,8 @@ export const GLASS_IS_WINDOWS = GLASS_SUPPORTED && !isMacPlatform()
 // Reading v1 as the seed is what carries an already-tuned window across the
 // upgrade — normalizeBook lands those values in `base`, which both appearances
 // inherit until one of them is edited.
-const KEY = 'hermes.desktop.translucency.v2'
-const LEGACY_KEY = 'hermes.desktop.translucency.v1'
+const KEY = 'iris.desktop.translucency.v2'
+const LEGACY_KEY = 'iris.desktop.translucency.v1'
 
 const read = (): TranslucencyBook =>
   normalizeBook(readJson<unknown>(KEY) ?? readJson<unknown>(LEGACY_KEY), GLASS_SUPPORTED)
@@ -253,10 +253,10 @@ const stopRailTracking = (): void => {
    overlay they stand in covers the very effect they're tuning — the scrim
    plus a deliberately near-opaque card ([data-glass-raised]). A peek ghosts
    the whole overlay layer so the live window IS the preview (see the
-   [data-hermes-translucency-peek] rules in styles.css). A counter rather
+   [data-iris-translucency-peek] rules in styles.css). A counter rather
    than a boolean: a held slider drag and a timed pulse from a picker click
    can overlap. */
-const PEEK_ATTR = 'data-hermes-translucency-peek'
+const PEEK_ATTR = 'data-iris-translucency-peek'
 
 export const $translucencyPeek = atom<number>(0)
 
@@ -320,9 +320,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   // no chat-window gate.
   const clearOn = mode === 'clear' && intensity > 0
 
-  root.toggleAttribute('data-hermes-glass-on', glassLive)
-  root.toggleAttribute('data-hermes-glass', glassOn)
-  root.toggleAttribute('data-hermes-clear', clearOn)
+  root.toggleAttribute('data-iris-glass-on', glassLive)
+  root.toggleAttribute('data-iris-glass', glassOn)
+  root.toggleAttribute('data-iris-clear', clearOn)
 
   if (glassLive) {
     root.style.setProperty('--translucency-glass-keep', `${glassSurfaceKeep(intensity)}%`)
@@ -331,9 +331,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   }
 
   if (glassOn) {
-    root.setAttribute('data-hermes-glass-scope', scope)
+    root.setAttribute('data-iris-glass-scope', scope)
   } else {
-    root.removeAttribute('data-hermes-glass-scope')
+    root.removeAttribute('data-iris-glass-scope')
   }
 
   if (glassOn && scope === 'sidebar') {
@@ -363,7 +363,7 @@ if (typeof window !== 'undefined') {
   // exactly right: the window's tint and native opacity change with it.
   $translucency.subscribe(state => {
     applyGlassSurfaces(state)
-    window.hermesDesktop?.setTranslucency?.(state)
+    window.irisDesktop?.setTranslucency?.(state)
   })
 
   // Persistence follows the BOOK, so an appearance switch (which changes the

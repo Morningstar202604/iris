@@ -1,5 +1,5 @@
-import { Box, Text, useStdout } from '@hermes/ink'
-import { mix } from '@hermes/shared/color'
+import { Box, Text, useStdout } from '@iris/ink'
+import { mix } from '@iris/shared/color'
 import { useEffect, useState } from 'react'
 import unicodeSpinners from 'unicode-animations'
 
@@ -54,9 +54,12 @@ export function ArtLines({ lines }: { lines: [string, string][] }) {
 // Terminals can't scale glyphs, so "responsive" means picking a layout that
 // fits the available columns. Thresholds are picked so each tier reads
 // comfortably without forcing wrap or truncation drift on box-drawing edges.
-const TAG_FULL = 'Nous Research · Messenger of the Digital Gods'
-const TAG_MID = 'Messenger of the Digital Gods'
-const TAG_TINY = 'Nous Research'
+// Provisional main tagline (owner has not finalized; kept in one place for later swap).
+// Terminal surfaces are English-only. The fork attribution lives once in the panel footer.
+const TAG_FULL = 'Calm on the surface. Capable inside.'
+const TAG_MID = 'Calm on the surface. Capable inside.'
+const TAG_TINY = 'Calm on the surface.'
+const FORK_ATTR = 'Iris — a community fork of Hermes, originally by Nous Research'
 const HIDE_BELOW = 34
 const COMPACT_FROM = 58
 
@@ -283,7 +286,7 @@ export function SessionPanel({ info, maxWidth, sid, t }: SessionPanelProps) {
 
   // MCP headline counts *connected* servers, not configured-but-disabled ones,
   // so it matches the classic CLI banner (`sum(s.connected)` in
-  // hermes_cli/banner.py) and the "connected" label on the collapse toggle.
+  // iris_cli/banner.py) and the "connected" label on the collapse toggle.
   const mcpServers = info.mcp_servers ?? []
   const mcpConnected = mcpServers.filter(s => s.connected).length
 
@@ -362,7 +365,6 @@ export function SessionPanel({ info, maxWidth, sid, t }: SessionPanelProps) {
 
       <Text color={t.color.accent}>
         {(info.model ?? '').split('/').pop()}
-        <Text color={t.color.muted}> · Nous Research</Text>
       </Text>
 
       <Text color={t.color.muted} wrap="truncate-end">
@@ -394,7 +396,6 @@ export function SessionPanel({ info, maxWidth, sid, t }: SessionPanelProps) {
         <Box flexDirection="column" marginBottom={1}>
           <Text color={t.color.accent} wrap="truncate-end">
             {(info.model ?? '').split('/').pop()}
-            <Text color={t.color.muted}> · Nous Research</Text>
           </Text>
           <Text color={t.color.muted} wrap="truncate-end">
             {info.cwd || process.cwd()}
@@ -468,6 +469,8 @@ export function SessionPanel({ info, maxWidth, sid, t }: SessionPanelProps) {
         {info.lazy && !skillsTotal ? '… ' : `${skillsTotal} `}skills
         {mcpConnected ? ` · ${mcpConnected} MCP` : ''}
         {' · '}
+        <Text color={t.color.muted}>{FORK_ATTR}</Text>
+        {' · '}
         <Text color={t.color.muted}>/help for commands</Text>
       </Text>
 
@@ -479,7 +482,7 @@ export function SessionPanel({ info, maxWidth, sid, t }: SessionPanelProps) {
             - run{' '}
           </Text>
           <Text bold color={t.color.warn}>
-            {info.update_command || 'hermes update'}
+            {info.update_command || 'iris update'}
           </Text>
           <Text bold={false} color={t.color.warn} dimColor>
             {' '}

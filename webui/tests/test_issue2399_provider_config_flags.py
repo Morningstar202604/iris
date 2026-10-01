@@ -33,7 +33,7 @@ def test_providers_only_configured_flag_does_not_create_picker_group(monkeypatch
     monkeypatch.setattr(
         config,
         "_get_auth_store_path",
-        lambda: pathlib.Path("/tmp/hermes-webui-missing-auth-store-issue2399.json"),
+        lambda: pathlib.Path("/tmp/iris-webui-missing-auth-store-issue2399.json"),
     )
 
     try:
@@ -66,7 +66,7 @@ def test_unknown_scalar_provider_config_flags_are_ignored(monkeypatch):
     monkeypatch.setattr(
         config,
         "_get_auth_store_path",
-        lambda: pathlib.Path("/tmp/hermes-webui-missing-auth-store-issue2399.json"),
+        lambda: pathlib.Path("/tmp/iris-webui-missing-auth-store-issue2399.json"),
     )
 
     try:

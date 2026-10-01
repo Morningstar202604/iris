@@ -92,7 +92,7 @@ def _install_cli_continuity_env(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "SESSION_DIR", session_dir, raising=False)
     monkeypatch.setattr(config, "SESSION_INDEX_FILE", index_file, raising=False)
     monkeypatch.setattr(streaming, "SESSION_DIR", session_dir, raising=False)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(routes, "SESSION_INDEX_FILE", index_file, raising=False)
 
     config.STREAMS.clear()

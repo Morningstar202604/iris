@@ -1,6 +1,6 @@
 """Iris 个人文档知识库插件 — bundled, auto-loaded.
 
-文档索引由 WebUI（server）写入 ``$HERMES_HOME/knowledge.db``；
+文档索引由 WebUI（server）写入 ``$IRIS_HOME/knowledge.db``；
 本插件注册 ``kb_search`` 工具，让 agent 在对话中自行检索知识库。
 零第三方依赖：SQLite FTS5 + trigram/cjk 中文分词。
 """

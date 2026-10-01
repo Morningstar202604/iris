@@ -60,9 +60,9 @@ export const layoutPresetResting = (id: string): ReadonlySet<string> => {
 }
 
 // v2: v1 presets predate semantic placement (see store.ts) — retire them.
-const USER_KEY = 'hermes.desktop.layoutPresets.v2'
+const USER_KEY = 'iris.desktop.layoutPresets.v2'
 
-writeKey('hermes.desktop.layoutPresets.v1', null)
+writeKey('iris.desktop.layoutPresets.v1', null)
 
 interface StoredPreset {
   name: string

@@ -194,13 +194,13 @@ process.stdout.write(JSON.stringify(out));
 
 CASES = {
     "read_file": {"name": "read_file", "args": {"path": "/home/x/api/config.py"}, "snippet": '{"content":"1|import os"}', "done": True},
-    "read_file_range": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 321, "limit": 160}, "done": True},
-    "read_file_offset_only": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 42}, "done": True},
-    "read_file_invalid_range": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": "321", "limit": 160}, "done": True},
-    "read_file_invalid_limit": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 321, "limit": 0}, "done": True},
-    "read_file_negative_limit": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 321, "limit": -1}, "done": True},
-    "read_file_null_limit": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 321, "limit": None}, "done": True},
-    "read_file_overflow_range": {"name": "read_file", "args": {"path": "/home/x/api/hermes_constants.py", "offset": 9007199254740991, "limit": 2}, "done": True},
+    "read_file_range": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 321, "limit": 160}, "done": True},
+    "read_file_offset_only": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 42}, "done": True},
+    "read_file_invalid_range": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": "321", "limit": 160}, "done": True},
+    "read_file_invalid_limit": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 321, "limit": 0}, "done": True},
+    "read_file_negative_limit": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 321, "limit": -1}, "done": True},
+    "read_file_null_limit": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 321, "limit": None}, "done": True},
+    "read_file_overflow_range": {"name": "read_file", "args": {"path": "/home/x/api/iris_constants.py", "offset": 9007199254740991, "limit": 2}, "done": True},
     "terminal": {"name": "terminal", "args": {"command": "git fetch origin --quiet"}, "snippet": "275 /opt/...", "done": True},
     "search_files": {"name": "search_files", "args": {"pattern": "buildToolCard", "path": "/tmp"}, "snippet": '{"total_count": 0}', "done": True},
     "skill_view": {"name": "skill_view", "args": {"name": "opencode-review-agents"}, "snippet": '{"success": true}', "done": True},
@@ -239,14 +239,14 @@ def test_read_file_row_shows_file_target(results):
 
 def test_read_file_row_shows_requested_line_range(results):
     r = results["read_file_range"]
-    assert r["preview"] == "L321-480 · hermes_constants.py"
-    assert r["actionLabel"] == "Read hermes_constants.py · L321-480"
+    assert r["preview"] == "L321-480 · iris_constants.py"
+    assert r["actionLabel"] == "Read iris_constants.py · L321-480"
 
 
 def test_read_file_offset_without_limit_shows_start_line(results):
     r = results["read_file_offset_only"]
-    assert r["preview"] == "L42 · hermes_constants.py"
-    assert r["actionLabel"] == "Read hermes_constants.py · L42"
+    assert r["preview"] == "L42 · iris_constants.py"
+    assert r["actionLabel"] == "Read iris_constants.py · L42"
 
 
 def test_read_file_without_trustworthy_numeric_range_keeps_old_label(results):
@@ -254,12 +254,12 @@ def test_read_file_without_trustworthy_numeric_range_keeps_old_label(results):
     invalid_range = results["read_file_invalid_range"]
     assert no_range["preview"] == "config.py"
     assert no_range["actionLabel"] == "Read config.py"
-    assert invalid_range["preview"] == "hermes_constants.py"
-    assert invalid_range["actionLabel"] == "Read hermes_constants.py"
+    assert invalid_range["preview"] == "iris_constants.py"
+    assert invalid_range["actionLabel"] == "Read iris_constants.py"
     for key in ("read_file_invalid_limit", "read_file_negative_limit", "read_file_null_limit", "read_file_overflow_range"):
         invalid_limit = results[key]
-        assert invalid_limit["preview"] == "hermes_constants.py"
-        assert invalid_limit["actionLabel"] == "Read hermes_constants.py"
+        assert invalid_limit["preview"] == "iris_constants.py"
+        assert invalid_limit["actionLabel"] == "Read iris_constants.py"
 
 
 def test_terminal_row_shows_command(results):

@@ -1,14 +1,14 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getStatus } from '@/hermes'
+import { getStatus } from '@/iris'
 import { $setupReadyTick, notifySetupReady } from '@/store/live-sync'
 
 import { deferred } from '../../../test/deferred'
 
 import { useStatusSnapshot } from './use-status-snapshot'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getStatus: vi.fn()
 }))
 

@@ -134,16 +134,16 @@ def run_worker(steps, *, fail=False, ephemeral=False, tmp_path=None, monkeypatch
                 {"role": "assistant", "content": "served answer"}]}
         def interrupt(self, message): pass
 
-    runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    runtime_module = types.ModuleType("iris_cli.runtime_provider")
     runtime_module.resolve_runtime_provider = mock.Mock(return_value={
         "provider": "anthropic", "base_url": None, "api_key": "sk-test",
         "api_mode": "chat_completions", "command": None, "args": [], "credential_pool": None})
-    cli_module = types.ModuleType("hermes_cli")
+    cli_module = types.ModuleType("iris_cli")
     cli_module.runtime_provider = runtime_module
-    state_module = types.ModuleType("hermes_state")
+    state_module = types.ModuleType("iris_state")
     state_module.SessionDB = mock.Mock(return_value=None)
-    injected = {"hermes_cli": cli_module, "hermes_cli.runtime_provider": runtime_module,
-                "hermes_state": state_module}
+    injected = {"iris_cli": cli_module, "iris_cli.runtime_provider": runtime_module,
+                "iris_state": state_module}
     sentinel = object()
     saved = {name: sys.modules.get(name, sentinel) for name in injected}
     sys.modules.update(injected)

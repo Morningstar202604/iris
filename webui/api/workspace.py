@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Workspace and file system helpers.
+Iris Web UI -- Workspace and file system helpers.
 
 Workspace lists and last-used workspace are stored per-profile so each
 profile has its own workspace configuration.  State files live at
@@ -53,11 +53,11 @@ def _profile_state_dir(profile: str | Path | None = None) -> Path:
     """Return the webui_state directory for the active or given profile.
 
     For the default profile, returns the global STATE_DIR (respects
-    HERMES_WEBUI_STATE_DIR env var for test isolation).
+    IRIS_WEBUI_STATE_DIR env var for test isolation).
     For named profiles, returns {profile_home}/webui_state/.
     """
     try:
-        from api.profiles import get_active_profile_name, get_active_hermes_home
+        from api.profiles import get_active_profile_name, get_active_iris_home
         if profile is not None:
             # Literal-"default" STATE routing (#7168 re-gate round 7): the
             # default profile's workspace state always lives in the global
@@ -82,7 +82,7 @@ def _profile_state_dir(profile: str | Path | None = None) -> Path:
 
         name = get_active_profile_name()
         if name and name != 'default':
-            d = get_active_hermes_home() / 'webui_state'
+            d = get_active_iris_home() / 'webui_state'
             d.mkdir(parents=True, exist_ok=True)
             return d
     except ImportError:
@@ -150,7 +150,7 @@ def _expanduser_path(path: str | Path) -> Path:
         if raw.startswith('~/') or raw.startswith('~\\'):
             return Path(home) / raw[2:]
         # NOTE: ``~user`` / ``~root`` forms are intentionally NOT expanded here.
-        # Master deliberately does not block ``/root`` (#510/#521 — Hermes commonly
+        # Master deliberately does not block ``/root`` (#510/#521 — Iris commonly
         # runs as root, where ``/root`` is the legitimate home and is allowed via
         # the home carve-out). Expanding ``~root`` -> ``/root`` for a NON-root
         # deployment would let it register root's home; leaving the literal form
@@ -297,8 +297,8 @@ def _resolve_profile_home_param(profile: str | Path | None) -> Path:
     read/overwrite an arbitrary ``webui_state/last_workspace.txt``
     (#7168 re-gate round 5, path traversal on the profile-isolation boundary).
     Round 6 closes the last isolation hole in this resolver: the logical
-    string ``"default"`` used to short-circuit to ``_DEFAULT_HERMES_HOME``
-    before reaching ``get_hermes_home_for_profile()``, bypassing the
+    string ``"default"`` used to short-circuit to ``_DEFAULT_IRIS_HOME``
+    before reaching ``get_iris_home_for_profile()``, bypassing the
     isolated-mode clamp in ``api.profiles._resolve_profile_home_for_name``
     (#7168 re-gate round 6). In an isolated deployment pinned at
     ``<base>/profiles/default``, a session created with ``profile="default"``
@@ -314,8 +314,8 @@ def _resolve_profile_home_param(profile: str | Path | None) -> Path:
     default home must compare equal to it).
     """
     if profile is None or str(profile).strip() == "":
-        from api.profiles import get_active_hermes_home
-        return get_active_hermes_home()
+        from api.profiles import get_active_iris_home
+        return get_active_iris_home()
 
     raw = str(profile).strip()
 
@@ -326,20 +326,20 @@ def _resolve_profile_home_param(profile: str | Path | None) -> Path:
     if not _PROFILE_NAME_RE.fullmatch(raw):
         raise ValueError(f"invalid profile name: {raw!r}")
 
-    from api.profiles import get_hermes_home_for_profile
-    return _cached_safe_resolve_profile_home(get_hermes_home_for_profile(raw))
+    from api.profiles import get_iris_home_for_profile
+    return _cached_safe_resolve_profile_home(get_iris_home_for_profile(raw))
 
 
 def _is_default_profile_home(profile_home: Path) -> bool:
-    """Canonical identity check against the root/default Hermes home.
+    """Canonical identity check against the root/default Iris home.
 
-    Compares resolved paths so a symlink alias of _DEFAULT_HERMES_HOME is
+    Compares resolved paths so a symlink alias of _DEFAULT_IRIS_HOME is
     recognized as the default profile rather than treated as a foreign,
     lexically-different directory (#7168 re-gate round 4).
     """
     try:
-        from api.profiles import _DEFAULT_HERMES_HOME
-        return _safe_resolve(profile_home) == _safe_resolve(_DEFAULT_HERMES_HOME)
+        from api.profiles import _DEFAULT_IRIS_HOME
+        return _safe_resolve(profile_home) == _safe_resolve(_DEFAULT_IRIS_HOME)
     except Exception:
         return False
 
@@ -408,7 +408,7 @@ def _profile_default_workspace(profile: str | Path | None = None) -> str:
     Checks keys in priority order:
       1. 'workspace'         — explicit webui workspace key
       2. 'default_workspace' — alternate explicit key
-      3. 'terminal.cwd'      — hermes-agent terminal working dir (most common)
+      3. 'terminal.cwd'      — iris-agent terminal working dir (most common)
 
     For remote/SSH terminal profiles, ``terminal.cwd`` lives on the target
     machine, not on the WebUI server. In that case return it without a
@@ -460,12 +460,12 @@ def _clean_workspace_list(workspaces: list, profile: str | Path | None = None) -
     - Preserve saved paths even when they are currently missing or inaccessible;
       picker state must not be destroyed by a transient stat/permission failure.
     - Remove entries whose paths live inside another profile's directory
-      (e.g. ~/.hermes/profiles/X/... should not appear on a different profile).
+      (e.g. ~/.iris/profiles/X/... should not appear on a different profile).
     - Rename any entry whose name is literally 'default' to 'Home' (avoids
       confusion with the 'default' profile name).
     Returns the cleaned list (may be empty).
     """
-    hermes_profiles = (_home_path() / '.hermes' / 'profiles').resolve()
+    iris_profiles = (_home_path() / '.iris' / 'profiles').resolve()
     result = []
     for w in workspaces:
         path = w.get('path', '')
@@ -479,12 +479,12 @@ def _clean_workspace_list(workspaces: list, profile: str | Path | None = None) -
             p = _safe_resolve(_expanduser_path(path))
         # Skip paths inside a DIFFERENT profile's directory (cross-profile leak).
         # Allow paths inside the CURRENT profile's own directory (e.g. test workspaces
-        # created under ~/.hermes/profiles/webui/webui-mvp-test/).
+        # created under ~/.iris/profiles/webui/webui-mvp-test/).
         try:
-            p.relative_to(hermes_profiles)
-            # p is under ~/.hermes/profiles/ — only skip if it's under a DIFFERENT profile
+            p.relative_to(iris_profiles)
+            # p is under ~/.iris/profiles/ — only skip if it's under a DIFFERENT profile
             try:
-                from api.profiles import get_active_hermes_home
+                from api.profiles import get_active_iris_home
                 if profile is not None:
                     # Explicit profile wins: the list belongs to that profile,
                     # so "own" is defined by the profile parameter, never by the
@@ -492,7 +492,7 @@ def _clean_workspace_list(workspaces: list, profile: str | Path | None = None) -
                     # not silently drop A's own workspaces).
                     own_profile_dir = _resolve_profile_home_param(profile).resolve()
                 else:
-                    own_profile_dir = get_active_hermes_home().resolve()
+                    own_profile_dir = get_active_iris_home().resolve()
                 p.relative_to(own_profile_dir)
                 # p is under our own profile dir — keep it
             except (ValueError, Exception):
@@ -528,7 +528,7 @@ def _workspace_access_error(candidate: Path, *, missing_label: str = "Path does 
         return (
             f"Cannot access path: {candidate}. The server process could not inspect "
             f"this directory ({exc}). On macOS, grant Full Disk Access or Files and "
-            f"Folders permission to the Hermes/WebUI app or server process, then try again."
+            f"Folders permission to the Iris/WebUI app or server process, then try again."
         )
     except OSError as exc:
         return f"Cannot access path: {candidate}. The server process could not inspect this path ({exc})."
@@ -1138,7 +1138,7 @@ def resolve_trusted_workspace(path: str | Path | None = None, profile: str | Pat
         pass
 
     # (C) Trusted if it is equal to or under the boot-time DEFAULT_WORKSPACE.
-    #     In Docker deployments HERMES_WEBUI_DEFAULT_WORKSPACE is often set to a
+    #     In Docker deployments IRIS_WEBUI_DEFAULT_WORKSPACE is often set to a
     #     volume mount outside the user's home (e.g. /data/workspace).  That path
     #     was already validated at server startup, so any sub-path of it is safe
     #     without requiring the user to add it to the workspace list manually.

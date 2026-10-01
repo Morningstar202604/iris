@@ -35,7 +35,7 @@ class _Handler:
 def test_onboarding_local_gate_ignores_forwarded_ip_unless_trusted(monkeypatch):
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     handler = _Handler(
         client_ip="8.8.8.8",
         headers={"X-Forwarded-For": "127.0.0.1", "X-Real-IP": "10.0.0.2"},
@@ -45,9 +45,9 @@ def test_onboarding_local_gate_ignores_forwarded_ip_unless_trusted(monkeypatch):
 
 
 def test_onboarding_local_gate_uses_forwarded_ip_when_explicitly_trusted(monkeypatch):
-    """Even with HERMES_WEBUI_TRUST_FORWARDED_FOR=1, a forwarded header is only
+    """Even with IRIS_WEBUI_TRUST_FORWARDED_FOR=1, a forwarded header is only
     honored when the RAW socket peer is a trusted proxy (loopback or in
-    HERMES_WEBUI_TRUSTED_PROXY_CIDRS). A PUBLIC direct client (raw peer 8.8.8.8)
+    IRIS_WEBUI_TRUSTED_PROXY_CIDRS). A PUBLIC direct client (raw peer 8.8.8.8)
     that merely SETS X-Forwarded-For can NOT promote itself to local — otherwise
     a passwordless WebUI with the opt-in enabled would admit any remote attacker
     to the embedded terminal (#5764). The forwarded IP is consulted only after
@@ -55,8 +55,8 @@ def test_onboarding_local_gate_uses_forwarded_ip_when_explicitly_trusted(monkeyp
     """
     from api import routes
 
-    monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", "1")
-    monkeypatch.delenv("HERMES_WEBUI_TRUSTED_PROXY_CIDRS", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", "1")
+    monkeypatch.delenv("IRIS_WEBUI_TRUSTED_PROXY_CIDRS", raising=False)
     handler = _Handler(
         client_ip="8.8.8.8",
         headers={"X-Forwarded-For": "10.0.0.2", "X-Real-IP": "203.0.113.11"},
@@ -68,14 +68,14 @@ def test_onboarding_local_gate_uses_forwarded_ip_when_explicitly_trusted(monkeyp
 
     # With the peer's own network in the trusted-proxy allowlist, the forwarded
     # client IP (private 10.0.0.2) is now honored → local.
-    monkeypatch.setenv("HERMES_WEBUI_TRUSTED_PROXY_CIDRS", "8.8.8.0/24")
+    monkeypatch.setenv("IRIS_WEBUI_TRUSTED_PROXY_CIDRS", "8.8.8.0/24")
     assert routes._onboarding_request_is_local(handler) is True
 
 
 def test_onboarding_trusted_forwarded_for_uses_proxy_appended_rightmost_ip(monkeypatch):
     from api import routes
 
-    monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", "1")
+    monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", "1")
     handler = _Handler(
         client_ip="10.0.0.10",
         headers={"X-Forwarded-For": "127.0.0.1, 8.8.8.8"},
@@ -148,16 +148,16 @@ def test_post_update_check_performs_forced_fetch(monkeypatch):
 
 def test_onboarding_untrusted_forwarded_header_denies_lan_proxy_socket(monkeypatch):
     """Reverse-proxy regression (release-gate CORE fix): when forwarded headers
-    are present but HERMES_WEBUI_TRUST_FORWARDED_FOR is NOT set, the spoofable
+    are present but IRIS_WEBUI_TRUST_FORWARDED_FOR is NOT set, the spoofable
     header is ignored and locality is judged by the raw socket — but a PRIVATE/LAN
     raw socket (a separate proxy box that could be forwarding an arbitrary public
     client) is NOT treated as local. A loopback raw socket is still genuine
     same-host and remains allowed (a remote attacker cannot forge a 127.0.0.1 TCP
-    source). Operators with a LAN proxy must set HERMES_WEBUI_TRUST_FORWARDED_FOR=1.
+    source). Operators with a LAN proxy must set IRIS_WEBUI_TRUST_FORWARDED_FOR=1.
     """
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
 
     # LAN proxy box (private raw socket) forwarding a public client → DENY
     handler = _Handler(client_ip="10.0.0.5", headers={"X-Real-IP": "203.0.113.7"})
@@ -178,7 +178,7 @@ def test_onboarding_spoofed_forwarded_header_from_public_socket_denied(monkeypat
     """
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     handler = _Handler(client_ip="8.8.8.8", headers={"X-Forwarded-For": "127.0.0.1"})
     assert routes._onboarding_request_is_local(handler) is False
 
@@ -187,7 +187,7 @@ def test_onboarding_direct_loopback_without_forwarded_headers_is_local(monkeypat
     """A genuine direct local client (no proxy headers) is still allowed."""
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     handler = _Handler(client_ip="127.0.0.1", headers={})
     assert routes._onboarding_request_is_local(handler) is True
 
@@ -204,8 +204,8 @@ def test_onboarding_complete_is_gated_against_public_clients(monkeypatch):
     from api import routes
 
     monkeypatch.setattr(routes, "_check_csrf", lambda handler: True)
-    monkeypatch.setenv("HERMES_WEBUI_ONBOARDING_OPEN", "")
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_ONBOARDING_OPEN", "")
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     monkeypatch.setattr("api.auth.is_auth_enabled", lambda: False)
 
     called = {"n": 0}
@@ -254,9 +254,9 @@ def test_first_password_setup_is_gated_against_public_clients(monkeypatch):
     monkeypatch.setattr("api.auth.is_auth_enabled", lambda: False)
     monkeypatch.setattr("api.auth.parse_cookie", lambda handler: "")
     monkeypatch.setattr("api.auth.verify_session", lambda cookie: False)
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_ONBOARDING_OPEN", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_ONBOARDING_OPEN", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
 
     saved = {"called": False}
     monkeypatch.setattr(
@@ -287,9 +287,9 @@ def test_first_password_setup_allows_genuine_loopback_client(monkeypatch):
     monkeypatch.setattr("api.auth.parse_cookie", lambda handler: "")
     monkeypatch.setattr("api.auth.verify_session", lambda cookie: False)
     monkeypatch.setattr("api.auth.create_session", lambda: "new-session")
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_ONBOARDING_OPEN", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_ONBOARDING_OPEN", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
 
     def fake_save_settings(body):
         auth_state["enabled"] = True
@@ -318,8 +318,8 @@ def test_first_password_setup_uses_initial_auth_state_for_gate(monkeypatch):
     monkeypatch.setattr("api.auth.is_auth_enabled", lambda: next(auth_checks))
     monkeypatch.setattr("api.auth.parse_cookie", lambda handler: "")
     monkeypatch.setattr("api.auth.verify_session", lambda cookie: False)
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_ONBOARDING_OPEN", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_ONBOARDING_OPEN", raising=False)
 
     saved = {"called": False}
     monkeypatch.setattr(
@@ -350,8 +350,8 @@ def test_first_password_setup_allows_public_client_with_open_onboarding(monkeypa
     monkeypatch.setattr("api.auth.parse_cookie", lambda handler: "")
     monkeypatch.setattr("api.auth.verify_session", lambda cookie: False)
     monkeypatch.setattr("api.auth.create_session", lambda: "new-session")
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
-    monkeypatch.setenv("HERMES_WEBUI_ONBOARDING_OPEN", "1")
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_ONBOARDING_OPEN", "1")
 
     def fake_save_settings(body):
         auth_state["enabled"] = True

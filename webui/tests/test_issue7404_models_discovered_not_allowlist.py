@@ -3,7 +3,7 @@
 When a provider sets ``models_discovered: true`` in its config alongside a
 ``models:`` dict of per-model metadata, WebUI must not treat the dict as a
 strict allowlist.  It should fall through to the live ``/v1/models`` probe,
-matching the upstream Hermes Agent behaviour.
+matching the upstream Iris Agent behaviour.
 """
 
 

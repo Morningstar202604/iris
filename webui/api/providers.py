@@ -1,4 +1,4 @@
-"""Hermes Web UI -- provider management endpoints.
+"""Iris Web UI -- provider management endpoints.
 
 Provides CRUD operations for configuring provider API keys post-onboarding.
 Closes #586 (allow provider key update) and part of #604 (model picker
@@ -107,7 +107,7 @@ _MAX_CONCURRENT_ACCOUNT_USAGE_PROBES = 2
 # to call the provider API indefinitely.  Non-Linux platforms (macOS, Windows)
 # rely on OS-level process-tree cleanup instead; this variable is then unused.
 # prctl(PR_SET_DEATHSIG, SIGTERM) is available via ctypes without any C
-# extension — the same technique used throughout the Hermes codebase.
+# extension — the same technique used throughout the Iris codebase.
 _ACCOUNT_USAGE_PARENT_DEATHSIG_BOOTSTRAP = (
     # fmt: off
     # Lines are written as string literals so this block passes
@@ -303,7 +303,7 @@ def _codex_usage_headers(access_token):
     headers = {
         "Authorization": "Bearer " + access_token,
         "Accept": "application/json",
-        "User-Agent": "codex_cli_rs/0.0.0 (Hermes WebUI)",
+        "User-Agent": "codex_cli_rs/0.0.0 (Iris WebUI)",
         "originator": "codex_cli_rs",
     }
     auth_claim = _jwt_claims(access_token).get("https://api.openai.com/auth")
@@ -724,7 +724,7 @@ _PROVIDER_ENV_VAR: dict[str, str] = {
     "opencode-zen": "OPENCODE_ZEN_API_KEY",
     "opencode-go": "OPENCODE_GO_API_KEY",
     # NOTE: bare "ollama" (local) deliberately omitted — local Ollama is keyless
-    # by default and the runtime in hermes_cli/runtime_provider.py only consumes
+    # by default and the runtime in iris_cli/runtime_provider.py only consumes
     # OLLAMA_API_KEY when the base URL hostname is ollama.com (Ollama Cloud).
     # If we mapped both providers to the same env var, configuring Ollama Cloud
     # would falsely flip the local Ollama card to "API key configured" (#1410).
@@ -733,7 +733,7 @@ _PROVIDER_ENV_VAR: dict[str, str] = {
     # by _provider_has_key().
     "ollama-cloud": "OLLAMA_API_KEY",
     # Bare "lmstudio" maps to LM_API_KEY — the canonical env var the agent CLI
-    # runtime reads (hermes_cli/auth.py:182, api_key_env_vars=("LM_API_KEY",)).
+    # runtime reads (iris_cli/auth.py:182, api_key_env_vars=("LM_API_KEY",)).
     # Pre-#1499/#1500 the WebUI used LMSTUDIO_API_KEY here, which made Settings
     # report keys correctly but the agent runtime ignored them — masked in
     # practice by the LMSTUDIO_NOAUTH_PLACEHOLDER for keyless local installs.
@@ -778,7 +778,7 @@ def _provider_credential_env_vars() -> tuple[str, ...]:
 _PROVIDER_CREDENTIAL_ENV_VARS = _provider_credential_env_vars()
 
 # Providers that use OAuth or token flows — their credentials are managed
-# through the Hermes CLI, not via API keys.  The WebUI cannot set these.
+# through the Iris CLI, not via API keys.  The WebUI cannot set these.
 _OAUTH_PROVIDERS = frozenset({
     "copilot",
     "copilot-acp",
@@ -989,13 +989,13 @@ def _local_pool_snapshot(provider):
     )
 
 
-def _get_hermes_home() -> Path:
-    """Return the active Hermes home directory."""
+def _get_iris_home() -> Path:
+    """Return the active Iris home directory."""
     try:
-        from api.profiles import get_active_hermes_home
-        return get_active_hermes_home()
+        from api.profiles import get_active_iris_home
+        return get_active_iris_home()
     except ImportError:
-        return Path.home() / ".hermes"
+        return Path.home() / ".iris"
 
 
 def _providers_file_mtime_ns(path: Path) -> int:
@@ -1019,12 +1019,12 @@ def _providers_config_fingerprint(cfg: Any) -> str:
 def _providers_cache_key(cfg: Any) -> tuple[Any, ...]:
     """Return a profile-scoped cache key for ``get_providers()`` (#6010).
 
-    The endpoint reads provider state from the active Hermes home plus the
+    The endpoint reads provider state from the active Iris home plus the
     current config.  Include the home path and the two files users commonly
     mutate from Settings so a short TTL never crosses profile boundaries or
     masks immediate credential/config changes.
     """
-    home = _get_hermes_home()
+    home = _get_iris_home()
     try:
         home_key = str(home.resolve())
     except OSError:
@@ -1137,7 +1137,7 @@ def _provider_has_shadowed_codex_oauth_value(provider_id: str) -> bool:
     values: list[object] = []
     env_var = _provider_env_var_for(provider_id)
     if env_var:
-        env_path = _get_hermes_home() / ".env"
+        env_path = _get_iris_home() / ".env"
         env_values = _load_env_file(env_path)
         values.append(env_values.get(env_var))
         values.append(_thread_local_env_value(env_var))
@@ -1239,7 +1239,7 @@ def _write_env_file(env_path: Path, updates: dict[str, str | None]) -> None:
             content += "\n"
         # Atomic write via tempfile + os.replace so cross-process readers
         # (Telegram bot, CLI) never see a half-truncated file.  The shared
-        # ``~/.hermes/.env`` is also written by ``hermes_cli.config.save_env_value``
+        # ``~/.iris/.env`` is also written by ``iris_cli.config.save_env_value``
         # using the same atomic pattern; matching it here closes the
         # cross-process leg of #1164 (within-process is covered by _ENV_LOCK).
         _mode = _stat.S_IRUSR | _stat.S_IWUSR  # 0o600
@@ -1270,7 +1270,7 @@ def _provider_has_key(provider_id: str) -> bool:
     """Check whether a provider has a configured API key.
 
     Checks (in order):
-    1. ``~/.hermes/.env`` for the known env var
+    1. ``~/.iris/.env`` for the known env var
     2. ``os.environ`` for the known env var
     3. ``config.yaml → model.api_key`` (only if provider is the active one)
     4. ``config.yaml → providers.<id>.api_key``
@@ -1278,7 +1278,7 @@ def _provider_has_key(provider_id: str) -> bool:
     """
     env_var = _provider_env_var_for(provider_id)
     if env_var:
-        env_path = _get_hermes_home() / ".env"
+        env_path = _get_iris_home() / ".env"
         env_values = _load_env_file(env_path)
         env_file_value = env_values.get(env_var)
         if _provider_value_counts_as_api_key(provider_id, env_file_value):
@@ -1295,7 +1295,7 @@ def _provider_has_key(provider_id: str) -> bool:
             if _provider_value_counts_as_api_key(provider_id, _thread_local_env_value(alias)):
                 return True
     # Check credential pool — covers custom providers registered via
-    # `hermes auth add` which store keys in auth.json (not config.yaml).
+    # `iris auth add` which store keys in auth.json (not config.yaml).
     # Must be outside the `if env_var:` block above: custom providers
     # (custom:bothub, etc.) have no env var, so that block is skipped.
     # Uses the cached _has_explicit_pool_credentials helper which also
@@ -1341,7 +1341,7 @@ def _get_provider_api_key(provider_id: str) -> str | None:
     provider_id = (provider_id or "").strip().lower()
     env_var = _provider_env_var_for(provider_id)
     if env_var:
-        env_path = _get_hermes_home() / ".env"
+        env_path = _get_iris_home() / ".env"
         env_values = _load_env_file(env_path)
         env_file_value = env_values.get(env_var)
         if _provider_value_counts_as_api_key(provider_id, env_file_value):
@@ -1618,13 +1618,13 @@ def _account_usage_subprocess_env(home: Path, provider: str, api_key: str | None
         # fails. (#3961 — don't leave a partial local AWS set here.)
         _strip = set(_PROVIDER_CREDENTIAL_ENV_VARS)
         try:
-            from api.profiles import _profile_secret_env_names, get_active_hermes_home
-            _strip.update(_profile_secret_env_names(get_active_hermes_home()))
+            from api.profiles import _profile_secret_env_names, get_active_iris_home
+            _strip.update(_profile_secret_env_names(get_active_iris_home()))
         except Exception:
             _strip.update({"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"})
         for env_name in _strip:
             env.pop(env_name, None)
-    env["HERMES_HOME"] = str(Path(home))
+    env["IRIS_HOME"] = str(Path(home))
 
     # Profile .env values should affect only the child quota probe, not the
     # WebUI process-global environment. This is especially important for
@@ -1957,7 +1957,7 @@ def _close_account_usage_probe_worker_list(workers: list[_AccountUsageProbeWorke
 def _close_account_usage_probe_workers_async(*, provider_id: str | None = None) -> None:
     with _account_usage_worker_pool_lock:
         if provider_id:
-            active_home = str(_get_hermes_home())
+            active_home = str(_get_iris_home())
             workers_to_close = []
             for key, wlist in list(_account_usage_worker_pool.items()):
                 if key == active_home:
@@ -2064,7 +2064,7 @@ def _fetch_account_usage_with_profile_context(provider: str, *, refresh: bool = 
 
     Warm per-profile worker processes handle the actual probe requests.
     """
-    home = _get_hermes_home()
+    home = _get_iris_home()
     api_key = _get_provider_api_key(provider)
     cache_key = _account_usage_cache_key(provider, home, api_key)
     if not refresh:
@@ -2127,7 +2127,7 @@ def get_provider_quota(provider_id: str | None = None, *, refresh: bool = False)
     """Return sanitized quota/rate-limit status for the active provider.
 
     OpenRouter keeps its documented key endpoint. OAuth-backed account usage
-    providers reuse Hermes Agent's /usage account-limits abstraction so WebUI
+    providers reuse Iris Agent's /usage account-limits abstraction so WebUI
     stays aligned with CLI/Gateway provider semantics.
     """
     provider = (provider_id or _active_provider_id() or "").strip().lower()
@@ -2289,10 +2289,10 @@ def _get_provider_cost_spent() -> float:
 def _cost_snapshots_dir() -> Path:
     """Return the directory for cost-snapshot JSON files.
 
-    Uses the Hermes home directory (profile-aware) so snapshots are
+    Uses the Iris home directory (profile-aware) so snapshots are
     isolated per profile, matching the existing STATE_DIR convention.
     """
-    return _get_hermes_home() / _COST_SNAPSHOTS_DIR_NAME
+    return _get_iris_home() / _COST_SNAPSHOTS_DIR_NAME
 
 
 @contextmanager
@@ -2418,7 +2418,7 @@ def _append_cost_snapshot(provider: str, usage: int | float | None, limit: int |
     # locks two concurrent requests can both read the same old snapshot list and
     # race to replace it with stale data.  The threading lock covers current
     # single-process deployments; the file lock covers future multi-worker
-    # deployments that share one Hermes home/state directory.
+    # deployments that share one Iris home/state directory.
     with _COST_SNAPSHOT_LOCK:
         with _cost_snapshot_file_lock(provider):
             snapshots = _read_cost_snapshots(provider)
@@ -2605,7 +2605,7 @@ def get_providers() -> dict[str, Any]:
         plugin_auth_status: dict[str, Any] | None = None
         if not has_key and is_plugin_model_provider(pid):
             try:
-                from hermes_cli.auth import get_auth_status as _gas_plugin
+                from iris_cli.auth import get_auth_status as _gas_plugin
                 _plugin_status = _gas_plugin(pid)
                 if isinstance(_plugin_status, dict) and (
                     _plugin_status.get("logged_in") or _plugin_status.get("configured")
@@ -2620,13 +2620,13 @@ def get_providers() -> dict[str, Any]:
         auth_error = None
         if is_oauth:
             key_source = "oauth"
-            # Check if actually authenticated via hermes_cli.
+            # Check if actually authenticated via iris_cli.
             # IMPORTANT: do not unconditionally overwrite has_key from _provider_has_key().
             # A token in config.yaml is a valid credential even when get_auth_status()
-            # returns logged_in=False (e.g. token not in the hermes credential pool,
+            # returns logged_in=False (e.g. token not in the iris credential pool,
             # or refresh token consumed by native Codex CLI / VS Code extension).
             try:
-                from hermes_cli.auth import get_auth_status as _gas
+                from iris_cli.auth import get_auth_status as _gas
                 status = _gas(pid)
                 if isinstance(status, dict) and status.get("logged_in"):
                     has_key = True
@@ -2641,13 +2641,13 @@ def get_providers() -> dict[str, Any]:
                     auth_error = status.get("error") if isinstance(status, dict) else None
             except Exception:
                 # Import failed or auth check errored — don't override a known-good
-                # key just because the hermes_cli auth module is unavailable.
-                logger.debug("hermes_cli auth check failed for %s", pid, exc_info=True)
+                # key just because the iris_cli auth module is unavailable.
+                logger.debug("iris_cli auth check failed for %s", pid, exc_info=True)
                 # keep has_key from _provider_has_key()
         elif has_key:
             env_var = _provider_env_var_for(pid)
             if env_var:
-                env_path = _get_hermes_home() / ".env"
+                env_path = _get_iris_home() / ".env"
                 env_values = _load_env_file(env_path)
                 if _provider_value_counts_as_api_key(pid, env_values.get(env_var)):
                     key_source = "env_file"
@@ -2697,7 +2697,7 @@ def get_providers() -> dict[str, Any]:
             import re as _re
             if _re.match(r'^[a-z][a-z0-9_-]{0,63}$', pid):
                 try:
-                    from hermes_cli.auth import get_auth_status as _gas
+                    from iris_cli.auth import get_auth_status as _gas
                     status = _gas(pid)
                     if isinstance(status, dict) and status.get("logged_in"):
                         has_key = True
@@ -2714,7 +2714,7 @@ def get_providers() -> dict[str, Any]:
         models = list(_PROVIDER_MODELS.get(pid, []))
         models_total = len(models)
         # OpenAI Codex account catalogs drift independently from WebUI releases.
-        # The model picker already prefers hermes_cli + Codex local cache for
+        # The model picker already prefers iris_cli + Codex local cache for
         # this provider (the agent's `provider_model_ids("openai-codex")` filters
         # IDs with `supported_in_api: false`, but Codex CLI still surfaces some
         # of those — notably `gpt-5.3-codex-spark` from #1680 — in its picker).
@@ -2743,7 +2743,7 @@ def get_providers() -> dict[str, Any]:
                 models_total = len(models)
         # Nous Portal: prefer the live catalog so the providers card matches
         # the dropdown picker (#1538). Same fallback shape as the static-only
-        # case below — when hermes_cli is unavailable or its lookup raises,
+        # case below — when iris_cli is unavailable or its lookup raises,
         # we keep the four-entry curated list.
         #
         # On large-tier accounts (#1567 reporter Deor saw 396 entries), we
@@ -2755,7 +2755,7 @@ def get_providers() -> dict[str, Any]:
         # "show all" disclosure if added).
         if pid == "nous":
             try:
-                from hermes_cli.models import provider_model_ids as _provider_model_ids
+                from iris_cli.models import provider_model_ids as _provider_model_ids
 
                 live_ids = _provider_model_ids("nous") or []
                 if live_ids:
@@ -2769,19 +2769,19 @@ def get_providers() -> dict[str, Any]:
                     ]
                     models_total = len(live_ids)
             except Exception:
-                logger.debug("Failed to load Nous Portal models from hermes_cli")
+                logger.debug("Failed to load Nous Portal models from iris_cli")
         # LM Studio: fetch live locally-loaded models so the providers card
         # matches what's actually available on the user's server (#WebUI).
         if pid == "lmstudio":
             try:
-                from hermes_cli.models import provider_model_ids as _pmi
+                from iris_cli.models import provider_model_ids as _pmi
 
                 lm_live = _pmi("lmstudio") or []
                 if lm_live:
                     models = [{"id": mid, "label": mid} for mid in lm_live]
                     models_total = len(models)
             except Exception:
-                logger.debug("Failed to load LM Studio models from hermes_cli")
+                logger.debug("Failed to load LM Studio models from iris_cli")
         if is_plugin_model_provider(pid):
             try:
                 live_models = _models_from_live_provider_ids(
@@ -2878,7 +2878,7 @@ def get_providers() -> dict[str, Any]:
             if cp_api_key.startswith("${") and cp_api_key.endswith("}"):
                 env_var = cp_api_key[2:-1]
                 cp_has_key = bool(_thread_local_env_value(env_var).strip())
-            # Fallback: check credential pool (key added via hermes auth add)
+            # Fallback: check credential pool (key added via iris auth add)
             if not cp_has_key:
                 try:
                     from api.config import _has_explicit_pool_credentials
@@ -2925,7 +2925,7 @@ def get_providers() -> dict[str, Any]:
 def set_provider_key(provider_id: str, api_key: str | None) -> dict[str, Any]:
     """Set or update the API key for a provider.
 
-    Writes the key to ``~/.hermes/.env`` using the standard env var name.
+    Writes the key to ``~/.iris/.env`` using the standard env var name.
     If ``api_key`` is None or empty, the key is removed.
 
     Returns a status dict with the operation result.
@@ -2939,7 +2939,7 @@ def set_provider_key(provider_id: str, api_key: str | None) -> dict[str, Any]:
         return {
             "ok": False,
             "error": f"'{_PROVIDER_DISPLAY.get(provider_id, provider_id)}' uses OAuth authentication. "
-                     f"Use `hermes model` in the terminal to configure it.",
+                     f"Use `iris model` in the terminal to configure it.",
         }
 
     env_var = _provider_env_var_for(provider_id)
@@ -2958,7 +2958,7 @@ def set_provider_key(provider_id: str, api_key: str | None) -> dict[str, Any]:
         if len(api_key) < 8:
             return {"ok": False, "error": "API key appears too short."}
 
-    env_path = _get_hermes_home() / ".env"
+    env_path = _get_iris_home() / ".env"
     try:
         _write_env_file(env_path, {env_var: api_key})
     except ValueError as exc:
@@ -2985,7 +2985,7 @@ def set_provider_key(provider_id: str, api_key: str | None) -> dict[str, Any]:
 def remove_provider_key(provider_id: str) -> dict[str, Any]:
     """Remove the API key for a provider.
 
-    Removes the key from ``~/.hermes/.env`` (via ``set_provider_key``)
+    Removes the key from ``~/.iris/.env`` (via ``set_provider_key``)
     and also cleans up ``config.yaml`` if the key is stored there
     (``providers.<id>.api_key`` or top-level ``model.api_key`` when this
     provider is the active one).

@@ -17,7 +17,7 @@ function _sentSelectionContextBlockHtml(label, quoteText){
 }
 function _stashUserSelectedContextBlocks(text, stashContext){
   const lines=String(text||'').split('\n');
-  const marker='<!-- hermes-selected-context -->';
+  const marker='<!-- iris-selected-context -->';
   const out=[];
   for(let i=0;i<lines.length;i++){
     const labelMatch=lines[i].match(/^\*\*([^\n]{1,200}):\*\*\s*$/);
@@ -66,7 +66,7 @@ process.stdout.write(_renderUserFencedBlocks(input));
 def test_sent_selected_context_renders_as_semantic_card_and_escapes_content():
     html = _run_user_renderer(
         "Here is my reply.\n\n**<img src=x onerror=alert(1)>:**\n"
-        "<!-- hermes-selected-context -->\n> <script>alert(1)</script>\n> second line"
+        "<!-- iris-selected-context -->\n> <script>alert(1)</script>\n> second line"
     )
 
     assert '<figure class="sent-selection-context" data-selected-context="1">' in html
@@ -78,7 +78,7 @@ def test_sent_selected_context_renders_as_semantic_card_and_escapes_content():
 
 
 def test_sent_selected_context_parser_accepts_user_renamed_edge_labels():
-    html = _run_user_renderer("***Evidence: alpha:**\n<!-- hermes-selected-context -->\n> quoted")
+    html = _run_user_renderer("***Evidence: alpha:**\n<!-- iris-selected-context -->\n> quoted")
 
     assert 'class="sent-selection-context"' in html
     assert '<figcaption class="sent-selection-context-label">*Evidence: alpha</figcaption>' in html

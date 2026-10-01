@@ -1,7 +1,7 @@
 """Relay-side accumulator for the chat_completions streaming wire.
 
 Relay invokes its collector for every post-intercept chunk and then its finalizer as soon
-as the provider stream ends — concurrently with Hermes' consumer thread, which may not have
+as the provider stream ends — concurrently with Iris' consumer thread, which may not have
 read the last chunk yet. The finalizer therefore builds Relay's recorded response from
 collector-observed state only, never from the consumer loop's closures. Sibling of
 ``relay_llm.AnthropicStreamAccumulator``; Bedrock and Codex follow the same contract.
@@ -47,7 +47,7 @@ class RelayChatAccumulator:
         if chunk.get("usage"):
             self._usage = chunk["usage"]
         choices = chunk.get("choices") or []
-        choice = choices[0] if choices else None  # Hermes never requests n>1
+        choice = choices[0] if choices else None  # Iris never requests n>1
         if not isinstance(choice, dict):
             return
         self._finish_reason = choice.get("finish_reason") or self._finish_reason

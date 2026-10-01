@@ -98,14 +98,14 @@ const preamble = () => `  var w = window;
   // this payload either way, so the guard saved nothing and pinned a long-lived
   // tab to whichever build first touched it. The holder is the exception — it
   // carries the aimed element from the locate trip to the act trip.
-  w.__hermesActHolder = w.__hermesActHolder || {};
-  w.__hermesAct = ${actEngineSource()};
-  w.__hermesWatch_fn = (${watchInPage.toString()});
-  w.__hermesWatchTag = ${WATCH_TAG};
-  var holder = w.__hermesActHolder;
-  var act = function (a) { return w.__hermesAct(document, holder, a); };
+  w.__irisActHolder = w.__irisActHolder || {};
+  w.__irisAct = ${actEngineSource()};
+  w.__irisWatch_fn = (${watchInPage.toString()});
+  w.__irisWatchTag = ${WATCH_TAG};
+  var holder = w.__irisActHolder;
+  var act = function (a) { return w.__irisAct(document, holder, a); };
   var watch = function (stage, label) {
-    try { w.__hermesWatch_fn(document, holder, stage, label); } catch (err) {}
+    try { w.__irisWatch_fn(document, holder, stage, label); } catch (err) {}
   };
   var wait = function (ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); };
   // Sit out a smooth scroll so the pointer is aimed at a target that has stopped
@@ -146,9 +146,9 @@ ${preamble()}
   // Arm a witness for the real input that is about to arrive. Without it a
   // click that never reached the page is indistinguishable from one the page
   // ignored, and the agent would report success either way.
-  w.__hermesHit = null;
+  w.__irisHit = null;
   document.addEventListener('pointerdown', function (e) {
-    w.__hermesHit = { tag: e.target ? e.target.tagName : '?', trusted: e.isTrusted === true };
+    w.__irisHit = { tag: e.target ? e.target.tagName : '?', trusted: e.isTrusted === true };
   }, { capture: true, once: true });
   // Measure again once the scroll has stopped: real input is aimed at a fixed
   // viewport coordinate, so it has to be where the target ENDS UP.
@@ -243,7 +243,7 @@ ${preamble()}
     try {
       var out = act({ kind: 'elements' });
       watch('sweep');
-      out.hit = w.__hermesHit || null;
+      out.hit = w.__irisHit || null;
       return JSON.stringify(out);
     } catch (err) {
       return JSON.stringify({ note: 'The page changed before it could be re-read: ' + err, success: true });
@@ -421,7 +421,7 @@ async function driveAction(
 /** Flag a click the overlay intercepted, which would otherwise look like a page
  *  that simply ignored it. */
 function hitNote(hit?: { tag: string; trusted: boolean } | null): string | undefined {
-  return hit && hit.tag === 'HERMES-WATCH' ? 'The action overlay intercepted the click instead of the page.' : undefined
+  return hit && hit.tag === 'IRIS-WATCH' ? 'The action overlay intercepted the click instead of the page.' : undefined
 }
 
 /** How far a screenful is, whether there is anywhere to go, and a spot to wheel

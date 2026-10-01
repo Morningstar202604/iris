@@ -1,5 +1,5 @@
-# Hermes skin template — themes the CLI, TUI, and desktop GUI from one file.
-# Copy to <hermes-home>/skins/<name>.yaml, edit the palette, then set
+# Iris skin template — themes the CLI, TUI, and desktop GUI from one file.
+# Copy to <iris-home>/skins/<name>.yaml, edit the palette, then set
 # `display.skin: <name>` in config.yaml. Missing keys inherit the default skin.
 
 name: synthwave
@@ -42,7 +42,7 @@ colors:
 
 # Optional flavor — safe to delete.
 branding:
-  agent_name: Hermes Agent
+  agent_name: Iris Agent
   prompt_symbol: "❯"
   help_header: "(^_^)? Commands"
 

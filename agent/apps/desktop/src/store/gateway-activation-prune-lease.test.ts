@@ -17,8 +17,8 @@ const secondaryGateways: Array<{
 
 let connectGate: Promise<void> | null = null
 
-vi.mock('@/hermes', () => ({
-  HermesGateway: class {
+vi.mock('@/iris', () => ({
+  IrisGateway: class {
     connectionState = 'closed'
     connect = vi.fn(async () => {
       if (this.connectionState === 'connecting') {
@@ -58,7 +58,7 @@ const {
 } = await import('./gateway')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
     getConnection: vi.fn(async (profile: null | string) =>
       profile ? { port: 5151, profile, token: 'secondary-token' } : { port: 4242, token: 'primary-token' }
     ),
@@ -92,7 +92,7 @@ afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
 })
 
 // Flush microtasks until the dial registers its secondary (or bail). The dial

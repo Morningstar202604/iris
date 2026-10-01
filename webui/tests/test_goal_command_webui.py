@@ -132,18 +132,18 @@ def test_has_active_goal_reports_only_active_state(monkeypatch):
 def test_profile_goal_evaluation_supports_native_judge_contract(monkeypatch, tmp_path):
     """Profile goals accept the current five-field native judge result."""
     from api import goals as webui_goals
-    native_goals = pytest.importorskip("hermes_cli.goals", reason="hermes-agent not installed")
+    native_goals = pytest.importorskip("iris_cli.goals", reason="iris-agent not installed")
 
     judge = lambda *args, **kwargs: ("continue", "work remains", False, None, False)
     monkeypatch.setattr(webui_goals, "judge_goal", judge)
     monkeypatch.setattr(native_goals, "judge_goal", judge)
     monkeypatch.syspath_prepend(str(Path(native_goals.__file__).resolve().parents[1]))
-    from hermes_constants import get_hermes_home
+    from iris_constants import get_iris_home
 
-    original_home = get_hermes_home()
+    original_home = get_iris_home()
     webui_goals._DB_CACHE.clear()
     native_goals._DB_CACHE.clear()
-    __import__("hermes_state")
+    __import__("iris_state")
 
     home = tmp_path / "profile"
     webui_goals.goal_command_payload("sid-native-contract", "finish it", profile_home=home)
@@ -165,13 +165,13 @@ def test_profile_goal_evaluation_supports_native_judge_contract(monkeypatch, tmp
     restored = webui_goals.goal_state_snapshot("sid-native-contract", profile_home=home)
     assert restored.goal == "finish it"
     assert restored.turns_used == 1
-    assert get_hermes_home() == original_home
+    assert get_iris_home() == original_home
 
 
 def test_profile_goal_evaluation_preserves_native_wait_semantics(monkeypatch, tmp_path):
     """Profile goals park when the native judge returns a wait directive."""
     from api import goals as webui_goals
-    native_goals = pytest.importorskip("hermes_cli.goals", reason="hermes-agent not installed")
+    native_goals = pytest.importorskip("iris_cli.goals", reason="iris-agent not installed")
 
     judge = lambda *args, **kwargs: (
         "wait",
@@ -185,7 +185,7 @@ def test_profile_goal_evaluation_preserves_native_wait_semantics(monkeypatch, tm
     monkeypatch.syspath_prepend(str(Path(native_goals.__file__).resolve().parents[1]))
     webui_goals._DB_CACHE.clear()
     native_goals._DB_CACHE.clear()
-    __import__("hermes_state")
+    __import__("iris_state")
 
     home = tmp_path / "profile"
     webui_goals.goal_command_payload("sid-native-wait", "finish it", profile_home=home)
@@ -205,15 +205,15 @@ def test_profile_goal_evaluation_preserves_native_wait_semantics(monkeypatch, tm
 def test_profile_goal_context_isolated_across_threads(monkeypatch, tmp_path):
     """Concurrent profiles with the same session id cannot cross-write goals."""
     from api import goals as webui_goals
-    native_goals = pytest.importorskip("hermes_cli.goals", reason="hermes-agent not installed")
+    native_goals = pytest.importorskip("iris_cli.goals", reason="iris-agent not installed")
 
     monkeypatch.syspath_prepend(str(Path(native_goals.__file__).resolve().parents[1]))
-    from hermes_constants import get_hermes_home
+    from iris_constants import get_iris_home
 
-    original_home = get_hermes_home()
+    original_home = get_iris_home()
     webui_goals._DB_CACHE.clear()
     native_goals._DB_CACHE.clear()
-    __import__("hermes_state")
+    __import__("iris_state")
     barrier = threading.Barrier(2)
     failures = []
 
@@ -242,24 +242,24 @@ def test_profile_goal_context_isolated_across_threads(monkeypatch, tmp_path):
     assert webui_goals.goal_state_snapshot(
         "shared-session", profile_home=tmp_path / "b"
     ).goal == "goal-b"
-    assert get_hermes_home() == original_home
+    assert get_iris_home() == original_home
 
 
 def test_profile_goal_falls_back_when_session_db_path_is_frozen(monkeypatch, tmp_path):
     """A context API alone cannot make an import-time SessionDB path profile-safe."""
     from api import goals as webui_goals
-    native_goals = pytest.importorskip("hermes_cli.goals", reason="hermes-agent not installed")
+    native_goals = pytest.importorskip("iris_cli.goals", reason="iris-agent not installed")
     # Ensure the agent dir is on sys.path before importing the sibling top-level
-    # `hermes_state` module. importorskip("hermes_cli.goals") can succeed from a
+    # `iris_state` module. importorskip("iris_cli.goals") can succeed from a
     # cached sys.modules entry even after a prior shard test stripped the agent
-    # dir from sys.path, but the bare `import hermes_state` below is uncached and
+    # dir from sys.path, but the bare `import iris_state` below is uncached and
     # would then fail with ModuleNotFoundError under full-suite ordering (every
     # other test in this file already does this prepend).
     monkeypatch.syspath_prepend(str(Path(native_goals.__file__).resolve().parents[1]))
-    import hermes_state
+    import iris_state
 
     frozen_db_path = tmp_path / "frozen-home" / "state.db"
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", frozen_db_path)
+    monkeypatch.setattr(iris_state, "DEFAULT_DB_PATH", frozen_db_path)
     webui_goals._DB_CACHE.clear()
     native_goals._DB_CACHE.clear()
 
@@ -291,13 +291,13 @@ def test_profile_goal_falls_back_when_session_db_path_is_frozen(monkeypatch, tmp
 def test_profile_goal_context_resets_when_native_call_raises(monkeypatch, tmp_path):
     """A failed delegated call cannot leak its profile into the next task."""
     from api import goals as webui_goals
-    native_goals = pytest.importorskip("hermes_cli.goals", reason="hermes-agent not installed")
+    native_goals = pytest.importorskip("iris_cli.goals", reason="iris-agent not installed")
 
     monkeypatch.syspath_prepend(str(Path(native_goals.__file__).resolve().parents[1]))
-    from hermes_constants import (
-        get_hermes_home,
-        reset_hermes_home_override,
-        set_hermes_home_override,
+    from iris_constants import (
+        get_iris_home,
+        reset_iris_home_override,
+        set_iris_home_override,
     )
 
     class RaisingGoalManager:
@@ -310,18 +310,18 @@ def test_profile_goal_context_resets_when_native_call_raises(monkeypatch, tmp_pa
         def explode(self):
             raise RuntimeError("boom")
 
-    original_home = get_hermes_home()
+    original_home = get_iris_home()
     monkeypatch.setattr(webui_goals, "_NativeGoalManager", RaisingGoalManager)
     manager = webui_goals._ProfileGoalManager(
         "sid-context-reset",
         profile_home=tmp_path / "profile",
-        context_api=(set_hermes_home_override, reset_hermes_home_override),
+        context_api=(set_iris_home_override, reset_iris_home_override),
     )
 
     with pytest.raises(RuntimeError, match="boom"):
         manager.explode()
 
-    assert get_hermes_home() == original_home
+    assert get_iris_home() == original_home
 
 
 def test_goal_continuation_decision_emits_status_and_normal_user_prompt(monkeypatch):
@@ -466,7 +466,7 @@ def test_goal_endpoint_preserves_response_shape_under_runtime_adapter_flag(monke
         pending_user_message = None
         active_stream_id = None
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
     monkeypatch.setattr(webui_goals, "GoalManager", FakeGoalManager)
     monkeypatch.setattr(routes, "get_session", lambda sid: FakeSession())
     monkeypatch.setattr(routes, "j", lambda handler, payload, status=200, **kwargs: {"status": status, "payload": payload})
@@ -516,7 +516,7 @@ def test_goal_endpoint_adapter_keeps_full_set_text_and_legacy_payload_status(mon
         pending_user_message = None
         active_stream_id = None
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
     monkeypatch.setattr(webui_goals, "GoalManager", FakeGoalManager)
     monkeypatch.setattr(routes, "get_session", lambda sid: FakeSession())
     monkeypatch.setattr(routes, "resolve_trusted_workspace", lambda workspace, **_kw: tmp_path)
@@ -562,7 +562,7 @@ def test_goal_endpoint_adapter_error_payload_still_controls_http_status(monkeypa
         pending_user_message = None
         active_stream_id = "running-stream"
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
     monkeypatch.setattr(webui_goals, "GoalManager", FakeGoalManager)
     monkeypatch.setattr(routes, "get_session", lambda sid: FakeSession())
     monkeypatch.setitem(routes.STREAMS, "running-stream", {"queue": object()})

@@ -264,9 +264,9 @@ def test_backend_schema_contains_typed_speech_validation():
 def test_boot_mirrors_server_settings_before_tts_apply_and_preserves_failure_fallback():
     mirror_idx = BOOT_JS.index("function _mirrorSpeechSettingsFromServer")
     success_call_idx = BOOT_JS.index("_mirrorSpeechSettingsFromServer(s);", mirror_idx)
-    apply_idx = BOOT_JS.index("_applyTtsEnabled(localStorage.getItem('hermes-tts-enabled')==='true')", success_call_idx)
+    apply_idx = BOOT_JS.index("_applyTtsEnabled(localStorage.getItem('iris-tts-enabled')==='true')", success_call_idx)
     catch_idx = BOOT_JS.index("}catch(e){", success_call_idx)
-    failure_apply_idx = BOOT_JS.index("_applyTtsEnabled(localStorage.getItem('hermes-tts-enabled')==='true')", catch_idx)
+    failure_apply_idx = BOOT_JS.index("_applyTtsEnabled(localStorage.getItem('iris-tts-enabled')==='true')", catch_idx)
 
     assert success_call_idx < apply_idx
     assert catch_idx < failure_apply_idx
@@ -274,16 +274,16 @@ def test_boot_mirrors_server_settings_before_tts_apply_and_preserves_failure_fal
     assert "Array.isArray(s.persisted_speech_keys) ? s.persisted_speech_keys : []" in BOOT_JS
     assert "if(!hasServerValue(settingKey)&&cached!==null)" in BOOT_JS
     for storage_key in [
-        "hermes-tts-enabled",
-        "hermes-tts-auto-read",
-        "hermes-tts-engine",
-        "hermes-tts-voice",
-        "hermes-tts-rate",
-        "hermes-tts-pitch",
-        "hermes-voice-mode-button",
-        "hermes-voice-continuous",
-        "hermes-voice-silence-ms",
-        "hermes-raw-audio-mode",
+        "iris-tts-enabled",
+        "iris-tts-auto-read",
+        "iris-tts-engine",
+        "iris-tts-voice",
+        "iris-tts-rate",
+        "iris-tts-pitch",
+        "iris-voice-mode-button",
+        "iris-voice-continuous",
+        "iris-voice-silence-ms",
+        "iris-raw-audio-mode",
     ]:
         assert storage_key in BOOT_JS
     assert "window._applyRawAudioModePreference" in BOOT_JS
@@ -301,8 +301,8 @@ def test_persisted_speech_key_metadata_controls_boot_and_panel_precedence():
 const assert = require('assert');
 const localStorage = {{
   store: new Map([
-    ['hermes-tts-enabled', 'true'],
-    ['hermes-tts-pitch', '0.8'],
+    ['iris-tts-enabled', 'true'],
+    ['iris-tts-pitch', '0.8'],
   ]),
   getItem(key) {{
     return this.store.has(key) ? this.store.get(key) : null;
@@ -315,22 +315,22 @@ const window = {{}};
 {speech_helpers_block}
 {mirror_fn}
 _mirrorSpeechSettingsFromServer({{tts_enabled: false, tts_pitch: 1, persisted_speech_keys: []}});
-assert.strictEqual(localStorage.getItem('hermes-tts-enabled'), 'true');
-assert.strictEqual(localStorage.getItem('hermes-tts-pitch'), '0.8');
+assert.strictEqual(localStorage.getItem('iris-tts-enabled'), 'true');
+assert.strictEqual(localStorage.getItem('iris-tts-pitch'), '0.8');
 {{
   let settings = {{tts_enabled: false, tts_pitch: 1, persisted_speech_keys: []}};
   {speech_setting_block}
-  assert.strictEqual(_speechSetting('tts_enabled', 'hermes-tts-enabled', false, 'bool'), 'true');
-  assert.strictEqual(_speechSetting('tts_pitch', 'hermes-tts-pitch', 1), '0.8');
+  assert.strictEqual(_speechSetting('tts_enabled', 'iris-tts-enabled', false, 'bool'), 'true');
+  assert.strictEqual(_speechSetting('tts_pitch', 'iris-tts-pitch', 1), '0.8');
 }}
 _mirrorSpeechSettingsFromServer({{tts_enabled: false, tts_pitch: 1, persisted_speech_keys: ['tts_enabled', 'tts_pitch']}});
-assert.strictEqual(localStorage.getItem('hermes-tts-enabled'), 'false');
-assert.strictEqual(localStorage.getItem('hermes-tts-pitch'), '1');
+assert.strictEqual(localStorage.getItem('iris-tts-enabled'), 'false');
+assert.strictEqual(localStorage.getItem('iris-tts-pitch'), '1');
 {{
   let settings = {{tts_enabled: false, tts_pitch: 1, persisted_speech_keys: ['tts_enabled', 'tts_pitch']}};
   {speech_setting_block}
-  assert.strictEqual(_speechSetting('tts_enabled', 'hermes-tts-enabled', false, 'bool'), false);
-  assert.strictEqual(_speechSetting('tts_pitch', 'hermes-tts-pitch', 1), 1);
+  assert.strictEqual(_speechSetting('tts_enabled', 'iris-tts-enabled', false, 'bool'), false);
+  assert.strictEqual(_speechSetting('tts_pitch', 'iris-tts-pitch', 1), 1);
 }}
 """
 
@@ -376,7 +376,7 @@ _captureSpeechPreferenceOwnership({{persisted_speech_keys: ['tts_enabled']}});
 assert.deepStrictEqual(_speechPreferencesPayloadFromUi(), {{tts_enabled: false}});
 
 localStorage.clear();
-localStorage.setItem('hermes-tts-pitch', '0.8');
+localStorage.setItem('iris-tts-pitch', '0.8');
 controls.settingsTtsPitch.value = '0.8';
 _captureSpeechPreferenceOwnership({{persisted_speech_keys: []}});
 assert.deepStrictEqual(_speechPreferencesPayloadFromUi(), {{tts_pitch: 0.8}});
@@ -404,19 +404,19 @@ def test_settings_panel_persists_speech_fields_and_keeps_immediate_cache_writes(
     for field in SPEECH_DEFAULTS:
         assert f"_setOwnedSpeechPayload(payload,'{field}'" in payload_block
     for storage_key in [
-        "hermes-tts-enabled",
-        "hermes-tts-auto-read",
-        "hermes-tts-engine",
-        "hermes-tts-voice",
-        "hermes-tts-rate",
-        "hermes-tts-pitch",
-        "hermes-voice-mode-button",
-        "hermes-voice-continuous",
-        "hermes-voice-silence-ms",
-        "hermes-raw-audio-mode",
+        "iris-tts-enabled",
+        "iris-tts-auto-read",
+        "iris-tts-engine",
+        "iris-tts-voice",
+        "iris-tts-rate",
+        "iris-tts-pitch",
+        "iris-voice-mode-button",
+        "iris-voice-continuous",
+        "iris-voice-silence-ms",
+        "iris-raw-audio-mode",
     ]:
         assert storage_key in panel_block or storage_key in payload_block
-    assert "_speechSetting('tts_engine','hermes-tts-engine','browser')" in panel_block
+    assert "_speechSetting('tts_engine','iris-tts-engine','browser')" in panel_block
     assert "function _speechPreferencesPayloadFromUi()" in PANELS_JS
     assert "savedRate||'1'" not in panel_block
     assert "savedPitch||'1'" not in panel_block

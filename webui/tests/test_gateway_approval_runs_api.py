@@ -311,7 +311,7 @@ def test_gateway_runs_api_submission():
     mock_session.pending_started_at = None
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway", "HERMES_WEBUI_GATEWAY_USE_RUNS_API": "1"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway", "IRIS_WEBUI_GATEWAY_USE_RUNS_API": "1"}):
             with patch("api.gateway_chat.gateway_supports_approval", lambda *_args, **_kwargs: True), \
                  patch("api.gateway_chat._run_gateway_runs_api_streaming", fake_runs_streaming), \
                  patch("api.gateway_chat._gateway_reasoning_effort_for_request", return_value="high"), \
@@ -476,7 +476,7 @@ def test_gateway_stream_teardown_fail_closes_parked_run_producer():
             approvals._gateway_queues[sid] = [target, survivor]
         with patch.dict(
             "os.environ",
-            {"HERMES_WEBUI_CHAT_BACKEND": "gateway", "HERMES_WEBUI_GATEWAY_USE_RUNS_API": "1"},
+            {"IRIS_WEBUI_CHAT_BACKEND": "gateway", "IRIS_WEBUI_GATEWAY_USE_RUNS_API": "1"},
         ), patch("api.gateway_chat.gateway_supports_approval", return_value=True), patch(
             "api.gateway_chat._run_gateway_runs_api_streaming",
             side_effect=disconnect_after_run_id,
@@ -3094,7 +3094,7 @@ def test_gateway_runs_api_cancel_does_not_emit_empty_response():
         return None, {}
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway", "HERMES_WEBUI_GATEWAY_USE_RUNS_API": "1"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway", "IRIS_WEBUI_GATEWAY_USE_RUNS_API": "1"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=True), \
                  patch("api.gateway_chat._run_gateway_runs_api_streaming", side_effect=fake_runs_streaming), \
                  patch("api.gateway_chat.get_session", return_value=mock_session):
@@ -3687,7 +3687,7 @@ def test_gateway_empty_response_no_approval_banner():
         return resp
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=MagicMock(
@@ -3762,7 +3762,7 @@ def test_gateway_chat_completions_path_unchanged():
         return resp
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \

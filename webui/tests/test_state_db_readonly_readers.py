@@ -38,7 +38,7 @@ def test_no_subscribers_means_no_database_poll(tmp_path, monkeypatch):
     from api import gateway_watcher as watcher
     path = tmp_path / "state.db"
     path.touch()
-    instance = watcher.GatewayWatcher(hermes_home=tmp_path)
+    instance = watcher.GatewayWatcher(iris_home=tmp_path)
     monkeypatch.setattr(watcher, "_cheap_change_fingerprint", lambda *a: pytest.fail("polled DB"))
     monkeypatch.setattr(watcher, "_get_agent_sessions_from_db", lambda *a: pytest.fail("projected payload"))
     assert instance._poll_once(now=500) is False

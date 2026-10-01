@@ -122,7 +122,7 @@ def _run_sort_harness(body):
     source = UI_JS[start:end]
     script = """
 global.S={session:{workspace:'/test'},showHiddenWorkspaceFiles:true,workspaceSortKey:'name-asc'};
-global.localStorage={getItem(key){return key==='hermes-workspace-show-hidden-files'?'1':null},setItem(){}};
+global.localStorage={getItem(key){return key==='iris-workspace-show-hidden-files'?'1':null},setItem(){}};
 global.$=()=>null;
 function _visibleWorkspaceEntries(entries){return S.showHiddenWorkspaceFiles?entries:entries.filter(()=>true)}
 """ + source + "\n" + body
@@ -363,7 +363,7 @@ if(rows[0].attrs['aria-checked']!=='false'||rows[1].attrs['aria-checked']!=='tru
 
 
 def test_sort_public_surface_text_shape():
-    for key in ("WORKSPACE_SORT_KEYS", "setWorkspaceSortKey", "hermes-workspace-sort-key",
+    for key in ("WORKSPACE_SORT_KEYS", "setWorkspaceSortKey", "iris-workspace-sort-key",
                 "workspace_sort_by", "workspace_sort_name_asc", "workspace_sort_name_desc",
                 "workspace_sort_created_desc", "workspace_sort_modified_desc",
                 "workspace_sort_created_unavailable"):

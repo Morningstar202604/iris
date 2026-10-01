@@ -22,7 +22,7 @@ def test_active_session_localstorage_writes_ignore_quota_errors():
     for path in ["static/sessions.js", "static/commands.js", "static/messages.js"]:
         _assert_storage_setitem_guarded(
             _script(path),
-            "localStorage.setItem('hermes-webui-session'",
+            "localStorage.setItem('iris-webui-session'",
         )
 
 
@@ -30,5 +30,5 @@ def test_workspace_panel_localstorage_write_ignores_quota_errors():
     """Workspace panel state should not break UI toggles if localStorage throws (#2386)."""
     _assert_storage_setitem_guarded(
         _script("static/boot.js"),
-        "localStorage.setItem('hermes-webui-workspace-panel'",
+        "localStorage.setItem('iris-webui-workspace-panel'",
     )

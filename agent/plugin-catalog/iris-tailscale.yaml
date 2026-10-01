@@ -1,0 +1,14 @@
+name: iris-tailscale
+repo: https://github.com/Adolanium/iris-tailscale
+sha: 6dad1d5aac443a196f7ba83736a1f4c9e3a75048
+description: Browse Tailscale devices and connect to remote Iris instances in Iris Desktop.
+maintainer: Adolanium
+tier: community
+category: desktop
+docs_url: https://github.com/Adolanium/iris-tailscale#readme
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []
+subdir: catalog

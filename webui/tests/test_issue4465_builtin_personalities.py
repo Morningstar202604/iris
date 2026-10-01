@@ -1,6 +1,6 @@
 """Regression coverage for #4465 built-in personality visibility.
 
-Hermes Agent CLI ships built-in personalities from its CLI config loader. WebUI
+Iris Agent CLI ships built-in personalities from its CLI config loader. WebUI
 should expose the same defaults through config-derived personality paths so a
 fresh profile is not empty.
 """

@@ -10,7 +10,7 @@ import os
 
 # Isolate state dir so we don't touch real sessions
 _TEST_STATE = Path(tempfile.mkdtemp())
-os.environ["HERMES_WEBUI_STATE_DIR"] = str(_TEST_STATE)
+os.environ["IRIS_WEBUI_STATE_DIR"] = str(_TEST_STATE)
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -183,9 +183,9 @@ class TestSessionTtlResolution(unittest.TestCase):
         # Snapshot environment + load_settings so each test starts clean.
         self._saved_env = {
             k: os.environ.get(k)
-            for k in ("HERMES_WEBUI_SESSION_TTL",)
+            for k in ("IRIS_WEBUI_SESSION_TTL",)
         }
-        os.environ.pop("HERMES_WEBUI_SESSION_TTL", None)
+        os.environ.pop("IRIS_WEBUI_SESSION_TTL", None)
         self._saved_load_settings = auth.load_settings
 
     def tearDown(self):
@@ -197,14 +197,14 @@ class TestSessionTtlResolution(unittest.TestCase):
         auth.load_settings = self._saved_load_settings
 
     def test_env_var_overrides_settings(self):
-        """HERMES_WEBUI_SESSION_TTL env var should take priority."""
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = "3600"
+        """IRIS_WEBUI_SESSION_TTL env var should take priority."""
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = "3600"
         from api.auth import _resolve_session_ttl
         self.assertEqual(_resolve_session_ttl(), 3600)
 
     def test_clamps_minimum(self):
         """Values below 60 seconds fall through to settings/default (do not honor)."""
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = "10"
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = "10"
         auth.load_settings = lambda: {}
         from api.auth import _resolve_session_ttl
         # Out-of-range env values are rejected; falls through to default 30 days.
@@ -212,7 +212,7 @@ class TestSessionTtlResolution(unittest.TestCase):
 
     def test_clamps_maximum(self):
         """Values above 1 year fall through to settings/default (do not honor)."""
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = "100000000"
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = "100000000"
         auth.load_settings = lambda: {}
         from api.auth import _resolve_session_ttl
         # Out-of-range env values are rejected; falls through to default 30 days.
@@ -220,21 +220,21 @@ class TestSessionTtlResolution(unittest.TestCase):
 
     def test_invalid_env_falls_through(self):
         """Non-integer env var falls through to default."""
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = "not-a-number"
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = "not-a-number"
         auth.load_settings = lambda: {}
         from api.auth import _resolve_session_ttl
         self.assertEqual(_resolve_session_ttl(), auth.SESSION_TTL)
 
     def test_empty_env_falls_through(self):
         """Empty env var falls through to default."""
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = ""
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = ""
         auth.load_settings = lambda: {}
         from api.auth import _resolve_session_ttl
         self.assertEqual(_resolve_session_ttl(), auth.SESSION_TTL)
 
     def test_settings_path_returns_value(self):
         """settings.json session_ttl_seconds path works when env is unset."""
-        os.environ.pop("HERMES_WEBUI_SESSION_TTL", None)
+        os.environ.pop("IRIS_WEBUI_SESSION_TTL", None)
         auth.load_settings = lambda: {"session_ttl_seconds": 7200}
         from api.auth import _resolve_session_ttl
         self.assertEqual(_resolve_session_ttl(), 7200)
@@ -242,7 +242,7 @@ class TestSessionTtlResolution(unittest.TestCase):
     def test_session_uses_dynamic_ttl(self):
         """Newly created sessions should honor the resolved TTL."""
         auth._sessions.clear()
-        os.environ["HERMES_WEBUI_SESSION_TTL"] = "3600"
+        os.environ["IRIS_WEBUI_SESSION_TTL"] = "3600"
         token_hex = auth.create_session().split(".")[0]
         from api.auth import _sessions
         for t, exp in _sessions.items():
@@ -260,14 +260,14 @@ class TestCookieNameResolution(unittest.TestCase):
     """Verify the auth cookie name resolution (env > default)."""
 
     def setUp(self):
-        self._saved = os.environ.get("HERMES_WEBUI_COOKIE_NAME")
-        os.environ.pop("HERMES_WEBUI_COOKIE_NAME", None)
+        self._saved = os.environ.get("IRIS_WEBUI_COOKIE_NAME")
+        os.environ.pop("IRIS_WEBUI_COOKIE_NAME", None)
 
     def tearDown(self):
         if self._saved is None:
-            os.environ.pop("HERMES_WEBUI_COOKIE_NAME", None)
+            os.environ.pop("IRIS_WEBUI_COOKIE_NAME", None)
         else:
-            os.environ["HERMES_WEBUI_COOKIE_NAME"] = self._saved
+            os.environ["IRIS_WEBUI_COOKIE_NAME"] = self._saved
 
     def test_default_when_unset(self):
         """With the env var unset the legacy default name is used."""
@@ -275,22 +275,22 @@ class TestCookieNameResolution(unittest.TestCase):
 
     def test_env_var_overrides_default(self):
         """A valid env var name overrides the default."""
-        os.environ["HERMES_WEBUI_COOKIE_NAME"] = "hermes_session_alt"
-        self.assertEqual(auth._resolve_cookie_name(), "hermes_session_alt")
+        os.environ["IRIS_WEBUI_COOKIE_NAME"] = "iris_session_alt"
+        self.assertEqual(auth._resolve_cookie_name(), "iris_session_alt")
 
     def test_empty_env_falls_back(self):
         """Whitespace-only env var falls back to the default."""
-        os.environ["HERMES_WEBUI_COOKIE_NAME"] = "   "
+        os.environ["IRIS_WEBUI_COOKIE_NAME"] = "   "
         self.assertEqual(auth._resolve_cookie_name(), auth.COOKIE_NAME)
 
     def test_invalid_name_falls_back(self):
         """A name with characters illegal in an RFC 6265 token is rejected."""
-        os.environ["HERMES_WEBUI_COOKIE_NAME"] = "bad name=x"
+        os.environ["IRIS_WEBUI_COOKIE_NAME"] = "bad name=x"
         self.assertEqual(auth._resolve_cookie_name(), auth.COOKIE_NAME)
 
     def test_set_cookie_uses_resolved_name(self):
         """set_auth_cookie emits the resolved name in the Set-Cookie header."""
-        os.environ["HERMES_WEBUI_COOKIE_NAME"] = "hermes_session_alt"
+        os.environ["IRIS_WEBUI_COOKIE_NAME"] = "iris_session_alt"
         sent = {}
 
         class _H:
@@ -301,7 +301,7 @@ class TestCookieNameResolution(unittest.TestCase):
                 sent[k] = v
 
         auth.set_auth_cookie(_H(), "tok.sig")
-        self.assertIn("hermes_session_alt=", sent["Set-Cookie"])
+        self.assertIn("iris_session_alt=", sent["Set-Cookie"])
 
 
 if __name__ == "__main__":

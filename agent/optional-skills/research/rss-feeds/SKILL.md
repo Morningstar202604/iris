@@ -2,11 +2,11 @@
 name: rss-feeds
 description: "Read RSS, Atom, JSON feeds; discover feeds behind a page."
 version: 1.0.0
-author: Teknium (teknium1), Hermes Agent
+author: Teknium (teknium1), Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [RSS, Atom, Feeds, Monitoring, Research, Blogs, Releases]
     related_skills: [reddit-reading, competitor-news-monitor, grounded-citations, youtube-content, blogwatcher]
 ---
@@ -91,6 +91,6 @@ truncated or the first paragraph only.
 
 ## Verification
 
-`python3 scripts/feed.py read https://github.com/NousResearch/hermes-agent/releases.atom
+`python3 scripts/feed.py read https://github.com/X33834/iris/releases.atom
 --limit 1` prints one entry with a `releases/tag/` link and a `[atom]` format tag;
 `discover https://simonwillison.net/` prints an `/atom/` URL.

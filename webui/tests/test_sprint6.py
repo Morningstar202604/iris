@@ -179,5 +179,5 @@ def test_app_js_has_resize_logic():
     raw, _, status = get_raw("/static/boot.js")
     assert status == 200
     assert b"_initResizePanels" in raw
-    assert b"hermes-sidebar-w" in raw
-    assert b"hermes-panel-w" in raw
+    assert b"iris-sidebar-w" in raw
+    assert b"iris-panel-w" in raw

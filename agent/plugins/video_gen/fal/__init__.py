@@ -162,7 +162,7 @@ def _resolve_family(explicit: Optional[str]) -> Tuple[str, Dict[str, Any]]:
     """Decide which FAL family to use. Returns ``(family_id, meta)``."""
     import os
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         cfg = load_config()
     except Exception as exc:
         logger.debug("Could not load video_gen config: %s", exc)
@@ -287,7 +287,7 @@ def _submit_fal_video_request(endpoint: str, arguments: Dict[str, Any]):
                     f"Nous Subscription gateway rejected endpoint '{endpoint}' (HTTP {status}): {billing}") from exc
             raise ValueError(f"Nous Subscription gateway rejected endpoint '{endpoint}' (HTTP {status}). This model may not yet be enabled "
                              f"on the Nous Portal's FAL proxy. Either:\n  • Set FAL_KEY in your environment to use FAL.ai directly, or\n"
-                             f"  • Pick a different model via `hermes tools` → Video Generation.") from exc
+                             f"  • Pick a different model via `iris tools` → Video Generation.") from exc
         raise
 
 
@@ -315,10 +315,10 @@ def _upscale_video(video_url: str, source_request_id: Optional[str] = None) -> O
     return url
 
 
-_NO_BACKEND_MSG = ("No FAL backend available. Either set FAL_KEY (run `hermes tools` → Video Generation → FAL to configure) "
-                   "or sign in to Nous (`hermes setup`) for managed gateway access.")
+_NO_BACKEND_MSG = ("No FAL backend available. Either set FAL_KEY (run `iris tools` → Video Generation → FAL to configure) "
+                   "or sign in to Nous (`iris setup`) for managed gateway access.")
 _MODALITY_MISSING_MSG = {
-    "image": "FAL family {fid} has no image-to-video endpoint. Pick a family with image-to-video support via `hermes tools` → Video Generation.",
+    "image": "FAL family {fid} has no image-to-video endpoint. Pick a family with image-to-video support via `iris tools` → Video Generation.",
     "text": "FAL family {fid} has no text-to-video endpoint. Pass an image_url to use its image-to-video endpoint, or pick a different family.",
 }
 

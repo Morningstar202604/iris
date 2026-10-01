@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit WebUI dependencies on the hermes-agent source tree.
+"""Audit WebUI dependencies on the iris-agent source tree.
 
 This report is deterministic and repo-relative so migration PRs can compare the
 same dependency classes without relying on brittle exact line fixtures.
@@ -19,9 +19,9 @@ from typing import Iterable
 AGENT_MODULE_ROOTS = (
     "agent",
     "cron",
-    "hermes_cli",
-    "hermes_constants",
-    "hermes_state",
+    "iris_cli",
+    "iris_constants",
+    "iris_state",
     "run_agent",
     "tools",
 )
@@ -111,19 +111,19 @@ def _import_kind(module_name: str) -> str:
         return "runtime_tools_import"
     if module_name == "cron" or module_name.startswith("cron."):
         return "runtime_cron_import"
-    if module_name == "hermes_state" or module_name.startswith("hermes_state."):
+    if module_name == "iris_state" or module_name.startswith("iris_state."):
         return "state_import"
-    if module_name == "hermes_constants" or module_name.startswith("hermes_constants."):
+    if module_name == "iris_constants" or module_name.startswith("iris_constants."):
         return "constants_import"
-    if module_name.startswith("hermes_cli.runtime_provider"):
+    if module_name.startswith("iris_cli.runtime_provider"):
         return "runtime_provider_import"
     if module_name.startswith(("agent.auxiliary_client", "agent.model_metadata", "agent.models_dev")):
         return "auxiliary_model_metadata_import"
-    if module_name.startswith(("hermes_cli.models", "agent.account_usage")):
+    if module_name.startswith(("iris_cli.models", "agent.account_usage")):
         return "provider_model_catalog_import"
-    if module_name.startswith(("hermes_cli.auth", "hermes_cli.config", "agent.credential_pool")):
+    if module_name.startswith(("iris_cli.auth", "iris_cli.config", "agent.credential_pool")):
         return "auth_config_credential_import"
-    if module_name.startswith(("agent.skill_utils", "hermes_cli.plugins", "hermes_cli.profiles", "hermes_cli.goals")):
+    if module_name.startswith(("agent.skill_utils", "iris_cli.plugins", "iris_cli.profiles", "iris_cli.goals")):
         return "profiles_skills_plugins_import"
     if module_name.startswith("agent.anthropic_adapter"):
         return "gateway_adapter_import"
@@ -227,8 +227,8 @@ def build_report(root: Path) -> dict[str, object]:
             "docs/rfcs/agent-source-boundary.md",
         ),
         (
-            ("agent_source_volume", r"hermes-agent-src"),
-            ("agent_source_path", r"/opt/hermes(?:\b|[-/])?"),
+            ("agent_source_volume", r"iris-agent-src"),
+            ("agent_source_path", r"/opt/iris(?:\b|[-/])?"),
         ),
     )
     startup_findings = _iter_text_matches(
@@ -244,7 +244,7 @@ def build_report(root: Path) -> dict[str, object]:
         ),
         (
             ("startup_install_function", r"auto_install_agent_deps"),
-            ("agent_dir_env", r"HERMES_WEBUI_AGENT_DIR"),
+            ("agent_dir_env", r"IRIS_WEBUI_AGENT_DIR"),
             ("agent_source_install", r"uv pip install.*\[all\]"),
             ("agent_source_staging", r"_agent_src|_stage_src"),
         ),
@@ -257,11 +257,11 @@ def build_report(root: Path) -> dict[str, object]:
             title="Docker/compose source-tree sharing",
             current_dependency=(
                 "Multi-container compose files expose the agent image source via "
-                "the hermes-agent-src volume and /opt/hermes."
+                "the iris-agent-src volume and /opt/iris."
             ),
             replacement_surface=(
                 "Remove the WebUI source mount after startup install and runtime "
-                "imports move to hermes-agent endpoints or a versioned client package."
+                "imports move to iris-agent endpoints or a versioned client package."
             ),
             findings=_findings_by_kind(docker_findings, {"agent_source_volume", "agent_source_path"}),
         ),
@@ -269,11 +269,11 @@ def build_report(root: Path) -> dict[str, object]:
             class_id="startup_dependency_install",
             title="Startup dependency installation from agent checkout",
             current_dependency=(
-                "WebUI startup discovers HERMES_WEBUI_AGENT_DIR or ~/.hermes/hermes-agent "
+                "WebUI startup discovers IRIS_WEBUI_AGENT_DIR or ~/.iris/iris-agent "
                 "and installs the agent checkout extras."
             ),
             replacement_surface=(
-                "Replace source-tree pip installs with a packaged hermes-agent client "
+                "Replace source-tree pip installs with a packaged iris-agent client "
                 "or an agent health/version endpoint that declares required WebUI client capabilities."
             ),
             findings=_findings_by_kind(
@@ -285,12 +285,12 @@ def build_report(root: Path) -> dict[str, object]:
             class_id="runtime_agent_execution",
             title="Runtime agent execution, tools, and cron imports",
             current_dependency=(
-                "Browser chat, approvals, tools, and scheduled work import Hermes Agent "
+                "Browser chat, approvals, tools, and scheduled work import Iris Agent "
                 "execution modules directly from the source checkout."
             ),
             replacement_surface=(
                 "Move run orchestration, tool approval/control, and cron execution behind "
-                "Hermes Agent APIs or a versioned client package before removing source mounts."
+                "Iris Agent APIs or a versioned client package before removing source mounts."
             ),
             findings=_findings_by_kind(
                 runtime_findings,
@@ -318,11 +318,11 @@ def build_report(root: Path) -> dict[str, object]:
             class_id="runtime_session_state",
             title="Runtime SessionDB/state access",
             current_dependency=(
-                "WebUI imports hermes_state.SessionDB and related state helpers directly "
+                "WebUI imports iris_state.SessionDB and related state helpers directly "
                 "to read or write agent session state."
             ),
             replacement_surface=(
-                "Move cross-container state reads/writes behind hermes-agent session/state "
+                "Move cross-container state reads/writes behind iris-agent session/state "
                 "endpoints; keep WebUI-only presentation caches local."
             ),
             findings=_findings_by_kind(runtime_findings, {"state_import"}),
@@ -331,11 +331,11 @@ def build_report(root: Path) -> dict[str, object]:
             class_id="runtime_gateway_provider",
             title="Gateway/runtime provider calls",
             current_dependency=(
-                "WebUI imports hermes_cli.runtime_provider and agent adapter helpers "
+                "WebUI imports iris_cli.runtime_provider and agent adapter helpers "
                 "to resolve providers and normalize gateway calls."
             ),
             replacement_surface=(
-                "Route provider resolution and gateway invocation through hermes-agent "
+                "Route provider resolution and gateway invocation through iris-agent "
                 "runtime/provider endpoints; keep only display formatting in WebUI."
             ),
             findings=_findings_by_kind(
@@ -347,7 +347,7 @@ def build_report(root: Path) -> dict[str, object]:
             class_id="webui_local_or_client_package",
             title="Config, auth, skills, profiles, plugins, and constants imports",
             current_dependency=(
-                "WebUI imports hermes_cli and agent helpers for config/auth status, "
+                "WebUI imports iris_cli and agent helpers for config/auth status, "
                 "credential pools, skills, profiles, plugin discovery, goals, and constants."
             ),
             replacement_surface=(
@@ -442,7 +442,7 @@ def main(argv: list[str] | None = None) -> int:
         nargs="?",
         type=Path,
         default=_repo_root_from_script(),
-        help="Path to the hermes-webui checkout; defaults to this script's repo.",
+        help="Path to the iris-webui checkout; defaults to this script's repo.",
     )
     parser.add_argument(
         "--format",

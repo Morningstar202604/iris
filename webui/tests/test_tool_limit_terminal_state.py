@@ -102,8 +102,8 @@ def _run_streaming_with_fake_agent(
         def interrupt(self, _message):
             return None
 
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = lambda *_args, **_kwargs: object()
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = lambda *_args, **_kwargs: object()
 
     with monkeypatch.context() as m:
         m.setattr(streaming, "get_session", lambda _sid: session)
@@ -111,7 +111,7 @@ def _run_streaming_with_fake_agent(
         m.setattr(streaming, "resolve_model_provider", lambda *_args, **_kwargs: ("gpt-4o", "openai", None))
         m.setattr("api.config.get_config", lambda *_args, **_kwargs: {})
         m.setattr("api.config._resolve_cli_toolsets", lambda *_args, **_kwargs: [])
-        m.setitem(sys.modules, "hermes_state", fake_hermes_state)
+        m.setitem(sys.modules, "iris_state", fake_iris_state)
         if enable_auth_retry:
             m.setattr(
                 streaming,

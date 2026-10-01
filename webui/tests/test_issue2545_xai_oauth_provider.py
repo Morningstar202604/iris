@@ -11,7 +11,7 @@ def _with_config(monkeypatch, tmp_path, cfg):
     config.cfg.update(copy.deepcopy(cfg))
     config._cfg_mtime = 0.0
     config.invalidate_models_cache()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     def restore():
         config.cfg.clear()

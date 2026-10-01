@@ -1,4 +1,4 @@
-import { getLocalModelsJobs, getLocalModelsStatus } from '@/hermes'
+import { getLocalModelsJobs, getLocalModelsStatus } from '@/iris'
 import type { Translations } from '@/i18n/types'
 import { localSetupDue } from '@/lib/tips/local-cta'
 import { $activeGatewayRoute } from '@/store/gateway'
@@ -11,7 +11,7 @@ import {
 } from '@/store/local-runtime-jobs'
 import { $connection } from '@/store/session'
 import { $activeTip, $retiredTips, $tipsEnabled, $tipShownAt, dismissTip, showTip } from '@/store/tips'
-import type { LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelsStatus, LocalRuntimeJob } from '@/types/iris'
 
 let snapshot: { readAt: number; status: LocalModelsStatus | null; jobs: LocalRuntimeJob[] } | null = null
 let pending = false

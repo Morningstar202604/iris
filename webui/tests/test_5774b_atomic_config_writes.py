@@ -92,7 +92,7 @@ def test_atomic_write_preserves_existing_user_xattr(tmp_path: Path) -> None:
     """Replacing config contents must not discard administrator metadata."""
     target = tmp_path / "config.yaml"
     target.write_text("old: true\n", encoding="utf-8")
-    attribute = "user.hermes_review"
+    attribute = "user.iris_review"
     value = b"preserve-me"
     try:
         os.setxattr(target, attribute, value)
@@ -458,7 +458,7 @@ def test_atomic_write_follows_config_symlink(tmp_path: Path) -> None:
     """Writing through a config.yaml symlink updates the target, not the link.
 
     ``Path.write_text`` follows symlinks.  The atomic rewrite must preserve that
-    contract because ``HERMES_CONFIG_PATH`` and profile config paths may point at
+    contract because ``IRIS_CONFIG_PATH`` and profile config paths may point at
     a shared config via symlink; replacing the symlink itself would silently
     sever the user's chosen config location.
     """
@@ -702,7 +702,7 @@ def test_readonly_parent_with_writable_file_falls_back_to_write_through(
 ) -> None:
     """A locked-down config dir with a writable config.yaml must still save.
 
-    Hardened deployments (documented ``HERMES_CONFIG_PATH`` layouts) keep the
+    Hardened deployments (documented ``IRIS_CONFIG_PATH`` layouts) keep the
     containing directory read-only while leaving ``config.yaml`` itself
     writable.  The old ``Path.write_text`` only needed file write permission;
     ``mkstemp(dir=parent)`` needs DIRECTORY write permission, so without the

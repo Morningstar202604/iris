@@ -11,7 +11,7 @@ const { api, view } = vi.hoisted(() => ({
   }
 }))
 
-vi.mock('@/api/client', () => ({ capabilityScoped: (scope: object) => scope, hermesApi: api }))
+vi.mock('@/api/client', () => ({ capabilityScoped: (scope: object) => scope, irisApi: api }))
 vi.mock('@/app/chat/session-view', () => ({ useSessionView: () => view }))
 vi.mock('@/store/profile', () => ({ $activeGatewayProfile: atom('default') }))
 vi.mock('@/store/session', () => ({ $connection: atom({ mode: 'local' }), getSessionOwnerHint: () => undefined }))

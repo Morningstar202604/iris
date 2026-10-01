@@ -98,8 +98,8 @@ class TestPortalGuardOrdering:
         Nous ever serves a self-prefixed model the resolver must handle it the
         same way it handles nvidia/.
         """
-        model, provider, _ = _resolve("nous/hermes-3-something", "nous")
-        assert model == "nous/hermes-3-something", (
+        model, provider, _ = _resolve("nous/iris-3-something", "nous")
+        assert model == "nous/iris-3-something", (
             f"prefix stripped: {model!r} — portal guard must preserve full id"
         )
         assert provider == "nous"

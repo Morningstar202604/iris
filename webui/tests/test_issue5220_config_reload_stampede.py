@@ -102,16 +102,16 @@ def test_stale_model_readers_collapse_to_single_reload_when_models_are_requested
         config._yaml_file_cache.clear()
     config.invalidate_models_cache()
 
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models._PROVIDER_ALIASES = {}
     fake_models.list_available_providers = lambda: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda provider_id: {"logged_in": False, "key_source": ""}
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(config, "_load_models_cache_from_disk", lambda: None)
     monkeypatch.setattr(config, "_load_stale_models_cache_from_disk", lambda: None)
     monkeypatch.setattr(config, "_save_models_cache_to_disk", lambda _data: None)

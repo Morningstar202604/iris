@@ -1,5 +1,5 @@
 import { normalize } from '@/lib/text'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 import { sessionTitle } from './chat-runtime'
 import { sessionSourceSearchTerms } from './session-source'

@@ -8,7 +8,7 @@ import { test } from 'vitest'
 import { DISMISSED_FILE, pendingNotice, recordDismissed, REPORT_FILE, reportKey } from './plugin-compat-notice'
 
 function tmp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-compat-'))
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'iris-compat-'))
 }
 
 const REPORT = {
@@ -24,18 +24,18 @@ const REPORT = {
       }
     ],
     beta: [
-      { file: 'a.py', line: 1, old: 'hermes_cli.kanban_db.connect', new: 'hermes_cli.kanban_db_connect.connect' },
+      { file: 'a.py', line: 1, old: 'iris_cli.kanban_db.connect', new: 'iris_cli.kanban_db_connect.connect' },
       {
         file: 'a.py',
         line: 9,
-        old: 'hermes_cli.kanban_db.connect_closing',
-        new: 'hermes_cli.kanban_db_connect.connect_closing'
+        old: 'iris_cli.kanban_db.connect_closing',
+        new: 'iris_cli.kanban_db_connect.connect_closing'
       }
     ]
   },
   lines: [
     '2 plugins use import paths that stop working on 2026-09-14 (10 days): alpha (1), beta (2)',
-    'Details: hermes plugins compat'
+    'Details: iris plugins compat'
   ]
 }
 

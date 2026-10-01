@@ -1,17 +1,17 @@
-# Hermes Web UI
+# Iris Web UI
 
-[Hermes Agent](https://hermes-agent.nousresearch.com/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
+Iris is a sophisticated autonomous agent that lives on your server, accessed via a terminal, web UI or messaging apps, that remembers what it learns and gets more capable the longer it runs.
 
-Hermes WebUI is a lightweight, dark-themed web app interface in your browser for [Hermes Agent](https://hermes-agent.nousresearch.com/).
+Iris WebUI is a lightweight, dark-themed web app interface in your browser for Iris.
 Full parity with the CLI experience - everything you can do from a terminal, you can do from this UI. No build step, no framework, no bundler. Just Python and vanilla JS.
 
 Layout: three-panel. Left sidebar for sessions and navigation, center for chat,
 right for workspace file browsing. Model, profile, and workspace controls live in
 the **composer footer** — always visible while composing. A circular context ring
 shows token usage at a glance. All settings and session tools are in the
-**Hermes Control Center** (launcher at the sidebar bottom).
+**Iris Control Center** (launcher at the sidebar bottom).
 
-Setup Hermes so you can access it natively on every device:
+Setup Iris so you can access it natively on every device:
 
 <img width="1467" height="881" alt="image" src="https://github.com/user-attachments/assets/9a72cdf3-a5b4-45ed-a836-a715ce46287e" />
 
@@ -41,20 +41,20 @@ Setup Hermes so you can access it natively on every device:
   </tr>
 </table>
 
-This gives you nearly **1:1 parity with Hermes CLI from a convenient web UI** which you can access securely through an SSH tunnel from your Hermes setup. Single command to start this up, and a single command to SSH tunnel for access on your computer. Every single part of the web UI uses your existing Hermes agent and existing models, without requiring any additional setup.
+This gives you nearly **1:1 parity with Iris CLI from a convenient web UI** which you can access securely through an SSH tunnel from your Iris setup. Single command to start this up, and a single command to SSH tunnel for access on your computer. Every single part of the web UI uses your existing Iris agent and existing models, without requiring any additional setup.
 
 ---
 
 ## Contents
 
 [<img width="750" alt="image" src="https://github.com/user-attachments/assets/7e9544a7-ba47-4fc7-8142-1d9d16b17065" />
-](https://get-hermes.ai/setup/) 
+](https://gitcode.com/badhope/iris/tree/main/docs) 
 
-- [Why Hermes](#why-hermes) — what it is and how it compares
+- [Why Iris](#why-iris) — what it is and how it compares
 - [Quick start](#quick-start) — clone + `bootstrap.py` / `start.sh` / `ctl.sh`
 - [Features](#features) — chat, sessions, workspace, voice, profiles, security, themes, panels, mobile
 - [Configuration & access](#configuration--access) — auto-discovery, overrides, remote/Tailscale/phone, manual launch
-- [Nix flake/module](#nix-flake-and-nixos-module) — declarative install and service
+- [NixOS support](#nixos-support) — declarative install is being reworked
 - [Docker](#docker) — single- and multi-container deploys
 - [Running tests](#running-tests)
 - [Architecture](#architecture) — backend/frontend layout, state dir
@@ -63,32 +63,32 @@ This gives you nearly **1:1 parity with Hermes CLI from a convenient web UI** wh
 
 ---
 
-## Why Hermes
+## Why Iris
 
 Most AI tools reset every session. They don't know who you are, what you worked on, or what
 conventions your project follows. You re-explain yourself every time.
 
-Hermes retains context across sessions, runs scheduled jobs while you're offline, and gets
-smarter about your environment the longer it runs. It uses your existing Hermes agent setup,
+Iris retains context across sessions, runs scheduled jobs while you're offline, and gets
+smarter about your environment the longer it runs. It uses your existing Iris agent setup,
 your existing models, and requires no additional configuration to start.
 
 What makes it different from other agentic tools:
 
 - **Persistent memory** — user profile, agent notes, and a skills system that saves reusable
-  procedures; Hermes learns your environment and does not have to relearn it
+  procedures; Iris learns your environment and does not have to relearn it
 - **Self-hosted scheduling** — cron jobs that fire while you're offline and deliver results to
   Telegram, Discord, Slack, Signal, email, and more
 - **10+ messaging platforms** — the same agent available in the terminal is reachable from your phone
-- **Self-improving skills** — Hermes writes and saves its own skills automatically from experience;
+- **Self-improving skills** — Iris writes and saves its own skills automatically from experience;
   no marketplace to browse, no plugins to install
 - **Provider-agnostic** — OpenAI, Anthropic, Google, DeepSeek, OpenRouter, and more
 - **Orchestrates other agents** — can spawn Claude Code or Codex for heavy coding tasks and bring
   the results back into its own memory
 - **Self-hosted** — your conversations, your memory, your hardware
 
-**vs. the field** *(landscape is actively shifting — see [docs/why-hermes.md](docs/why-hermes.md) for the full breakdown)*:
+**vs. the field** *(landscape is actively shifting — see [docs/why-iris.md](docs/why-iris.md) for the full breakdown)*:
 
-| | OpenClaw | Claude Code | Codex CLI | OpenCode | Hermes |
+| | OpenClaw | Claude Code | Codex CLI | OpenCode | Iris |
 |---|---|---|---|---|---|
 | Persistent memory (auto) | Yes | Partial† | Partial | Partial | Yes |
 | Scheduled jobs (self-hosted) | Yes | No‡ | No | No | Yes |
@@ -103,11 +103,11 @@ What makes it different from other agentic tools:
 ‡ Claude Code has cloud-managed scheduling (Anthropic infrastructure) and session-scoped `/loop`; no self-hosted cron
 
 **The closest competitor is OpenClaw** — both are always-on, self-hosted, open-source agents
-with memory, cron, and messaging. The key differences: Hermes writes and saves its own skills
+with memory, cron, and messaging. The key differences: Iris writes and saves its own skills
 automatically as a core behavior (OpenClaw's skill system centers on a community marketplace);
-Hermes is more stable across updates (OpenClaw has documented release regressions and ClawHub
-has had security incidents involving malicious skills); and Hermes runs natively in the Python
-ecosystem. See [docs/why-hermes.md](docs/why-hermes.md) for the full side-by-side.
+Iris is more stable across updates (OpenClaw has documented release regressions and ClawHub
+has had security incidents involving malicious skills); and Iris runs natively in the Python
+ecosystem. See [docs/why-iris.md](docs/why-iris.md) for the full side-by-side.
 
 ---
 
@@ -116,8 +116,10 @@ ecosystem. See [docs/why-hermes.md](docs/why-hermes.md) for the full side-by-sid
 Run the repo bootstrap:
 
 ```bash
-git clone https://github.com/nesquena/hermes-webui.git hermes-webui
-cd hermes-webui
+# Primary: GitHub. Mainland-China users can use the GitCode mirror instead:
+#   git clone https://gitcode.com/badhope/iris.git iris-webui
+git clone https://github.com/X33834/iris.git iris-webui
+cd iris-webui
 python3 bootstrap.py
 ```
 
@@ -130,16 +132,16 @@ Or keep using the shell launcher:
 For self-hosted VM or homelab installs, `ctl.sh` wraps the common daemon lifecycle commands without requiring `fuser` or `pkill`:
 
 ```bash
-./ctl.sh start              # background daemon, PID at ~/.hermes/webui.pid
+./ctl.sh start              # background daemon, PID at ~/.iris/webui.pid
 ./ctl.sh status             # PID, uptime, bound host/port, log path, /health
-./ctl.sh logs --lines 100   # tail ~/.hermes/webui.log
+./ctl.sh logs --lines 100   # tail ~/.iris/webui.log
 ./ctl.sh restart
 ./ctl.sh stop
 ```
 
-`ctl.sh start` runs the bootstrap in foreground/no-browser mode behind the daemon wrapper, writes logs to `~/.hermes/webui.log`, and respects `.env` plus inline overrides such as `HERMES_WEBUI_HOST=0.0.0.0 ./ctl.sh start`.
+`ctl.sh start` runs the bootstrap in foreground/no-browser mode behind the daemon wrapper, writes logs to `~/.iris/webui.log`, and respects `.env` plus inline overrides such as `IRIS_WEBUI_HOST=0.0.0.0 ./ctl.sh start`.
 
-> **Stopping the server.** Each launch method has its own stop path because only `ctl.sh start` writes a PID file (`~/.hermes/webui.pid`):
+> **Stopping the server.** Each launch method has its own stop path because only `ctl.sh start` writes a PID file (`~/.iris/webui.pid`):
 >
 > | Launch method | How to stop |
 > |---|---|
@@ -149,9 +151,9 @@ For self-hosted VM or homelab installs, `ctl.sh` wraps the common daemon lifecyc
 >
 > `./ctl.sh stop` cannot stop a server launched by `bootstrap.py` or `start.sh` directly — it only manages processes it started itself.
 
-> **How chat runs by default.** WebUI runs the Hermes agent in-process, reading
-> your `HERMES_HOME` config directly. It does not connect to an external
-> Hermes/agent OpenAI-compatible API server to run chat. `HERMES_API_URL` is only
+> **How chat runs by default.** WebUI runs the Iris agent in-process, reading
+> your `IRIS_HOME` config directly. It does not connect to an external
+> Iris/agent OpenAI-compatible API server to run chat. `IRIS_API_URL` is only
 > read by the Tasks/cron health probe and does not route chat.
 >
 > Two options if you run an external endpoint:
@@ -159,17 +161,17 @@ For self-hosted VM or homelab installs, `ctl.sh` wraps the common daemon lifecyc
 > 1. **Use its models as a chat provider** (supported today): add it in
 >    **Settings → Providers** as a custom OpenAI-compatible provider with
 >    `base_url = http://127.0.0.1:8642/v1` and your bearer token.
-> 2. **Route chat through a Hermes Gateway API server** (supported today via
->    `HERMES_WEBUI_CHAT_BACKEND=gateway`): see [`docs/advanced-chat-setup.md`](docs/advanced-chat-setup.md).
+> 2. **Route chat through a Iris Gateway API server** (supported today via
+>    `IRIS_WEBUI_CHAT_BACKEND=gateway`): see [`docs/advanced-chat-setup.md`](docs/advanced-chat-setup.md).
 >    Full agent-loop delegation is not yet shipped; tracked in [#1925](https://github.com/nesquena/hermes-webui/issues/1925).
 
 ### Advanced: dynamic recall prefill & Gateway-backed chat
 
-Two optional, self-hosted-deployment features — attaching dynamic **session-recall prefill** to browser turns (Joplin/Obsidian/Notion/llm-wiki routers), and routing browser chat through a running **Hermes Gateway** — are documented in [`docs/advanced-chat-setup.md`](docs/advanced-chat-setup.md). Most users need neither.
+Two optional, self-hosted-deployment features — attaching dynamic **session-recall prefill** to browser turns (Joplin/Obsidian/Notion/llm-wiki routers), and routing browser chat through a running **Iris Gateway** — are documented in [`docs/advanced-chat-setup.md`](docs/advanced-chat-setup.md). Most users need neither.
 
 The bootstrap will:
 
-1. Detect Hermes Agent and, if missing, attempt the official installer (`curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash`).
+1. Detect Iris Agent and, if missing, attempt the official installer (`curl -fsSL https://gitcode.com/badhope/iris/raw/main/agent/scripts/install.sh | bash`).
 2. Find or create a Python environment with the WebUI dependencies.
 3. Start the web server and wait for `/health`.
 4. Open the browser unless you pass `--no-browser`.
@@ -178,15 +180,54 @@ The bootstrap will:
 > Native Windows is not supported for this bootstrap yet. Use Linux, macOS, or WSL2.
 > For Windows / WSL auto-start at login, see [`docs/wsl-autostart.md`](docs/wsl-autostart.md).
 
-A community-maintained native Windows setup is documented at [@markwang2658/hermes-windows-native-guide](https://github.com/markwang2658/hermes-windows-native-guide) (companion setup repo: [@markwang2658/hermes-windows-native](https://github.com/markwang2658/hermes-windows-native)). Notes from the community report in [#1952](https://github.com/nesquena/hermes-webui/issues/1952):
+### The one requirement bootstrap can't magic away: one interpreter, both stacks
+
+The server runs the agent **in-process**, so whatever Python ends up running `server.py`
+must be able to `import run_agent` **and** have the WebUI deps (`pyyaml`, `cryptography`)
+installed. Bootstrap auto-creates `webui/.venv` and installs the WebUI requirements into
+it, but that fresh venv has **no agent dependencies** — if agent discovery still can't make
+chat work, you have two equivalent fixes (also in [`docs/DEPLOYING.md`](docs/DEPLOYING.md)):
+
+```bash
+# Option A — make webui/.venv the shared environment:
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+pip install -e /path/to/iris-agent        # agent + its deps land in this venv
+export IRIS_WEBUI_AGENT_DIR=/path/to/iris-agent
+./start.sh
+
+# Option B — just point the launcher at the agent's own venv (then ensure the WebUI
+# requirements are installed into that same venv):
+export IRIS_WEBUI_PYTHON=/path/to/iris-agent/venv/bin/python
+/path/to/iris-agent/venv/bin/python -m pip install -r requirements.txt
+./start.sh
+```
+
+### Upgrading a source install
+
+```bash
+git pull
+. .venv/bin/activate                       # or use IRIS_WEBUI_PYTHON's venv
+pip install -r requirements.txt --upgrade   # WebUI deps
+pip install -e /path/to/iris-agent --upgrade   # and the agent side, together
+./ctl.sh restart                           # or: stop + ./start.sh
+```
+
+> Upgrade both sides together (WebUI + iris-agent on the same release train) — see the
+> Compatibility section below. If your `IRIS_HOME` was relocated historically, also check
+> the `IRIS_WEBUI_STATE_DIR` upgrade note in the overrides table. Full deployment notes:
+> [`docs/DEPLOYING.md`](docs/DEPLOYING.md).
+
+A community-maintained native Windows setup is documented at [@markwang2658/iris-windows-native-guide](https://github.com/markwang2658/iris-windows-native-guide) (companion setup repo: [@markwang2658/iris-windows-native](https://github.com/markwang2658/iris-windows-native)). Notes from the community report in [#1952](https://github.com/nesquena/hermes-webui/issues/1952):
 
 - **Memory:** community-measured ~330 MB native vs ~1080 MB with WSL2+Docker (varies by configuration).
 - **What works:** chat, workspace browser, session management, all themes.
 - **Known limitations:** some POSIX-style file paths surface in the workspace browser; bash-assuming agent tools may not work natively.
-- **Native Windows setup:** install Python 3.11+, then from the hermes-agent root in PowerShell: `python -m venv venv` → `pip install -r requirements.txt` → `pwsh .\start.ps1` (it auto-discovers `venv\Scripts\python.exe`).
+- **Native Windows setup:** install Python 3.11+, then from the iris-agent root in PowerShell: `python -m venv venv` → `pip install -r requirements.txt` → `pwsh .\start.ps1` (it auto-discovers `venv\Scripts\python.exe`).
 - **WSL2 relationship:** not a prerequisite — a WSL2-built venv (`venv/bin/python`, ELF) isn't invokable by native Windows Python, so use the native setup above. WSL2 stays useful as a parallel install if you want the full `bootstrap.py` + Linux runtime.
 
-If provider setup is still incomplete after install, the onboarding wizard will point you to finish it with `hermes model` instead of trying to replicate the full CLI setup in-browser.
+If provider setup is still incomplete after install, the onboarding wizard will point you to finish it with `iris model` instead of trying to replicate the full CLI setup in-browser.
 For a step-by-step walkthrough of the wizard, provider choices, local model server Base URLs, and safe re-runs, see [`docs/onboarding.md`](docs/onboarding.md).
 If an AI assistant is helping with install, reinstall, bootstrap, provider setup, or first-run support, have it read [`docs/onboarding-agent-checklist.md`](docs/onboarding-agent-checklist.md) before running commands or inspecting logs.
 
@@ -196,7 +237,7 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
 
 ### Chat and agent
 - Streaming responses via SSE (tokens appear as they are generated)
-- Multi-provider model support -- any Hermes API provider (OpenAI, Anthropic, Google, DeepSeek, Nous Portal, OpenRouter, MiniMax, Xiaomi MiMo, Z.AI); dynamic model dropdown populated from configured keys
+- Multi-provider model support -- any Iris API provider (OpenAI, Anthropic, Google, DeepSeek, Nous Portal, OpenRouter, MiniMax, Xiaomi MiMo, Z.AI); dynamic model dropdown populated from configured keys
 - Send a message while one is processing -- it queues automatically
 - Edit any past user message inline and regenerate from that point
 - Retry the last assistant response with one click
@@ -207,7 +248,7 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
 - Thinking/reasoning display -- collapsible gold-themed cards for Claude extended thinking and o3 reasoning blocks
 - Approval card for dangerous shell commands (allow once / session / always / deny)
 - SSE auto-reconnect on network blips (SSH tunnel resilience)
-- File attachments persist across page reloads and are stored outside the active workspace by default (`~/.hermes/webui/attachments/<session_id>/`, or `HERMES_WEBUI_ATTACHMENT_DIR/<session_id>/` when configured)
+- File attachments persist across page reloads and are stored outside the active workspace by default (`~/.iris/webui/attachments/<session_id>/`, or `IRIS_WEBUI_ATTACHMENT_DIR/<session_id>/` when configured)
 - Message timestamps (HH:MM next to each message, full date on hover)
 - Code block copy button with "Copied!" feedback
 - Syntax highlighting via Prism.js (Python, JS, bash, JSON, SQL, and more)
@@ -227,7 +268,7 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
 - Create a public read-only share link for the active conversation from the Control Center; shared pages show a sanitized transcript snapshot without workspace, profile, or live controls
 - Sessions persist across page reloads and SSH tunnel reconnects
 - Browser tab title reflects the active session name
-- CLI session bridge -- CLI sessions from hermes-agent's SQLite store appear in the sidebar with a gold "cli" badge; click to import with full history and reply normally
+- CLI session bridge -- CLI sessions from iris-agent's SQLite store appear in the sidebar with a gold "cli" badge; click to import with full history and reply normally
 - Token/cost display -- input tokens, output tokens, estimated cost shown per conversation (toggle in Settings or `/usage` command)
 
 ### Workspace file browser
@@ -261,11 +302,11 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
 
 ### Authentication and security
 - Optional password auth -- off by default, zero friction for localhost
-- Enable via `HERMES_WEBUI_PASSWORD` env var or Settings panel
+- Enable via `IRIS_WEBUI_PASSWORD` env var or Settings panel
 - Installed PWAs work best with WebUI's own password. Reverse proxies are supported, but proxy basic auth can block the service-worker update fetches an installed app needs and leave it on a blank screen after an update; see `docs/troubleshooting.md` for recovery steps.
 - Optional passkeys/WebAuthn -- register from Settings -> System after signing in with a password; the login page only shows passkey sign-in after at least one passkey exists
 - After registering at least one passkey, Settings -> System can remove the password and keep passkey-only sign-in enabled. Password auth remains the bootstrap/recovery path until you choose to go passwordless; passkeys are same-origin and stored locally in the WebUI state directory
-- Optional native OIDC login for WebUI sessions -- configure `webui_oidc.issuer`, `client_id`, `allow_claim`, and `allow_values` in `config.yaml`, or set the matching `HERMES_WEBUI_OIDC_*` environment variables. OIDC stays disabled until all four are present, and startup prints a warning if the config is partial.
+- Optional native OIDC login for WebUI sessions -- configure `webui_oidc.issuer`, `client_id`, `allow_claim`, and `allow_values` in `config.yaml`, or set the matching `IRIS_WEBUI_OIDC_*` environment variables. OIDC stays disabled until all four are present, and startup prints a warning if the config is partial.
 - Native OIDC stores the PKCE/state nonce flow in process memory. That works for the shipped single-process server, and it also works behind a load balancer when callbacks stay sticky to the same WebUI instance. Multi-instance deployments need session affinity, or the callback can land on a different process and fail state validation.
 - Signed HMAC HTTP-only cookie with 24h TTL
 - Minimal dark-themed login page at `/login`
@@ -283,7 +324,7 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
   `.dark` class, not a `data-theme` custom-theme axis — see [THEMES.md](THEMES.md)
 
 ### Settings and configuration
-- **Hermes Control Center** (sidebar launcher button) -- Conversation tab (export/import/clear), Preferences tab (model, send key, theme, language, all toggles), System tab (version, password)
+- **Iris Control Center** (sidebar launcher button) -- Conversation tab (export/import/clear), Preferences tab (model, send key, theme, language, all toggles), System tab (version, password)
 - Send key: Enter (default) or Ctrl/Cmd+Enter
 - Show/hide CLI sessions toggle (enabled by default)
 - Token usage display toggle (off by default, also via `/usage` command)
@@ -326,11 +367,11 @@ If an AI assistant is helping with install, reinstall, bootstrap, provider setup
 
 | Thing | How it finds it |
 |---|---|
-| Hermes agent dir | `HERMES_WEBUI_AGENT_DIR`, then known checkout paths, the `hermes` launcher on `PATH`, and finally the installed `run_agent` module exposed by `HERMES_WEBUI_PYTHON` |
+| Iris agent dir | `IRIS_WEBUI_AGENT_DIR`, then known checkout paths, the `iris` launcher on `PATH`, and finally the installed `run_agent` module exposed by `IRIS_WEBUI_PYTHON` |
 | Python executable | Agent venv first, then `.venv` in this repo, then system `python3` |
-| State directory | `HERMES_WEBUI_STATE_DIR` env, then `$HERMES_HOME/webui` (Windows default `%LOCALAPPDATA%\hermes\webui`, POSIX default `~/.hermes/webui`) |
-| Default workspace | `HERMES_WEBUI_DEFAULT_WORKSPACE` env, then `~/workspace`, then state dir |
-| Port | `HERMES_WEBUI_PORT` env or first argument, default `8787` |
+| State directory | `IRIS_WEBUI_STATE_DIR` env, then `$IRIS_HOME/webui` (Windows default `%LOCALAPPDATA%\iris\webui`, POSIX default `~/.iris/webui`) |
+| Default workspace | `IRIS_WEBUI_DEFAULT_WORKSPACE` env, then `~/workspace`, then state dir |
+| Port | `IRIS_WEBUI_PORT` env or first argument, default `8787` |
 
 If discovery finds everything, nothing else is required.
 
@@ -339,124 +380,67 @@ If discovery finds everything, nothing else is required.
 ### Overrides (only needed if auto-detection misses)
 
 ```bash
-export HERMES_WEBUI_AGENT_DIR=/path/to/hermes-agent
-export HERMES_WEBUI_PYTHON=/path/to/python
-export HERMES_WEBUI_PORT=9000
-export HERMES_WEBUI_AUTO_INSTALL=1  # enable auto-install of agent deps (disabled by default)
+export IRIS_WEBUI_AGENT_DIR=/path/to/iris-agent
+export IRIS_WEBUI_PYTHON=/path/to/python
+export IRIS_WEBUI_PORT=9000
+export IRIS_WEBUI_AUTO_INSTALL=1  # enable auto-install of agent deps (disabled by default)
 ./start.sh
 ```
 
 Or inline:
 
 ```bash
-HERMES_WEBUI_AGENT_DIR=/custom/path ./start.sh 9000
+IRIS_WEBUI_AGENT_DIR=/custom/path ./start.sh 9000
 ```
 
 Full list of environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
-| `HERMES_WEBUI_AGENT_DIR` | auto-discovered | Path to the Hermes Agent source or installed module root |
-| `HERMES_WEBUI_PYTHON` | auto-discovered | Python executable |
-| `HERMES_WEBUI_HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for all IPv4, `::` for all IPv6, `::1` for IPv6 loopback) |
-| `HERMES_WEBUI_PORT` | `8787` | Port |
-| `HERMES_WEBUI_STATE_DIR` | `$HERMES_HOME/webui` (Windows default `%LOCALAPPDATA%\hermes\webui`, POSIX default `~/.hermes/webui`) | Where sessions and state are stored. **Note (upgrade):** the default now follows `HERMES_HOME` — if you previously relocated `HERMES_HOME` to a non-default base **without** setting `HERMES_WEBUI_STATE_DIR`, your WebUI state now resolves to `$HERMES_HOME/webui` instead of the old platform-default `~/.hermes/webui`. To keep using the old location, set `HERMES_WEBUI_STATE_DIR` to it (or move the directory). Installs with `HERMES_HOME` unset or at the default base are unaffected. |
-| `HERMES_WEBUI_DEFAULT_WORKSPACE` | `~/workspace` | Default workspace |
-| `HERMES_WEBUI_DEFAULT_MODEL` | *(provider default)* | Optional model override; leave unset to use the active Hermes provider default |
-| `HERMES_WEBUI_PASSWORD` | *(unset)* | Set to enable password authentication |
-| `HERMES_WEBUI_CSP_CONNECT_EXTRA` | *(unset)* | Optional space-separated `http(s)://` or `ws(s)://` origins to append to the enforced and report-only CSP `connect-src` directives for trusted reverse-proxy, tunnel, or extension sidecar deployments |
-| `HERMES_WEBUI_SSE_CHUNKED` | *(unset)* | Set truthy (`1`/`true`/`yes`/`on`) to send SSE with `Transfer-Encoding: chunked`. Needed behind buffering reverse proxies (e.g. `jupyter-server-proxy`) that otherwise buffer the whole stream; harmless but unnecessary for directly-served deployments |
-| `HERMES_WEBUI_EXTENSION_DIR` | *(unset)* | Optional local directory served at `/extensions/`; must point to an existing directory before extension injection is enabled |
-| `HERMES_WEBUI_EXTENSION_MANIFEST` | *(unset)* | Optional relative JSON manifest inside `HERMES_WEBUI_EXTENSION_DIR` listing bundled scripts/styles to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
-| `HERMES_WEBUI_EXTENSION_SCRIPT_URLS` | *(unset)* | Optional comma-separated same-origin script URLs to inject; appended after manifest scripts; see [WebUI Extensions](docs/EXTENSIONS.md) |
-| `HERMES_WEBUI_EXTENSION_STYLESHEET_URLS` | *(unset)* | Optional comma-separated same-origin stylesheet URLs to inject; appended after manifest stylesheets; see [WebUI Extensions](docs/EXTENSIONS.md) |
-| `HERMES_HOME` | Windows: `%LOCALAPPDATA%\hermes`; POSIX: `~/.hermes` | Base directory for Hermes state (affects all paths) |
-| `HERMES_CONFIG_PATH` | `$HERMES_HOME/config.yaml` | Path to Hermes config file |
-| `HERMES_WEBUI_SERVER_CWD` | *(unset)* | Working directory for the server process. Defaults to the agent dir; point it at a writable workspace when the agent dir is read-only so fallback relative writes land somewhere writable |
-| `HERMES_WEBUI_VISIBLE_SESSION_LIMIT` | `20` | Size of the sidebar's interactive recency window (how many recent non-cron/webhook sessions are listed). Also bounds how many delegated subagent children can nest at once, since a child only renders when its row wins a slot in the window — raise it for wide fan-outs. Non-integer or non-positive values fall back to the default. Values above 200 are clamped. Resolved before profile init, so a profile `.env` cannot override it |
-| `HERMES_WEBUI_AGENT_CACHE_MAX` | `25` | Max live agent instances kept warm in the in-memory LRU. Each pins a full conversation transcript, so this is the dominant lever on resident memory — lower it on installs with many long sessions to cap RAM (at the cost of more cold reloads) |
-| `HERMES_WEBUI_SESSIONS_MAX` | `100` | Legacy operator override for the max compact `Session` objects held in the in-memory LRU. Prefer the `webui.sessions_cache_max` key in `config.yaml` (which takes precedence); this env var remains a fallback. Bounds resident memory so long-running installs cannot accumulate every session ever touched and eventually crash (#4765/#2233/#4633). Eviction only ever drops clean, persisted, non-active sessions; an evicted session lazily reloads from its JSON sidecar on next access |
+| `IRIS_WEBUI_AGENT_DIR` | auto-discovered | Path to the Iris Agent source or installed module root |
+| `IRIS_WEBUI_PYTHON` | auto-discovered | Python executable |
+| `IRIS_WEBUI_HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for all IPv4, `::` for all IPv6, `::1` for IPv6 loopback) |
+| `IRIS_WEBUI_PORT` | `8787` | Port |
+| `IRIS_WEBUI_STATE_DIR` | `$IRIS_HOME/webui` (Windows default `%LOCALAPPDATA%\iris\webui`, POSIX default `~/.iris/webui`) | Where sessions and state are stored. **Note (upgrade):** the default now follows `IRIS_HOME` — if you previously relocated `IRIS_HOME` to a non-default base **without** setting `IRIS_WEBUI_STATE_DIR`, your WebUI state now resolves to `$IRIS_HOME/webui` instead of the old platform-default `~/.iris/webui`. To keep using the old location, set `IRIS_WEBUI_STATE_DIR` to it (or move the directory). Installs with `IRIS_HOME` unset or at the default base are unaffected. |
+| `IRIS_WEBUI_DEFAULT_WORKSPACE` | `~/workspace` | Default workspace |
+| `IRIS_WEBUI_DEFAULT_MODEL` | *(provider default)* | Optional model override; leave unset to use the active Iris provider default |
+| `IRIS_WEBUI_PASSWORD` | *(unset)* | Set to enable password authentication |
+| `IRIS_WEBUI_CSP_CONNECT_EXTRA` | *(unset)* | Optional space-separated `http(s)://` or `ws(s)://` origins to append to the enforced and report-only CSP `connect-src` directives for trusted reverse-proxy, tunnel, or extension sidecar deployments |
+| `IRIS_WEBUI_SSE_CHUNKED` | *(unset)* | Set truthy (`1`/`true`/`yes`/`on`) to send SSE with `Transfer-Encoding: chunked`. Needed behind buffering reverse proxies (e.g. `jupyter-server-proxy`) that otherwise buffer the whole stream; harmless but unnecessary for directly-served deployments |
+| `IRIS_WEBUI_EXTENSION_DIR` | *(unset)* | Optional local directory served at `/extensions/`; must point to an existing directory before extension injection is enabled |
+| `IRIS_WEBUI_EXTENSION_MANIFEST` | *(unset)* | Optional relative JSON manifest inside `IRIS_WEBUI_EXTENSION_DIR` listing bundled scripts/styles to inject; see [WebUI Extensions](docs/EXTENSIONS.md) |
+| `IRIS_WEBUI_EXTENSION_SCRIPT_URLS` | *(unset)* | Optional comma-separated same-origin script URLs to inject; appended after manifest scripts; see [WebUI Extensions](docs/EXTENSIONS.md) |
+| `IRIS_WEBUI_EXTENSION_STYLESHEET_URLS` | *(unset)* | Optional comma-separated same-origin stylesheet URLs to inject; appended after manifest stylesheets; see [WebUI Extensions](docs/EXTENSIONS.md) |
+| `IRIS_HOME` | Windows: `%LOCALAPPDATA%\iris`; POSIX: `~/.iris` | Base directory for Iris state (affects all paths) |
+| `IRIS_CONFIG_PATH` | `$IRIS_HOME/config.yaml` | Path to Iris config file |
+| `IRIS_WEBUI_SERVER_CWD` | *(unset)* | Working directory for the server process. Defaults to the agent dir; point it at a writable workspace when the agent dir is read-only so fallback relative writes land somewhere writable |
+| `IRIS_WEBUI_VISIBLE_SESSION_LIMIT` | `20` | Size of the sidebar's interactive recency window (how many recent non-cron/webhook sessions are listed). Also bounds how many delegated subagent children can nest at once, since a child only renders when its row wins a slot in the window — raise it for wide fan-outs. Non-integer or non-positive values fall back to the default. Values above 200 are clamped. Resolved before profile init, so a profile `.env` cannot override it |
+| `IRIS_WEBUI_AGENT_CACHE_MAX` | `25` | Max live agent instances kept warm in the in-memory LRU. Each pins a full conversation transcript, so this is the dominant lever on resident memory — lower it on installs with many long sessions to cap RAM (at the cost of more cold reloads) |
+| `IRIS_WEBUI_SESSIONS_MAX` | `100` | Legacy operator override for the max compact `Session` objects held in the in-memory LRU. Prefer the `webui.sessions_cache_max` key in `config.yaml` (which takes precedence); this env var remains a fallback. Bounds resident memory so long-running installs cannot accumulate every session ever touched and eventually crash (#4765/#2233/#4633). Eviction only ever drops clean, persisted, non-active sessions; an evicted session lazily reloads from its JSON sidecar on next access |
 
 Extension deployments can inspect sanitized, authenticated diagnostics at `GET /api/extensions/status`; see [WebUI Extensions](docs/EXTENSIONS.md#diagnostics).
 
 ---
 
-### Nix flake and NixOS module
+### NixOS support
 
-Hermes WebUI has a Nix flake package and a NixOS service module so you can run it declaratively.
-
-Install the latest package with:
-
-```bash
-nix shell github:nesquena/hermes-webui#default
-```
-
-Use this flake input in your system configuration:
-
-```nix
-inputs.hermes-webui.url = "github:nesquena/hermes-webui";
-```
-
-Then add the module and configure it in `nixosModules`:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    hermes-agent.url = "github:NousResearch/hermes-agent";
-    hermes-webui.url = "github:nesquena/hermes-webui";
-  };
-
-  outputs = { self, nixpkgs, hermes-agent, hermes-webui, ... }: {
-    nixosConfigurations.<host> = nixpkgs.lib.nixosSystem {
-      modules = [
-        hermes-agent.nixosModules.default
-        hermes-webui.nixosModules.default
-        ({ pkgs, ... }: {
-          services.hermes-agent.enable = true;
-          services.hermes-webui = {
-            enable = true;
-            host = "127.0.0.1";
-            port = 8787;
-            stateDir = "/var/lib/hermes-webui";
-            user = "hermes";
-            group = "hermes";
-            hermesHome = "/var/lib/hermes/.hermes";
-            agent.package = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
-            environmentFiles = [ "/run/secrets/hermes-webui.env" ];
-          };
-        })
-      ];
-    };
-  };
-}
-```
-
-The module defaults to `127.0.0.1`. Set `host = "0.0.0.0"` and `openFirewall = true` only when you want direct network access, and pair that with auth, for example `HERMES_WEBUI_PASSWORD` via `environmentFiles`.
-
-The published Hermes Agent package exposes `passthru.hermesVenv`, so the module derives `HERMES_WEBUI_PYTHON` from its interpreter. Bootstrap then locates the installed `run_agent.py` through that interpreter without importing Agent code and exports its parent as `HERMES_WEBUI_AGENT_DIR`. Packages may expose `passthru.hermesAgentDir` as a direct path instead. Use `agent.dir` and `agent.python` as explicit overrides for custom package layouts.
-
-When WebUI reads shared Hermes Agent state, run the service as a user that can already read that state. For a co-located Hermes Agent service, set `user` and `group` to the agent service account; the module only creates the default `hermes-webui` account and never changes ownership of an existing `hermesHome`.
-
-The module maps directly onto existing WebUI environment variables, including:
-`HERMES_WEBUI_HOST`, `HERMES_WEBUI_PORT`, `HERMES_WEBUI_STATE_DIR`, `HERMES_HOME`, `HERMES_WEBUI_AGENT_DIR`, and `HERMES_WEBUI_PYTHON`.
-
-Set `environmentFiles` for secrets like API keys. Protected WebUI runtime keys from the module are rejected there, so keep host, port, state, and agent wiring in the module options. Keep reverse proxy and TLS configuration in your surrounding deployment module because those details are deployment-specific.
+NixOS packaging is being reworked (the Iris agent flake was removed upstream).
+Use the general install instructions below; a declarative module will return with the reworked flake.
 
 ### Remote access (SSH tunnel, Tailscale, phone)
 
-The server binds to `127.0.0.1` by default. To reach it from another machine use an SSH tunnel (`ssh -N -L 8787:127.0.0.1:8787 user@host`, which `start.sh` prints for you over SSH), or join your server and phone to a [Tailscale](https://tailscale.com) network and browse to `http://<server-tailscale-ip>:8787` with `HERMES_WEBUI_HOST=0.0.0.0` + `HERMES_WEBUI_PASSWORD` set. Full walkthrough (incl. a community ARM64-Android field report): [`docs/remote-access.md`](docs/remote-access.md).
+The server binds to `127.0.0.1` by default. To reach it from another machine use an SSH tunnel (`ssh -N -L 8787:127.0.0.1:8787 user@host`, which `start.sh` prints for you over SSH), or join your server and phone to a [Tailscale](https://tailscale.com) network and browse to `http://<server-tailscale-ip>:8787` with `IRIS_WEBUI_HOST=0.0.0.0` + `IRIS_WEBUI_PASSWORD` set. Full walkthrough (incl. a community ARM64-Android field report): [`docs/remote-access.md`](docs/remote-access.md).
 
 ### Manual launch (without start.sh)
 
 If you prefer to launch the server directly:
 
 ```bash
-cd /path/to/hermes-agent          # or wherever sys.path can find Hermes modules
-HERMES_WEBUI_PORT=8787 venv/bin/python /path/to/hermes-webui/server.py
+cd /path/to/iris-agent          # or wherever sys.path can find Iris modules
+IRIS_WEBUI_PORT=8787 venv/bin/python /path/to/iris-webui/server.py
 ```
 
-Note: use the agent venv Python (or any Python environment that has the Hermes agent dependencies installed). System Python will be missing `openai`, `httpx`, and other required packages.
+Note: use the agent venv Python (or any Python environment that has the Iris agent dependencies installed). System Python will be missing `openai`, `httpx`, and other required packages.
 
 Health check:
 
@@ -477,49 +461,54 @@ For a comprehensive setup guide covering all 3 compose files, common failure mod
 The simplest setup: one WebUI container that runs the agent in-process.
 
 ```bash
-git clone https://github.com/nesquena/hermes-webui
-cd hermes-webui
+# Primary: GitHub. China users can substitute the GitCode mirror:
+#   git clone https://gitcode.com/badhope/iris.git
+git clone https://github.com/X33834/iris.git
+cd iris-webui
 cp .env.docker.example .env
 # Edit .env if your host UID isn't 1000 (e.g. macOS where UIDs start at 501)
 docker compose up -d
 # Open http://localhost:8787
 ```
 
-Run Compose as the user who owns your Hermes home. `sudo docker compose up -d` can make `${HOME}` expand to the root user's home, so Docker mounts the wrong `.hermes` directory instead of your real `~/.hermes` and the WebUI starts with `config.yaml (not found, using defaults)`. Prefer adding your user to the Docker group and running `docker compose up -d`; if you must use sudo, set absolute paths first, for example `HERMES_HOME=/home/you/.hermes HERMES_WORKSPACE=/home/you/workspace sudo -E docker compose up -d`, then verify with `docker compose config`.
+Run Compose as the user who owns your Iris home. `sudo docker compose up -d` can make `${HOME}` expand to the root user's home, so Docker mounts the wrong `.iris` directory instead of your real `~/.iris` and the WebUI starts with `config.yaml (not found, using defaults)`. Prefer adding your user to the Docker group and running `docker compose up -d`; if you must use sudo, set absolute paths first, for example `IRIS_HOME=/home/you/.iris IRIS_WORKSPACE=/home/you/workspace sudo -E docker compose up -d`, then verify with `docker compose config`.
 
-The container auto-detects your UID/GID from the mounted `~/.hermes` volume so files written by the agent stay readable by you on the host.
+The container auto-detects your UID/GID from the mounted `~/.iris` volume so files written by the agent stay readable by you on the host.
 
 To enable password protection (required if you expose the port outside `127.0.0.1`):
 
 ```bash
-echo "HERMES_WEBUI_PASSWORD=change-me-to-something-strong" >> .env
+echo "IRIS_WEBUI_PASSWORD=change-me-to-something-strong" >> .env
 docker compose up -d --force-recreate
 ```
 
 ### Manual `docker run` (no compose)
 
 ```bash
-docker pull ghcr.io/nesquena/hermes-webui:latest
+# [CHANNEL-PENDING] The old ghcr.io/nesquena/iris-webui image is an upstream dead
+# link. Recommended target once this project publishes its own registry:
+# ghcr.io/x33834/iris-webui:latest — confirm the published registry before pulling.
+docker pull ghcr.io/x33834/iris-webui:latest
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
-  -v ~/.hermes:/home/hermeswebui/.hermes \
-  -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
+  -v ~/.iris:/home/iriswebui/.iris \
+  -e IRIS_WEBUI_STATE_DIR=/home/iriswebui/.iris/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
-  ghcr.io/nesquena/hermes-webui:latest
+  ghcr.io/x33834/iris-webui:latest
 ```
 
 ### Build locally
 
 ```bash
-docker build -t hermes-webui .
+docker build -t iris-webui .
 docker run -d \
   -e WANTED_UID=$(id -u) -e WANTED_GID=$(id -g) \
-  -v ~/.hermes:/home/hermeswebui/.hermes \
-  -e HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui \
+  -v ~/.iris:/home/iriswebui/.iris \
+  -e IRIS_WEBUI_STATE_DIR=/home/iriswebui/.iris/webui \
   -v ~/workspace:/workspace \
   -p 127.0.0.1:8787:8787 \
-  hermes-webui
+  iris-webui
 ```
 
 ### Multi-container setups
@@ -536,40 +525,40 @@ docker compose -f docker-compose.three-container.yml up -d
 
 Both compose files use **named Docker volumes** by default, which solves the UID/GID problem by construction. If you need bind mounts to share an existing host directory, see [`docs/docker.md`](docs/docker.md) for the full migration recipe.
 
-> **Known limitation (#681)**: in the two-container setup, tools triggered from the WebUI run in the **WebUI container**, not the agent container. If you need git/node/etc. on the WebUI's filesystem, either use the single-container setup, extend the WebUI Dockerfile, or use the community [all-in-one image](https://github.com/sunnysktsang/hermes-suite).
+> **Known limitation (#681)**: in the two-container setup, tools triggered from the WebUI run in the **WebUI container**, not the agent container. If you need git/node/etc. on the WebUI's filesystem, either use the single-container setup, extend the WebUI Dockerfile, or use the community [all-in-one image](https://github.com/sunnysktsang/iris-suite).
 >
-> **Source boundary note (#2453)**: the multi-container setup mounts `hermes-agent-src` read-only into the WebUI by default. This prevents WebUI-side source rewrites but is still an implementation-coupling bridge, not a stable Agent API boundary. See [`docs/rfcs/agent-source-boundary.md`](docs/rfcs/agent-source-boundary.md) for the current source/API decoupling inventory.
+> **Source boundary note (#2453)**: the multi-container setup mounts `iris-agent-src` read-only into the WebUI by default. This prevents WebUI-side source rewrites but is still an implementation-coupling bridge, not a stable Agent API boundary. See [`docs/rfcs/agent-source-boundary.md`](docs/rfcs/agent-source-boundary.md) for the current source/API decoupling inventory.
 
 ### Common failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `PermissionError` at startup | UID mismatch on bind mount | Set `UID=$(id -u)` in `.env` |
-| `.env: permission denied` (#1389) | `fix_credential_permissions()` enforced 0600 | Set `HERMES_SKIP_CHMOD=1` in `.env` |
+| `.env: permission denied` (#1389) | `fix_credential_permissions()` enforced 0600 | Set `IRIS_SKIP_CHMOD=1` in `.env` |
 | Workspace appears empty | UID mismatch on `/workspace` mount | Set `UID=$(id -u)` in `.env` |
 | `git: command not found` in chat | Two-container architectural limit (#681) | Use single-container or extend Dockerfile |
-| WebUI can't find agent source | `hermes-agent-src` volume misconfigured | Use the named volumes from compose files as-is |
-| Podman shared `.hermes` fails | Podman 3.4 `keep-id` limitation | Use Podman 4+ or single-container |
+| WebUI can't find agent source | `iris-agent-src` volume misconfigured | Use the named volumes from compose files as-is |
+| Podman shared `.iris` fails | Podman 3.4 `keep-id` limitation | Use Podman 4+ or single-container |
 | Host API at `localhost` fails from WebUI | Container `localhost` means the container, not your host (#3012) | Use `http://host.docker.internal:<port>` on Docker Desktop, or `http://host.containers.internal:<port>` on Podman |
-| WebUI can't see `~/.hermes` after `sudo docker compose` | `${HOME}` expanded to the root user's home (#3006) | Run Compose as your user, or pass absolute `HERMES_HOME`/`HERMES_WORKSPACE` with `sudo -E` |
+| WebUI can't see `~/.iris` after `sudo docker compose` | `${HOME}` expanded to the root user's home (#3006) | Run Compose as your user, or pass absolute `IRIS_HOME`/`IRIS_WORKSPACE` with `sudo -E` |
 
 For the deep dive on each of these, see [`docs/docker.md`](docs/docker.md).
 
 > **Note:** By default, Docker Compose binds to `127.0.0.1` (localhost only).
 > To expose on a network, change the port to `"8787:8787"` in `docker-compose.yml`
-> and set `HERMES_WEBUI_PASSWORD` to enable authentication.
+> and set `IRIS_WEBUI_PASSWORD` to enable authentication.
 
 ---
 
 ## Running tests
 
-Tests discover the repo and the Hermes agent dynamically -- no hardcoded paths.
+Tests discover the repo and the Iris agent dynamically -- no hardcoded paths.
 Use the repo test runner so local runs do not accidentally use an unsupported
 system Python. It creates/uses `.venv` with Python 3.11, 3.12, or 3.13 and
 installs the dev test dependencies from `requirements-dev.txt` when missing.
 
 ```bash
-cd hermes-webui
+cd iris-webui
 ./scripts/test.sh
 ```
 
@@ -582,7 +571,7 @@ Pass normal pytest arguments after the script for focused runs:
 Or seed the repo `.venv` from an explicit supported base interpreter:
 
 ```bash
-HERMES_WEBUI_TEST_PYTHON=/path/to/python3.12 ./scripts/test.sh tests/ -v
+IRIS_WEBUI_TEST_PYTHON=/path/to/python3.12 ./scripts/test.sh tests/ -v
 ```
 
 The override selects the Python used to create or rebuild `.venv`; dependencies
@@ -611,7 +600,7 @@ api/
   helpers.py      HTTP helpers, security headers
   models.py       Session model + CRUD + CLI/state.db bridge
   onboarding.py   First-run onboarding wizard, OAuth provider support
-  profiles.py     Profile state management, hermes_cli wrapper
+  profiles.py     Profile state management, iris_cli wrapper
   routes.py       All GET + POST route handlers (if/elif dispatch, no decorators)
   state_sync.py   /insights sync — message_count to state.db
   streaming.py    SSE engine, run_agent, cancellation, compression
@@ -645,8 +634,8 @@ docker-compose.yml  Compose with named volume and optional auth
                     multi-arch Docker build + GitHub Release on tag
 ```
 
-State lives outside the repo at `~/.hermes/webui/` by default
-(sessions, workspaces, settings, projects, last_workspace). Override with `HERMES_WEBUI_STATE_DIR`.
+State lives outside the repo at `~/.iris/webui/` by default
+(sessions, workspaces, settings, projects, last_workspace). Override with `IRIS_WEBUI_STATE_DIR`.
 Full design notes and the endpoint catalog are in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ---
@@ -655,22 +644,22 @@ Full design notes and the endpoint catalog are in [`ARCHITECTURE.md`](ARCHITECTU
 
 The version shown in the WebUI runtime status is the **WebUI version only** (build/image/tag currently running). It is not a full compatibility map.
 
-The WebUI is still coupled to Hermes Agent internals for runtime execution, provider/model access, and state/schema usage until the stable agent boundary work in [#1925](https://github.com/nesquena/hermes-webui/issues/1925) and [#2491](https://github.com/nesquena/hermes-webui/issues/2491) land. In practice, the WebUI imports Agent modules directly (`api/config.py`, `api/providers.py`, `api/streaming.py`) and reads Agent state layout directly, so version skew can cause import or behavior drift.
+The WebUI is still coupled to Iris Agent internals for runtime execution, provider/model access, and state/schema usage until the stable agent boundary work in [#1925](https://github.com/nesquena/hermes-webui/issues/1925) and [#2491](https://github.com/nesquena/hermes-webui/issues/2491) land. In practice, the WebUI imports Agent modules directly (`api/config.py`, `api/providers.py`, `api/streaming.py`) and reads Agent state layout directly, so version skew can cause import or behavior drift.
 
 **Compatibility policy**
-- WebUI release branches are tested against the matching Hermes Agent release available at that WebUI release time.
-- **Upgrade both together**: upgrade or pin WebUI and hermes-agent together (same release train/version/date), especially before enabling production traffic.
+- WebUI release branches are tested against the matching Iris Agent release available at that WebUI release time.
+- **Upgrade both together**: upgrade or pin WebUI and iris-agent together (same release train/version/date), especially before enabling production traffic.
 - Running pinned older/newer combinations is **untested and unsupported** until the stable API boundary work in [#1925](https://github.com/nesquena/hermes-webui/issues/1925) / [#2491](https://github.com/nesquena/hermes-webui/issues/2491) is in place.
-- Record the full `hermes-agent` + `hermes-webui` versions in issue reports when upgrade mismatches are suspected.
+- Record the full `iris-agent` + `iris-webui` versions in issue reports when upgrade mismatches are suspected.
 
-**Docker users**: pin both image tags (or corresponding pinned source revisions) rather than using `latest` on one side and a fixed tag on the other. When upgrading the multi-container setup, follow the agent-image upgrade procedure in [`docs/docker.md`](docs/docker.md) (which requires dropping the `hermes-agent-src` volume before recreating). The current source-boundary status is tracked in [`docs/rfcs/agent-source-boundary.md`](docs/rfcs/agent-source-boundary.md).
+**Docker users**: pin both image tags (or corresponding pinned source revisions) rather than using `latest` on one side and a fixed tag on the other. When upgrading the multi-container setup, follow the agent-image upgrade procedure in [`docs/docker.md`](docs/docker.md) (which requires dropping the `iris-agent-src` volume before recreating). The current source-boundary status is tracked in [`docs/rfcs/agent-source-boundary.md`](docs/rfcs/agent-source-boundary.md).
 
 ---
 
 ## Docs
 
 **Start here**
-- [`docs/why-hermes.md`](docs/why-hermes.md) — why Hermes, the mental model, and a detailed comparison to Claude Code / Codex / OpenCode / Cursor
+- [`docs/why-iris.md`](docs/why-iris.md) — why Iris, the mental model, and a detailed comparison to Claude Code / Codex / OpenCode / Cursor
 - [`docs/onboarding.md`](docs/onboarding.md) — first-run wizard, provider setup, local model server Base URLs, and safe re-runs
 - [`docs/troubleshooting.md`](docs/troubleshooting.md) — diagnostic flows for common failures (e.g. "AIAgent not available")
 
@@ -680,6 +669,8 @@ The WebUI is still coupled to Hermes Agent internals for runtime execution, prov
 - [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) — administrator-controlled WebUI extension injection
 
 **Deploying & operating**
+- [`docs/DEPLOYING.md`](docs/DEPLOYING.md) — bare-metal/VM deployment: process models (in-process vs Gateway vs runner), bootstrap internals, systemd unit, upgrade path
+- [`docs/environment-variables.md`](docs/environment-variables.md) — full `IRIS_WEBUI_*` reference (launch, auth, gateway, limits)
 - [`docs/remote-access.md`](docs/remote-access.md) — SSH tunnel, Tailscale, and phone access (incl. a community ARM64-Android field report)
 - [`docs/advanced-chat-setup.md`](docs/advanced-chat-setup.md) — optional dynamic recall-prefill and Gateway-backed browser chat for self-hosted deployments
 - [`docs/docker.md`](docs/docker.md) — Docker compose setup, common failures, and bind-mount migration
@@ -707,7 +698,7 @@ The WebUI is still coupled to Hermes Agent internals for runtime execution, prov
 
 ## Contributors
 
-Hermes WebUI is built with help from the open-source community. Every PR — whether merged directly, absorbed into a batch release, or salvaged from a larger proposal — shapes the project, and we're grateful to everyone who has taken the time to contribute.
+Iris WebUI is built with help from the open-source community. Every PR — whether merged directly, absorbed into a batch release, or salvaged from a larger proposal — shapes the project, and we're grateful to everyone who has taken the time to contribute.
 
 <!-- BEGIN GENERATED CONTRIBUTORS -->
 Over **326 contributors** have shipped code that landed in a release tag. The full, continuously-updated credit roll — including everyone with one or two PRs and the special-thanks roll for design and architectural work — lives in [`CONTRIBUTORS.md`](CONTRIBUTORS.md). A snapshot of the most prolific contributors:
@@ -736,7 +727,7 @@ See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for the full ranked list of all 326 con
 Across the longest tenure of any external contributor: the session title guard (#301), breadcrumb workspace navigation (#302), embedded workspace terminal (#1099), worktree-backed session creation (#2053), onboarding documentation (#2052), composer footer container queries, streaming-session sidebar exemption (#1327), session sidecar repair, cron output preservation (#1295), profile default workspace persistence, manual `/compress` async start/status endpoints (#2128), worktree status surface (#2109) + guarded remove (#2156) for the lifecycle umbrella #2057, session post-render dedup (#2166), native-WebUI fast path (#2170), tail-window response trim (#2171), stale-stream guard extension (#2158), CSP report collector (#2160), and a long tail of polish across mobile/responsive, the session sidebar, and the workspace state machine.
 
 **[@Michaelyklam](https://github.com/Michaelyklam)** — Most prolific contributor of recent releases (118 PRs, `v0.50.240` → `v0.51.198`)
-Production Docker hardening (#1921, drops sudo-capable staging user), profile-scoped skills endpoints (#1903), gateway PID resolution under profile-scoped HERMES_HOME (#1901), profile-aware AIAgent cache (#1898/#1904), backslash LaTeX delimiters (#1848), Codex quota error surfacing (#1770), shell-route HTML 503 (#1836), stale Kanban client recovery (#1828), context auto-compression toast lifetime (#1988), `/goal` command (#1866), Kanban detail-view scrolling (#1916), CLI session tool metadata preservation (#1778), Traditional Chinese kanban locale backfill (#1979), v0.51.51 mobile Insights bucketing/layout (#2120/#2121), Hermes run adapter RFC (#2105 for #1925), fork-from-here absolute index (#2198 for #2184), opencode-go custom-provider overlap routing (#2204 for #1894).
+Production Docker hardening (#1921, drops sudo-capable staging user), profile-scoped skills endpoints (#1903), gateway PID resolution under profile-scoped IRIS_HOME (#1901), profile-aware AIAgent cache (#1898/#1904), backslash LaTeX delimiters (#1848), Codex quota error surfacing (#1770), shell-route HTML 503 (#1836), stale Kanban client recovery (#1828), context auto-compression toast lifetime (#1988), `/goal` command (#1866), Kanban detail-view scrolling (#1916), CLI session tool metadata preservation (#1778), Traditional Chinese kanban locale backfill (#1979), v0.51.51 mobile Insights bucketing/layout (#2120/#2121), Iris run adapter RFC (#2105 for #1925), fork-from-here absolute index (#2198 for #2184), opencode-go custom-provider overlap routing (#2204 for #1894).
 
 **[@rodboev](https://github.com/rodboev)** — Windows / cross-platform correctness + test reliability (83 PRs, `v0.51.223` → `v0.51.384`)
 A broad, sustained sweep with a strong focus on making the project work outside Linux: the `ctl.sh` Windows process-tree-kill fix (#3670), the local Windows full-suite signal/orphan-process work, slash-command autocomplete polish, and a long tail of frontend and infrastructure fixes shipped across dozens of release batches.
@@ -745,7 +736,7 @@ A broad, sustained sweep with a strong focus on making the project work outside 
 Provider management UI for adding/editing custom providers from Settings, OAuth provider status detection (#1552), two-container Docker setup, profile isolation hardening (per-profile `.env` secrets), the bulk of what users see when they touch Settings → Providers, Reveal-in-Finder context menu (#1551), gateway status card (#1552), auto-assign session to active project filter (#1550), "What's new?" link in update banner (#1549), OpenRouter free-tier live fetch (#1548), credential pool 401 self-heal (#1553), inline provider chip + group model count in model picker (#1644).
 
 **[@ai-ag2026](https://github.com/ai-ag2026)** — Session recovery + audit infrastructure (75 PRs, `v0.50.279` → `v0.51.367`)
-Autonomous-AI contributor (Hermes Agent-driven) focused on durability: `state.db`-backed sidecar reconciliation (#2041), orphan `.json.bak` recovery on startup (#2035), read-only session recovery audit endpoints (#2036, #2040), active run lifecycle in `/health` (#2039), crash-safe turn-journal RFC at `docs/rfcs/turn-journal.md` (#2042), append-only turn-journal helper (#2059), lifecycle events layer (#2062), `Content-Security-Policy-Report-Only` header (#2084), per-cron toast toggle (#2100), fork-session compression lineage isolation (#2014).
+Autonomous-AI contributor (Iris Agent-driven) focused on durability: `state.db`-backed sidecar reconciliation (#2041), orphan `.json.bak` recovery on startup (#2035), read-only session recovery audit endpoints (#2036, #2040), active run lifecycle in `/health` (#2039), crash-safe turn-journal RFC at `docs/rfcs/turn-journal.md` (#2042), append-only turn-journal helper (#2059), lifecycle events layer (#2062), `Content-Security-Policy-Report-Only` header (#2084), per-cron toast toggle (#2100), fork-session compression lineage isolation (#2014).
 
 **[@dso2ng](https://github.com/dso2ng)** — Session lineage + diagnostics (30 PRs, `v0.50.227` → `v0.51.327`)
 `/api/session/lineage-report/<sid>` endpoint for bounded session graph diagnostics (#2012), stale Mermaid render error cleanup (#1337), `session_source="fork"` continuation-chain isolation (#2063), lazy lineage-report fetch on sidebar badge expand (#2130), and a long tail of frontend reliability fixes around session loading.
@@ -757,7 +748,7 @@ Sidebar collapse via active-rail click (#2054, fuses #1884 + #1924), composer ch
 Original sprint of workspace fallback resolution, live reasoning cards (#366, #367, #394–#397), then a recent burst: manual "Refresh usage" button on the Provider quota card (#2150), cancelled-turn status classification (#2151), Firefox sidebar scroll stabilization (#2200), early provisional session titles (#2202), target-aware "What's new?" update-banner links (#2207), and MCP tools overflow fix in Settings (#2210).
 
 **[@aronprins](https://github.com/aronprins)** — `v0.50.0` UI overhaul (PR #242, plus 9 follow-ups)
-The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Hermes Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `⋯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
+The biggest single contribution to the project: a complete UI redesign that moved model/profile/workspace controls into the composer footer, replaced the gear-icon settings panel with the Iris Control Center (tabbed modal), removed the activity bar in favor of inline composer status, redesigned the session list with a `⋯` action dropdown, and added the workspace panel state machine. Plus chat transcript redesign (#587), sidebar declutter (#584), three-column layout refactor (#899), light/dark theme + accent skins (#627), and shared `confirm()`/`prompt()` dialog replacement (PR #251 extracted from #242).
 
 **[@iRonin](https://github.com/iRonin)** — Security hardening sprint (PRs #196–#204)
 Six consecutive, focused security PRs: session memory leak fix (expired token pruning), CSP + Permissions-Policy headers, 30-second slow-client connection timeout, optional HTTPS/TLS support via environment variables, upstream branch tracking fix for self-update, and CLI session support in the file-browser API. The kind of focused, high-quality security work that makes a self-hosted tool trustworthy.
@@ -836,5 +827,8 @@ Configurable assistant display name, thinking/reasoning block display, and a log
 ## Repo
 
 ```
-git@github.com:nesquena/hermes-webui.git
+# Primary (GitHub — CI + Releases):
+git@github.com:X33834/iris.git
+# Co-release mirror (GitCode — homepage + Releases, China):
+git@gitcode.com:badhope/iris.git
 ```

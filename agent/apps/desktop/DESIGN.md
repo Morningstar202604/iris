@@ -130,8 +130,8 @@ Reduced motion settles immediately without retaining empty clearance.
 Settings → Appearance → Window layout offers **Minimize to tray**, off by default and
 local to this desktop installation. When enabled, minimizing ordinary windows
 hides them without stopping their work. Close, Alt+F4, and Cmd+Q keep their
-normal behavior. The tray's **Show Hermes** restores hidden windows;
-**Quit Hermes** keeps the ordinary active-work confirmation and teardown.
+normal behavior. The tray's **Show Iris** restores hidden windows;
+**Quit Iris** keeps the ordinary active-work confirmation and teardown.
 On macOS the tray lives in the menu bar; the Dock icon hides only when no normal
 window remains visible and returns on restore. If the tray is unavailable,
 ordinary minimize/close behavior is retained rather than hiding an unreachable app.
@@ -425,9 +425,11 @@ so glass and message-bubble transparency do not reveal scrolling text.
   action. Do not introduce a third icon set or mix styles within one control
   group.
 - **`BrandMark`** (`src/components/brand-mark.tsx`) is the brand glyph — the
-  `nous-girl` mark on a white tile, softly rounded, identical in light/dark.
-  It replaced scattered Sparkles glyphs in updates / onboarding / about. Use it
-  for hero/brand moments; don't reintroduce decorative star/sparkle icons.
+  Iris winged-staff mark (`iris-mark.png`, transparent indigo gradient) on a
+  white tile, softly rounded, identical in light/dark. The asset is exported
+  from `assets/brand/` (see `webui/docs/BRAND.md` §4). It replaced scattered
+  Sparkles glyphs in updates / onboarding / about. Use it for hero/brand
+  moments; don't reintroduce decorative star/sparkle icons.
 
 ## Motion
 

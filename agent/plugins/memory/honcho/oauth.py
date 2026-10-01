@@ -283,7 +283,7 @@ def _rotate_and_persist(
                 return disk
             _mark_grant_dead(key, cred)
             logger.error("Honcho OAuth grant for host %s is no longer valid (%s); "
-                         "run 'hermes honcho setup' to re-authenticate", host, exc)
+                         "run 'iris honcho setup' to re-authenticate", host, exc)
             return None
         _refresh_failure_at[key] = time.monotonic()
         logger.warning("Honcho OAuth %s failed for host %s: %s", op_label, host, redact_sensitive_text(str(exc), force=True))

@@ -13,7 +13,7 @@ no import machinery).
 
 These tests are AST/source-level because the actual import targets
 (``tools.skills_tool``, ``tools.skill_manager_tool``) live in the
-hermes-agent package which may not be installed in the test venv.
+iris-agent package which may not be installed in the test venv.
 """
 import ast
 import pathlib
@@ -190,7 +190,7 @@ class TestSysModulesLookupInEnvLock:
             "patch_skill_home_modules() must use sys.modules.get(), not import, "
             "so env-lock callers do not trigger first-time imports (#2024)"
         )
-        assert "HERMES_HOME" in helper_source
+        assert "IRIS_HOME" in helper_source
         assert "SKILLS_DIR" in helper_source
         assert "tools.skills_tool" in source, (
             "profiles.py must patch tools.skills_tool module-level caches"

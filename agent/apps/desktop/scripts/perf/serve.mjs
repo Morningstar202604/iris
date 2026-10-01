@@ -2,7 +2,7 @@
 // can attach the harness (`npm run perf`) or DevTools to it. Ctrl-C tears it
 // down and removes its temp dirs.
 //
-//   npm run perf:serve                 # :9222, temp HERMES_HOME + user-data-dir
+//   npm run perf:serve                 # :9222, temp IRIS_HOME + user-data-dir
 //   PERF_PORT=9333 npm run perf:serve  # custom CDP port
 //
 // This is the isolation seam: because it uses its own --user-data-dir the
@@ -18,7 +18,7 @@ console.log(`[perf:serve] starting isolated instance (CDP :${port}, dev :${devPo
 const instance = await startIsolatedInstance({
   port,
   devPort,
-  hermesHome: process.env.PERF_HERMES_HOME,
+  irisHome: process.env.PERF_IRIS_HOME,
   userDataDir: process.env.PERF_USER_DATA
 })
 

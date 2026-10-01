@@ -91,7 +91,7 @@ def test_chat_start_sanitises_500_error():
         "save-failure 500 must also log the full exception server-side "
         "so the operator can debug — sanitisation is only for the response"
     )
-    # Maintainer follow-up (nesquena-hermes, 2026-06-14): pin that
+    # Maintainer follow-up (nesquena-iris, 2026-06-14): pin that
     # _sanitize_error's output does not contain a `/` segment from the
     # session store root, so a future refactor of _sanitize_error can't
     # silently regress path-stripping.  Use the real SESSION_DIR so the
@@ -226,7 +226,7 @@ def _make_state_db(path: Path, sid: str, *, message_count: int = 2,
                     source: str = "tui", cwd: str = "/root") -> None:
     """Create a minimal state.db with one session and a few messages.
 
-    Schema mirrors hermes_state.SessionDB closely enough for
+    Schema mirrors iris_state.SessionDB closely enough for
     get_state_db_session_messages to return rows.
     """
     conn = sqlite3.connect(str(path))
@@ -963,7 +963,7 @@ def test_import_cli_reads_read_only_from_persisted_session():
 
 
 # ---------------------------------------------------------------------------
-# Residual gap from nesquena-hermes review 2026-06-10 03:58Z:
+# Residual gap from nesquena-iris review 2026-06-10 03:58Z:
 # platformless gateway fallbacks ("gateway", "unknown") slipped the
 # original denylist.  These tests pin the tightened refusal list.
 # ---------------------------------------------------------------------------
@@ -1286,7 +1286,7 @@ def test_helper_denylist_includes_gateway_and_unknown():
     import re
     # Use the ROUTES_PY constant (defined at module top) instead of
     # hardcoding the path so the test runs on any machine with the
-    # project checked out, not just at /opt/hermes-webui/.
+    # project checked out, not just at /opt/iris-webui/.
     src = ROUTES_PY.read_text(encoding="utf-8")
     # Find the function body
     m = re.search(

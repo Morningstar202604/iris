@@ -27,11 +27,11 @@ _SYSTEM_BROWSERS = ("google-chrome", "google-chrome-stable", "chromium", "chromi
 
 def profile_dir() -> Path:
     """User-data-dir the bot's browser uses on this profile's screen. ``AGENT_BROWSER_PROFILE`` pins your own:
-    ``~`` expands, and a relative path is anchored at this profile's HERMES_HOME (where the rest of the screen's
-    state lives), so ``pin`` means ``<HERMES_HOME>/pin`` and two profiles never share one jar by accident."""
+    ``~`` expands, and a relative path is anchored at this profile's IRIS_HOME (where the rest of the screen's
+    state lives), so ``pin`` means ``<IRIS_HOME>/pin`` and two profiles never share one jar by accident."""
     override = os.path.expanduser(os.environ.get("AGENT_BROWSER_PROFILE", "").strip())
     if override:
-        return Path(override) if os.path.isabs(override) else runtime.get_hermes_home() / override
+        return Path(override) if os.path.isabs(override) else runtime.get_iris_home() / override
     return runtime.state_dir() / "browser-profile"
 
 
@@ -106,7 +106,7 @@ def dock_argv(exe: str, user_data_dir: str) -> list[str]:
 
 def dock_exec_line(exe: str, user_data_dir: str) -> str:
     """The ``Exec=`` line of the dock's ``.desktop`` entry. Every argument is double-quoted per the
-    Desktop Entry spec (a browser under ``/opt/Google Chrome/`` or a profile under a spaced HERMES_HOME
+    Desktop Entry spec (a browser under ``/opt/Google Chrome/`` or a profile under a spaced IRIS_HOME
     otherwise splits into garbage): inside the quotes ``" ` $ \\`` are backslash-escaped, and because the
     value is itself a string field, each of those backslashes is escaped once more."""
     def quote(arg: str) -> str:

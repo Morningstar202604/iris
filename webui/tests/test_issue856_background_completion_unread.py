@@ -42,7 +42,7 @@ def _function_body(block: str) -> str:
 
 def test_background_completion_unread_uses_explicit_marker_not_message_delta():
     """A background completion must stay unread even when message_count has no delta."""
-    assert "SESSION_COMPLETION_UNREAD_KEY = 'hermes-session-completion-unread'" in SESSIONS_JS
+    assert "SESSION_COMPLETION_UNREAD_KEY = 'iris-session-completion-unread'" in SESSIONS_JS
     assert "function _markSessionCompletionUnread(" in SESSIONS_JS
     assert "function _clearSessionCompletionUnread(" in SESSIONS_JS
     assert "function _hasSessionCompletionUnread(" in SESSIONS_JS
@@ -357,7 +357,7 @@ def test_polling_transition_marks_completion_when_long_running_stream_snapshot_a
     render_block = SESSIONS_JS[render_idx:SESSIONS_JS.find("const hasUnread=", render_idx)]
 
     assert "const _sessionListSnapshotById = new Map();" in SESSIONS_JS
-    assert "SESSION_OBSERVED_STREAMING_KEY = 'hermes-session-observed-streaming'" in SESSIONS_JS
+    assert "SESSION_OBSERVED_STREAMING_KEY = 'iris-session-observed-streaming'" in SESSIONS_JS
     assert "function _rememberObservedStreamingSession(" in SESSIONS_JS
     assert "function _forgetObservedStreamingSession(" in SESSIONS_JS
     assert "const previousSnapshot = _sessionListSnapshotById.get(sid);" in transition_block

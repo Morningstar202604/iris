@@ -97,10 +97,10 @@ venv_guidance() {
   if [[ -n "$base_py" ]]; then
     echo "Could not create a working .venv with $base_py ($(python_version "$base_py"))." >&2
   else
-    echo "Could not create a working .venv for Hermes WebUI tests." >&2
+    echo "Could not create a working .venv for Iris WebUI tests." >&2
   fi
   echo "Install the matching Python venv/ensurepip package (for example python3.x-venv on Debian/Ubuntu)" >&2
-  echo "or set HERMES_WEBUI_TEST_PYTHON to a supported Python 3.11, 3.12, or 3.13 interpreter." >&2
+  echo "or set IRIS_WEBUI_TEST_PYTHON to a supported Python 3.11, 3.12, or 3.13 interpreter." >&2
 }
 
 create_or_rebuild_venv() {
@@ -114,7 +114,7 @@ create_or_rebuild_venv() {
   # before this function is reached, so refusing here only blocks the destructive path.
   if [[ -L "$VENV_DIR" ]]; then
     echo "$VENV_DIR is a symlink; refusing to create or clear a virtualenv through it." >&2
-    echo "Remove the .venv symlink (or set HERMES_WEBUI_TEST_PYTHON to a supported Python 3.11-3.13) and rerun." >&2
+    echo "Remove the .venv symlink (or set IRIS_WEBUI_TEST_PYTHON to a supported Python 3.11-3.13) and rerun." >&2
     return 2
   fi
   if [[ "$mode" == "rebuild" ]]; then
@@ -143,18 +143,18 @@ create_or_rebuild_venv() {
 }
 
 select_python() {
-  local requested="${HERMES_WEBUI_TEST_PYTHON:-}"
+  local requested="${IRIS_WEBUI_TEST_PYTHON:-}"
   local requested_path base_py
   local desired_major_minor current_major_minor
 
   if [[ -n "$requested" ]]; then
     requested_path="$(resolve_executable "$requested")"
     if [[ -z "$requested_path" || ! -x "$requested_path" ]]; then
-      echo "HERMES_WEBUI_TEST_PYTHON does not point to an executable: $requested" >&2
+      echo "IRIS_WEBUI_TEST_PYTHON does not point to an executable: $requested" >&2
       return 2
     fi
     if ! is_supported_python "$requested_path"; then
-      echo "Unsupported Python for Hermes WebUI tests: $requested_path ($(python_version "$requested_path"))" >&2
+      echo "Unsupported Python for Iris WebUI tests: $requested_path ($(python_version "$requested_path"))" >&2
       echo "Use Python 3.11, 3.12, or 3.13." >&2
       return 2
     fi
@@ -163,7 +163,7 @@ select_python() {
   else
     base_py="$(find_supported_base_python || true)"
     if [[ -z "$base_py" ]]; then
-      echo "No supported Python found for Hermes WebUI tests." >&2
+      echo "No supported Python found for Iris WebUI tests." >&2
       echo "Install Python 3.11, 3.12, or 3.13, then rerun ./scripts/test.sh." >&2
       return 2
     fi
@@ -216,7 +216,7 @@ fi
 if missing="$(missing_dev_deps "$PYTHON_BIN" 2>/dev/null)"; then
   :
 else
-  echo "Installing missing Hermes WebUI test dependencies in $PYTHON_BIN ($(python_version "$PYTHON_BIN"))." >&2
+  echo "Installing missing Iris WebUI test dependencies in $PYTHON_BIN ($(python_version "$PYTHON_BIN"))." >&2
   if [[ -n "${missing:-}" ]]; then
     echo "Missing modules: $missing" >&2
   fi

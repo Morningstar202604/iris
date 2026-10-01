@@ -123,7 +123,7 @@ def test_autosave_clears_dirty_flag_and_hides_unsaved_bar():
         "_autosavePreferencesSettings must check the model selector before "
         "clearing _settingsDirty (autosave was clobbering pending model changes)"
     )
-    assert "_settingsHermesDefaultModelOnOpen" in block, (
+    assert "_settingsIrisDefaultModelOnOpen" in block, (
         "_autosavePreferencesSettings must compare the model selector value "
         "against the on-open snapshot to detect a pending change"
     )

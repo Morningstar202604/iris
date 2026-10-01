@@ -1,6 +1,6 @@
 """agent v0.21 transport-API port tests for out-of-band LLM completions.
 
-hermes-agent v0.21 removed ``agent.anthropic_adapter.normalize_anthropic_response``
+iris-agent v0.21 removed ``agent.anthropic_adapter.normalize_anthropic_response``
 and ``AIAgent._normalize_codex_response``. The sanctioned out-of-band contract is
 ``agent._get_transport(<mode>).normalize_response(...)`` returning a
 ``NormalizedResponse`` (``.content``).
@@ -186,17 +186,17 @@ def test_codex_handoff_summary_uses_transport_normalize_response(monkeypatch):
     fake_run_agent.AIAgent = _CodexAgent
     monkeypatch.setitem(sys.modules, 'run_agent', fake_run_agent)
 
-    fake_runtime_module = types.ModuleType('hermes_cli.runtime_provider')
+    fake_runtime_module = types.ModuleType('iris_cli.runtime_provider')
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         'api_key': 'x',
         'provider': 'openai-codex',
         'base_url': 'https://chatgpt.com/backend-api/codex',
     }
-    fake_hermes_cli = types.ModuleType('hermes_cli')
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, 'hermes_cli', fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, 'hermes_cli.runtime_provider', fake_runtime_module)
+    fake_iris_cli = types.ModuleType('iris_cli')
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, 'iris_cli', fake_iris_cli)
+    monkeypatch.setitem(sys.modules, 'iris_cli.runtime_provider', fake_runtime_module)
 
     response = routes._handle_handoff_summary(
         object(), {'session_id': 'session-codex-v021-transport'}

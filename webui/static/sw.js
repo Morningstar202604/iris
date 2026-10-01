@@ -1,5 +1,5 @@
 /**
- * Hermes WebUI Service Worker
+ * Iris WebUI Service Worker
  * Minimal PWA service worker — enables "Add to Home Screen".
  * No offline caching of API responses (the UI requires a live backend).
  * Caches only static shell assets so the app shell loads fast on repeat visits.
@@ -7,7 +7,7 @@
 
 // Cache version is injected by the server at request time (routes.py /sw.js handler).
 // Bumps automatically whenever the git commit changes — no manual edits needed.
-const CACHE_NAME = 'hermes-shell-__WEBUI_VERSION__';
+const CACHE_NAME = 'iris-shell-__WEBUI_VERSION__';
 
 // Offline fallback page. A service worker runs in its own scope with no access
 // to the page's i18n runtime, so it carries its own copy for the few strings it
@@ -139,8 +139,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API and streaming endpoints — always go to network.
-  // The WebUI may be mounted under a subpath such as /hermes/, so API
-  // requests can look like /hermes/api/sessions rather than /api/sessions.
+  // The WebUI may be mounted under a subpath such as /iris/, so API
+  // requests can look like /iris/api/sessions rather than /api/sessions.
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('/api/') ||

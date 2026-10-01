@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { act, cleanup, render, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getGlobalModelInfo } from '@/hermes'
+import { getGlobalModelInfo } from '@/iris'
 import { modelOptionsQueryKey } from '@/lib/model-options'
 import { $activeGatewayProfile } from '@/store/profile'
 import {
@@ -26,7 +26,7 @@ const notify = vi.fn()
 const notifyError = vi.fn()
 const dismissNotification = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getGlobalModelInfo: vi.fn(),
   setApiRequestProfile: vi.fn(),
   setGlobalModel: (...args: Parameters<typeof setGlobalModel>) => setGlobalModel(...args)

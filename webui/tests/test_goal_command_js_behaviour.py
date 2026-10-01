@@ -43,7 +43,7 @@ global.window = {};
 
 // Pending session-model marker helpers mirroring static/ui.js
 // (PENDING_SESSION_MODEL_PREFIX / _readPendingSessionModel / _clearPendingSessionModel).
-const PENDING_PREFIX = 'hermes-webui-pending-session-model:';
+const PENDING_PREFIX = 'iris-webui-pending-session-model:';
 const MAX_AGE_MS = 10 * 60 * 1000;
 const _key = sid => PENDING_PREFIX + String(sid || '');
 function rememberPending(sid, model, provider) {

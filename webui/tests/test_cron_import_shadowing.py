@@ -21,7 +21,7 @@ def test_agent_cron_import_path_prefers_agent_cron_over_plugin_shadow(monkeypatc
     import api.config as config
     import api.routes as routes
 
-    agent_dir = tmp_path / "hermes-agent"
+    agent_dir = tmp_path / "iris-agent"
     site_packages = tmp_path / "site-packages"
     agent_cron = agent_dir / "cron"
     shadow_cron = site_packages / "cron"

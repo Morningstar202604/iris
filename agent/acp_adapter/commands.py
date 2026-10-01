@@ -14,9 +14,9 @@ from acp_adapter.session import SessionState, _expand_acp_enabled_toolsets
 logger = logging.getLogger("acp_adapter.server")
 
 try:
-    from hermes_cli import __version__ as HERMES_VERSION
+    from iris_cli import __version__ as IRIS_VERSION
 except Exception:
-    HERMES_VERSION = "0.0.0"
+    IRIS_VERSION = "0.0.0"
 
 
 def _estimate_tokens(history: list, agent: Any, system_prompt: str | None = None, tools: Any = None) -> int:
@@ -46,7 +46,7 @@ _MID_TURN_BLOCKED_COMMANDS = frozenset({"reset", "compress", "model"})
 
 
 class SlashCommandsMixin:
-    """Slash-command surface for ``HermesACPAgent``; relies on ``_conn``, ``_send``, ``_schedule_soon``,
+    """Slash-command surface for ``IrisACPAgent``; relies on ``_conn``, ``_send``, ``_schedule_soon``,
     ``session_manager`` and ``_switch_model`` from the host class."""
 
     # name -> (help text, advertised description, input hint)
@@ -71,7 +71,7 @@ class SlashCommandsMixin:
             "Queue a prompt to run after the current turn finishes",
             "prompt to run next",
         ),
-        "version": ("Show Hermes version", "Show Hermes version", None),
+        "version": ("Show Iris version", "Show Iris version", None),
     }
 
 
@@ -112,7 +112,7 @@ class SlashCommandsMixin:
         handler = getattr(self, f"_cmd_{cmd}")
 
         # Handlers run outside the per-turn cwd-pinning context. ``/compress``
-        # and ``/model`` REBUILD the system prompt, so unpinned they'd bake the Hermes install tree
+        # and ``/model`` REBUILD the system prompt, so unpinned they'd bake the Iris install tree
         # into the persisted cached prompt. Pin inside a fresh context: no leak, no teardown.
         def _dispatch() -> str | None:
             try:
@@ -310,4 +310,4 @@ class SlashCommandsMixin:
         return f"Queued for the next turn. ({_queue_prompt(state, queued_text)} queued)"
 
     def _cmd_version(self, args: str, state: SessionState) -> str:
-        return f"Hermes Agent v{HERMES_VERSION}"
+        return f"Iris Agent v{IRIS_VERSION}"

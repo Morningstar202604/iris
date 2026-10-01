@@ -1,5 +1,5 @@
 """Regression coverage for issue #7421: configurable
-``HERMES_WEBUI_MAX_SESSION_RESOLVE`` cap on the heavy
+``IRIS_WEBUI_MAX_SESSION_RESOLVE`` cap on the heavy
 full-transcript resolve semaphore.
 
 The cap is hardcoded to ``2`` in
@@ -50,7 +50,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture
 def resolve_env(monkeypatch):
-    """Drive ``HERMES_WEBUI_MAX_SESSION_RESOLVE`` via ``monkeypatch.setenv``
+    """Drive ``IRIS_WEBUI_MAX_SESSION_RESOLVE`` via ``monkeypatch.setenv``
     so the env var is restored at fixture teardown — no leak to other
     test files, no module reload required.
 
@@ -65,9 +65,9 @@ def resolve_env(monkeypatch):
     """
     def set_resolve_env(value):
         if value is None:
-            monkeypatch.delenv("HERMES_WEBUI_MAX_SESSION_RESOLVE", raising=False)
+            monkeypatch.delenv("IRIS_WEBUI_MAX_SESSION_RESOLVE", raising=False)
         else:
-            monkeypatch.setenv("HERMES_WEBUI_MAX_SESSION_RESOLVE", str(value))
+            monkeypatch.setenv("IRIS_WEBUI_MAX_SESSION_RESOLVE", str(value))
     return set_resolve_env
 
 
@@ -205,13 +205,13 @@ def test_helper_defined_in_models():
 
 def test_protected_env_keys_includes_resolve_cap():
     """#7656 round-3 finding 2: a profile .env with
-    ``HERMES_WEBUI_MAX_SESSION_RESOLVE=64`` previously created
+    ``IRIS_WEBUI_MAX_SESSION_RESOLVE=64`` previously created
     the semaphore at 64 and a later profile switch could not
     resize it. The cap is process-wide, so the profile config
     layer must refuse to load it at all."""
     from api.profiles import _PROTECTED_ENV_KEYS
 
-    assert "HERMES_WEBUI_MAX_SESSION_RESOLVE" in _PROTECTED_ENV_KEYS, (
+    assert "IRIS_WEBUI_MAX_SESSION_RESOLVE" in _PROTECTED_ENV_KEYS, (
         "the resolve cap is a process-wide safety bound; a profile "
         ".env that resizes it at startup would create a semaphore the "
         "rest of the process can never resize, exactly the bug the "
@@ -227,7 +227,7 @@ def test_blocked_runtime_env_keys_includes_resolve_cap():
     block."""
     from api.profiles import _BLOCKED_RUNTIME_ENV_KEYS
 
-    assert "HERMES_WEBUI_MAX_SESSION_RESOLVE" in _BLOCKED_RUNTIME_ENV_KEYS
+    assert "IRIS_WEBUI_MAX_SESSION_RESOLVE" in _BLOCKED_RUNTIME_ENV_KEYS
 
 
 def test_filter_runtime_env_strips_resolve_cap(resolve_env):
@@ -237,9 +237,9 @@ def test_filter_runtime_env_strips_resolve_cap(resolve_env):
     from api.profiles import filter_runtime_env_for_gateway_parity
 
     resolve_env("32")
-    runtime_env = {"HERMES_WEBUI_MAX_SESSION_RESOLVE": "32"}
+    runtime_env = {"IRIS_WEBUI_MAX_SESSION_RESOLVE": "32"}
     filtered = filter_runtime_env_for_gateway_parity(runtime_env)
-    assert "HERMES_WEBUI_MAX_SESSION_RESOLVE" not in filtered
+    assert "IRIS_WEBUI_MAX_SESSION_RESOLVE" not in filtered
 
 
 # ── cross-suite pollution guard (#7656 finding 3) ─────────────────────────────

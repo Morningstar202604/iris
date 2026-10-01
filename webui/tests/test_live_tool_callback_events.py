@@ -21,7 +21,7 @@ def test_tool_start_callback_emits_existing_tool_sse_event_with_tool_id():
     block = _function_block(src, "on_tool_start")
 
     assert "put('tool'" in block, (
-        "The dedicated Hermes Agent tool_start_callback must emit the existing "
+        "The dedicated Iris Agent tool_start_callback must emit the existing "
         "tool SSE event; otherwise WebUI stays visually silent while tools run."
     )
     assert "'event_type': 'tool.started'" in block
@@ -40,7 +40,7 @@ def test_tool_complete_callback_emits_existing_tool_complete_sse_event_with_tool
     block = _function_block(src, "on_tool_complete")
 
     assert "put('tool_complete'" in block, (
-        "The dedicated Hermes Agent tool_complete_callback must emit the existing "
+        "The dedicated Iris Agent tool_complete_callback must emit the existing "
         "tool_complete SSE event so the frontend can settle the running tool card."
     )
     assert "'event_type': 'tool.completed'" in block

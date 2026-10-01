@@ -101,7 +101,7 @@ def _surface(layer: str, code: str, retryable: bool, provider: str = "", model: 
 
 def _provider_label(provider: str) -> str:
     try:
-        from hermes_cli.models import provider_label
+        from iris_cli.models import provider_label
 
         return provider_label(provider)
     except Exception:  # pragma: no cover — advisory only
@@ -112,7 +112,7 @@ def auth_kind(provider: Optional[str]) -> str:
     """``"oauth"`` for providers whose credential is an OAuth/subscription grant
     (desktop Accounts tab), ``"api_key"`` for everything else."""
     try:
-        from hermes_cli.provider_catalog import provider_catalog_by_slug
+        from iris_cli.provider_catalog import provider_catalog_by_slug
 
         descriptor = provider_catalog_by_slug().get((provider or "").strip().lower())
         return "oauth" if descriptor is not None and descriptor.tab == "accounts" else "api_key"
@@ -122,7 +122,7 @@ def auth_kind(provider: Optional[str]) -> str:
 
 def _disk_full(candidate: Any) -> bool:
     try:
-        from hermes_state_errors import is_disk_full_error
+        from iris_state_errors import is_disk_full_error
 
         return bool(is_disk_full_error(candidate))
     except Exception:  # pragma: no cover - defensive import guard
@@ -151,7 +151,7 @@ def build_error_surface_from_result(result: Any, provider: str = "", model: str 
         if not error_text and not reason:
             return None
         # Disk-full wins outright: the fix (free space) is unrelated to the
-        # provider stack; hermes_state owns the pattern list.
+        # provider stack; iris_state owns the pattern list.
         if error_text and _disk_full(error_text):
             return _surface(LAYER_DISK, "disk_full", False, provider, model)
         if result.get("billing_block") or reason in ("billing", "billing_unverified"):

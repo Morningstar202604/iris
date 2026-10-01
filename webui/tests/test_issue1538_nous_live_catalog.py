@@ -15,9 +15,9 @@ Fix
 ---
 A dedicated ``elif pid == "nous":`` branch in ``_build_available_models_uncached()``
 mirroring the Ollama Cloud pattern: live-fetch via
-``hermes_cli.models.provider_model_ids("nous")``, prefix every id with ``@nous:``
+``iris_cli.models.provider_model_ids("nous")``, prefix every id with ``@nous:``
 to match the existing routing convention, fall back to the curated static
-list when ``hermes_cli`` is unavailable.
+list when ``iris_cli`` is unavailable.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import api.profiles as profiles
 
 
 # Sample Nous catalog used in the live-fetch test. Mirrors the shape returned
-# by hermes_cli.models.provider_model_ids("nous") (see #1538 issue body).
+# by iris_cli.models.provider_model_ids("nous") (see #1538 issue body).
 SAMPLE_NOUS_LIVE_IDS = [
     "moonshotai/kimi-k2.6",
     "xiaomi/mimo-v2.5-pro",
@@ -55,28 +55,28 @@ SAMPLE_NOUS_LIVE_IDS = [
 ]
 
 
-def _install_fake_hermes_cli(monkeypatch, *, nous_ids=None, raise_on_lookup=False):
-    """Install fake ``hermes_cli`` modules so detection sees Nous as authenticated
+def _install_fake_iris_cli(monkeypatch, *, nous_ids=None, raise_on_lookup=False):
+    """Install fake ``iris_cli`` modules so detection sees Nous as authenticated
     and ``provider_model_ids("nous")`` returns the desired catalog.
 
-    Mirrors :func:`tests.test_issue1420_lmstudio_provider_env_var._install_fake_hermes_cli`
+    Mirrors :func:`tests.test_issue1420_lmstudio_provider_env_var._install_fake_iris_cli`
     but specialised for Nous detection (Nous is OAuth so the env-var path
-    is not used — we drive detection via ``hermes_cli.auth.list_auth_providers``).
+    is not used — we drive detection via ``iris_cli.auth.list_auth_providers``).
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     if raise_on_lookup:
         def _raise(_pid):
-            raise RuntimeError("simulated hermes_cli failure")
+            raise RuntimeError("simulated iris_cli failure")
         fake_models.provider_model_ids = _raise
     else:
         ids = list(nous_ids) if nous_ids is not None else []
         fake_models.provider_model_ids = lambda pid: ids if pid == "nous" else []
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
 
     def _list_auth_providers():
         return [{"id": "nous", "authenticated": True}]
@@ -87,9 +87,9 @@ def _install_fake_hermes_cli(monkeypatch, *, nous_ids=None, raise_on_lookup=Fals
     fake_auth.list_auth_providers = _list_auth_providers
     fake_auth.get_auth_status = _get_auth_status
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
 
@@ -118,7 +118,7 @@ def _swap_in_test_config(extra_cfg):
 
 def _scrub_provider_env(monkeypatch):
     """Drop every provider env var so detection only sees what we install
-    via the fake hermes_cli stubs (not unrelated keys leaked from the runner)."""
+    via the fake iris_cli stubs (not unrelated keys leaked from the runner)."""
     for var in (
         "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY",
         "DEEPSEEK_API_KEY", "XAI_API_KEY", "GROQ_API_KEY",
@@ -131,10 +131,10 @@ def _scrub_provider_env(monkeypatch):
         "NOUS_API_KEY", "NVIDIA_API_KEY", "LM_API_KEY", "LMSTUDIO_API_KEY",
         # Model-selection overrides: get_effective_default_model() treats these
         # as the highest-priority default-model source, above config. A runner
-        # that exports HERMES_MODEL (e.g. a live agent session set to "opus-4.8")
+        # that exports IRIS_MODEL (e.g. a live agent session set to "opus-4.8")
         # injects that id into the picker/catalog and breaks the @nous: prefix
         # invariant below. Scrub so detection sees only the installed stubs.
-        "HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL",
+        "IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -143,10 +143,10 @@ class TestNousLiveCatalog:
     """When the Nous live catalog is available, the dropdown must surface it
     in full (>=20 entries) — not the four-entry static fallback (#1538)."""
 
-    def test_nous_models_live_fetch_when_hermes_cli_available(self, monkeypatch, tmp_path):
+    def test_nous_models_live_fetch_when_iris_cli_available(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -167,8 +167,8 @@ class TestNousLiveCatalog:
 
     def test_nous_model_ids_carry_at_nous_prefix(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -186,8 +186,8 @@ class TestNousLiveCatalog:
 
     def test_nous_labels_carry_via_nous_suffix(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -207,8 +207,8 @@ class TestNousLiveCatalog:
         """Sanity: the recent-flagship models from the user's bug report
         (Claude Opus 4.7, GPT-5.5, Kimi K2.6) must reach the dropdown."""
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=SAMPLE_NOUS_LIVE_IDS)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -224,7 +224,7 @@ class TestNousLiveCatalog:
             ):
                 assert required in ids, (
                     f"{required} missing from live-fetched Nous catalog. Either "
-                    f"the hermes_cli dispatch is broken or the @nous: prefix is "
+                    f"the iris_cli dispatch is broken or the @nous: prefix is "
                     f"missing."
                 )
         finally:
@@ -232,24 +232,24 @@ class TestNousLiveCatalog:
 
 
 class TestNousStaticFallback:
-    """When ``hermes_cli`` is not importable or its lookup raises, we fall back
+    """When ``iris_cli`` is not importable or its lookup raises, we fall back
     to the curated four-entry static list — never empty."""
 
-    def test_static_fallback_when_hermes_cli_raises(self, monkeypatch, tmp_path):
+    def test_static_fallback_when_iris_cli_raises(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(monkeypatch, raise_on_lookup=True)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, raise_on_lookup=True)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
             data = config.get_available_models()
             nous_groups = [g for g in data.get("groups", []) if g.get("provider_id") == "nous"]
             assert nous_groups, (
-                "Nous group must still appear when hermes_cli fails — the "
+                "Nous group must still appear when iris_cli fails — the "
                 "branch should fall back to the curated static list."
             )
             models = nous_groups[0]["models"]
-            # The seeder enriches nous with models from hermes_cli at import
+            # The seeder enriches nous with models from iris_cli at import
             # time, so the list may have more than the 4 curated entries.
             # Assert the original curated IDs are present as a subset, and
             # every ID still carries the @nous: prefix invariant.
@@ -322,7 +322,7 @@ class TestStaticListPreservedAsFallback:
         from api.config import _PROVIDER_MODELS
         assert _PROVIDER_MODELS.get("nous"), (
             "The curated static Nous list must remain in _PROVIDER_MODELS as "
-            "a fallback for environments where hermes_cli is unavailable."
+            "a fallback for environments where iris_cli is unavailable."
         )
 
     def test_static_list_keeps_at_nous_prefix(self):

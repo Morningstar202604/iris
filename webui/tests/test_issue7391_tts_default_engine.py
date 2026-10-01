@@ -63,7 +63,7 @@ def _isolated_tts(monkeypatch):
 
     monkeypatch.setattr(auth, "is_auth_enabled", lambda: False)
     monkeypatch.setattr(routes, "is_auth_enabled", lambda: False, raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     monkeypatch.setenv("ELEVENLABS_API_KEY", "sk-elevenlabs")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-openai")
     monkeypatch.setattr(config, "get_config", lambda: {

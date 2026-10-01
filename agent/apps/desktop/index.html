@@ -28,8 +28,8 @@
       try {
         const win = new URLSearchParams(window.location.search).get('win')
         if (!win || ['hud', 'overlay', 'quick', 'wake', 'intro'].indexOf(win) === -1) {
-          let bg = localStorage.getItem('hermes-boot-background')
-          let scheme = localStorage.getItem('hermes-boot-color-scheme')
+          let bg = localStorage.getItem('iris-boot-background')
+          let scheme = localStorage.getItem('iris-boot-color-scheme')
           if (!bg) {
             const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
             bg = dark ? '#111111' : '#f7f7f7'

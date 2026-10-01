@@ -1,4 +1,4 @@
-import { createCronTriggerController, type CronTriggerController } from '@hermes/shared'
+import { createCronTriggerController, type CronTriggerController } from '@iris/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import type * as React from 'react'
@@ -43,7 +43,7 @@ import {
   resumeCronJob,
   type SessionInfo,
   updateCronJob
-} from '@/hermes'
+} from '@/iris'
 import { type Translations, useI18n } from '@/i18n'
 import { AlertTriangle } from '@/lib/icons'
 import { requestModelOptions } from '@/lib/model-options'

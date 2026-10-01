@@ -7,7 +7,7 @@ param(
     [string]$Distro,
 
     [ValidateNotNullOrEmpty()]
-    [string]$TaskName = "HermesWebUIAutoStart",
+    [string]$TaskName = "IrisWebUIAutoStart",
 
     [switch]$RunNow,
 
@@ -61,7 +61,7 @@ if (-not $SkipValidation) {
     }
 }
 
-$description = "Auto-start Hermes WebUI inside WSL at Windows logon. Runs $WslScriptPath."
+$description = "Auto-start Iris WebUI inside WSL at Windows logon. Runs $WslScriptPath."
 $action = New-ScheduledTaskAction -Execute $wslExe -Argument $actionArguments
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -75,7 +75,7 @@ if ($existingTask) {
     Write-Host "Creating scheduled task '$TaskName'."
 }
 
-if ($PSCmdlet.ShouldProcess($TaskName, "Register Windows Scheduled Task for Hermes WebUI WSL autostart")) {
+if ($PSCmdlet.ShouldProcess($TaskName, "Register Windows Scheduled Task for Iris WebUI WSL autostart")) {
     Register-ScheduledTask `
         -TaskName $TaskName `
         -Action $action `

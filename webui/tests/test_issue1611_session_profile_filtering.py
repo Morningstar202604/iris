@@ -1,7 +1,7 @@
 """Tests for issue #1611: /api/sessions must be scoped to the active profile.
 
 Reporter (@stefanpieter) saw multi-profile installs where querying
-/api/sessions with `Cookie: hermes_profile=haku` still returned sessions
+/api/sessions with `Cookie: iris_profile=haku` still returned sessions
 tagged to other profiles. Two bugs combined to produce this:
   1. Server-side `/api/sessions` had no profile filter — it merged
      WebUI sidecar sessions and CLI/imported sessions and returned the lot.
@@ -49,13 +49,13 @@ def test_profiles_match_distinct_named_profiles():
 
 def test_profiles_match_default_alias_treated_as_root(monkeypatch):
     """A row tagged 'default' matches when the active profile is the renamed
-    root (e.g. 'kinni') and vice versa — both resolve to the same ~/.hermes
+    root (e.g. 'kinni') and vice versa — both resolve to the same ~/.iris
     home, so they're the same profile from a user perspective."""
     import api.profiles as p
     from api.routes import _profiles_match
 
     monkeypatch.setattr(p, 'list_profiles_api', lambda: [
-        {'name': 'kinni', 'is_default': True, 'path': str(p._DEFAULT_HERMES_HOME)},
+        {'name': 'kinni', 'is_default': True, 'path': str(p._DEFAULT_IRIS_HOME)},
     ])
     p._invalidate_root_profile_cache()
 
@@ -217,7 +217,7 @@ def test_static_all_profiles_toggle_is_persisted_and_not_reset_by_profile_switch
     sessions_src = (repo_root / 'static' / 'sessions.js').read_text(encoding='utf-8')
     panels_src = (repo_root / 'static' / 'panels.js').read_text(encoding='utf-8')
 
-    assert "const SHOW_ALL_PROFILES_STORAGE_KEY = 'hermes-show-all-profiles';" in sessions_src
+    assert "const SHOW_ALL_PROFILES_STORAGE_KEY = 'iris-show-all-profiles';" in sessions_src
     assert "localStorage.setItem(SHOW_ALL_PROFILES_STORAGE_KEY" in sessions_src
     assert "_restoreShowAllProfiles();" in sessions_src
     assert "_setShowAllProfiles(true);renderSessionList({deferWhileInteracting:false});" in sessions_src
@@ -381,7 +381,7 @@ def test_get_session_rejects_session_from_inactive_profile():
          patch("api.routes.get_state_db_session_messages", return_value=[]), \
          patch("api.routes.bad", side_effect=fake_bad), \
          patch("api.routes.j", side_effect=fake_j):
-        routes.handle_get(SimpleNamespace(headers={"Cookie": "hermes_profile=default"}), parsed)
+        routes.handle_get(SimpleNamespace(headers={"Cookie": "iris_profile=default"}), parsed)
 
     # #5419: a valid-but-wrong-profile session now returns a structured 409
     # (session_profile_mismatch) so the frontend can switch profiles, instead
@@ -410,7 +410,7 @@ def test_get_session_rejects_metadata_only_session_from_inactive_profile():
          patch("api.routes.get_session", return_value=_ProfileScopedSession()), \
          patch("api.routes.bad", side_effect=fake_bad), \
          patch("api.routes.j", side_effect=fake_j):
-        routes.handle_get(SimpleNamespace(headers={"Cookie": "hermes_profile=default"}), parsed)
+        routes.handle_get(SimpleNamespace(headers={"Cookie": "iris_profile=default"}), parsed)
 
     _assert_profile_mismatch_envelope(captured, "foreign_001", "other",
                                       leak_msg="foreign-profile metadata must not be returned")
@@ -463,7 +463,7 @@ def test_get_session_rejects_cli_session_from_inactive_profile():
          patch("api.routes.get_cli_session_messages", return_value=[{"role": "user", "content": "foreign profile secret"}]), \
          patch("api.routes.bad", side_effect=fake_bad), \
          patch("api.routes.j", side_effect=fake_j):
-        routes.handle_get(SimpleNamespace(headers={"Cookie": "hermes_profile=default"}), parsed)
+        routes.handle_get(SimpleNamespace(headers={"Cookie": "iris_profile=default"}), parsed)
 
     _assert_profile_mismatch_envelope(captured, "cli_foreign", "other",
                                       leak_msg="foreign-profile CLI transcript must not be returned")
@@ -498,7 +498,7 @@ def test_missing_session_under_nondefault_profile_still_404_primary_branch():
          patch("api.routes._lookup_cli_session_metadata", return_value={}), \
          patch("api.routes.bad", side_effect=fake_bad), \
          patch("api.routes.j", side_effect=fake_j):
-        routes.handle_get(SimpleNamespace(headers={"Cookie": "hermes_profile=research"}), parsed)
+        routes.handle_get(SimpleNamespace(headers={"Cookie": "iris_profile=research"}), parsed)
 
     assert captured.get("bad", {}).get("status") == 404, (
         "unknown-profile (None) session must 404 for self-heal, not a profile=null 409"
@@ -529,7 +529,7 @@ def test_missing_session_under_nondefault_profile_still_404_cli_branch():
          patch("api.routes._lookup_cli_session_metadata", return_value={}), \
          patch("api.routes.bad", side_effect=fake_bad), \
          patch("api.routes.j", side_effect=fake_j):
-        routes.handle_get(SimpleNamespace(headers={"Cookie": "hermes_profile=research"}), parsed)
+        routes.handle_get(SimpleNamespace(headers={"Cookie": "iris_profile=research"}), parsed)
 
     assert captured.get("bad", {}).get("status") == 404, (
         "missing CLI session must 404 for self-heal, not a profile=null 409"
@@ -706,7 +706,7 @@ def test_session_import_default_profile_remains_default_owned():
 
 
 def _profile_state_db_path(profile: str | None = None) -> Path:
-    root = Path(os.environ["HERMES_WEBUI_TEST_STATE_DIR"])
+    root = Path(os.environ["IRIS_WEBUI_TEST_STATE_DIR"])
     if profile:
         return root / "profiles" / profile / "state.db"
     return root / "state.db"

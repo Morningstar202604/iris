@@ -94,7 +94,7 @@ const localStorage = {{
   setItem: (key, value) => {{ _store[key] = String(value); }},
 }};
 const S = {{ session: {{ session_id: 'sess-1' }} }};
-const _DISMISSED_APPROVALS_KEY = 'hermes_dismissed_approvals';
+const _DISMISSED_APPROVALS_KEY = 'iris_dismissed_approvals';
 let syncTopbarCalls = 0;
 let showToastCalls = [];
 let statusCalls = [];
@@ -285,7 +285,7 @@ const localStorage = {{
   setItem: (key, value) => {{ _store[key] = String(value); }},
 }};
 const S = {{ session: {{ session_id: 'sess-1' }} }};
-const _DISMISSED_APPROVALS_KEY = 'hermes_dismissed_approvals';
+const _DISMISSED_APPROVALS_KEY = 'iris_dismissed_approvals';
 let _approvalSessionId = 'sess-1';
 let _approvalCurrentId = 'appr-1';
 let _approvalPendingBySession = new Map();

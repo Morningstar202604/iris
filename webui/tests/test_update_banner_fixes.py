@@ -120,19 +120,19 @@ class TestUpdateChecker:
         import api.updates as upd
 
         assert upd._build_compare_url(
-            'https://github.com/nesquena/hermes-webui', 'abc1234', 'def5678'
-        ) == 'https://github.com/nesquena/hermes-webui/compare/abc1234...def5678'
+            'https://github.com/X33834/iris', 'abc1234', 'def5678'
+        ) == 'https://github.com/X33834/iris/compare/abc1234...def5678'
         assert upd._build_compare_url(None, 'abc1234', 'def5678') is None
-        assert upd._build_compare_url('https://github.com/nesquena/hermes-webui', None, 'def5678') is None
-        assert upd._build_compare_url('https://github.com/nesquena/hermes-webui', 'abc1234', None) is None
+        assert upd._build_compare_url('https://github.com/X33834/iris', None, 'def5678') is None
+        assert upd._build_compare_url('https://github.com/X33834/iris', 'abc1234', None) is None
 
     def test_build_compare_url_rejects_unsafe_remote_urls(self):
         import api.updates as upd
 
         assert upd._build_compare_url('javascript:alert(1)', 'abc1234', 'def5678') is None
-        assert upd._build_compare_url('file:///tmp/hermes-webui', 'abc1234', 'def5678') is None
-        assert upd._build_compare_url('https:github.com/nesquena/hermes-webui', 'abc1234', 'def5678') is None
-        assert upd._build_compare_url('https://github.com/nesquena/hermes-webui', 'abc1234', 'def5678')
+        assert upd._build_compare_url('file:///tmp/iris-webui', 'abc1234', 'def5678') is None
+        assert upd._build_compare_url('https:github.com/X33834/iris', 'abc1234', 'def5678') is None
+        assert upd._build_compare_url('https://github.com/X33834/iris', 'abc1234', 'def5678')
 
     def test_check_repo_includes_compare_url_from_normalized_remote_and_merge_base(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -153,16 +153,16 @@ class TestUpdateChecker:
             if args[:3] == ['rev-parse', '--short', 'origin/master']:
                 return 'def5678', True
             if args[:2] == ['remote', 'get-url']:
-                return 'git@github.com:NousResearch/hermes-agent.git', True
+                return 'git@gitcode.com:badhope/iris.git', True
             return '', True
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
         result = upd._check_repo(tmp_path, 'agent')
 
-        assert result['repo_url'] == 'https://github.com/NousResearch/hermes-agent'
+        assert result['repo_url'] == 'https://gitcode.com/badhope/iris'
         assert result['current_sha'] == 'abcdef1'
         assert result['latest_sha'] == 'def5678'
-        assert result['compare_url'] == 'https://github.com/NousResearch/hermes-agent/compare/abcdef1...def5678'
+        assert result['compare_url'] == 'https://gitcode.com/badhope/iris/compare/abcdef1...def5678'
 
     def test_check_repo_omits_compare_url_when_merge_base_missing(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -181,7 +181,7 @@ class TestUpdateChecker:
             if args[:3] == ['rev-parse', '--short', 'origin/master']:
                 return 'def5678', True
             if args[:2] == ['remote', 'get-url']:
-                return 'https://github.com/nesquena/hermes-webui.git', True
+                return 'https://github.com/X33834/iris.git', True
             return '', True
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
@@ -208,13 +208,13 @@ class TestUpdateChecker:
             if args[:2] == ['rev-parse', '--short']:
                 return 'abcdef1', True
             if args[:2] == ['remote', 'get-url']:
-                return 'https://github.com/nesquena/hermes-webui.git', True
+                return 'https://github.com/X33834/iris.git', True
             return '', True
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
         result = upd._check_repo(tmp_path, 'webui')
 
-        assert result['repo_url'] == 'https://github.com/nesquena/hermes-webui'
+        assert result['repo_url'] == 'https://github.com/X33834/iris'
 
     def test_repo_url_converts_ssh_and_strips_only_dot_git_suffix(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -233,13 +233,13 @@ class TestUpdateChecker:
             if args[:2] == ['rev-parse', '--short']:
                 return 'abcdef1', True
             if args[:2] == ['remote', 'get-url']:
-                return 'git@github.com:NousResearch/hermes-agent.git', True
+                return 'git@gitcode.com:badhope/iris.git', True
             return '', True
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
         result = upd._check_repo(tmp_path, 'agent')
 
-        assert result['repo_url'] == 'https://github.com/NousResearch/hermes-agent'
+        assert result['repo_url'] == 'https://gitcode.com/badhope/iris'
 
     def test_repo_url_strips_dot_git_before_trailing_slashes(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -258,13 +258,13 @@ class TestUpdateChecker:
             if args[:2] == ['rev-parse', '--short']:
                 return 'abcdef1', True
             if args[:2] == ['remote', 'get-url']:
-                return 'https://github.com/nesquena/hermes-webui.git/', True
+                return 'https://github.com/X33834/iris.git/', True
             return '', True
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
         result = upd._check_repo(tmp_path, 'webui')
 
-        assert result['repo_url'] == 'https://github.com/nesquena/hermes-webui'
+        assert result['repo_url'] == 'https://github.com/X33834/iris'
 
     def test_release_check_ignores_post_release_branch_commits(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -279,7 +279,7 @@ class TestUpdateChecker:
             if args[:3] == ['describe', '--tags', '--abbrev=0']:
                 return 'v2026.5.7', True
             if args[:2] == ['remote', 'get-url']:
-                return 'https://github.com/NousResearch/hermes-agent.git', True
+                return 'https://gitcode.com/badhope/iris.git', True
             if args[:2] == ['rev-parse', '--abbrev-ref']:
                 return 'origin/main', True
             if args[:2] == ['rev-list', '--count']:
@@ -311,7 +311,7 @@ class TestUpdateChecker:
             if args == ['merge-base', '--is-ancestor', 'HEAD', 'v0.51.35']:
                 return '', True
             if args[:2] == ['remote', 'get-url']:
-                return 'https://github.com/nesquena/hermes-webui.git', True
+                return 'https://github.com/X33834/iris.git', True
             return '', False
 
         monkeypatch.setattr(upd, '_run_git', fake_run)
@@ -326,8 +326,8 @@ class TestUpdateChecker:
     def test_detect_agent_version_reads_copied_source_tree(self, tmp_path, monkeypatch):
         import api.updates as upd
 
-        agent_dir = tmp_path / 'hermes-agent'
-        package_dir = agent_dir / 'hermes_cli'
+        agent_dir = tmp_path / 'iris-agent'
+        package_dir = agent_dir / 'iris_cli'
         package_dir.mkdir(parents=True)
         (package_dir / '__init__.py').write_text('__version__ = "0.14.0"\n', encoding='utf-8')
 
@@ -348,7 +348,7 @@ class TestUpdateChecker:
                 return False
 
             def read(self):
-                return b'{"status":"ok","platform":"hermes-agent","version":"0.14.1"}'
+                return b'{"status":"ok","platform":"iris-agent","version":"0.14.1"}'
 
         seen = []
 
@@ -357,11 +357,11 @@ class TestUpdateChecker:
             return FakeResponse()
 
         monkeypatch.setattr(upd, '_AGENT_DIR', None)
-        monkeypatch.setenv('GATEWAY_HEALTH_URL', 'http://hermes-agent:8642/health')
+        monkeypatch.setenv('GATEWAY_HEALTH_URL', 'http://iris-agent:8642/health')
         monkeypatch.setattr(upd.urllib.request, 'urlopen', fake_urlopen)
 
         assert upd._detect_agent_version() == '0.14.1'
-        assert seen == [('http://hermes-agent:8642/health', 0.75)]
+        assert seen == [('http://iris-agent:8642/health', 0.75)]
 
 
 class TestConflictError:
@@ -990,7 +990,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "pid_paths": []}
@@ -1015,10 +1015,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", lambda: PathStrictGatewayStatus())
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1033,10 +1033,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["pid_paths"] == [root_home / "gateway.pid", root_home / "gateway.pid"]
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_legacy_implicit_sticky_pid_change_fails_closed(
         self,
@@ -1046,7 +1046,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "implicit_pid": 0}
@@ -1069,10 +1069,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", LegacyImplicitStickyGatewayStatus)
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1087,10 +1087,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["implicit_pid"] == 0
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_kwargs_wrapper_pid_change_fails_closed(
         self,
@@ -1100,7 +1100,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "ambient_pid": 0}
@@ -1123,10 +1123,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", AmbientKwargsGatewayStatus)
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1141,10 +1141,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["ambient_pid"] == 0
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_wrapped_kwargs_pid_change_fails_closed(
         self,
@@ -1154,7 +1154,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "ambient_pid": 0}
@@ -1181,10 +1181,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", WrappedKwargsGatewayStatus)
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1199,10 +1199,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["ambient_pid"] == 0
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_wrapped_args_pid_change_fails_closed(
         self,
@@ -1212,7 +1212,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "ambient_pid": 0}
@@ -1239,10 +1239,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", WrappedArgsGatewayStatus)
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1257,10 +1257,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["ambient_pid"] == 0
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_shifted_positional_only_pid_path_is_bound(
         self,
@@ -1270,7 +1270,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        root_home = tmp_path / ".hermes"
+        root_home = tmp_path / ".iris"
         sticky_home = root_home / "profiles" / "work"
         sticky_home.mkdir(parents=True)
         calls = {"popen": [], "pid_paths": [], "ambient_pid": 0}
@@ -1296,10 +1296,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", root_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", root_home)
         monkeypatch.setattr(profiles, "_active_profile", "work")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", ShiftedPositionalOnlyGatewayStatus)
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1315,10 +1315,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert calls["ambient_pid"] == 0
         assert calls["pid_paths"] == [root_home / "gateway.pid", root_home / "gateway.pid"]
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
-            ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
+            ["/mock/bin/iris", "--profile", "default", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [str(root_home), str(root_home)]
 
     def test_agent_gateway_restart_isolated_default_home_omits_profile_flag(
         self,
@@ -1328,7 +1328,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         from api import agent_health, gateway_restart, profiles
         import api.updates as upd
 
-        base_home = tmp_path / ".hermes"
+        base_home = tmp_path / ".iris"
         isolated_home = base_home / "profiles" / "default"
         isolated_home.mkdir(parents=True)
         calls = {"popen": [], "pid_paths": []}
@@ -1351,10 +1351,10 @@ class TestAgentUpdateRequiresGatewayRestart:
             calls["popen"].append((args, dict(env or {})))
             return FailedRestartProcess()
 
-        monkeypatch.setattr(profiles, "_INITIAL_HERMES_HOME", str(isolated_home))
+        monkeypatch.setattr(profiles, "_INITIAL_IRIS_HOME", str(isolated_home))
         monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "1")
         monkeypatch.setattr(gateway_restart, "_GATEWAY_RESTART_LOCK", threading.Lock())
-        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+        monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
         monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(agent_health, "_gateway_status_module", lambda: PathStrictGatewayStatus())
         monkeypatch.setattr(upd.time, 'sleep', lambda seconds: None)
@@ -1365,10 +1365,10 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result["status"] == "failed"
         assert calls["pid_paths"] == [isolated_home / "gateway.pid", isolated_home / "gateway.pid"]
         assert [call[0] for call in calls["popen"]] == [
-            ["/mock/bin/hermes", "gateway", "restart"],
-            ["/mock/bin/hermes", "gateway", "restart"],
+            ["/mock/bin/iris", "gateway", "restart"],
+            ["/mock/bin/iris", "gateway", "restart"],
         ]
-        assert [call[1]["HERMES_HOME"] for call in calls["popen"]] == [
+        assert [call[1]["IRIS_HOME"] for call in calls["popen"]] == [
             str(isolated_home),
             str(isolated_home),
         ]
@@ -1497,7 +1497,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert 'restart_scheduled' not in result
         assert result['target'] == 'agent'
         assert result['gateway_restart'] == 'busy'
-        assert 'hermes gateway restart' in result['message']
+        assert 'iris gateway restart' in result['message']
         assert restart_calls == ['default']
 
     def test_apply_force_update_agent_uses_gateway_restart_status(self, tmp_path, monkeypatch):
@@ -1559,7 +1559,7 @@ class TestAgentUpdateRequiresGatewayRestart:
         assert result['ok'] is False
         assert result['target'] == 'agent'
         assert result['gateway_restart'] == 'busy'
-        assert 'hermes gateway restart' in result['message']
+        assert 'iris gateway restart' in result['message']
 
     def test_apply_update_webui_does_not_call_gateway_restart(self, tmp_path, monkeypatch):
         import api.updates as upd
@@ -1666,42 +1666,42 @@ class TestUpdateSummaryRouteModelSelection:
         captured = {}
         profile_home = tmp_path / 'profiles' / 'work'
         fake_skill_module = types.ModuleType('tools.skills_tool')
-        setattr(fake_skill_module, 'HERMES_HOME', 'default-home')
+        setattr(fake_skill_module, 'IRIS_HOME', 'default-home')
         setattr(fake_skill_module, 'SKILLS_DIR', 'default-home/skills')
         monkeypatch.setitem(sys.modules, 'tools.skills_tool', fake_skill_module)
 
-        monkeypatch.setattr(profiles, 'get_hermes_home_for_profile', lambda profile: profile_home)
+        monkeypatch.setattr(profiles, 'get_iris_home_for_profile', lambda profile: profile_home)
         monkeypatch.setattr(
             profiles,
             'get_profile_runtime_env',
-            lambda home: {'HERMES_TEST_PROFILE_ENV': 'work-runtime'},
+            lambda home: {'IRIS_TEST_PROFILE_ENV': 'work-runtime'},
         )
         monkeypatch.setattr(cfg, 'get_effective_default_model', lambda: 'openai/test-main')
 
         def fake_resolve_model_provider(model):
             thread_env = getattr(cfg._thread_ctx, 'env', {})
             captured['model_resolution_env'] = {
-                'HERMES_HOME': os.environ.get('HERMES_HOME'),
-                'HERMES_TEST_PROFILE_ENV': os.environ.get('HERMES_TEST_PROFILE_ENV'),
-                'THREAD_HERMES_HOME': thread_env.get('HERMES_HOME'),
-                'THREAD_HERMES_TEST_PROFILE_ENV': thread_env.get('HERMES_TEST_PROFILE_ENV'),
+                'IRIS_HOME': os.environ.get('IRIS_HOME'),
+                'IRIS_TEST_PROFILE_ENV': os.environ.get('IRIS_TEST_PROFILE_ENV'),
+                'THREAD_IRIS_HOME': thread_env.get('IRIS_HOME'),
+                'THREAD_IRIS_TEST_PROFILE_ENV': thread_env.get('IRIS_TEST_PROFILE_ENV'),
             }
             return model, 'openai', 'https://example.test/v1'
 
         monkeypatch.setattr(cfg, 'resolve_model_provider', fake_resolve_model_provider)
         monkeypatch.setattr(cfg, 'resolve_custom_provider_connection', lambda provider: (None, None))
 
-        fake_runtime_provider = types.ModuleType('hermes_cli.runtime_provider')
+        fake_runtime_provider = types.ModuleType('iris_cli.runtime_provider')
         fake_runtime_provider.resolve_runtime_provider = lambda requested=None: {
             'api_key': 'fake-key',
             'provider': requested or 'openai',
             'base_url': 'https://example.test/v1',
         }
-        fake_hermes_cli = types.ModuleType('hermes_cli')
-        fake_hermes_cli.__path__ = []
-        fake_hermes_cli.runtime_provider = fake_runtime_provider
-        monkeypatch.setitem(sys.modules, 'hermes_cli', fake_hermes_cli)
-        monkeypatch.setitem(sys.modules, 'hermes_cli.runtime_provider', fake_runtime_provider)
+        fake_iris_cli = types.ModuleType('iris_cli')
+        fake_iris_cli.__path__ = []
+        fake_iris_cli.runtime_provider = fake_runtime_provider
+        monkeypatch.setitem(sys.modules, 'iris_cli', fake_iris_cli)
+        monkeypatch.setitem(sys.modules, 'iris_cli.runtime_provider', fake_runtime_provider)
 
         class FakeAuxClient:
             class chat:
@@ -1722,11 +1722,11 @@ class TestUpdateSummaryRouteModelSelection:
         def fake_get_text_auxiliary_client(task, main_runtime=None):
             thread_env = getattr(cfg._thread_ctx, 'env', {})
             captured['aux_env'] = {
-                'HERMES_HOME': os.environ.get('HERMES_HOME'),
-                'HERMES_TEST_PROFILE_ENV': os.environ.get('HERMES_TEST_PROFILE_ENV'),
-                'THREAD_HERMES_HOME': thread_env.get('HERMES_HOME'),
-                'THREAD_HERMES_TEST_PROFILE_ENV': thread_env.get('HERMES_TEST_PROFILE_ENV'),
-                'SKILL_MODULE_HOME': getattr(fake_skill_module, 'HERMES_HOME'),
+                'IRIS_HOME': os.environ.get('IRIS_HOME'),
+                'IRIS_TEST_PROFILE_ENV': os.environ.get('IRIS_TEST_PROFILE_ENV'),
+                'THREAD_IRIS_HOME': thread_env.get('IRIS_HOME'),
+                'THREAD_IRIS_TEST_PROFILE_ENV': thread_env.get('IRIS_TEST_PROFILE_ENV'),
+                'SKILL_MODULE_HOME': getattr(fake_skill_module, 'IRIS_HOME'),
                 'SKILL_MODULE_DIR': getattr(fake_skill_module, 'SKILLS_DIR'),
             }
             captured['aux_task'] = task
@@ -1744,8 +1744,8 @@ class TestUpdateSummaryRouteModelSelection:
         with updates._cache_lock:
             updates._summary_cache.clear()
 
-        monkeypatch.setenv('HERMES_HOME', 'default-home')
-        monkeypatch.setenv('HERMES_TEST_PROFILE_ENV', 'default-runtime')
+        monkeypatch.setenv('IRIS_HOME', 'default-home')
+        monkeypatch.setenv('IRIS_TEST_PROFILE_ENV', 'default-runtime')
 
         body = {
             'target': 'webui',
@@ -1771,24 +1771,24 @@ class TestUpdateSummaryRouteModelSelection:
         assert payload['generated_by'] == 'llm'
         assert captured['aux_task'] == 'compression'
         assert captured['model_resolution_env'] == {
-            'HERMES_HOME': str(profile_home),
-            'HERMES_TEST_PROFILE_ENV': 'work-runtime',
-            'THREAD_HERMES_HOME': str(profile_home),
-            'THREAD_HERMES_TEST_PROFILE_ENV': 'work-runtime',
+            'IRIS_HOME': str(profile_home),
+            'IRIS_TEST_PROFILE_ENV': 'work-runtime',
+            'THREAD_IRIS_HOME': str(profile_home),
+            'THREAD_IRIS_TEST_PROFILE_ENV': 'work-runtime',
         }
         assert captured['aux_env'] == {
-            'HERMES_HOME': str(profile_home),
-            'HERMES_TEST_PROFILE_ENV': 'work-runtime',
-            'THREAD_HERMES_HOME': str(profile_home),
-            'THREAD_HERMES_TEST_PROFILE_ENV': 'work-runtime',
+            'IRIS_HOME': str(profile_home),
+            'IRIS_TEST_PROFILE_ENV': 'work-runtime',
+            'THREAD_IRIS_HOME': str(profile_home),
+            'THREAD_IRIS_TEST_PROFILE_ENV': 'work-runtime',
             'SKILL_MODULE_HOME': profile_home,
             'SKILL_MODULE_DIR': profile_home / 'skills',
         }
         assert captured['aux_create']['model'] == 'profile-compression-model'
-        assert fake_skill_module.HERMES_HOME == 'default-home'
+        assert fake_skill_module.IRIS_HOME == 'default-home'
         assert fake_skill_module.SKILLS_DIR == 'default-home/skills'
-        assert os.environ.get('HERMES_HOME') == 'default-home'
-        assert os.environ.get('HERMES_TEST_PROFILE_ENV') == 'default-runtime'
+        assert os.environ.get('IRIS_HOME') == 'default-home'
+        assert os.environ.get('IRIS_TEST_PROFILE_ENV') == 'default-runtime'
 
 
 class TestUiJsUpdateBanner:
@@ -2343,7 +2343,7 @@ const manual=_formatUpdateTargetStatus('WebUI', {{
 }});
 if(manual !== 'WebUI (v0.51.833 -> v0.51.913): 1 release') throw new Error('manual webui update must be bannerable: '+manual);
 const instruction=_formatManualUpdateInstruction({{ no_git: true, manual_update: true, behind: 1 }});
-if(!instruction || instruction.indexOf('docker pull ghcr.io/nesquena/hermes-webui:latest') === -1) throw new Error('manual webui update must include pull guidance: '+instruction);
+if(!instruction || instruction.indexOf('docker pull ghcr.io/x33834/iris-webui:latest') === -1) throw new Error('manual webui update must include pull guidance: '+instruction);
 if(_formatManualUpdateInstruction({{ no_git: true, behind: 1 }}) !== null) throw new Error('plain no-git webui must not show manual guidance');
 if(_formatUpdateTargetStatus('WebUI', {{ no_git: true, behind: 1 }}) !== null) throw new Error('plain no-git webui must stay hidden');
 """.strip()
@@ -2381,12 +2381,12 @@ _showUpdateBanner({{
     release_based: true,
     current_version: 'v0.51.833',
     latest_version: 'v0.51.913',
-    compare_url: 'https://github.com/nesquena/hermes-webui/compare/current-sha...latest-sha',
+    compare_url: 'https://github.com/X33834/iris/compare/current-sha...latest-sha',
   }},
   agent: null,
 }});
 if(state.updateMsg.textContent.indexOf('WebUI') === -1) throw new Error('manual update must still render banner text');
-if(state.updateMsg.textContent.indexOf('docker pull ghcr.io/nesquena/hermes-webui:latest') === -1) throw new Error('manual update must render pull guidance');
+if(state.updateMsg.textContent.indexOf('docker pull ghcr.io/x33834/iris-webui:latest') === -1) throw new Error('manual update must render pull guidance');
 if(state.btnApplyUpdate.style.display !== 'none') throw new Error('manual webui update must hide the apply button');
 if(state.btnApplyUpdate.disabled !== true) throw new Error('manual webui update must disable the apply button');
 if(state.btnForceUpdate.style.display !== 'none') throw new Error('manual webui update must hide the force button');
@@ -2443,7 +2443,7 @@ function _showUpdateBanner() {{}}
 {check_fn}
 (async () => {{
   await checkUpdatesNow();
-  if(state.checkUpdatesStatus.textContent.indexOf('docker pull ghcr.io/nesquena/hermes-webui:latest') === -1) throw new Error('settings manual update must render pull guidance: '+state.checkUpdatesStatus.textContent);
+  if(state.checkUpdatesStatus.textContent.indexOf('docker pull ghcr.io/x33834/iris-webui:latest') === -1) throw new Error('settings manual update must render pull guidance: '+state.checkUpdatesStatus.textContent);
   if(state.checkUpdatesStatus.style.color !== 'var(--accent)') throw new Error('manual update should stay in available state');
   apiData = {{ webui: {{ no_git: true, behind: 1 }}, agent: null }};
   state.checkUpdatesStatus.textContent = '';
@@ -2607,10 +2607,10 @@ class TestSequentialUpdateRestartCoordination:
 class TestUpdateCompareSource:
     def test_simulated_update_check_payload_includes_both_safe_compare_urls(self):
         src = read('api/routes.py')
-        assert '"repo_url": "https://github.com/nesquena/hermes-webui"' in src
-        assert '"compare_url": "https://github.com/nesquena/hermes-webui/compare/abc1234...def5678"' in src
-        assert '"repo_url": "https://github.com/NousResearch/hermes-agent"' in src
-        assert '"compare_url": "https://github.com/NousResearch/hermes-agent/compare/aaa0001...bbb0002"' in src
+        assert '"repo_url": "https://github.com/X33834/iris"' in src
+        assert '"compare_url": "https://github.com/X33834/iris/compare/abc1234...def5678"' in src
+        assert '"repo_url": "https://gitcode.com/badhope/iris"' in src
+        assert '"compare_url": "https://gitcode.com/badhope/iris/compare/aaa0001...bbb0002"' in src
 
     def test_update_banner_html_uses_multi_target_links_container(self):
         src = read('static/index.html')
@@ -2696,7 +2696,7 @@ class TestWhatsNewSummaryToggle:
         assert 'Re-generate Agent update summary' in src
         assert 'window._whatsNewGeneratedSummaries' in src
         assert 'sessionStorage' in src
-        assert 'hermes-whats-new-generated-summaries' in src
+        assert 'iris-whats-new-generated-summaries' in src
         assert 'function _loadStoredUpdateSummaries' in src
         assert 'function _persistGeneratedSummaries' in src
         assert 'function _pruneGeneratedSummaries' in src
@@ -2710,10 +2710,10 @@ class TestWhatsNewSummaryToggle:
 
     def test_update_banner_summary_cache_has_byte_cap_constant_within_bounds(self):
         src = read('static/ui.js')
-        assert "const WHATS_NEW_SUMMARY_STORAGE_KEY='hermes-whats-new-generated-summaries';" in src
+        assert "const WHATS_NEW_SUMMARY_STORAGE_KEY='iris-whats-new-generated-summaries';" in src
         cap_match = re.search(r"const WHATS_NEW_SUMMARY_STORAGE_MAX_BYTES\s*=\s*([^;\n]+)", src)
         assert cap_match, "cap constant should be declared in static/ui.js"
-        key_index = src.find("const WHATS_NEW_SUMMARY_STORAGE_KEY='hermes-whats-new-generated-summaries';")
+        key_index = src.find("const WHATS_NEW_SUMMARY_STORAGE_KEY='iris-whats-new-generated-summaries';")
         cap_index = src.find("const WHATS_NEW_SUMMARY_STORAGE_MAX_BYTES", key_index)
         assert cap_index != -1 and cap_index > key_index and cap_index - key_index < 200
         cap_value = _parse_byte_expr(cap_match.group(1))
@@ -2944,7 +2944,7 @@ if(!window._whatsNewGeneratedSummaries || !window._whatsNewGeneratedSummaries.we
         from api.updates import summarize_update_payload
 
         duplicate_menu_item = (
-            'The `hermes tools` menus should open noticeably faster, especially when checking available tools or auth state.'
+            'The `iris tools` menus should open noticeably faster, especially when checking available tools or auth state.'
         )
         duplicate_quality_item = (
             'These updates are small quality-of-life improvements focused on smoother messaging and less waiting in the CLI.'

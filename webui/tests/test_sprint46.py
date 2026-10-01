@@ -68,18 +68,18 @@ def _install_fake_compression_runtime(monkeypatch, agent_cls):
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)
 
     import api.config as _cfg
-    fake_runtime_provider = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_provider = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_provider.resolve_runtime_provider = lambda requested=None: {
         "api_key": "fake-key",
         "provider": requested or "openai",
         "base_url": "https://api.openai.com/v1",
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_provider
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_provider)
-    import hermes_cli.runtime_provider as _rtp
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_provider
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_provider)
+    import iris_cli.runtime_provider as _rtp
 
     monkeypatch.setattr(
         _cfg,
@@ -113,7 +113,7 @@ def _make_session(messages=None, tool_calls=None):
     s = Session(
         session_id=f"compress_test_{time.time_ns()}",
         title="Untitled",
-        workspace="/tmp/hermes-webui-test",
+        workspace="/tmp/iris-webui-test",
         model="openai/gpt-5.4-mini",
         messages=messages,
         tool_calls=tool_calls or [],
@@ -470,7 +470,7 @@ def test_session_compress_status_reports_worker_error_without_raw_paths(monkeypa
 
         def compress(self, messages, current_tokens=None, focus_topic=None):
             self.entered.set()
-            raise RuntimeError("provider log at /Users/alice/.hermes/secrets/token.txt failed")
+            raise RuntimeError("provider log at /Users/alice/.iris/secrets/token.txt failed")
 
     class FailingAgent:
         def __init__(self, **kwargs):
@@ -648,11 +648,11 @@ def test_manual_compress_worker_uses_session_profile_env(monkeypatch, tmp_path, 
             skill_module = sys.modules.get("tools.skills_tool")
             thread_env = getattr(_thread_ctx, "env", {})
             EnvAssertingAgent.seen_env = {
-                "HERMES_HOME": os.environ.get("HERMES_HOME"),
-                "HERMES_TEST_PROFILE_ENV": os.environ.get("HERMES_TEST_PROFILE_ENV"),
-                "THREAD_HERMES_HOME": thread_env.get("HERMES_HOME"),
-                "THREAD_HERMES_TEST_PROFILE_ENV": thread_env.get("HERMES_TEST_PROFILE_ENV"),
-                "SKILL_MODULE_HOME": getattr(skill_module, "HERMES_HOME", None),
+                "IRIS_HOME": os.environ.get("IRIS_HOME"),
+                "IRIS_TEST_PROFILE_ENV": os.environ.get("IRIS_TEST_PROFILE_ENV"),
+                "THREAD_IRIS_HOME": thread_env.get("IRIS_HOME"),
+                "THREAD_IRIS_TEST_PROFILE_ENV": thread_env.get("IRIS_TEST_PROFILE_ENV"),
+                "SKILL_MODULE_HOME": getattr(skill_module, "IRIS_HOME", None),
                 "SKILL_MODULE_DIR": getattr(skill_module, "SKILLS_DIR", None),
             }
             self.context_compressor = _FakeCompressor()
@@ -667,17 +667,17 @@ def test_manual_compress_worker_uses_session_profile_env(monkeypatch, tmp_path, 
 
     profile_home = tmp_path / "work-profile-home"
     fake_skill_module = types.ModuleType("tools.skills_tool")
-    setattr(fake_skill_module, "HERMES_HOME", "default-home")
+    setattr(fake_skill_module, "IRIS_HOME", "default-home")
     setattr(fake_skill_module, "SKILLS_DIR", "default-home/skills")
     monkeypatch.setitem(sys.modules, "tools.skills_tool", fake_skill_module)
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda profile: profile_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda profile: profile_home)
     monkeypatch.setattr(
         profiles,
         "get_profile_runtime_env",
-        lambda home: {"HERMES_TEST_PROFILE_ENV": "work-runtime"},
+        lambda home: {"IRIS_TEST_PROFILE_ENV": "work-runtime"},
     )
-    monkeypatch.setenv("HERMES_HOME", "default-home")
-    monkeypatch.delenv("HERMES_TEST_PROFILE_ENV", raising=False)
+    monkeypatch.setenv("IRIS_HOME", "default-home")
+    monkeypatch.delenv("IRIS_TEST_PROFILE_ENV", raising=False)
     _install_fake_compression_runtime(monkeypatch, EnvAssertingAgent)
 
     with routes._MANUAL_COMPRESSION_JOBS_LOCK:
@@ -691,17 +691,17 @@ def test_manual_compress_worker_uses_session_profile_env(monkeypatch, tmp_path, 
 
     routes._run_manual_compression_job(sid, {"session_id": sid})
     assert EnvAssertingAgent.seen_env == {
-        "HERMES_HOME": str(profile_home),
-        "HERMES_TEST_PROFILE_ENV": "work-runtime",
-        "THREAD_HERMES_HOME": str(profile_home),
-        "THREAD_HERMES_TEST_PROFILE_ENV": "work-runtime",
+        "IRIS_HOME": str(profile_home),
+        "IRIS_TEST_PROFILE_ENV": "work-runtime",
+        "THREAD_IRIS_HOME": str(profile_home),
+        "THREAD_IRIS_TEST_PROFILE_ENV": "work-runtime",
         "SKILL_MODULE_HOME": profile_home,
         "SKILL_MODULE_DIR": profile_home / "skills",
     }
-    assert str(fake_skill_module.HERMES_HOME) == "default-home"
+    assert str(fake_skill_module.IRIS_HOME) == "default-home"
     assert str(fake_skill_module.SKILLS_DIR) == "default-home/skills"
-    assert os.environ.get("HERMES_HOME") == "default-home"
-    assert os.environ.get("HERMES_TEST_PROFILE_ENV") is None
+    assert os.environ.get("IRIS_HOME") == "default-home"
+    assert os.environ.get("IRIS_TEST_PROFILE_ENV") is None
     with routes._MANUAL_COMPRESSION_JOBS_LOCK:
         assert routes._MANUAL_COMPRESSION_JOBS[sid]["status"] == "done"
 

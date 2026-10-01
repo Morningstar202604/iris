@@ -365,7 +365,7 @@ def test_extensions_installed_settings_route_through_shared_accessor():
     )
 
     assert "entry&&entry.storage_owned" in settings_block
-    assert "window.HermesExtensionSettings.settingsForExtension(id)" in settings_block
+    assert "window.IrisExtensionSettings.settingsForExtension(id)" in settings_block
     assert "settingsApi&&settingsApi.schema" in settings_block
     assert "settingsApi||!settingsApi.trusted" in settings_block
     assert "data-extension-settings-save" in settings_block
@@ -379,10 +379,10 @@ def test_extensions_installed_settings_route_through_shared_accessor():
     )
     assert "_extensionSettingsControls(entry)" in installed_block
     assert (
-        "window.HermesExtensionSettings.settingsForExtension(id).reset()" in bind_block
+        "window.IrisExtensionSettings.settingsForExtension(id).reset()" in bind_block
     )
     assert (
-        "window.HermesExtensionSettings.storageForExtension(id).clear()" in bind_block
+        "window.IrisExtensionSettings.storageForExtension(id).clear()" in bind_block
     )
     assert "api('/api/extensions/status')" not in bind_block
     assert "api('/api/settings'" not in bind_block
@@ -442,7 +442,7 @@ def test_extension_configure_rendered_surface_runtime():
         [
             "const assert = require('assert');",
             "const states = new Map([['alpha.ext', {available:true,pending:false}], ['beta.ext', {available:true,pending:false}], ['gamma.ext', {available:false,pending:false}]]);",
-            "const window = {HermesExtensionSettings:{_configureStateForExtension(id){return states.get(id)||{available:false,pending:false};}}};",
+            "const window = {IrisExtensionSettings:{_configureStateForExtension(id){return states.get(id)||{available:false,pending:false};}}};",
             "function esc(value){return String(value??'');}",
             "function _extensionEntryBadge(){return '';}",
             "function _extensionSettingsControls(){return '';}",
@@ -544,7 +544,7 @@ def test_extensions_gallery_links_sources_and_humanizes_permissions():
     assert "entry.homepage" in helper_block
     assert "entry.repository_url" in helper_block
     assert "entry.entry_path||entry.runtime_manifest_path" in helper_block
-    assert "hermes-webui/hermes-webui-extensions/tree/main" in helper_block
+    assert "iris-webui/iris-webui-extensions/tree/main" in helper_block
     assert "encodeURIComponent" in helper_block
     assert "extension-gallery-source-link" in helper_block
     assert 'target="_blank"' in helper_block
@@ -688,14 +688,14 @@ def test_extensions_docs_mentions_settings_panel_without_install_or_proxy_claims
     assert "optional top-level `runtime` object" in diagnostics_section
     assert "allowlisted scalar fields" in diagnostics_section
     assert "browser-local controls" in diagnostics_section
-    assert "`window.HermesExtensionSettings`" in DOCS_EXTENSIONS
+    assert "`window.IrisExtensionSettings`" in DOCS_EXTENSIONS
     assert (
         "does not store extension settings or expose a generic settings write route"
         in DOCS_EXTENSIONS
     )
     assert "Settings persist only non-default overrides" in DOCS_EXTENSIONS
     assert "do **not**" in diagnostics_section
-    assert "return `HERMES_WEBUI_EXTENSION_DIR`" in diagnostics_section
+    assert "return `IRIS_WEBUI_EXTENSION_DIR`" in diagnostics_section
     assert "override state-file path" in diagnostics_section
 
 

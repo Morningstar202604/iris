@@ -1,4 +1,4 @@
-import type { ServerRequest } from '@hermes/shared/json-rpc-channel'
+import type { ServerRequest } from '@iris/shared/json-rpc-channel'
 
 import type { ClarifyBatchQuestion } from '../types.js'
 

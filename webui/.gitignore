@@ -17,3 +17,4 @@ docs/.windsurfrules
 
 # Local overrides of the shared repo entrypoint stay ignored.
 AGENTS.local.md
+_shots/

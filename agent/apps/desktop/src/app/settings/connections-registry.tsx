@@ -57,7 +57,7 @@ interface EditorState {
   token: string
   host: string
   keyPath: string
-  remoteHermesPath: string
+  remoteIrisPath: string
   // ssh remote profile, hydrated on edit so the duplicate key matches the
   // main-process one (user@host:port + profile); the editor doesn't expose it.
   remoteProfile: string
@@ -84,7 +84,7 @@ function editorFromConnection(conn: DesktopRegistryConnection): EditorState {
     // would silently resurrect the old values.
     host: conn.host ? `${conn.user ? `${conn.user}@` : ''}${conn.host}${conn.port ? `:${conn.port}` : ''}` : '',
     keyPath: conn.keyPath || '',
-    remoteHermesPath: conn.remoteHermesPath || '',
+    remoteIrisPath: conn.remoteIrisPath || '',
     remoteProfile: conn.remoteProfile || '',
     headers: (conn.headerNames || []).map(name => ({ name, stored: true, value: '' }))
   }
@@ -100,7 +100,7 @@ function emptyEditor(kind: DesktopConnectionKind): EditorState {
     token: '',
     host: '',
     keyPath: '',
-    remoteHermesPath: '',
+    remoteIrisPath: '',
     remoteProfile: '',
     headers: []
   }
@@ -234,7 +234,7 @@ function scrollableAncestor(element: HTMLElement): HTMLElement | null {
 
 /**
  * The connections registry section of Settings → Gateways: manage the named
- * agent sources (local runtime + any number of remote gateways / Hermes Cloud
+ * agent sources (local runtime + any number of remote gateways / Iris Cloud
  * instances / SSH hosts). Storage-level management — the active/primary
  * switchover UX is the connection-mode controls above this section.
  */
@@ -268,7 +268,7 @@ export function ConnectionsRegistrySection() {
   const [oauthConnected, setOauthConnected] = useState(false)
   const probeSeq = useRef(0)
 
-  const bridge = window.hermesDesktop?.connections
+  const bridge = window.irisDesktop?.connections
 
   const hasLocal = Boolean(registry?.connections.some(c => c.kind === 'local'))
 
@@ -285,7 +285,7 @@ export function ConnectionsRegistrySection() {
   // URL doesn't fire a request per keystroke. Best-effort: a failed probe just
   // leaves the generic provider label, it never blocks signing in.
   useEffect(() => {
-    if (!editorWantsOauth || !editorUrl || !window.hermesDesktop?.probeConnectionConfig) {
+    if (!editorWantsOauth || !editorUrl || !window.irisDesktop?.probeConnectionConfig) {
       setAuthProbe(null)
 
       return
@@ -298,7 +298,7 @@ export function ConnectionsRegistrySection() {
     let cancelled = false
 
     const timer = setTimeout(() => {
-      window.hermesDesktop
+      window.irisDesktop
         .probeConnectionConfig(editorUrl)
         .then(result => {
           if (!cancelled && seq === probeSeq.current) {
@@ -340,7 +340,7 @@ export function ConnectionsRegistrySection() {
     setSigningIn(true)
 
     try {
-      const result = await window.hermesDesktop.oauthLoginConnectionConfig(editorUrl)
+      const result = await window.irisDesktop.oauthLoginConnectionConfig(editorUrl)
 
       setOauthConnected(Boolean(result.connected))
 
@@ -455,7 +455,7 @@ export function ConnectionsRegistrySection() {
           // of truth — never send separate user/port (see editorFromConnection).
           payload.host = editor.host
           payload.keyPath = editor.keyPath || undefined
-          payload.remoteHermesPath = editor.remoteHermesPath.trim()
+          payload.remoteIrisPath = editor.remoteIrisPath.trim()
         }
 
         const result = await bridge.save(payload)
@@ -573,7 +573,7 @@ export function ConnectionsRegistrySection() {
     [bridge, s.testFailed, s.testOk]
   )
 
-  // Fan out `hermes update` to every eligible source; per-connection results
+  // Fan out `iris update` to every eligible source; per-connection results
   // land as individual toasts so one dead box doesn't hide the others.
   const updateAll = useCallback(async () => {
     if (!bridge?.updateAll) {
@@ -953,13 +953,13 @@ export function ConnectionsRegistrySection() {
               <ListRow
                 action={
                   <Input
-                    onChange={e => setEditor({ ...editor, remoteHermesPath: e.target.value })}
-                    placeholder={t.settings.gateway.sshHermesPathPlaceholder}
-                    value={editor.remoteHermesPath}
+                    onChange={e => setEditor({ ...editor, remoteIrisPath: e.target.value })}
+                    placeholder={t.settings.gateway.sshIrisPathPlaceholder}
+                    value={editor.remoteIrisPath}
                   />
                 }
-                description={t.settings.gateway.sshHermesPathDesc}
-                title={t.settings.gateway.sshHermesPathTitle}
+                description={t.settings.gateway.sshIrisPathDesc}
+                title={t.settings.gateway.sshIrisPathTitle}
               />
             </>
           )}

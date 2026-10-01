@@ -1,4 +1,4 @@
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@iris/shared'
 import { QueryClient } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { useEffect, useRef } from 'react'
@@ -65,7 +65,7 @@ export function renderMessageStream(
       activeSessionIdRef,
       hydrateFromStoredSession: vi.fn(async () => undefined),
       queryClient: queryClientRef.current,
-      refreshHermesConfig: vi.fn(async () => undefined),
+      refreshIrisConfig: vi.fn(async () => undefined),
       refreshSessions: vi.fn(async () => undefined),
       sessionStateByRuntimeIdRef,
       updateSessionState: (id, updater) => {

@@ -277,7 +277,7 @@ describe('preview store', () => {
     openPreview(urlTarget('http://localhost:5174'))
     openPreview(artifactTarget('session-1:dashboard'))
 
-    const stored = window.localStorage.getItem('hermes.desktop.previewTabs.v2') ?? ''
+    const stored = window.localStorage.getItem('iris.desktop.previewTabs.v2') ?? ''
 
     expect(stored).toContain('/work/demo.html')
     expect(stored).toContain('localhost:5174')
@@ -287,7 +287,7 @@ describe('preview store', () => {
   it('strips inline image bytes rather than pushing megabytes into storage', () => {
     openPreview({ ...fileTarget('/work/shot.png'), dataUrl: 'data:image/png;base64,AAAA', previewKind: 'image' })
 
-    expect(window.localStorage.getItem('hermes.desktop.previewTabs.v2') ?? '').not.toContain('base64')
+    expect(window.localStorage.getItem('iris.desktop.previewTabs.v2') ?? '').not.toContain('base64')
   })
 
   it('does not persist remote HTML without its in-memory document', () => {
@@ -295,7 +295,7 @@ describe('preview store', () => {
 
     // Nothing persistable, so the profile's bucket is empty and the key is
     // removed rather than stored as an empty list (matching the tiles store).
-    expect(window.localStorage.getItem('hermes.desktop.previewTabs.v2')).toBeNull()
+    expect(window.localStorage.getItem('iris.desktop.previewTabs.v2')).toBeNull()
   })
 
   it('preserves an explicit HTML source fallback', () => {
@@ -311,6 +311,6 @@ describe('preview store', () => {
 
     // Nothing persistable, so the profile's bucket is empty and the key is
     // removed rather than stored as an empty list (matching the tiles store).
-    expect(window.localStorage.getItem('hermes.desktop.previewTabs.v2')).toBeNull()
+    expect(window.localStorage.getItem('iris.desktop.previewTabs.v2')).toBeNull()
   })
 })

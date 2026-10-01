@@ -23,7 +23,7 @@ import pytest
 
 def test_outbound_to_public_ipv4_is_blocked():
     """Attempting to connect to a public IP must raise OSError."""
-    with pytest.raises(OSError, match="hermes test network isolation"):
+    with pytest.raises(OSError, match="iris test network isolation"):
         # 8.8.8.8 (Google DNS) is a stable real public IPv4.
         # If we accidentally connect, the test goes to 53/tcp which is
         # genuinely listening — so the block is what stops us, not lack of
@@ -33,13 +33,13 @@ def test_outbound_to_public_ipv4_is_blocked():
 
 def test_outbound_to_anthropic_ipv6_is_blocked():
     """The exact destination we observed leaking from earlier pytest runs."""
-    with pytest.raises(OSError, match="hermes test network isolation"):
+    with pytest.raises(OSError, match="iris test network isolation"):
         socket.create_connection(("2607:6bc0::10", 443), timeout=1)
 
 
 def test_outbound_to_amazon_is_blocked():
     """AWS endpoints (botocore / bedrock) must not reach the real service."""
-    with pytest.raises(OSError, match="hermes test network isolation"):
+    with pytest.raises(OSError, match="iris test network isolation"):
         socket.create_connection(("3.173.21.63", 443), timeout=1)
 
 
@@ -63,38 +63,38 @@ def test_rfc1918_private_ipv4_is_allowed():
     import tests.conftest as _conftest
     # Direct unit test on the predicate so we don't have to start a real listener
     # in a private-IP subnet just to prove this.
-    assert _conftest._hermes_addr_is_local("10.0.0.5") is True
-    assert _conftest._hermes_addr_is_local("172.16.5.1") is True
-    assert _conftest._hermes_addr_is_local("172.31.255.254") is True
-    assert _conftest._hermes_addr_is_local("192.168.1.22") is True
+    assert _conftest._iris_addr_is_local("10.0.0.5") is True
+    assert _conftest._iris_addr_is_local("172.16.5.1") is True
+    assert _conftest._iris_addr_is_local("172.31.255.254") is True
+    assert _conftest._iris_addr_is_local("192.168.1.22") is True
 
 
 def test_link_local_is_allowed():
     """169.254.0.0/16 (link-local / IMDS) — AWS_EC2_METADATA_DISABLED already
     short-circuits the actual probe but the socket layer allows it."""
     import tests.conftest as _conftest
-    assert _conftest._hermes_addr_is_local("169.254.169.254") is True
+    assert _conftest._iris_addr_is_local("169.254.169.254") is True
 
 
 def test_reserved_tlds_are_allowed():
     """RFC 2606/6761 reserved TLDs — used as documentation hostnames in tests
     (e.g. example.com, test-host.invalid)."""
     import tests.conftest as _conftest
-    assert _conftest._hermes_addr_is_local("example.com") is True
-    assert _conftest._hermes_addr_is_local("my-mac.tailnet.example") is True
-    assert _conftest._hermes_addr_is_local("anything.invalid") is True
-    assert _conftest._hermes_addr_is_local("test-host.test") is True
-    assert _conftest._hermes_addr_is_local("printer.local") is True
-    assert _conftest._hermes_addr_is_local("localhost") is True
+    assert _conftest._iris_addr_is_local("example.com") is True
+    assert _conftest._iris_addr_is_local("my-mac.tailnet.example") is True
+    assert _conftest._iris_addr_is_local("anything.invalid") is True
+    assert _conftest._iris_addr_is_local("test-host.test") is True
+    assert _conftest._iris_addr_is_local("printer.local") is True
+    assert _conftest._iris_addr_is_local("localhost") is True
 
 
 def test_public_ipv4_is_blocked():
     """Public IPs must NOT be treated as local."""
     import tests.conftest as _conftest
-    assert _conftest._hermes_addr_is_local("8.8.8.8") is False
-    assert _conftest._hermes_addr_is_local("1.1.1.1") is False
-    assert _conftest._hermes_addr_is_local("203.0.113.0") is True  # TEST-NET-3
-    assert _conftest._hermes_addr_is_local("204.0.113.0") is False  # outside
+    assert _conftest._iris_addr_is_local("8.8.8.8") is False
+    assert _conftest._iris_addr_is_local("1.1.1.1") is False
+    assert _conftest._iris_addr_is_local("203.0.113.0") is True  # TEST-NET-3
+    assert _conftest._iris_addr_is_local("204.0.113.0") is False  # outside
 
 
 def test_allow_outbound_network_fixture_unswaps_the_wrappers(allow_outbound_network):
@@ -107,10 +107,10 @@ def test_allow_outbound_network_fixture_unswaps_the_wrappers(allow_outbound_netw
     the same __qualname__ but different `is` identity).
     """
     # Inside the fixture, the symbol should NOT be the blocked wrapper.
-    assert "_hermes_blocked_create_connection" not in getattr(
+    assert "_iris_blocked_create_connection" not in getattr(
         socket.create_connection, "__qualname__", ""
     ), "allow_outbound_network fixture did not restore the real create_connection"
-    assert "_hermes_blocked_socket_connect" not in getattr(
+    assert "_iris_blocked_socket_connect" not in getattr(
         socket.socket.connect, "__qualname__", ""
     ), "allow_outbound_network fixture did not restore the real socket.connect"
 
@@ -122,9 +122,9 @@ def test_block_is_active_outside_the_fixture():
     Check by qname so this is robust against pytest re-importing conftest
     under multiple roots (which produces two distinct function objects with
     the same __qualname__ but different `is` identity)."""
-    assert "_hermes_blocked_create_connection" in getattr(
+    assert "_iris_blocked_create_connection" in getattr(
         socket.create_connection, "__qualname__", ""
     ), "default state should have the blocked wrapper installed on socket.create_connection"
-    assert "_hermes_blocked_socket_connect" in getattr(
+    assert "_iris_blocked_socket_connect" in getattr(
         socket.socket.connect, "__qualname__", ""
     ), "default state should have the blocked wrapper installed on socket.socket.connect"

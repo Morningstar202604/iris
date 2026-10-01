@@ -13,7 +13,7 @@ def server_configs_with_sources(config_servers: Mapping[str, dict]) -> tuple[Dic
     servers = {name: dict(cfg) for name, cfg in config_servers.items() if isinstance(cfg, dict)}
     plugins: Dict[str, str | None] = {name: None for name in servers}
     try:
-        from hermes_cli.plugins import discover_plugins, get_plugin_manager
+        from iris_cli.plugins import discover_plugins, get_plugin_manager
         from tools.mcp_tool_config import _filter_suspicious_mcp_servers
 
         discover_plugins()
@@ -30,7 +30,7 @@ def server_configs_with_sources(config_servers: Mapping[str, dict]) -> tuple[Dic
 
 
 def summarize_server(name: str, cfg: dict, plugin: str | None = None) -> Dict[str, Any]:
-    from hermes_cli.mcp_config import _oauth_tokens_present
+    from iris_cli.mcp_config import _oauth_tokens_present
     from tools.mcp_tool_common import mcp_server_enabled
 
     cfg = cfg if isinstance(cfg, dict) else {}
@@ -62,7 +62,7 @@ from typing import Optional  # noqa: F401,E402
 from typing import Tuple  # noqa: F401,E402
 
 def resolve_profile(rid, params, err_fn) -> Tuple[Optional[Any], Optional[dict]]:
-    """Resolve the optional ``profile`` param to a HERMES_HOME override token.
+    """Resolve the optional ``profile`` param to a IRIS_HOME override token.
 
     Returns ``(token, error)``: ``token`` is None for the launch profile (no
     override) or an opaque reset token; ``error`` is a JSON-RPC error dict
@@ -72,8 +72,8 @@ def resolve_profile(rid, params, err_fn) -> Tuple[Optional[Any], Optional[dict]]
     profile = str(params.get("profile") or "").strip()
     if not profile:
         return None, None
-    from hermes_cli.profiles import get_profile_dir
-    from hermes_constants import set_hermes_home_override
+    from iris_cli.profiles import get_profile_dir
+    from iris_constants import set_iris_home_override
 
     try:
         profile_dir = get_profile_dir(profile)
@@ -81,5 +81,5 @@ def resolve_profile(rid, params, err_fn) -> Tuple[Optional[Any], Optional[dict]]
         return None, err_fn(rid, 4064, f"profile '{profile}' not found")
     if not profile_dir or not profile_dir.is_dir():
         return None, err_fn(rid, 4064, f"profile '{profile}' not found")
-    return set_hermes_home_override(str(profile_dir)), None
+    return set_iris_home_override(str(profile_dir)), None
 # ---- END PLUGIN-COMPAT ----

@@ -18,7 +18,7 @@ SEARCH_LIMIT_CAP = 20  # every vendor here caps max_results at 20 server-side
 
 
 def provider_env(name: str) -> str:
-    """Config-aware env lookup (os.environ, then ~/.hermes/.env)."""
+    """Config-aware env lookup (os.environ, then ~/.iris/.env)."""
     from agent.web_search_provider import get_provider_env
     return get_provider_env(name)
 
@@ -231,7 +231,7 @@ class BaseWebSearchProvider(WebSearchProvider):
 
 
 def setup_schema(name: str, badge: str, tag: str, key_env: str = "", prompt: str = "", url: str = "", **extra: Any) -> Dict[str, Any]:
-    """``hermes tools`` picker entry; ``env_vars`` is empty when ``key_env`` is blank."""
+    """``iris tools`` picker entry; ``env_vars`` is empty when ``key_env`` is blank."""
     env_vars = [{"key": key_env, "prompt": prompt, "url": url}] if key_env else []
     return {"name": name, "badge": badge, "tag": tag, "env_vars": env_vars, **extra}
 

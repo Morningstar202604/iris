@@ -9,7 +9,7 @@
  * denser than Chromium 100%, and selected in the UI Scale control on first run.
  */
 
-export const ZOOM_STORAGE_KEY = 'hermes:desktop:zoomLevel'
+export const ZOOM_STORAGE_KEY = 'iris:desktop:zoomLevel'
 
 const ZOOM_FACTOR_BASE = 1.2
 const MIN_ZOOM_LEVEL = -9
@@ -46,13 +46,13 @@ export function percentToZoomLevel(percent) {
  * order. Every path that changes zoom (user action, restore-on-load, lifecycle
  * re-assert) funnels through here so the settings UI Scale control can never
  * drift from the actually-applied level — the bug where restore set the level
- * but forgot to emit 'hermes:zoom:changed', leaving the control stuck at 100%.
+ * but forgot to emit 'iris:zoom:changed', leaving the control stuck at 100%.
  * Returns the clamped level so callers can persist it.
  */
 export function applyZoomLevel(webContents, level) {
   const clamped = clampZoomLevel(level)
   webContents.setZoomLevel(clamped)
-  webContents.send('hermes:zoom:changed', { level: clamped, percent: zoomLevelToPercent(clamped) })
+  webContents.send('iris:zoom:changed', { level: clamped, percent: zoomLevelToPercent(clamped) })
 
   return clamped
 }
@@ -165,7 +165,7 @@ export function installZoomReassertOnWindowEvents(win, reassert, platform = proc
  * In-page navigation fires neither `did-finish-load` nor any window event, so
  * nothing re-asserted the persisted level: opening a fresh session dropped the
  * window to 100% while the Appearance control kept reading the chosen scale (it
- * only learns of changes through `hermes:zoom:changed`, which never fired —
+ * only learns of changes through `iris:zoom:changed`, which never fired —
  * which is why touching the setting appeared to fix it). #48658, #38854, #79863.
  *
  * Verified on real Electron 40.10.2 / Chromium 144 (win32): at

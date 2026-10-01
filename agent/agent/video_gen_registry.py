@@ -6,7 +6,7 @@ consumed by the ``video_generate`` tool. The active provider is
 fails closed. If unset, the single *available* registered provider is used
 (mirrors ``agent/image_gen_registry.py`` minus its legacy ``fal`` preference)
 so a box with credentials for only one backend auto-selects it; otherwise None
-and the tool points the user at ``hermes tools``.
+and the tool points the user at ``iris tools``.
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ import threading  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'hermes_home_key': ('hermes_constants', 'hermes_home_key'),
+    'iris_home_key': ('iris_constants', 'iris_home_key'),
 }
 
 
@@ -65,7 +65,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

@@ -1,5 +1,5 @@
 """
-Tests for optional TLS/HTTPS support (HERMES_WEBUI_TLS_CERT / TLS_KEY).
+Tests for optional TLS/HTTPS support (IRIS_WEBUI_TLS_CERT / TLS_KEY).
 
 Tests use a self-signed certificate generated at test time via openssl.
 """
@@ -112,15 +112,15 @@ def _wait_for_server(host: str, port: int, use_ssl: bool = False,
 def _start_server(port: int, cert: str = None, key: str = None) -> subprocess.Popen:
     """Start server.py as a subprocess with the given TLS env vars."""
     env = {k: v for k, v in os.environ.items()}
-    env["HERMES_WEBUI_HOST"] = "127.0.0.1"
-    env["HERMES_WEBUI_PORT"] = str(port)
-    env.pop("HERMES_WEBUI_TLS_CERT", None)
-    env.pop("HERMES_WEBUI_TLS_KEY", None)
+    env["IRIS_WEBUI_HOST"] = "127.0.0.1"
+    env["IRIS_WEBUI_PORT"] = str(port)
+    env.pop("IRIS_WEBUI_TLS_CERT", None)
+    env.pop("IRIS_WEBUI_TLS_KEY", None)
     if cert:
-        env["HERMES_WEBUI_TLS_CERT"] = cert
+        env["IRIS_WEBUI_TLS_CERT"] = cert
     if key:
-        env["HERMES_WEBUI_TLS_KEY"] = key
-    env["HERMES_WEBUI_STATE_DIR"] = str(Path(tempfile.mkdtemp()))
+        env["IRIS_WEBUI_TLS_KEY"] = key
+    env["IRIS_WEBUI_STATE_DIR"] = str(Path(tempfile.mkdtemp()))
     proc = subprocess.Popen(
         [os.sys.executable, str(ROOT / "server.py")],
         env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -176,8 +176,8 @@ class TestTLSConfigFlag(unittest.TestCase):
     def test_tls_enabled_true_when_both_env_set(self):
         code = textwrap.dedent("""\
             import os
-            os.environ['HERMES_WEBUI_TLS_CERT'] = '/tmp/cert.pem'
-            os.environ['HERMES_WEBUI_TLS_KEY'] = '/tmp/key.pem'
+            os.environ['IRIS_WEBUI_TLS_CERT'] = '/tmp/cert.pem'
+            os.environ['IRIS_WEBUI_TLS_KEY'] = '/tmp/key.pem'
             from api.config import TLS_ENABLED
             print(TLS_ENABLED)
         """)
@@ -186,11 +186,11 @@ class TestTLSConfigFlag(unittest.TestCase):
 
     def test_tls_enabled_false_when_env_absent(self):
         env = {k: v for k, v in os.environ.items()
-               if k not in ("HERMES_WEBUI_TLS_CERT", "HERMES_WEBUI_TLS_KEY")}
+               if k not in ("IRIS_WEBUI_TLS_CERT", "IRIS_WEBUI_TLS_KEY")}
         code = textwrap.dedent("""\
             import os
-            os.environ.pop('HERMES_WEBUI_TLS_CERT', None)
-            os.environ.pop('HERMES_WEBUI_TLS_KEY', None)
+            os.environ.pop('IRIS_WEBUI_TLS_CERT', None)
+            os.environ.pop('IRIS_WEBUI_TLS_KEY', None)
             from api.config import TLS_ENABLED
             print(TLS_ENABLED)
         """)
@@ -199,8 +199,8 @@ class TestTLSConfigFlag(unittest.TestCase):
 
     def test_tls_enabled_false_when_only_cert_set(self):
         env = {k: v for k, v in os.environ.items()
-               if k not in ("HERMES_WEBUI_TLS_CERT", "HERMES_WEBUI_TLS_KEY")}
-        env["HERMES_WEBUI_TLS_CERT"] = "/tmp/cert.pem"
+               if k not in ("IRIS_WEBUI_TLS_CERT", "IRIS_WEBUI_TLS_KEY")}
+        env["IRIS_WEBUI_TLS_CERT"] = "/tmp/cert.pem"
         code = textwrap.dedent("""\
             from api.config import TLS_ENABLED
             print(TLS_ENABLED)

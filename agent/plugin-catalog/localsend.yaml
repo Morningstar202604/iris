@@ -1,5 +1,5 @@
 name: localsend
-repo: https://github.com/tylerbrevard/hermes-localsend
+repo: https://github.com/tylerbrevard/iris-localsend
 sha: 28dfd30ccdca6ca5baf30ca13326ea7f0d4c755d
 description: Peer-to-peer file transfer over the LocalSend protocol - discover the phones, laptops and
   tablets on your LAN, send files to them, and run a headless receiver so they can send files back.
@@ -8,11 +8,11 @@ description: Peer-to-peer file transfer over the LocalSend protocol - discover t
 maintainer: tylerbrevard
 tier: community
 category: desktop
-docs_url: https://github.com/tylerbrevard/hermes-localsend#readme
+docs_url: https://github.com/tylerbrevard/iris-localsend#readme
 version: "1.18.0"
-image: https://raw.githubusercontent.com/tylerbrevard/hermes-localsend/28dfd30ccdca6ca5baf30ca13326ea7f0d4c755d/docs/banner.png
+image: https://raw.githubusercontent.com/tylerbrevard/iris-localsend/28dfd30ccdca6ca5baf30ca13326ea7f0d4c755d/docs/banner.png
 platforms: []
-requires_hermes: ">=0.21.3"
+requires_iris: ">=0.21.3"
 capabilities:
   provides_tools:
   - localsend_discover

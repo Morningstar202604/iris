@@ -36,7 +36,7 @@ def test_rtl_bootstrap_script_runs_synchronously_in_head():
     html = INDEX.read_text(encoding="utf-8")
     # The bootstrap should appear before </head>
     head_close = html.index("</head>")
-    bootstrap_idx = html.index("localStorage.getItem('hermes-rtl')")
+    bootstrap_idx = html.index("localStorage.getItem('iris-rtl')")
     assert bootstrap_idx < head_close, "RTL bootstrap must run in <head> before paint"
     assert "chat-content-rtl" in html
 
@@ -95,7 +95,7 @@ def test_rtl_setting_round_trips_through_panels_js():
     js = PANELS.read_text(encoding="utf-8")
     # Load path: read from settings + localStorage, apply class
     assert "const rtlCb=$('settingsRtl');" in js
-    assert "localStorage.setItem('hermes-rtl'" in js
+    assert "localStorage.setItem('iris-rtl'" in js
     assert "classList.toggle('chat-content-rtl'" in js
     # Save path: payload + body both carry rtl
     assert "payload.rtl=rtlCb.checked;" in js

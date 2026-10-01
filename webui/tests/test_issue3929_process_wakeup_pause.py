@@ -76,22 +76,22 @@ def _default_live_credential_revalidation(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _mock_hermes_modules(monkeypatch):
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+def _mock_iris_modules(monkeypatch):
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None, **_kw: {
         "provider": requested or "test-provider",
         "api_key": "synthetic-key",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=None)
 
     injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     missing = object()
     saved = {name: sys.modules.get(name, missing) for name in injected}
@@ -390,11 +390,11 @@ def test_cancelled_stale_process_wakeup_credential_failure_records_pause(tmp_pat
 
 
 def test_process_wakeup_pause_revalidates_when_credential_state_changes(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    auth_json = iris_home / "auth.json"
     auth_json.write_text('{"credential_pool": {}}\n', encoding="utf-8")
-    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: hermes_home)
+    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: iris_home)
     session = Session(
         session_id="wakeup_pause_credential_refresh",
         workspace=str(tmp_path),
@@ -459,11 +459,11 @@ def test_process_wakeup_pause_revalidates_when_credential_state_changes(tmp_path
 
 
 def test_process_wakeup_pause_keeps_changed_credential_state_until_provider_is_usable(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    auth_json = iris_home / "auth.json"
     auth_json.write_text('{"credential_pool": {}}\n', encoding="utf-8")
-    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: hermes_home)
+    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: iris_home)
     session = Session(
         session_id="wakeup_pause_credential_changed_still_unusable",
         workspace=str(tmp_path),
@@ -1013,9 +1013,9 @@ def test_streaming_success_pause_clear_preserves_concurrent_session_update(tmp_p
 
 
 def test_process_wakeup_pause_survives_rotation_style_auth_rewrite(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    auth_json = iris_home / "auth.json"
     auth_json.write_text(
         json.dumps(
             {
@@ -1038,7 +1038,7 @@ def test_process_wakeup_pause_survives_rotation_style_auth_rewrite(tmp_path, mon
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: hermes_home)
+    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: iris_home)
     session = Session(
         session_id="wakeup_pause_auth_rotation",
         workspace=str(tmp_path),
@@ -1107,9 +1107,9 @@ def test_process_wakeup_pause_survives_rotation_style_auth_rewrite(tmp_path, mon
 
 
 def test_process_wakeup_pause_revalidates_status_recovery_without_fingerprint_change(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    auth_json = iris_home / "auth.json"
     exhausted_entry = {
         "id": "pooled-token",
         "label": "Test provider credential",
@@ -1124,8 +1124,8 @@ def test_process_wakeup_pause_revalidates_status_recovery_without_fingerprint_ch
     pool_data = {"test-provider": [dict(exhausted_entry)]}
     auth_json.write_text(json.dumps({"credential_pool": pool_data}), encoding="utf-8")
     _install_fake_agent_credential_pool(monkeypatch, pool_data)
-    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: hermes_home)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: hermes_home)
+    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: iris_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: iris_home)
     monkeypatch.setattr(
         routes,
         "provider_has_process_wakeup_recovery_credential",
@@ -1255,9 +1255,9 @@ def test_process_wakeup_pause_revalidates_at_provider_model_with_canonical_provi
 
 
 def test_process_wakeup_pause_revalidation_uses_session_profile_not_default(tmp_path, monkeypatch):
-    base_home = tmp_path / "hermes-home"
+    base_home = tmp_path / "iris-home"
     (base_home / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base_home)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base_home)
     monkeypatch.setattr(profiles, "_is_isolated_profile_mode", lambda: False)
     profiles.clear_request_profile()
 
@@ -1340,7 +1340,7 @@ def test_process_wakeup_pause_revalidates_named_profile_sanitized_env_pool_recov
     recovered_status,
     recovered_reset_at,
 ):
-    base_home = tmp_path / "hermes-home"
+    base_home = tmp_path / "iris-home"
     profile_home = base_home / "profiles" / "work"
     profile_home.mkdir(parents=True)
     api_key = "sk-or-profile-recovered"
@@ -1366,19 +1366,19 @@ def test_process_wakeup_pause_revalidates_named_profile_sanitized_env_pool_recov
             encoding="utf-8",
         )
 
-    fake_auth_module = types.ModuleType("hermes_cli.auth")
+    fake_auth_module = types.ModuleType("iris_cli.auth")
 
     def _read_credential_pool(provider_id):
         raw = json.loads(config._get_auth_store_path().read_text(encoding="utf-8"))
         return list((raw.get("credential_pool") or {}).get(provider_id, []))
 
     fake_auth_module.read_credential_pool = _read_credential_pool
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth_module)
-    fake_hermes_cli = sys.modules.get("hermes_cli")
-    if fake_hermes_cli is not None:
-        fake_hermes_cli.auth = fake_auth_module
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth_module)
+    fake_iris_cli = sys.modules.get("iris_cli")
+    if fake_iris_cli is not None:
+        fake_iris_cli.auth = fake_auth_module
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base_home)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base_home)
     monkeypatch.setattr(profiles, "_is_isolated_profile_mode", lambda: False)
     profiles.clear_request_profile()
 
@@ -1824,11 +1824,11 @@ def test_process_wakeup_pause_records_unset_route_provider_before_runtime_backfi
 
 
 def test_process_wakeup_pause_keeps_empty_provider_lane_after_fingerprint_change(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    auth_json = iris_home / "auth.json"
     auth_json.write_text('{"credential_pool": {}}\n', encoding="utf-8")
-    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: hermes_home)
+    monkeypatch.setattr(models, "_get_profile_home", lambda _profile: iris_home)
     monkeypatch.setitem(config.cfg, "model", {"default": "claude-sonnet-test"})
     session = Session(
         session_id="wakeup_pause_empty_provider_probe",

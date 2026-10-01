@@ -1,18 +1,18 @@
 declare global {
   interface Window {
-    __HERMES_DASHBOARD_PROFILE__?: string;
-    __HERMES_INITIAL_PROFILE__?: string;
+    __IRIS_DASHBOARD_PROFILE__?: string;
+    __IRIS_INITIAL_PROFILE__?: string;
   }
 }
 
 export function dashboardInitialProfile(): string {
   if (typeof window === "undefined") return "";
-  return window.__HERMES_INITIAL_PROFILE__ ?? "";
+  return window.__IRIS_INITIAL_PROFILE__ ?? "";
 }
 
 /**
  * The profile this backend process itself serves, injected by the server and
- * empty when it cannot be named unambiguously (custom HERMES_HOME).
+ * empty when it cannot be named unambiguously (custom IRIS_HOME).
  *
  * It is the LAST fallback for the management scope: without it the dashboard
  * sends no `?profile=` at all, which a multi-profile host now refuses (400) on
@@ -22,7 +22,7 @@ export function dashboardInitialProfile(): string {
  */
 export function dashboardServingProfile(): string {
   if (typeof window === "undefined") return "";
-  return window.__HERMES_DASHBOARD_PROFILE__ ?? "";
+  return window.__IRIS_DASHBOARD_PROFILE__ ?? "";
 }
 
 export function initialProfileScope(

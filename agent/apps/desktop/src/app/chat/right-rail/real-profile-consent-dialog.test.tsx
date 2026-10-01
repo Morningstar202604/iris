@@ -18,13 +18,13 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
-  saveHermesConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
+vi.mock('@/iris', () => ({
+  saveIrisConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
 }))
 
 const promptCopy = {
   title: 'Stay signed in to your sites',
-  body: 'Let Hermes browse with a snapshot of your default browser profile.',
+  body: 'Let Iris browse with a snapshot of your default browser profile.',
   bulletSnapshot: 'Cookies and logins are copied into a managed snapshot.',
   bulletLiveProfile: 'Your live browser profile is never opened directly.',
   bulletLocal: 'Nothing leaves this computer.',
@@ -57,8 +57,8 @@ vi.mock('@/store/notifications', () => ({
 }))
 
 vi.mock('../../hooks/use-config-record', () => ({
-  hermesConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
-  useHermesConfigRecord: () => ({ data: mocks.loadedConfig })
+  irisConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
+  useIrisConfigRecord: () => ({ data: mocks.loadedConfig })
 }))
 
 describe('RealProfileConsentDialog', () => {

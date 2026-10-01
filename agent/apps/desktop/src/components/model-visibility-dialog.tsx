@@ -1,4 +1,4 @@
-import type { ModelOptionProvider, ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionProvider, ModelOptionsResult } from '@iris/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
@@ -10,7 +10,7 @@ import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { Switch } from '@/components/ui/switch'
-import type { HermesGateway } from '@/hermes'
+import type { IrisGateway } from '@/iris'
 import { useI18n } from '@/i18n'
 import { Plus, Search, X } from '@/lib/icons'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
@@ -37,7 +37,7 @@ import {
 import { $collapsedProviders, toggleCollapsedProvider } from '@/store/provider-collapse'
 
 interface ModelVisibilityDialogProps {
-  gw?: HermesGateway
+  gw?: IrisGateway
   onOpenChange: (open: boolean) => void
   onOpenProviders: () => void
   open: boolean

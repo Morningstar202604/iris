@@ -1,6 +1,6 @@
 """Tests for approval event handling on the gateway legacy /v1/chat/completions path (#4549).
 
-The legacy path is the default when HERMES_WEBUI_GATEWAY_USE_RUNS_API is not set.
+The legacy path is the default when IRIS_WEBUI_GATEWAY_USE_RUNS_API is not set.
 PR #4495 fixed the runs API path but left the legacy path without approval handling.
 """
 from __future__ import annotations
@@ -74,11 +74,11 @@ def test_legacy_loop_checks_approval_request_event():
     )
 
 
-def test_legacy_loop_checks_hermes_approval_request_event():
-    """Legacy SSE loop must handle `hermes.approval.request` events."""
+def test_legacy_loop_checks_iris_approval_request_event():
+    """Legacy SSE loop must handle `iris.approval.request` events."""
     loop = _extract_legacy_sse_loop()
-    assert '"hermes.approval.request"' in loop, (
-        "Legacy SSE loop must check for hermes.approval.request event name"
+    assert '"iris.approval.request"' in loop, (
+        "Legacy SSE loop must check for iris.approval.request event name"
     )
 
 
@@ -117,7 +117,7 @@ def test_legacy_loop_reuses_gateway_runs_approval_event():
 def test_legacy_loop_resets_sse_event_after_approval():
     """Legacy SSE loop must reset sse_event to 'message' after handling approval."""
     loop = _extract_legacy_sse_loop()
-    approval_idx = loop.find('"hermes.approval.request"')
+    approval_idx = loop.find('"iris.approval.request"')
     assert approval_idx >= 0
     # Window sized to cover the approval handling block including the run_id
     # recording added in the #4549 follow-up (reset lands ~1360 chars in).
@@ -209,7 +209,7 @@ def test_legacy_sse_loop_relays_approval_event():
         return resp
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -310,7 +310,7 @@ def test_legacy_approval_records_run_id_for_response_relay():
         return resp
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -432,7 +432,7 @@ def test_legacy_teardown_clears_stale_gateway_mirror_and_notifies_empty_state():
             with ra._lock:
                 ra._gateway_queues.pop(session_id, None)
 
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=_make_legacy_gateway_urlopen(approval_payload, clear_gateway_queue)), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -507,7 +507,7 @@ def test_legacy_teardown_retires_live_gateway_head_mirror():
         with STREAMS_LOCK:
             STREAMS[stream_id] = q
 
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=_make_legacy_gateway_urlopen(approval_payload)), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -587,7 +587,7 @@ def test_legacy_teardown_preserves_local_pending_entry():
         with STREAMS_LOCK:
             STREAMS[stream_id] = q
 
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=_make_legacy_gateway_urlopen(approval_payload)), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -749,7 +749,7 @@ def test_gateway_mode_no_pending_click_stays_non_409():
         captured["status"] = status
         return data
 
-    with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}), \
+    with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}), \
          patch("api.routes.get_session", return_value=mock_session), \
          patch("api.routes.j", new=fake_j), \
          patch("api.runtime_adapter.runtime_adapter_enabled", return_value=False):
@@ -824,7 +824,7 @@ def test_legacy_approval_without_run_id_retires_locally():
         return data
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
@@ -854,7 +854,7 @@ def test_legacy_approval_without_run_id_retires_locally():
             assert isinstance(pending_queue, list)
             approval_id = pending_queue[0]["approval_id"]
 
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}), \
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}), \
              patch("api.routes.get_session", return_value=mock_session), \
              patch("api.routes.j", new=fake_j):
             r._handle_approval_respond(
@@ -931,7 +931,7 @@ def test_route_deny_settles_exact_non_head_run_producer():
     def producer(payload):
         """The agent's real producer entry when installed, an equivalent one otherwise.
 
-        The suite runs without hermes-agent in CI, where
+        The suite runs without iris-agent in CI, where
         ``tools.approval._ApprovalEntry`` does not exist; the stand-in carries the
         same ``data`` / ``event`` / ``result`` / ``reason`` contract the resolution
         path touches, so the assertions below mean the same thing in both shapes.

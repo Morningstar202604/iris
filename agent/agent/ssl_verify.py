@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
-_CA_BUNDLE_ENV_VARS = ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE")
+_CA_BUNDLE_ENV_VARS = ("IRIS_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE")
 _INSECURE_STRINGS = {"false", "0", "no", "off"}
 _CA_CONTEXTS: dict[str, ssl.SSLContext] = {}
 _CA_CONTEXTS_LOCK = threading.Lock()

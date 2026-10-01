@@ -32,15 +32,15 @@ def test_gateway_chat_backend_is_default_off_for_truthy_values():
     for value in (None, "", "1", "true", "yes", "on", "enabled", "runner-local"):
         env = {}
         if value is not None:
-            env["HERMES_WEBUI_CHAT_BACKEND"] = value
+            env["IRIS_WEBUI_CHAT_BACKEND"] = value
         assert webui_chat_backend_mode({}, env) == "legacy"
         assert webui_gateway_chat_enabled({}, env) is False
 
 
 def test_gateway_chat_backend_only_accepts_explicit_gateway_aliases():
     for value in ("gateway", "api_server", "api-server", " Gateway "):
-        assert webui_chat_backend_mode({}, {"HERMES_WEBUI_CHAT_BACKEND": value}) == "gateway"
-        assert webui_gateway_chat_enabled({}, {"HERMES_WEBUI_CHAT_BACKEND": value}) is True
+        assert webui_chat_backend_mode({}, {"IRIS_WEBUI_CHAT_BACKEND": value}) == "gateway"
+        assert webui_gateway_chat_enabled({}, {"IRIS_WEBUI_CHAT_BACKEND": value}) is True
 
 
 def test_gateway_chat_backend_can_be_enabled_from_config_without_env():
@@ -51,8 +51,8 @@ def test_gateway_chat_config_status_is_redacted_and_reports_missing_key():
     status = gateway_chat_config_status(
         {},
         {
-            "HERMES_WEBUI_CHAT_BACKEND": "gateway",
-            "HERMES_WEBUI_GATEWAY_BASE_URL": "http://gateway.local",
+            "IRIS_WEBUI_CHAT_BACKEND": "gateway",
+            "IRIS_WEBUI_GATEWAY_BASE_URL": "http://gateway.local",
         },
     )
 
@@ -68,7 +68,7 @@ def test_gateway_chat_config_status_reports_fallback_api_server_key_without_expo
     status = gateway_chat_config_status(
         {},
         {
-            "HERMES_WEBUI_CHAT_BACKEND": "gateway",
+            "IRIS_WEBUI_CHAT_BACKEND": "gateway",
             "API_SERVER_KEY": "secret-token",
         },
     )
@@ -80,7 +80,7 @@ def test_gateway_chat_config_status_reports_fallback_api_server_key_without_expo
 def test_gateway_chat_backend_env_wins_over_config_and_stays_safe():
     assert webui_chat_backend_mode(
         {"webui_chat_backend": "gateway"},
-        {"HERMES_WEBUI_CHAT_BACKEND": "legacy-direct"},
+        {"IRIS_WEBUI_CHAT_BACKEND": "legacy-direct"},
     ) == "legacy"
 
 
@@ -206,7 +206,7 @@ def test_gateway_http_401_reports_gateway_auth_not_provider_key():
     assert event["label"] == "Gateway authentication failed"
     assert event["type"] == "gateway_auth_error"
     assert "HTTP 401" in event["message"]
-    assert "HERMES_WEBUI_GATEWAY_API_KEY" in event["hint"]
+    assert "IRIS_WEBUI_GATEWAY_API_KEY" in event["hint"]
     assert "API_SERVER_KEY" in event["hint"]
     assert "Invalid API key" not in event["hint"]
 
@@ -223,7 +223,7 @@ def test_gateway_http_401_with_key_suggests_key_mismatch():
     event = _gateway_http_error_event(exc, "", api_key_configured=True)
 
     assert event["type"] == "gateway_auth_error"
-    assert event["hint"] == "Check that HERMES_WEBUI_GATEWAY_API_KEY matches the Hermes Gateway API_SERVER_KEY."
+    assert event["hint"] == "Check that IRIS_WEBUI_GATEWAY_API_KEY matches the Iris Gateway API_SERVER_KEY."
 
 
 def test_frontend_renders_gateway_auth_error_with_specific_label():
@@ -286,14 +286,14 @@ def test_gateway_chat_worker_translates_sse_and_persists_session(tmp_path, monke
             return False
 
         def __iter__(self):
-            yield b'event: hermes.tool.progress\n'
+            yield b'event: iris.tool.progress\n'
             yield b'data: {"tool":"terminal","label":"terminal: pytest","toolCallId":"call-1","status":"running"}\n\n'
             yield b'data: {"choices":[{"delta":{"content":"hel"}}]}\n\n'
-            yield b'event: hermes.tool.progress\n'
+            yield b'event: iris.tool.progress\n'
             yield b'data: {"tool":"_thinking","text":"Thinking from tool progress"}\n\n'
             yield b'event: reasoning.available\n'
             yield b'data: {"text":"Reasoning preview", "preview":"Reasoning preview"}\n\n'
-            yield b'event: hermes.tool.progress\n'
+            yield b'event: iris.tool.progress\n'
             yield b'data: {"tool":"terminal","toolCallId":"call-1","status":"completed"}\n\n'
             yield b'data: {"choices":[{"delta":{"content":"lo"}}],"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n'
             yield b'data: [DONE]\n\n'
@@ -304,8 +304,8 @@ def test_gateway_chat_worker_translates_sse_and_persists_session(tmp_path, monke
         captured["body"] = req.data.decode("utf-8")
         return FakeResponse()
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_API_KEY", "secret-token")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_API_KEY", "secret-token")
     monkeypatch.setattr(gateway_chat, "_gateway_reasoning_effort_for_request", lambda *args, **kwargs: "high")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {
         "status": "loaded",
@@ -350,8 +350,8 @@ def test_gateway_chat_worker_translates_sse_and_persists_session(tmp_path, monke
     assert stream_id not in STREAMS
     assert captured["url"] == "http://gateway.local/v1/chat/completions"
     assert captured["headers"]["Authorization"] == "Bearer secret-token"
-    assert captured["headers"]["X-hermes-session-id"] == s.session_id
-    assert captured["headers"]["X-hermes-session-key"] == f"webui:{s.session_id}"
+    assert captured["headers"]["X-iris-session-id"] == s.session_id
+    assert captured["headers"]["X-iris-session-key"] == f"webui:{s.session_id}"
     assert '"stream": true' in captured["body"]
     payload = json.loads(captured["body"])
     assert payload["reasoning_effort"] == "high"
@@ -425,8 +425,8 @@ def test_gateway_chat_worker_records_turn_journal_completion(tmp_path, monkeypat
             yield b'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n'
             yield b"data: [DONE]\n\n"
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_API_KEY", "secret-token")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_API_KEY", "secret-token")
     monkeypatch.setattr(
         gateway_chat.urllib.request,
         "urlopen",
@@ -495,7 +495,7 @@ def test_gateway_chat_worker_classifies_terminal_provider_error_without_text(tmp
                 yield f'data: {{"error":{json.dumps(response_error[0])}}}\n\n'.encode()
             yield b"data: [DONE]\n\n"
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
@@ -681,14 +681,14 @@ def test_gateway_chat_worker_persists_reasoning_and_tool_state_on_terminal_error
 
         def __iter__(self):
             yield b'data: {"choices":[{"delta":{"content":"part"}}]}\n\n'
-            yield b'event: hermes.tool.progress\n'
+            yield b'event: iris.tool.progress\n'
             yield b'data: {"tool":"terminal","label":"terminal: pytest","toolCallId":"call-1","status":"running","arguments":{}}\n\n'
             yield b'event: reasoning.available\n'
             yield b'data: {"text":"Preview reasoning"}\n\n'
             yield f'data: {{"error":{json.dumps(error_text)}}}\n\n'.encode()
             yield b"data: [DONE]\n\n"
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
@@ -747,7 +747,7 @@ def test_gateway_chat_worker_preserves_reasoning_delta_whitespace_and_persists_r
 
         def __iter__(self):
             yield b'data: {"choices":[{"delta":{"content":"hel"}}]}\n\n'
-            yield b'event: hermes.tool.progress\n'
+            yield b'event: iris.tool.progress\n'
             yield b'data: {"tool":"_thinking","text":"Let me"}\n\n'
             yield b'event: reasoning.available\n'
             yield b'data: {"text":" think", "preview":"should not win"}\n\n'
@@ -758,7 +758,7 @@ def test_gateway_chat_worker_preserves_reasoning_delta_whitespace_and_persists_r
             yield b'data: {"choices":[{"delta":{"content":"lo"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
 
     s = new_session()
@@ -812,7 +812,7 @@ def test_gateway_chat_worker_reads_reasoning_content_deltas_from_chat_completion
             yield b'data: {"choices":[{"delta":{"reasoning_content":"think","content":"lo"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
 
     s = new_session()
@@ -865,7 +865,7 @@ def test_gateway_chat_worker_emits_goal_continue_for_goal_related_turn(tmp_path,
             yield b'data: {"choices":[{"delta":{"content":"reply"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
 
     from api import goals as webui_goals
@@ -948,7 +948,7 @@ def test_gateway_goal_eval_keeps_runtime_active_after_success_writeback_before_d
             yield b'data: {"choices":[{"delta":{"content":"goal reply"}}]}\n\n'
             yield b"data: [DONE]\n\n"
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(
         gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse()
     )
@@ -1043,7 +1043,7 @@ def test_gateway_chat_worker_skips_goal_judge_for_non_goal_turn(tmp_path, monkey
             yield b'data: {"choices":[{"delta":{"content":"plain reply"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
 
     from api import goals as webui_goals
@@ -1134,7 +1134,7 @@ def test_gateway_chat_worker_normalizes_prefill_slice_before_system_prefix(tmp_p
         captured["normalizer_input"] = list(messages)
         return original_normalizer(messages)
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {
         "status": "loaded",
         "source": "test",
@@ -1187,7 +1187,7 @@ def test_gateway_chat_worker_backfills_context_only_turns_into_display(tmp_path,
             yield b'data: {"choices":[{"delta":{"content":"done"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
@@ -1250,7 +1250,7 @@ def test_gateway_chat_worker_preserves_old_visible_turns_when_context_is_compact
             yield b'data: {"choices":[{"delta":{"content":"new answer"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
@@ -1328,7 +1328,7 @@ def test_gateway_chat_worker_keeps_repeated_identical_visible_turns(tmp_path, mo
             yield b'data: {"choices":[{"delta":{"content":"answer"}}]}\n\n'
             yield b'data: [DONE]\n\n'
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", lambda req, timeout=0: FakeResponse())
@@ -1406,7 +1406,7 @@ def test_gateway_chat_worker_forwards_image_attachments_as_multimodal_parts(tmp_
         captured["body"] = json.loads(req.data.decode("utf-8"))
         return FakeResponse()
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     monkeypatch.setattr(streaming, "_load_webui_prefill_context", lambda cfg: {"status": "not_configured", "source": "none", "label": "", "message_count": 0, "messages": []})
     monkeypatch.setattr(streaming, "_prefill_messages_with_webui_context", lambda ctx, cfg: [{"role": "user", "content": "webui session context"}])
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", fake_urlopen)
@@ -1554,18 +1554,18 @@ def test_resolve_image_input_mode_fallback_when_agent_unavailable(monkeypatch):
 
 
 def test_gateway_use_runs_api_is_default_off():
-    for env in ({}, {"HERMES_WEBUI_GATEWAY_USE_RUNS_API": ""}):
+    for env in ({}, {"IRIS_WEBUI_GATEWAY_USE_RUNS_API": ""}):
         assert _gateway_use_runs_api_enabled({}, env) is False
 
 
 def test_gateway_use_runs_api_only_accepts_explicit_truthy_values():
     for value in ("1", "true", "yes", "on", " True ", " ON "):
-        assert _gateway_use_runs_api_enabled({}, {"HERMES_WEBUI_GATEWAY_USE_RUNS_API": value}) is True
+        assert _gateway_use_runs_api_enabled({}, {"IRIS_WEBUI_GATEWAY_USE_RUNS_API": value}) is True
 
 
 def test_gateway_use_runs_api_rejects_generic_truthy_strings():
     for value in ("enabled", "gateway", "api_server", "absolutely"):
-        assert _gateway_use_runs_api_enabled({}, {"HERMES_WEBUI_GATEWAY_USE_RUNS_API": value}) is False
+        assert _gateway_use_runs_api_enabled({}, {"IRIS_WEBUI_GATEWAY_USE_RUNS_API": value}) is False
 
 
 def test_gateway_use_runs_api_can_be_enabled_from_config():
@@ -1576,7 +1576,7 @@ def test_gateway_use_runs_api_can_be_enabled_from_config():
 def test_gateway_use_runs_api_env_wins_over_config():
     assert _gateway_use_runs_api_enabled(
         {"webui_gateway_use_runs_api": "true"},
-        {"HERMES_WEBUI_GATEWAY_USE_RUNS_API": "false"},
+        {"IRIS_WEBUI_GATEWAY_USE_RUNS_API": "false"},
     ) is False
 
 
@@ -1618,9 +1618,9 @@ def test_gateway_runs_api_body_includes_session_id():
 
     import os
     env = {k: v for k, v in os.environ.items()}
-    env["HERMES_WEBUI_CHAT_BACKEND"] = "gateway"
-    env["HERMES_WEBUI_GATEWAY_USE_RUNS_API"] = "1"
-    env["HERMES_WEBUI_GATEWAY_BASE_URL"] = "http://gateway.local"
+    env["IRIS_WEBUI_CHAT_BACKEND"] = "gateway"
+    env["IRIS_WEBUI_GATEWAY_USE_RUNS_API"] = "1"
+    env["IRIS_WEBUI_GATEWAY_BASE_URL"] = "http://gateway.local"
 
     try:
         with patch.dict("os.environ", env, clear=True):
@@ -1686,9 +1686,9 @@ def test_gateway_runs_api_classifies_terminal_provider_error(tmp_path, monkeypat
         s.pending_attachments = []
         s.save()
         with patch.dict("os.environ", {
-            "HERMES_WEBUI_CHAT_BACKEND": "gateway",
-            "HERMES_WEBUI_GATEWAY_USE_RUNS_API": "1",
-            "HERMES_WEBUI_GATEWAY_BASE_URL": "http://gateway.local",
+            "IRIS_WEBUI_CHAT_BACKEND": "gateway",
+            "IRIS_WEBUI_GATEWAY_USE_RUNS_API": "1",
+            "IRIS_WEBUI_GATEWAY_BASE_URL": "http://gateway.local",
         }, clear=True), \
              patch("api.gateway_chat.gateway_supports_approval", return_value=True), \
              patch("urllib.request.urlopen", side_effect=fake_urlopen):
@@ -1735,10 +1735,10 @@ def test_gateway_worker_skips_runs_api_when_opt_in_absent():
         return resp
 
     import os
-    env_override = {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}
+    env_override = {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}
     env_without_opt_in = {
         k: v for k, v in os.environ.items()
-        if k != "HERMES_WEBUI_GATEWAY_USE_RUNS_API"
+        if k != "IRIS_WEBUI_GATEWAY_USE_RUNS_API"
     }
     env_without_opt_in.update(env_override)
 

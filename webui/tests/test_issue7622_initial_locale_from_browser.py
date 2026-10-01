@@ -437,10 +437,10 @@ process.stdout.write(JSON.stringify({{ lang: _lang }}));
 # `resolvePreferredLocale` EXACTLY as `static/boot.js` calls it:
 #
 #     resolvePreferredLocale(s.language,
-#                            localStorage.getItem('hermes-lang'),
+#                            localStorage.getItem('iris-lang'),
 #                            _detectBrowserLanguageHint())
 #
-# Their table (server `language` / localStorage `hermes-lang` / browser)
+# Their table (server `language` / localStorage `iris-lang` / browser)
 # must all land on the server value once the server reports an explicit
 # tri-state (`null` = unset, "en" = explicitly saved English, other):
 #
@@ -469,7 +469,7 @@ class TestReviewerTableServerTriState:
         stored_seed = (
             ""
             if stored is None
-            else f"storage['hermes-lang'] = {json.dumps(stored)};"
+            else f"storage['iris-lang'] = {json.dumps(stored)};"
         )
         nav_literal = json.dumps(
             {
@@ -480,7 +480,7 @@ class TestReviewerTableServerTriState:
         src = re.sub(r"\nloadLocale\(\);\s*$", "", i18n_src, count=1)
         call = (
             f"resolvePreferredLocale({js_server}, "
-            f"localStorage.getItem('hermes-lang'), _detectBrowserLanguageHint())"
+            f"localStorage.getItem('iris-lang'), _detectBrowserLanguageHint())"
         )
         return f"""
 const fs = require('fs');

@@ -70,7 +70,7 @@ class _FakeHandler:
 def attachment_env(tmp_path, monkeypatch):
     """Isolate the attachment inbox and stub the session lookup."""
     root = tmp_path / "attachments"
-    monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(root))
     monkeypatch.setattr(
         upload,
         "get_session",

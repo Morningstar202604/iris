@@ -1,4 +1,4 @@
-import { driveChargeSettlement, type SettlementOutcome } from '@hermes/shared/charge-settlement'
+import { driveChargeSettlement, type SettlementOutcome } from '@iris/shared/charge-settlement'
 
 import type {
   BillingChargeResponse,
@@ -68,9 +68,9 @@ const renderBillingError = (
 
     case 'remote_spending_disabled':
       // Account-wide switch is OFF (dual-emitted error/code). A billing admin can
-      // turn it on from the portal's Hermes Agent page; this is NOT a per-terminal stop.
+      // turn it on from the portal's Iris Agent page; this is NOT a per-terminal stop.
       sys(
-        "Remote spending is off for this account — a billing admin can turn it on from the portal's Hermes Agent page."
+        "Remote spending is off for this account — a billing admin can turn it on from the portal's Iris Agent page."
       )
 
       break

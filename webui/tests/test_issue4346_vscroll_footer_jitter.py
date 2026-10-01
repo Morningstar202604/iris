@@ -1169,7 +1169,7 @@ console.log(JSON.stringify({ uses_compensate: usesCompensate }));
 # ═══════════════════════════════════════════════════════════════════════════
 # Tier 6: Maintainer must-fix regression tests — raw numerical evidence
 #
-# Maps directly to nesquena-hermes's CHANGES_REQUESTED review on PR #4474:
+# Maps directly to nesquena-iris's CHANGES_REQUESTED review on PR #4474:
 #   MF-1: data-msg-idx on .assistant-turn corrupts measurement heights
 #   MF-2: un-typed stash lookups allow cross-type node recycling
 #   MF-3: source-text grep tests pass even on broken code

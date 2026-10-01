@@ -4,19 +4,19 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/health_probe.sh
 . "${REPO_ROOT}/scripts/lib/health_probe.sh"
-HERMES_HOME="${HERMES_HOME:-${HOME}/.hermes}"
-PID_FILE="${HERMES_WEBUI_PID_FILE:-${HERMES_HOME}/webui.pid}"
-LOG_FILE="${HERMES_WEBUI_LOG_FILE:-${HERMES_HOME}/webui.log}"
-STATE_FILE="${HERMES_WEBUI_CTL_STATE_FILE:-${HERMES_HOME}/webui.ctl.env}"
-DEFAULT_STATE_DIR="${HERMES_WEBUI_STATE_DIR:-${HERMES_HOME}/webui}"
-DEFAULT_LAUNCHD_LABEL="${HERMES_WEBUI_LAUNCHD_LABEL:-com.parantoux.hermes-webui}"
+IRIS_HOME="${IRIS_HOME:-${HOME}/.iris}"
+PID_FILE="${IRIS_WEBUI_PID_FILE:-${IRIS_HOME}/webui.pid}"
+LOG_FILE="${IRIS_WEBUI_LOG_FILE:-${IRIS_HOME}/webui.log}"
+STATE_FILE="${IRIS_WEBUI_CTL_STATE_FILE:-${IRIS_HOME}/webui.ctl.env}"
+DEFAULT_STATE_DIR="${IRIS_WEBUI_STATE_DIR:-${IRIS_HOME}/webui}"
+DEFAULT_LAUNCHD_LABEL="${IRIS_WEBUI_LAUNCHD_LABEL:-com.parantoux.iris-webui}"
 
 usage() {
   cat <<'EOF'
 Usage: ./ctl.sh <command> [args]
 
 Commands:
-  start [bootstrap args...]   Start Hermes WebUI as a background daemon
+  start [bootstrap args...]   Start Iris WebUI as a background daemon
   stop                        Stop the daemon started by ctl.sh
   restart [bootstrap args...] Stop, then start again
   status                      Show daemon, host/port, log, and health status
@@ -26,7 +26,7 @@ EOF
 }
 
 ensure_home() {
-  mkdir -p "${HERMES_HOME}" "${DEFAULT_STATE_DIR}"
+  mkdir -p "${IRIS_HOME}" "${DEFAULT_STATE_DIR}"
 }
 
 _apply_env_file_safely() {
@@ -84,7 +84,7 @@ _apply_env_file_safely() {
 }
 
 _load_repo_dotenv_preserving_env() {
-  [[ "${HERMES_WEBUI_NO_DOTENV:-0}" == "1" ]] && return 0
+  [[ "${IRIS_WEBUI_NO_DOTENV:-0}" == "1" ]] && return 0
   local env_file="${REPO_ROOT}/.env"
   [[ -f "${env_file}" ]] || return 0
 
@@ -120,18 +120,18 @@ _load_repo_dotenv_preserving_env() {
   fi
 }
 
-_load_hermes_dotenv() {
-  # Also load ~/.hermes/.env so that ${VAR} references in config.yaml can
-  # resolve against provider credentials defined in the Hermes env file.
+_load_iris_dotenv() {
+  # Also load ~/.iris/.env so that ${VAR} references in config.yaml can
+  # resolve against provider credentials defined in the Iris env file.
   # Repo .env takes precedence (loaded above); variables already exported
   # into the shell environment (including those just set by repo .env) are
   # captured in preserved[] before _apply_env_file_safely runs and are
   # restored afterwards, so this acts as a fallback source for vars the
   # repo .env did not define.
-  [[ "${HERMES_WEBUI_NO_DOTENV:-0}" == "1" ]] && return 0
-  local hermes_home="${HERMES_HOME:-${HOME}/.hermes}"
-  local hermes_env="${hermes_home}/.env"
-  [[ -f "${hermes_env}" ]] || return 0
+  [[ "${IRIS_WEBUI_NO_DOTENV:-0}" == "1" ]] && return 0
+  local iris_home="${IRIS_HOME:-${HOME}/.iris}"
+  local iris_env="${iris_home}/.env"
+  [[ -f "${iris_env}" ]] || return 0
 
   local -a preserved=()
   local line key value
@@ -151,9 +151,9 @@ _load_hermes_dotenv() {
       value="${!key}"
       preserved+=("${key}=${value}")
     fi
-  done < "${hermes_env}"
+  done < "${iris_env}"
 
-  _apply_env_file_safely "${hermes_env}"
+  _apply_env_file_safely "${iris_env}"
 
   local assignment
   if [[ ${#preserved[@]} -gt 0 ]]; then
@@ -164,8 +164,8 @@ _load_hermes_dotenv() {
 }
 
 _find_python() {
-  if [[ -n "${HERMES_WEBUI_PYTHON:-}" ]]; then
-    printf '%s\n' "${HERMES_WEBUI_PYTHON}"
+  if [[ -n "${IRIS_WEBUI_PYTHON:-}" ]]; then
+    printf '%s\n' "${IRIS_WEBUI_PYTHON}"
   elif command -v python3 >/dev/null 2>&1; then
     command -v python3
   elif command -v python >/dev/null 2>&1; then
@@ -177,8 +177,8 @@ _find_python() {
 }
 
 _parse_launch_binding() {
-  CTL_HOST="${HERMES_WEBUI_HOST:-127.0.0.1}"
-  CTL_PORT="${HERMES_WEBUI_PORT:-8787}"
+  CTL_HOST="${IRIS_WEBUI_HOST:-127.0.0.1}"
+  CTL_PORT="${IRIS_WEBUI_PORT:-8787}"
   local arg next_is_host=0 saw_port=0
   for arg in "$@"; do
     if (( next_is_host )); then
@@ -235,7 +235,7 @@ _build_bootstrap_args() {
 
 _write_state() {
   local pid="$1" host="$2" port="$3" python_exe="${4:-}"
-  local state_dir="${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
+  local state_dir="${IRIS_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
   {
     printf 'PID=%q\n' "${pid}"
     printf 'REPO_ROOT=%q\n' "${REPO_ROOT}"
@@ -408,9 +408,9 @@ _pid_listens_on_port() {
 }
 
 _launchd_webui_pid() {
-  [[ "${HERMES_WEBUI_CTL_ALLOW_LAUNCHD_CONFLICT:-0}" == "1" ]] && return 1
+  [[ "${IRIS_WEBUI_CTL_ALLOW_LAUNCHD_CONFLICT:-0}" == "1" ]] && return 1
   command -v launchctl >/dev/null 2>&1 || return 1
-  local label="${HERMES_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}}"
+  local label="${IRIS_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}}"
   [[ -n "${label}" ]] || return 1
   local uid launchd_out pid
   uid="$(id -u)"
@@ -420,12 +420,12 @@ _launchd_webui_pid() {
   (( pid > 0 )) || return 1
   _is_alive "${pid}" || return 1
   # Only treat the launchd job as a conflict for the port we are about to bind.
-  # A second instance on a DIFFERENT port (e.g. HERMES_WEBUI_PORT=8788 for a
+  # A second instance on a DIFFERENT port (e.g. IRIS_WEBUI_PORT=8788 for a
   # test build) does not collide with the launchd-managed default and must be
   # allowed to start (#3291 over-block fix). When port ownership can't be
   # determined (no lsof), fall back to the conservative previous behavior of
   # only guarding the default port so non-default ports are never wrongly blocked.
-  local want_port="${CTL_PORT:-${HERMES_WEBUI_PORT:-8787}}"
+  local want_port="${CTL_PORT:-${IRIS_WEBUI_PORT:-8787}}"
   _pid_listens_on_port "${pid}" "${want_port}"
   case "$?" in
     0) printf '%s\n' "${pid}"; return 0 ;;   # launchd job listens on our port → block
@@ -456,7 +456,7 @@ _port_answers_http() {
   # True when ANYTHING answers an HTTP(S) request on host:port — mirrors
   # server.py's _abort_if_already_serving, which treats any response bytes
   # (including an error status from a foreign app squatting the port) as a
-  # conflict. Deliberately broader than hermes_webui_probe_health, which
+  # conflict. Deliberately broader than iris_webui_probe_health, which
   # requires a 200 from /health.
   local host="$1" port="$2" url rc scheme
   for scheme in http https; do
@@ -502,12 +502,12 @@ _port_listener_diag() {
 
 _systemd_unit_effective_port() {
   # Best-effort resolution of the port a systemd unit is configured to bind:
-  # HERMES_WEBUI_PORT in its Environment=, then an explicit --port on its
+  # IRIS_WEBUI_PORT in its Environment=, then an explicit --port on its
   # ExecStart=. Prints nothing when the binding cannot be determined so the
   # caller can fall back to the conservative default-port guard.
   local scope="$1" unit="$2" env_block="" exec_block="" port=""
   env_block="$(systemctl "${scope}" show -p Environment --value "${unit}" 2>/dev/null)" || true
-  if [[ "${env_block}" =~ HERMES_WEBUI_PORT=([0-9]+) ]]; then
+  if [[ "${env_block}" =~ IRIS_WEBUI_PORT=([0-9]+) ]]; then
     port="${BASH_REMATCH[1]}"
   fi
   if [[ -z "${port}" ]]; then
@@ -521,8 +521,8 @@ _systemd_unit_effective_port() {
 
 _systemd_webui_conflict() {
   # Linux analog of _launchd_webui_pid: echo a short conflict descriptor and
-  # return 0 when a systemd unit (default hermes-webui.service, override via
-  # HERMES_WEBUI_SYSTEMD_UNIT) effectively owns the instance we are about to
+  # return 0 when a systemd unit (default iris-webui.service, override via
+  # IRIS_WEBUI_SYSTEMD_UNIT) effectively owns the instance we are about to
   # start. Two conflict shapes:
   #   - ActiveState=active and the unit's MainPID listens on our port.
   #   - ActiveState=activating/reloading (Restart= backoff between attempts):
@@ -533,11 +533,11 @@ _systemd_webui_conflict() {
   # Port scoping mirrors the launchd #3291 fix: when the unit's port cannot
   # be determined, only the default port is guarded, so alternate-port test
   # instances are never wrongly blocked.
-  [[ "${HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT:-0}" == "1" ]] && return 1
+  [[ "${IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT:-0}" == "1" ]] && return 1
   command -v systemctl >/dev/null 2>&1 || return 1
-  local unit="${HERMES_WEBUI_SYSTEMD_UNIT:-hermes-webui.service}"
+  local unit="${IRIS_WEBUI_SYSTEMD_UNIT:-iris-webui.service}"
   [[ -n "${unit}" ]] || return 1
-  local want_port="${CTL_PORT:-${HERMES_WEBUI_PORT:-8787}}"
+  local want_port="${CTL_PORT:-${IRIS_WEBUI_PORT:-8787}}"
   local scope state main_pid unit_port
   for scope in --system --user; do
     state="$(systemctl "${scope}" show -p ActiveState --value "${unit}" 2>/dev/null)" || continue
@@ -587,29 +587,29 @@ _systemd_webui_conflict() {
 start_cmd() {
   ensure_home
   _load_repo_dotenv_preserving_env
-  _load_hermes_dotenv
-  export HERMES_WEBUI_STATE_DIR="${HERMES_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
-  mkdir -p "${HERMES_WEBUI_STATE_DIR}"
+  _load_iris_dotenv
+  export IRIS_WEBUI_STATE_DIR="${IRIS_WEBUI_STATE_DIR:-${DEFAULT_STATE_DIR}}"
+  mkdir -p "${IRIS_WEBUI_STATE_DIR}"
   _parse_launch_binding "$@"
   _build_bootstrap_args "$@"
-  export HERMES_WEBUI_HOST="${CTL_HOST}"
-  export HERMES_WEBUI_PORT="${CTL_PORT}"
+  export IRIS_WEBUI_HOST="${CTL_HOST}"
+  export IRIS_WEBUI_PORT="${CTL_PORT}"
 
   local existing_pid
   if existing_pid="$(_current_pid 2>/dev/null)"; then
-    echo "[ctl] Hermes WebUI is already running (PID ${existing_pid})"
+    echo "[ctl] Iris WebUI is already running (PID ${existing_pid})"
     return 0
   fi
   local launchd_pid
   if launchd_pid="$(_launchd_webui_pid 2>/dev/null)"; then
-    echo "[ctl] Refusing to start a second Hermes WebUI while launchd job ${HERMES_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}} is running (PID ${launchd_pid})." >&2
-    echo "[ctl] Use launchctl kickstart -k gui/$(id -u)/${HERMES_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}} or disable the launchd job before using ctl.sh start." >&2
+    echo "[ctl] Refusing to start a second Iris WebUI while launchd job ${IRIS_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}} is running (PID ${launchd_pid})." >&2
+    echo "[ctl] Use launchctl kickstart -k gui/$(id -u)/${IRIS_WEBUI_LAUNCHD_LABEL:-${DEFAULT_LAUNCHD_LABEL}} or disable the launchd job before using ctl.sh start." >&2
     return 2
   fi
   local systemd_conflict
   if systemd_conflict="$(_systemd_webui_conflict 2>/dev/null)"; then
-    echo "[ctl] Refusing to start a second Hermes WebUI: systemd ${systemd_conflict}." >&2
-    echo "[ctl] Manage that instance with systemctl instead (e.g. sudo systemctl restart ${HERMES_WEBUI_SYSTEMD_UNIT:-hermes-webui.service}), or disable the unit before using ctl.sh start. Set HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT=1 to override." >&2
+    echo "[ctl] Refusing to start a second Iris WebUI: systemd ${systemd_conflict}." >&2
+    echo "[ctl] Manage that instance with systemctl instead (e.g. sudo systemctl restart ${IRIS_WEBUI_SYSTEMD_UNIT:-iris-webui.service}), or disable the unit before using ctl.sh start. Set IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT=1 to override." >&2
     return 2
   fi
   # Generic duplicate guard: whatever supervises it, if a live server already
@@ -619,7 +619,7 @@ start_cmd() {
   # that goes stale on exit. Refuse up front instead.
   local probe_host
   probe_host="$(_probe_target_host "${CTL_HOST}")"
-  if [[ "${HERMES_WEBUI_CTL_ALLOW_PORT_CONFLICT:-0}" != "1" ]] \
+  if [[ "${IRIS_WEBUI_CTL_ALLOW_PORT_CONFLICT:-0}" != "1" ]] \
       && _port_answers_http "${probe_host}" "${CTL_PORT}"; then
     echo "[ctl] Refusing to start: a live server is already responding on ${probe_host}:${CTL_PORT}." >&2
     local listener_diag
@@ -636,7 +636,7 @@ start_cmd() {
   (
     cd "${REPO_ROOT}"
     trap '' HUP
-    export HERMES_WEBUI_PRESERVE_ENV=1
+    export IRIS_WEBUI_PRESERVE_ENV=1
     exec nohup "${python_exe}" "${REPO_ROOT}/bootstrap.py" --no-browser --foreground --host "${CTL_HOST}" "${CTL_PORT}" ${CTL_BOOTSTRAP_ARGS[@]+"${CTL_BOOTSTRAP_ARGS[@]}"}
   ) >> "${LOG_FILE}" 2>&1 &
   pid=$!
@@ -648,10 +648,10 @@ start_cmd() {
   # error, port stolen between guard and bind) exits after ~1-3s — after the
   # old check had already printed success and left a stale PID file behind.
   # Break early as soon as /health answers; report failure the moment the
-  # process dies. HERMES_WEBUI_START_GRACE (integer seconds, default 3)
+  # process dies. IRIS_WEBUI_START_GRACE (integer seconds, default 3)
   # bounds the wait for servers that need longer before /health responds —
   # on timeout we keep the optimistic legacy behavior and say so.
-  local grace="${HERMES_WEBUI_START_GRACE:-3}"
+  local grace="${IRIS_WEBUI_START_GRACE:-3}"
   [[ "${grace}" =~ ^[0-9]+$ ]] || grace=3
   # 0 would skip startup monitoring entirely and restore the stale-PID
   # behavior this window exists to prevent; treat it like any invalid value.
@@ -659,11 +659,11 @@ start_cmd() {
   local grace_steps=$(( grace * 4 )) step=0 healthy=0
   while (( step < grace_steps )); do
     if ! _is_alive "${pid}"; then
-      echo "[ctl] Hermes WebUI failed to stay running. Log: ${LOG_FILE}" >&2
+      echo "[ctl] Iris WebUI failed to stay running. Log: ${LOG_FILE}" >&2
       rm -f "${PID_FILE}" "${STATE_FILE}"
       return 1
     fi
-    if hermes_webui_probe_health "${probe_host}" "${CTL_PORT}" "/health" 1 direct >/dev/null 2>&1; then
+    if iris_webui_probe_health "${probe_host}" "${CTL_PORT}" "/health" 1 direct >/dev/null 2>&1; then
       healthy=1
       break
     fi
@@ -671,11 +671,11 @@ start_cmd() {
     step=$(( step + 1 ))
   done
   if ! _is_alive "${pid}"; then
-    echo "[ctl] Hermes WebUI failed to stay running. Log: ${LOG_FILE}" >&2
+    echo "[ctl] Iris WebUI failed to stay running. Log: ${LOG_FILE}" >&2
     rm -f "${PID_FILE}" "${STATE_FILE}"
     return 1
   fi
-  echo "[ctl] Started Hermes WebUI (PID ${pid})"
+  echo "[ctl] Started Iris WebUI (PID ${pid})"
   echo "[ctl] Bound: ${CTL_HOST}:${CTL_PORT}"
   echo "[ctl] Log: ${LOG_FILE}"
   if (( ! healthy )); then
@@ -689,8 +689,8 @@ _warn_if_unmanaged_instance_serving() {
   # foreign (e.g. systemd-supervised) instance keeps serving is how operators
   # end up starting doomed duplicates.
   _load_state_if_present
-  local host="${HOST:-${HERMES_WEBUI_HOST:-127.0.0.1}}"
-  local port="${PORT:-${HERMES_WEBUI_PORT:-8787}}"
+  local host="${HOST:-${IRIS_WEBUI_HOST:-127.0.0.1}}"
+  local port="${PORT:-${IRIS_WEBUI_PORT:-8787}}"
   local probe_host
   probe_host="$(_probe_target_host "${host}")"
   if _port_answers_http "${probe_host}" "${port}"; then
@@ -706,7 +706,7 @@ stop_cmd() {
   ensure_home
   local pid
   if ! pid="$(_pid_from_file 2>/dev/null)"; then
-    echo "[ctl] Hermes WebUI is stopped"
+    echo "[ctl] Iris WebUI is stopped"
     # Warn BEFORE deleting the state file: it carries the saved host/port
     # binding the probe needs when the instance was started off-default.
     _warn_if_unmanaged_instance_serving
@@ -720,7 +720,7 @@ stop_cmd() {
     return 0
   fi
 
-  echo "[ctl] Stopping Hermes WebUI (PID ${pid})"
+  echo "[ctl] Stopping Iris WebUI (PID ${pid})"
   _stop_webui_pid "${pid}" TERM
   local i
   for i in {1..50}; do
@@ -739,13 +739,13 @@ stop_cmd() {
 
 _health_line() {
   local host="$1" port="$2" url scheme result
-  scheme="$(hermes_webui_probe_scheme)"
+  scheme="$(iris_webui_probe_scheme)"
   url="${scheme}://${host}:${port}/health"
   if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
     echo "unknown (curl/wget not found; ${url})"
     return 0
   fi
-  if result="$(hermes_webui_probe_health "${host}" "${port}" "/health" 2)"; then
+  if result="$(iris_webui_probe_health "${host}" "${port}" "/health" 2)"; then
     if command -v python3 >/dev/null 2>&1; then
       printf '%s' "${result}" | python3 -c 'import json,sys
 try:
@@ -767,17 +767,17 @@ except Exception:
 status_cmd() {
   ensure_home
   _load_repo_dotenv_preserving_env
-  _load_hermes_dotenv
+  _load_iris_dotenv
   _load_state_if_present
-  local host="${HOST:-${HERMES_WEBUI_HOST:-127.0.0.1}}"
-  local port="${PORT:-${HERMES_WEBUI_PORT:-8787}}"
+  local host="${HOST:-${IRIS_WEBUI_HOST:-127.0.0.1}}"
+  local port="${PORT:-${IRIS_WEBUI_PORT:-8787}}"
   local log_path="${LOG_FILE}"
   local pid uptime health
 
   if pid="$(_current_pid 2>/dev/null)"; then
     uptime="$(ps -p "${pid}" -o etime= 2>/dev/null | sed 's/^ *//' || true)"
     health="$(_health_line "${host}" "${port}")"
-    echo "● hermes-webui — running"
+    echo "● iris-webui — running"
     echo "  PID:     ${pid}"
     echo "  Uptime:  ${uptime:-unknown}"
     echo "  Bound:   ${host}:${port}"
@@ -792,7 +792,7 @@ status_cmd() {
       # launchd job, manual run). Saying "stopped" here is what leads
       # operators to start a doomed duplicate.
       health="$(_health_line "${probe_host}" "${port}")"
-      echo "● hermes-webui — running (not managed by ctl.sh)"
+      echo "● iris-webui — running (not managed by ctl.sh)"
       local listener_diag
       listener_diag="$(_port_listener_diag "${port}")"
       echo "  PID:     -"
@@ -802,7 +802,7 @@ status_cmd() {
       echo "  Health:  ${health}"
       echo "  Note:    manage it via its own supervisor (systemctl/launchctl) or the process directly."
     else
-      echo "● hermes-webui — stopped"
+      echo "● iris-webui — stopped"
       echo "  PID:     -"
       echo "  Bound:   ${host}:${port}"
       echo "  Log:     ${log_path}"

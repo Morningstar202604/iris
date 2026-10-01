@@ -1,0 +1,13 @@
+name: yantrikdb-iris-dashboard
+repo: https://github.com/wysie/yantrikdb-iris-dashboard
+sha: 30e8fa249a28bef9cb38e62beaa98e38303a8961
+description: Local-only YantrikDB dashboard for Iris Agent memory operations
+maintainer: wysie
+tier: community
+category: desktop
+docs_url: https://github.com/wysie/yantrikdb-iris-dashboard#readme
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []

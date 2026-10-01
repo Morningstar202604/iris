@@ -136,8 +136,8 @@ class WeComAdapter(WeComStreamMixin, WeComMediaMixin, ChatSendQueueMixin, OwnAcc
         self._dedup, self._reply_req_ids = MessageDeduplicator(max_size=DEDUP_MAX_SIZE), {}
         # Text batching (clients split long messages ~4000 chars); attachment-only frames are held
         # for the merge window so the trailing text callback joins the same event (official: 800ms).
-        self._text_batch_delay_seconds = env_float("HERMES_WECOM_TEXT_BATCH_DELAY_SECONDS", 0.6)
-        self._text_batch_split_delay_seconds = env_float("HERMES_WECOM_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0)
+        self._text_batch_delay_seconds = env_float("IRIS_WECOM_TEXT_BATCH_DELAY_SECONDS", 0.6)
+        self._text_batch_split_delay_seconds = env_float("IRIS_WECOM_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0)
         self._attachment_text_merge_delay_seconds = _extra_float("attachment_text_merge_delay_seconds", 0.8)
         # Stream keep-alive config (see streaming.py STREAM_* constants).
         self._stream_safe_duration_seconds = _extra_float("stream_safe_duration_seconds", STREAM_SAFE_DURATION_SECONDS)
@@ -636,7 +636,7 @@ class WeComAdapter(WeComStreamMixin, WeComMediaMixin, ChatSendQueueMixin, OwnAcc
 
 _QR_GENERATE_URL = "https://work.weixin.qq.com/ai/qc/generate"
 _QR_QUERY_URL = "https://work.weixin.qq.com/ai/qc/query_result"
-_QR_CODE_PAGE = "https://work.weixin.qq.com/ai/qc/gen?source=hermes&scode="
+_QR_CODE_PAGE = "https://work.weixin.qq.com/ai/qc/gen?source=iris&scode="
 _QR_POLL_INTERVAL, _QR_POLL_TIMEOUT = 3, 300  # seconds (poll every 3s, give up after 5 minutes)
 
 
@@ -647,7 +647,7 @@ def qr_scan_for_bot_info(*, timeout_seconds: int = _QR_POLL_TIMEOUT) -> Optional
     import urllib.parse
 
     def _get_json(url: str, timeout: int) -> Dict[str, Any]:
-        req = urllib.request.Request(url, headers={"User-Agent": "HermesAgent/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "IrisAgent/1.0"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
@@ -657,7 +657,7 @@ def qr_scan_for_bot_info(*, timeout_seconds: int = _QR_POLL_TIMEOUT) -> Optional
 
     print("  Connecting to WeCom...", end="", flush=True)
     try:
-        raw = _get_json(f"{_QR_GENERATE_URL}?source=hermes", 15)
+        raw = _get_json(f"{_QR_GENERATE_URL}?source=iris", 15)
     except Exception as exc:
         return _fail("WeCom QR: failed to fetch QR code: %s", exc, exc)
     scode, auth_url = (str((raw.get("data") or {}).get(k) or "").strip() for k in ("scode", "auth_url"))
@@ -674,7 +674,7 @@ def qr_scan_for_bot_info(*, timeout_seconds: int = _QR_POLL_TIMEOUT) -> Optional
         print(f"\n  Scan the QR code above, or open this URL directly:\n  {page_url}")
     except Exception:
         print(f"  Open this URL in WeCom on your phone:\n\n  {page_url}\n")
-        from hermes_cli.managed_uv import pip_install_hint
+        from iris_cli.managed_uv import pip_install_hint
         print(f"  Tip: {pip_install_hint('qrcode')}  to display a scannable QR code here next time")
     print("\n  Fetching configuration results...", end="", flush=True)
     deadline = time.monotonic() + timeout_seconds
@@ -748,18 +748,18 @@ _MANUAL_SETUP_STEPS = (
 _ACCESS_CHOICES = (
     ("Enable open access (anyone can message the bot)", (("WECOM_DM_POLICY", "open"), ("GATEWAY_ALLOW_ALL_USERS", "true")),
      (("warning", "Open access enabled — anyone can use your bot!"),)),
-    ("Use DM pairing (unknown users request access, you approve with 'hermes pairing approve')", (("WECOM_DM_POLICY", "pairing"),),
-     (("success", "DM pairing mode — users will receive a code to request access."), ("info", "Approve with: hermes pairing approve <platform> <code>"))),
+    ("Use DM pairing (unknown users request access, you approve with 'iris pairing approve')", (("WECOM_DM_POLICY", "pairing"),),
+     (("success", "DM pairing mode — users will receive a code to request access."), ("info", "Approve with: iris pairing approve <platform> <code>"))),
     ("Disable direct messages", (("WECOM_DM_POLICY", "disabled"),), (("warning", "Direct messages disabled."),)),
-    ("Skip for now (bot will deny all users until configured)", (), (("info", "Skipped — configure later with 'hermes gateway setup'"),)),
+    ("Skip for now (bot will deny all users until configured)", (), (("info", "Skipped — configure later with 'iris gateway setup'"),)),
 )
 
 
 def interactive_setup() -> None:
-    from hermes_cli.config import remove_env_value, save_env_value
-    from hermes_cli.setup import prompt_choice
-    from hermes_cli.cli_output import prompt, print_header, print_info, print_success, print_warning
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from iris_cli.config import remove_env_value, save_env_value
+    from iris_cli.setup import prompt_choice
+    from iris_cli.cli_output import prompt, print_header, print_info, print_success, print_warning
+    from iris_cli.setup_platforms import declines_reconfigure
     print_header("WeCom (Enterprise WeChat)")
     if declines_reconfigure("WeCom", "Reconfigure WeCom?", "WECOM_BOT_ID"):
         return
@@ -830,7 +830,7 @@ def _build_callback_adapter(config):
 
 
 def register(ctx) -> None:
-    common = dict(install_hint="Run `hermes setup` to install WeCom support.", emoji="💼", allow_update_command=True)
+    common = dict(install_hint="Run `iris setup` to install WeCom support.", emoji="💼", allow_update_command=True)
     ctx.register_platform(
         name="wecom", label="WeCom (Enterprise WeChat)", adapter_factory=WeComAdapter, check_fn=check_wecom_requirements,
         is_connected=_is_connected, validate_config=_is_connected, required_env=["WECOM_BOT_ID", "WECOM_SECRET"],
@@ -890,7 +890,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

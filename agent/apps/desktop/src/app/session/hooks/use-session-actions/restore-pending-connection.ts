@@ -7,7 +7,7 @@ import {
   normalizeConnectionRequest,
   setConnectionRequest
 } from '@/store/connection-request'
-import type { SessionResumeResult } from '@/types/hermes'
+import type { SessionResumeResult } from '@/types/iris'
 
 export interface PendingConnectionResumeState {
   authoritativeAbsent: boolean

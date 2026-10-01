@@ -13,7 +13,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Older Hermes Agent builds do not expose durable claim/complete/release APIs.
+# Older Iris Agent builds do not expose durable claim/complete/release APIs.
 # Keep their in-process compatibility dedupe bounded so long-lived WebUI
 # processes cannot retain every delegation id forever.
 LEGACY_ASYNC_DELIVERY_DEDUPE_MAX = 1024
@@ -349,7 +349,7 @@ def claim_async_delegation_delivery(
 ) -> AsyncDelegationDeliveryClaim | None:
     """Atomically claim an async completion for one WebUI delivery path.
 
-    Current Hermes Agent builds provide a durable SQLite-backed claim contract.
+    Current Iris Agent builds provide a durable SQLite-backed claim contract.
     Older builds fall back to the bounded process-local claim above. The local
     claim also serializes duplicate legacy events on current cores where no
     durable row exists yet.

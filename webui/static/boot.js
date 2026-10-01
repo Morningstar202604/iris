@@ -3,10 +3,10 @@
 // and cross-tab shutdown broadcasts as early as possible.
 (function(){
   // Clear stale stop-server flag on successful page load (server is reachable)
-  try{localStorage.removeItem('hermes-webui-server-stopped');}catch(_){}
+  try{localStorage.removeItem('iris-webui-server-stopped');}catch(_){}
   // Listen for shutdown broadcast from other tabs
   try {
-    var _stopChan = new BroadcastChannel('hermes-webui-shutdown');
+    var _stopChan = new BroadcastChannel('iris-webui-shutdown');
     _stopChan.onmessage = function() { _showServerStopped(); };
   } catch(_) {}
 })();
@@ -221,7 +221,7 @@ function _syncWorkspacePanelInlineWidth(){
     return;
   }
 
-  const saved = localStorage.getItem('hermes-panel-w');
+  const saved = localStorage.getItem('iris-panel-w');
   if(!saved) return;
   const parsed = parseInt(saved, 10);
   if(Number.isNaN(parsed) || parsed <= 0) return;
@@ -252,7 +252,7 @@ function _setWorkspacePanelMode(mode){
   // Persist open/closed across refreshes (browse/preview → open; closed → closed)
   // Do NOT overwrite the user's "keep open" preference — only track runtime state
   // so that toggleWorkspacePanel(false) from the toolbar doesn't clear the setting.
-  try{localStorage.setItem('hermes-webui-workspace-panel', open ? 'open' : 'closed');}catch(_){}
+  try{localStorage.setItem('iris-webui-workspace-panel', open ? 'open' : 'closed');}catch(_){}
   layout.classList.toggle('workspace-panel-collapsed',!open);
   if(_isCompactWorkspaceViewport()){
     panel.classList.toggle('mobile-open',open);
@@ -319,7 +319,7 @@ async function _maybeBindFreshDefaultWorkspaceSession(prefillIntent=null){
     await newSession(false, {awaitWorkspaceLoad: true, worktree: false});
     return true;
   }catch(e){
-    console.warn('[hermes] failed to bind fresh default workspace session', e);
+    console.warn('[iris] failed to bind fresh default workspace session', e);
     return false;
   }
 }
@@ -516,7 +516,7 @@ _installPwaSidebarSwipeGesture();
 // Mobile is unaffected: the sidebar is an overlay there, and every collapse
 // code path is gated on `_isDesktopWidth()` (min-width:641px).
 // State is persisted via localStorage and survives reloads + bfcache.
-const _SIDEBAR_COLLAPSED_KEY='hermes-webui-sidebar-collapsed';
+const _SIDEBAR_COLLAPSED_KEY='iris-webui-sidebar-collapsed';
 
 function _isDesktopWidth(){
   try{return window.matchMedia('(min-width:641px)').matches;}catch(_){return true;}
@@ -692,11 +692,11 @@ function _micToastKeyForRecognitionError(error){
   let _forceMediaRecorder=!SpeechRecognition||(_micForceMediaRecorderStored===null?(_serverSttAvailable&&_canRecordAudio):_micForceMediaRecorderStored==='1');
 
   // Raw audio mode preference: send audio file instead of transcribing
-  let _rawAudioMode = localStorage.getItem('hermes-raw-audio-mode') === 'true';
+  let _rawAudioMode = localStorage.getItem('iris-raw-audio-mode') === 'true';
   // Append-on-commit preference: when ON (default), dictated text is appended
   // to any text already in the composer. When OFF, dictated text replaces the
   // composer content (the pre-existing behavior).
-  let _dictationAppend = localStorage.getItem('hermes-dictation-append') !== 'false';
+  let _dictationAppend = localStorage.getItem('iris-dictation-append') !== 'false';
   // Capture backend pinned at recording start ('speech' | 'media' | null) so
   // _stopMic / onstop act on the backend that actually started, even if the
   // raw-audio toggle changes mid-recording (#3169 Codex review).
@@ -762,7 +762,7 @@ function _micToastKeyForRecognitionError(error){
 
   function _applyRawAudioModePreference(enabled){
     _rawAudioMode=!!enabled;
-    try{localStorage.setItem('hermes-raw-audio-mode',_rawAudioMode?'true':'false');}catch(_){}
+    try{localStorage.setItem('iris-raw-audio-mode',_rawAudioMode?'true':'false');}catch(_){}
     const rawAudioCheckbox=document.getElementById('settingsRawAudio');
     if(rawAudioCheckbox) rawAudioCheckbox.checked=_rawAudioMode;
     _updateMicTooltip();
@@ -771,7 +771,7 @@ function _micToastKeyForRecognitionError(error){
 
   function _applyDictationAppendPreference(enabled){
     _dictationAppend=!!enabled;
-    try{localStorage.setItem('hermes-dictation-append',_dictationAppend?'true':'false');}catch(_){}
+    try{localStorage.setItem('iris-dictation-append',_dictationAppend?'true':'false');}catch(_){}
     const cb=document.getElementById('settingsDictationAppend');
     if(cb) cb.checked=_dictationAppend;
   }
@@ -890,13 +890,13 @@ function _micToastKeyForRecognitionError(error){
   }
 
   // Gate continuous dictation to MOBILE so desktop stays one-shot (single
-  // utterance). An explicit hermes-mic-continuous flag wins in both directions,
-  // mirroring the hermes-voice-continuous pattern: 'true' opts a desktop in,
+  // utterance). An explicit iris-mic-continuous flag wins in both directions,
+  // mirroring the iris-voice-continuous pattern: 'true' opts a desktop in,
   // 'false' opts a mobile out. Absent a flag, coarse-pointer (touch) devices get
   // continuity and everything else stays single-utterance.
   function _micDictationContinuous(){
     try{
-      const flag=localStorage.getItem('hermes-mic-continuous');
+      const flag=localStorage.getItem('iris-mic-continuous');
       if(flag==='true') return true;
       if(flag==='false') return false;
     }catch(_){}
@@ -1335,13 +1335,13 @@ window._micPendingSend=window._micPendingSend||false;
 // fetch. Without an eager value, every send during that boot window silently
 // falls back, ignoring a saved 'queue'/'interrupt' preference (worse on
 // slow/contended environments like WSL2, see #5132). Mirror the resolved value
-// into localStorage — the same synchronous-source pattern used by hermes-lang /
-// hermes-theme — so the very first send after a reload honors the saved choice.
+// into localStorage — the same synchronous-source pattern used by iris-lang /
+// iris-theme — so the very first send after a reload honors the saved choice.
 const _DEFAULT_MESSAGE_MODES=['queue','interrupt','steer'];
 // Legacy localStorage key (pre-#5145 rename); read it as a fallback so an
 // existing user's persisted busy-input-mode preference survives the rename.
-const _LEGACY_DEFAULT_MESSAGE_MODE_KEY='hermes-busy-input-mode';
-const _DEFAULT_MESSAGE_MODE_KEY='hermes-default-message-mode';
+const _LEGACY_DEFAULT_MESSAGE_MODE_KEY='iris-busy-input-mode';
+const _DEFAULT_MESSAGE_MODE_KEY='iris-default-message-mode';
 // ── Auto-follow eager mirror (#6819) ────────────────────────────────────────
 // PERSISTENCE CONTRACT (client-side mirror of the Auto-follow new content
 // setting, `auto_scroll_follow`):
@@ -1368,7 +1368,7 @@ const _DEFAULT_MESSAGE_MODE_KEY='hermes-default-message-mode';
 // * Upgrade: there is no legacy key; the mirror is created on first settings
 //   resolve, so older sessions simply default to ON until the next settings
 //   round-trip writes it.
-const _AUTO_SCROLL_FOLLOW_KEY='hermes-auto-scroll-follow';
+const _AUTO_SCROLL_FOLLOW_KEY='iris-auto-scroll-follow';
 function _persistAutoScrollFollow(enabled){
   try{localStorage.setItem(_AUTO_SCROLL_FOLLOW_KEY,enabled?'1':'0');}catch(_){}
   return enabled;
@@ -1407,7 +1407,7 @@ window._readPersistedDefaultMessageMode=_readPersistedDefaultMessageMode;
 // the boot window honor the persisted preference instead of the raw default.
 window._defaultMessageMode=_readPersistedDefaultMessageMode();
 
-// ── Extension TTS-engine registry (registerHermesTtsEngine) ──────────────────
+// ── Extension TTS-engine registry (registerIrisTtsEngine) ──────────────────
 // Defined at MODULE scope (not inside the voice-mode IIFE below) so the public
 // API exists even on browsers without SpeechRecognition / speechSynthesis — an
 // extension can register a TTS engine regardless of STT/browser-TTS support.
@@ -1415,17 +1415,17 @@ window._defaultMessageMode=_readPersistedDefaultMessageMode();
 // Settings -> TTS Engine dropdown and is used by BOTH playback paths (voice-mode
 // auto-read and the per-message Listen button). The extension provides an async
 // synthesize(text, opts) that returns audio bytes (ArrayBuffer or Blob); core
-// handles selection, the dropdown option, and playback. Mirrors registerHermesSkin.
+// handles selection, the dropdown option, and playback. Mirrors registerIrisSkin.
 //
-//   window.registerHermesTtsEngine({
+//   window.registerIrisTtsEngine({
 //     id: 'voicevox',            // [a-z0-9_-], not a built-in (browser/edge/elevenlabs/openai)
 //     label: 'VOICEVOX (local)',
 //     synthesize(text, opts) { return Promise<ArrayBuffer|Blob>; }
 //   }) -> true on success, false if rejected
-var _HERMES_TTS_ENGINES = Object.create(null);
-var _HERMES_TTS_RESERVED = { browser:1, edge:1, elevenlabs:1, openai:1 };
-function _hermesTtsValidId(id){ return typeof id==='string' && /^[a-z0-9][a-z0-9_-]{0,31}$/.test(id); }
-function _hermesAddTtsOption(id, label){
+var _IRIS_TTS_ENGINES = Object.create(null);
+var _IRIS_TTS_RESERVED = { browser:1, edge:1, elevenlabs:1, openai:1 };
+function _irisTtsValidId(id){ return typeof id==='string' && /^[a-z0-9][a-z0-9_-]{0,31}$/.test(id); }
+function _irisAddTtsOption(id, label){
   var sel=document.getElementById('settingsTtsEngine');
   if(!sel) return;
   if(sel.querySelector('option[value="'+id+'"]')) return;
@@ -1434,29 +1434,29 @@ function _hermesAddTtsOption(id, label){
   opt.textContent=label;   // textContent — never innerHTML (no injection)
   sel.appendChild(opt);
 }
-window.registerHermesTtsEngine=function(desc){
+window.registerIrisTtsEngine=function(desc){
   try{
     if(!desc||typeof desc!=='object') return false;
     var id=String(desc.id||'').toLowerCase();
-    if(!_hermesTtsValidId(id)) return false;
-    if(_HERMES_TTS_RESERVED[id]) return false;          // can't shadow a built-in
+    if(!_irisTtsValidId(id)) return false;
+    if(_IRIS_TTS_RESERVED[id]) return false;          // can't shadow a built-in
     if(typeof desc.synthesize!=='function') return false;
     var label=(typeof desc.label==='string' && desc.label.trim()) ? desc.label.trim().slice(0,48) : id;
-    _HERMES_TTS_ENGINES[id]={ id:id, label:label, synthesize:desc.synthesize };
-    _hermesAddTtsOption(id, label);
+    _IRIS_TTS_ENGINES[id]={ id:id, label:label, synthesize:desc.synthesize };
+    _irisAddTtsOption(id, label);
     return true;
   }catch(_){ return false; }
 };
-window._hermesTtsIsRegistered=function(id){ return !!_HERMES_TTS_ENGINES[id]; };
+window._irisTtsIsRegistered=function(id){ return !!_IRIS_TTS_ENGINES[id]; };
 // List registered engines (for the settings panel to re-add options on render).
-window._hermesTtsEngineOptions=function(){
-  return Object.keys(_HERMES_TTS_ENGINES).map(function(k){
-    return { id:_HERMES_TTS_ENGINES[k].id, label:_HERMES_TTS_ENGINES[k].label };
+window._irisTtsEngineOptions=function(){
+  return Object.keys(_IRIS_TTS_ENGINES).map(function(k){
+    return { id:_IRIS_TTS_ENGINES[k].id, label:_IRIS_TTS_ENGINES[k].label };
   });
 };
 // Returns a Promise<ArrayBuffer> or null if the engine isn't registered.
-window._hermesTtsSynth=function(id, text, opts){
-  var eng=_HERMES_TTS_ENGINES[id];
+window._irisTtsSynth=function(id, text, opts){
+  var eng=_IRIS_TTS_ENGINES[id];
   if(!eng) return null;
   return Promise.resolve()
     .then(function(){ return eng.synthesize(text, opts||{}); })
@@ -1470,18 +1470,18 @@ window._hermesTtsSynth=function(id, text, opts){
 };
 
 // ── Session-open hook (for extensions) ────────────────────────────────────
-var _HERMES_SESSION_OPEN_HANDLERS=[];
-window.registerHermesSessionOpenHandler=function(fn){
+var _IRIS_SESSION_OPEN_HANDLERS=[];
+window.registerIrisSessionOpenHandler=function(fn){
   if(typeof fn!=='function') return false;
-  if(_HERMES_SESSION_OPEN_HANDLERS.indexOf(fn)>=0) return false;
-  _HERMES_SESSION_OPEN_HANDLERS.push(fn);
+  if(_IRIS_SESSION_OPEN_HANDLERS.indexOf(fn)>=0) return false;
+  _IRIS_SESSION_OPEN_HANDLERS.push(fn);
   return true;
 };
-window._hermesNotifySessionOpen=function(sid, data, opts){
+window._irisNotifySessionOpen=function(sid, data, opts){
   opts=opts||{};
-  for(var i=0;i<_HERMES_SESSION_OPEN_HANDLERS.length;i++){
+  for(var i=0;i<_IRIS_SESSION_OPEN_HANDLERS.length;i++){
     try{
-      var result=_HERMES_SESSION_OPEN_HANDLERS[i](sid, data, opts);
+      var result=_IRIS_SESSION_OPEN_HANDLERS[i](sid, data, opts);
       if(opts.preload===true && result&&result.cancel===true) return {cancel:true};
     }catch(_){}
   }
@@ -1556,7 +1556,7 @@ window.renderTranscript=function(container, messages, opts){
   // a power-user surface; explicit opt-in avoids the visual confusion
   // of two near-identical mic icons.
   function _voiceModePrefEnabled(){
-    try{ return localStorage.getItem('hermes-voice-mode-button')==='true'; }
+    try{ return localStorage.getItem('iris-voice-mode-button')==='true'; }
     catch(_){ return false; }
   }
   let _voiceModeActive=false;
@@ -1581,10 +1581,10 @@ window.renderTranscript=function(container, messages, opts){
   let _browserTtsWatchdog=null;
   let _browserTtsSuppressNextErrorRearm=false;
   // Configurable via localStorage keys (set from dev console or a future settings panel).
-  //   hermes-voice-silence-ms, pause duration before auto-send (ms, default 1800)
-  //   hermes-voice-continuous, keep mic open across natural pauses ("true"/"false", default false)
+  //   iris-voice-silence-ms, pause duration before auto-send (ms, default 1800)
+  //   iris-voice-continuous, keep mic open across natural pauses ("true"/"false", default false)
   function _voiceSilenceMs(){
-    const _silenceMsRaw=parseInt(localStorage.getItem('hermes-voice-silence-ms'),10);
+    const _silenceMsRaw=parseInt(localStorage.getItem('iris-voice-silence-ms'),10);
     return (Number.isFinite(_silenceMsRaw)&&_silenceMsRaw>0)?Math.max(200,_silenceMsRaw):1800;
   }
 
@@ -1646,7 +1646,7 @@ window.renderTranscript=function(container, messages, opts){
     _setState('listening');
 
     _recognition=new SpeechRecognition();
-    _recognition.continuous=localStorage.getItem('hermes-voice-continuous')==='true';
+    _recognition.continuous=localStorage.getItem('iris-voice-continuous')==='true';
     _recognition.interimResults=true;
     _recognition.lang=(typeof _locale!=='undefined'&&_locale._speech)||'en-US';
 
@@ -1769,17 +1769,17 @@ window.renderTranscript=function(container, messages, opts){
         .trim();
     }
     if(!clean){ _startListening(); return; }
-    const engine=localStorage.getItem("hermes-tts-engine")||"browser";
-    // Extension-registered TTS engine (window.registerHermesTtsEngine): synth
+    const engine=localStorage.getItem("iris-tts-engine")||"browser";
+    // Extension-registered TTS engine (window.registerIrisTtsEngine): synth
     // via the extension, then play through the same Audio lifecycle as edge.
-    if(typeof window._hermesTtsIsRegistered==='function' && window._hermesTtsIsRegistered(engine)){
+    if(typeof window._irisTtsIsRegistered==='function' && window._irisTtsIsRegistered(engine)){
       _ttsSpeaking=true;
       const _opts={
-        voice: localStorage.getItem("hermes-tts-voice")||'',
-        rate: parseFloat(localStorage.getItem("hermes-tts-rate")),
-        pitch: parseFloat(localStorage.getItem("hermes-tts-pitch")),
+        voice: localStorage.getItem("iris-tts-voice")||'',
+        rate: parseFloat(localStorage.getItem("iris-tts-rate")),
+        pitch: parseFloat(localStorage.getItem("iris-tts-pitch")),
       };
-      Promise.resolve(window._hermesTtsSynth(engine, clean, _opts))
+      Promise.resolve(window._irisTtsSynth(engine, clean, _opts))
         .then(function(buf){
           const blob=new Blob([buf]);
           const url=URL.createObjectURL(blob);
@@ -1891,9 +1891,9 @@ window.renderTranscript=function(container, messages, opts){
       return;
     }
     if(engine==="edge"){
-      const voice=localStorage.getItem("hermes-tts-voice")||"zh-CN-XiaoxiaoNeural";
-      const savedRate=parseFloat(localStorage.getItem("hermes-tts-rate"));
-      const savedPitch=parseFloat(localStorage.getItem("hermes-tts-pitch"));
+      const voice=localStorage.getItem("iris-tts-voice")||"zh-CN-XiaoxiaoNeural";
+      const savedRate=parseFloat(localStorage.getItem("iris-tts-rate"));
+      const savedPitch=parseFloat(localStorage.getItem("iris-tts-pitch"));
       let rate='', pitch='';
       if(!isNaN(savedRate)){const pct=Math.round((savedRate-1)*100);const sign=pct>=0?'+':'';rate=sign+pct+'%';}
       if(!isNaN(savedPitch)){const hz=Math.round((savedPitch-1)*50);const sign=hz>=0?'+':'';pitch=sign+hz+'Hz';}
@@ -1942,15 +1942,15 @@ window.renderTranscript=function(container, messages, opts){
     const utter=new SpeechSynthesisUtterance(clean);
 
     // Apply saved voice preferences
-    const savedVoice=localStorage.getItem('hermes-tts-voice');
+    const savedVoice=localStorage.getItem('iris-tts-voice');
     const voices=speechSynthesis.getVoices();
     if(savedVoice&&voices.length){
       const match=voices.find(v=>v.name===savedVoice);
       if(match) utter.voice=match;
     }
-    const savedRate=parseFloat(localStorage.getItem('hermes-tts-rate'));
+    const savedRate=parseFloat(localStorage.getItem('iris-tts-rate'));
     if(!isNaN(savedRate)) utter.rate=Math.min(2,Math.max(0.5,savedRate));
-    const savedPitch=parseFloat(localStorage.getItem('hermes-tts-pitch'));
+    const savedPitch=parseFloat(localStorage.getItem('iris-tts-pitch'));
     if(!isNaN(savedPitch)) utter.pitch=Math.min(2,Math.max(0,savedPitch));
 
     utter.onend=()=>{
@@ -2102,7 +2102,7 @@ $('btnDownload').onclick=()=>{
   if(!S.session)return;
   const blob=new Blob([transcript()],{type:'text/markdown'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`hermes-${S.session.session_id}.md`;a.click();URL.revokeObjectURL(a.href);
+  a.download=`iris-${S.session.session_id}.md`;a.click();URL.revokeObjectURL(a.href);
 };
 function _buildSessionExportUrl(sessionId,params){
   const url=new URL('api/session/export',document.baseURI||location.href);
@@ -2116,7 +2116,7 @@ $('btnExportJSON').onclick=()=>{
   if(!S.session)return;
   const url=_buildSessionExportUrl(S.session.session_id);
   const a=document.createElement('a');a.href=url;
-  a.download=`hermes-${S.session.session_id}.json`;a.click();
+  a.download=`iris-${S.session.session_id}.json`;a.click();
 };
 $('btnShareSession').onclick=async()=>{
   if(!S.session) return;
@@ -2141,7 +2141,7 @@ $('btnShareSession').onclick=async()=>{
     const href=new URL(String(res&&res.share&&res.share.url||''),location.origin).href;
     await _copyText(href);
     showToast(t('share_session_created'));
-    if(typeof _syncHermesPanelSessionActions==='function') _syncHermesPanelSessionActions();
+    if(typeof _syncIrisPanelSessionActions==='function') _syncIrisPanelSessionActions();
     window.open(href,'_blank','noopener');
   }catch(err){
     showToast(t('share_session_failed')+(err&&err.message?err.message:String(err||'')),4000,'error');
@@ -2160,7 +2160,7 @@ $('btnStopSharingSession').onclick=async()=>{
     const res=await api('/api/share/revoke',{method:'POST',body:JSON.stringify({session_id:S.session.session_id})});
     if(res&&res.session) S.session=res.session;
     showToast(t('share_session_revoked'));
-    if(typeof _syncHermesPanelSessionActions==='function') _syncHermesPanelSessionActions();
+    if(typeof _syncIrisPanelSessionActions==='function') _syncIrisPanelSessionActions();
   }catch(err){
     showToast(t('share_session_revoke_failed')+(err&&err.message?err.message:String(err||'')),4000,'error');
   }
@@ -2193,7 +2193,7 @@ function exportSessionHTML(session){
   const paletteB64=btoa(unescape(encodeURIComponent(JSON.stringify(clean))));
   const url=_buildSessionExportUrl(sid,{format:'html',theme,palette:paletteB64});
   const a=document.createElement('a');a.href=url;
-  a.download=`hermes-${sid}.html`;a.click();
+  a.download=`iris-${sid}.html`;a.click();
 }
 $('btnExportHTML').onclick=()=>exportSessionHTML();
 $('btnImportJSON').onclick=()=>$('importFileInput').click();
@@ -2265,7 +2265,7 @@ $('modelSelect').onchange=async()=>{
   if(typeof clearProfileTransitionReasoningContext==='function') clearProfileTransitionReasoningContext();
   if(typeof closeModelDropdown==='function') closeModelDropdown();
   if(typeof _writePersistedModelState==='function') _writePersistedModelState(modelState.model,modelState.model_provider);
-  else try{localStorage.setItem('hermes-webui-model',modelState.model)}catch{}
+  else try{localStorage.setItem('iris-webui-model',modelState.model)}catch{}
   if(!S.session){
     if(typeof _rememberEmptyComposerModelOverride==='function') _rememberEmptyComposerModelOverride(modelState.model,modelState.model_provider);
     if(typeof syncModelChip==='function') syncModelChip();
@@ -2642,7 +2642,7 @@ if(window.visualViewport){
     if(!handle || !targetEl) return;
 
     // Restore saved width
-    if(storageKey === 'hermes-panel-w'){
+    if(storageKey === 'iris-panel-w'){
       _syncWorkspacePanelInlineWidth();
     }else{
       const saved = localStorage.getItem(storageKey);
@@ -2679,8 +2679,8 @@ if(window.visualViewport){
   window._initResizePanels = function(){
     const sidebar    = document.querySelector('.sidebar');
     const rightpanel = document.querySelector('.rightpanel');
-    initResize('sidebarResize',    sidebar,    'right', SIDEBAR_MIN, SIDEBAR_MAX, 'hermes-sidebar-w');
-    initResize('rightpanelResize', rightpanel, 'left',  PANEL_MIN,   PANEL_MAX,   'hermes-panel-w');
+    initResize('sidebarResize',    sidebar,    'right', SIDEBAR_MIN, SIDEBAR_MAX, 'iris-sidebar-w');
+    initResize('rightpanelResize', rightpanel, 'left',  PANEL_MIN,   PANEL_MAX,   'iris-panel-w');
   };
 })();
 
@@ -2740,7 +2740,7 @@ function _normalizeAppearance(theme,skin){
 //   1. Mobile Safari status bar (the prefers-color-scheme media variants in index.html
 //      cover the pre-load case; this updater handles user-toggled changes mid-session).
 //   2. iOS PWA / Add to Home Screen status bar.
-//   3. Native WKWebView wrappers (e.g. hermes-swift-mac) that read this attribute as
+//   3. Native WKWebView wrappers (e.g. iris-swift-mac) that read this attribute as
 //      the source of truth for AppKit chrome (tab bar, title bar, traffic-light area)
 //      instead of pixel-sampling — overlay-resistant and IPC-free.
 // Reading getComputedStyle(html).getPropertyValue('--sidebar') picks up the active skin
@@ -2750,7 +2750,7 @@ function _syncThemeColorMeta(){
   try{
     const bg=getComputedStyle(document.documentElement).getPropertyValue('--sidebar').trim();
     if(!bg) return;
-    const known=document.getElementById('hermes-theme-color');
+    const known=document.getElementById('iris-theme-color');
     if(known){
       known.setAttribute('content',bg);
       known.removeAttribute('media');
@@ -2826,10 +2826,10 @@ function _applySkin(name){
 }
 
 function _pickTheme(name){
-  const currentSkin=localStorage.getItem('hermes-skin');
+  const currentSkin=localStorage.getItem('iris-skin');
   const appearance=_normalizeAppearance(name,currentSkin);
-  localStorage.setItem('hermes-theme',appearance.theme);
-  localStorage.setItem('hermes-skin',appearance.skin);
+  localStorage.setItem('iris-theme',appearance.theme);
+  localStorage.setItem('iris-skin',appearance.skin);
   _applyTheme(appearance.theme);
   _applySkin(appearance.skin);
   _syncThemePicker(appearance.theme);
@@ -2842,9 +2842,9 @@ function _pickTheme(name){
 }
 
 function _pickSkin(name){
-  const appearance=_normalizeAppearance(localStorage.getItem('hermes-theme'),name);
-  localStorage.setItem('hermes-theme',appearance.theme);
-  localStorage.setItem('hermes-skin',appearance.skin);
+  const appearance=_normalizeAppearance(localStorage.getItem('iris-theme'),name);
+  localStorage.setItem('iris-theme',appearance.theme);
+  localStorage.setItem('iris-skin',appearance.skin);
   _applyTheme(appearance.theme);
   _applySkin(appearance.skin);
   _syncThemePicker(appearance.theme);
@@ -2881,7 +2881,7 @@ function _applyFontSize(size){
 }
 
 function _pickFontSize(size){
-  localStorage.setItem('hermes-font-size',size);
+  localStorage.setItem('iris-font-size',size);
   _applyFontSize(size);
   _syncFontSizePicker(size);
   const hidden=$('settingsFontSize');
@@ -2910,7 +2910,7 @@ function _buildSkinPicker(activeSkin){
     btn.style.cssText='border:1px solid var(--border2);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;background:none;transition:all .15s';
     btn.onclick=()=>_pickSkin(key);
     // Build with DOM nodes + textContent so an extension-registered skin's
-    // label/name (registerHermesSkin descriptor) can never inject markup into
+    // label/name (registerIrisSkin descriptor) can never inject markup into
     // the picker. Swatch colors are already value-sanitized upstream, but set
     // them via element.style.background (not interpolated HTML) as defense in depth.
     const dotRow=document.createElement('div');
@@ -2934,7 +2934,7 @@ function _buildSkinPicker(activeSkin){
 // ── Extension-registered skins (theme-registration capability) ───────────────
 // Lets a trusted local extension contribute a custom skin that appears in the
 // NATIVE skin picker (rather than bolting on a parallel theme switcher). An
-// extension calls window.registerHermesSkin(descriptor); core validates +
+// extension calls window.registerIrisSkin(descriptor); core validates +
 // sanitizes it, injects a managed <style> rule for its CSS-variable tokens,
 // appends it to _SKINS so the picker renders it, and re-applies the persisted
 // selection if it was waiting on this (late-registered) skin.
@@ -2942,7 +2942,7 @@ function _buildSkinPicker(activeSkin){
 // Security: token values are written into CSS, so every value is sanitized
 // against a strict allowlist HERE, once, so all theme extensions inherit the
 // guard safe-by-construction. Reserved core skin keys cannot be overwritten.
-const _EXT_SKIN_STYLE_ID='hermesExtensionSkinStyles';
+const _EXT_SKIN_STYLE_ID='irisExtensionSkinStyles';
 const _EXT_SKIN_KEYS=new Set();                 // keys we registered (for idempotent re-register)
 const _RESERVED_SKIN_KEYS=new Set((_SKINS||[]).map(s=>(s.value||s.name).toLowerCase()));
 // CSS custom-property names a skin is allowed to set. Mirrors the documented
@@ -2997,7 +2997,7 @@ function _renderExtensionSkinStyles(){
 }
 
 // Public API for extensions. Returns true on success, false if rejected.
-function registerHermesSkin(descriptor){
+function registerIrisSkin(descriptor){
   try{
     if(!descriptor||typeof descriptor!=='object') return false;
     const name=String(descriptor.name||'').trim();
@@ -3030,16 +3030,16 @@ function registerHermesSkin(descriptor){
     _renderExtensionSkinStyles();
     // Refresh the picker if it's already built.
     if(document.getElementById('skinPickerGrid')){
-      _buildSkinPicker((localStorage.getItem('hermes-skin')||'default').toLowerCase());
+      _buildSkinPicker((localStorage.getItem('iris-skin')||'default').toLowerCase());
     }
     // If the user had previously selected this (now-available) skin, apply it.
-    if((localStorage.getItem('hermes-skin')||'').toLowerCase()===key){
+    if((localStorage.getItem('iris-skin')||'').toLowerCase()===key){
       _applySkin(key);
     }
     return true;
   }catch(_){ return false; }
 }
-if(typeof window!=='undefined') window.registerHermesSkin=registerHermesSkin;
+if(typeof window!=='undefined') window.registerIrisSkin=registerIrisSkin;
 
 function applyBotName(){
   // The saved assistant name applies to the default profile only.
@@ -3243,10 +3243,10 @@ function _mirrorSpeechSettingsFromServer(s){
     return server;
   };
   const boolKeys=[
-    ['tts_enabled','hermes-tts-enabled'],
-    ['tts_auto_read','hermes-tts-auto-read'],
-    ['voice_mode_button','hermes-voice-mode-button'],
-    ['voice_continuous','hermes-voice-continuous'],
+    ['tts_enabled','iris-tts-enabled'],
+    ['tts_auto_read','iris-tts-auto-read'],
+    ['voice_mode_button','iris-voice-mode-button'],
+    ['voice_continuous','iris-voice-continuous'],
   ];
   boolKeys.forEach(([settingKey,storageKey])=>{
     if(hasServerValue(settingKey)){
@@ -3254,22 +3254,22 @@ function _mirrorSpeechSettingsFromServer(s){
     }
   });
   [
-    ['tts_engine','hermes-tts-engine'],
-    ['tts_voice','hermes-tts-voice'],
-    ['tts_rate','hermes-tts-rate'],
-    ['tts_pitch','hermes-tts-pitch'],
-    ['voice_silence_ms','hermes-voice-silence-ms'],
+    ['tts_engine','iris-tts-engine'],
+    ['tts_voice','iris-tts-voice'],
+    ['tts_rate','iris-tts-rate'],
+    ['tts_pitch','iris-tts-pitch'],
+    ['voice_silence_ms','iris-voice-silence-ms'],
   ].forEach(([settingKey,storageKey])=>{
     if(hasServerValue(settingKey)){
       try{localStorage.setItem(storageKey,String(resolveScalar(settingKey,storageKey)));}catch(_){}
     }
   });
   if(hasServerValue('raw_audio_mode')){
-    const rawAudioMode=resolveBool('raw_audio_mode','hermes-raw-audio-mode');
+    const rawAudioMode=resolveBool('raw_audio_mode','iris-raw-audio-mode');
     if(typeof window._applyRawAudioModePreference==='function'){
       window._applyRawAudioModePreference(rawAudioMode);
     }else{
-      try{localStorage.setItem('hermes-raw-audio-mode',rawAudioMode?'true':'false');}catch(_){}
+      try{localStorage.setItem('iris-raw-audio-mode',rawAudioMode?'true':'false');}catch(_){}
     }
   }
 }
@@ -3400,13 +3400,13 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     // server in charge for empty first-visit state while preserving explicit
     // light/dark/system choices after a failed autosave.
     const srvAppearance=_normalizeAppearance(s.theme,s.skin);
-    const lsTheme=(localStorage.getItem('hermes-theme')||'').trim().toLowerCase();
-    const lsSkin=(localStorage.getItem('hermes-skin')||'').trim().toLowerCase();
+    const lsTheme=(localStorage.getItem('iris-theme')||'').trim().toLowerCase();
+    const lsSkin=(localStorage.getItem('iris-skin')||'').trim().toLowerCase();
     const lsAppearance=_normalizeAppearance(lsTheme||null,lsSkin||null);
     // An unknown non-default persisted skin is most likely an extension-provided
-    // skin (registerHermesSkin) whose extension script hasn't registered it yet
+    // skin (registerIrisSkin) whose extension script hasn't registered it yet
     // at this point in boot. Preserve it verbatim instead of normalizing it away
-    // to 'default' — the extension's registerHermesSkin() will inject the CSS and
+    // to 'default' — the extension's registerIrisSkin() will inject the CSS and
     // re-apply it once it loads. Without this, the boot sync would clobber the
     // saved choice before the extension runs.
     const lsSkinIsPendingExt=!!lsSkin&&lsSkin!=='default'&&!_VALID_SKINS.has(lsSkin)&&!_LEGACY_THEME_MAP[lsSkin];
@@ -3414,9 +3414,9 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     const lsHasExplicitTheme=lsTheme&&['system','light','dark'].includes(lsTheme);
     const theme=lsHasExplicitTheme?lsAppearance.theme:srvAppearance.theme;
     const skin=lsHasExplicitSkin?(lsSkinIsPendingExt?lsSkin:lsAppearance.skin):srvAppearance.skin;
-    localStorage.setItem('hermes-theme',theme);
+    localStorage.setItem('iris-theme',theme);
     _applyTheme(theme);
-    localStorage.setItem('hermes-skin',skin);
+    localStorage.setItem('iris-skin',skin);
     _applySkin(skin);
     // Reconcile: if localStorage and server disagree, push localStorage
     // values to the server so the next refresh won't revert. Skip the push for a
@@ -3427,8 +3427,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
         api('/api/settings',{method:'POST',body:JSON.stringify({theme,skin})});
       }catch(_){}
     }
-    const fontSize=(s.font_size||localStorage.getItem('hermes-font-size')||'default');
-    localStorage.setItem('hermes-font-size',fontSize);
+    const fontSize=(s.font_size||localStorage.getItem('iris-font-size')||'default');
+    localStorage.setItem('iris-font-size',fontSize);
     _applyFontSize(fontSize);
     if(typeof setLocale==='function'){
       // #7622 (round 3): the settings payload's `s.language` is
@@ -3441,8 +3441,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
       // The fallback ternary preserves the pre-#7622 boot behaviour
       // when neither helper is in scope (defence in depth).
       const _lang=typeof resolvePreferredLocale==='function'
-        ? resolvePreferredLocale(s.language, localStorage.getItem('hermes-lang'), _detectBrowserLanguageHint())
-        : (s.language || localStorage.getItem('hermes-lang') || 'en');
+        ? resolvePreferredLocale(s.language, localStorage.getItem('iris-lang'), _detectBrowserLanguageHint())
+        : (s.language || localStorage.getItem('iris-lang') || 'en');
       setLocale(_lang);
       if(typeof applyLocaleToDOM==='function')applyLocaleToDOM();
     }
@@ -3456,7 +3456,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     if(typeof window._applyVoiceModePref==='function') window._applyVoiceModePref();
     _applyComposerFooterVisibilitySettings();
     // TTS: apply enabled state on boot so buttons show/hide correctly (#499)
-    if(typeof _applyTtsEnabled==='function') _applyTtsEnabled(localStorage.getItem('hermes-tts-enabled')==='true');
+    if(typeof _applyTtsEnabled==='function') _applyTtsEnabled(localStorage.getItem('iris-tts-enabled')==='true');
   }catch(e){
     window._sendKey='enter';
     window._showTokenUsage=false;
@@ -3509,8 +3509,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     _bootSettings={check_for_updates:false};
     if(typeof setLocale==='function'){
       const _lang=typeof resolvePreferredLocale==='function'
-        ? resolvePreferredLocale(null, localStorage.getItem('hermes-lang'))
-        : (localStorage.getItem('hermes-lang') || 'en');
+        ? resolvePreferredLocale(null, localStorage.getItem('iris-lang'))
+        : (localStorage.getItem('iris-lang') || 'en');
       setLocale(_lang);
       if(typeof applyLocaleToDOM==='function')applyLocaleToDOM();
     }
@@ -3523,17 +3523,17 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     // closure-local to the voice-mode IIFE and not visible here.
     if(typeof window._applyVoiceModePref==='function') window._applyVoiceModePref();
     _applyComposerFooterVisibilitySettings();
-    if(typeof _applyTtsEnabled==='function') _applyTtsEnabled(localStorage.getItem('hermes-tts-enabled')==='true');
+    if(typeof _applyTtsEnabled==='function') _applyTtsEnabled(localStorage.getItem('iris-tts-enabled')==='true');
   }
   // Non-blocking update check (fire-and-forget, once per tab session)
   // ?test_updates=1 in URL forces banner display for testing (bypasses sessionStorage guards)
   const _testUpdates=new URLSearchParams(location.search).get('test_updates')==='1';
-  if(_testUpdates||(_bootSettings.check_for_updates!==false&&!sessionStorage.getItem('hermes-update-checked')&&!sessionStorage.getItem('hermes-update-dismissed'))){
+  if(_testUpdates||(_bootSettings.check_for_updates!==false&&!sessionStorage.getItem('iris-update-checked')&&!sessionStorage.getItem('iris-update-dismissed'))){
     const _checkUrl='api/updates/check'+(_testUpdates?'?simulate=1':'');
-    api(_checkUrl,{method:_testUpdates?'GET':'POST',body:_testUpdates?undefined:JSON.stringify({force:false}),timeoutMs:300000}).then(d=>{if(!_testUpdates)sessionStorage.setItem('hermes-update-checked','1');if((d.webui&&d.webui.behind>0)||(d.agent&&d.agent.behind>0))_showUpdateBanner(d);}).catch(()=>{});
+    api(_checkUrl,{method:_testUpdates?'GET':'POST',body:_testUpdates?undefined:JSON.stringify({force:false}),timeoutMs:300000}).then(d=>{if(!_testUpdates)sessionStorage.setItem('iris-update-checked','1');if((d.webui&&d.webui.behind>0)||(d.agent&&d.agent.behind>0))_showUpdateBanner(d);}).catch(()=>{});
   }
   const _bootActiveProfileUnauthRedirectBudget=(()=>{
-    const markerKey='hermes-webui-active-profile-bootstrap-401';
+    const markerKey='iris-webui-active-profile-bootstrap-401';
     let consumed=false;
     const readAttempted=(storage=sessionStorage)=>{
       try{
@@ -3630,7 +3630,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
   const titleLabel=$('titlebarProfileLabel');
   if(titleLabel) titleLabel.textContent=S.activeProfile||'default';
   const profileIntent=(typeof _profileQueryIntentFromLocation==='function')?_profileQueryIntentFromLocation():null;
-  const _savedLocalBeforeProfileSwitch=localStorage.getItem('hermes-webui-session');
+  const _savedLocalBeforeProfileSwitch=localStorage.getItem('iris-webui-session');
   const _profileSwitchProfileBefore=S.activeProfile||'default';
   const _profileSwitchIsDefaultBefore=!!S.activeProfileIsDefault;
   let _profileSwitchCompleted=false;
@@ -3675,7 +3675,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
       : null;
     const savedState=(typeof _readPersistedModelState==='function')
       ? _readPersistedModelState()
-      : (localStorage.getItem('hermes-webui-model')?{model:localStorage.getItem('hermes-webui-model'),model_provider:null}:null);
+      : (localStorage.getItem('iris-webui-model')?{model:localStorage.getItem('iris-webui-model'),model_provider:null}:null);
     // Active sessions are authoritative. On fresh boot without a restored
     // session, keep the profile/server default ahead of stale browser model
     // state when a default exists.
@@ -3696,8 +3696,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
       else if(!applied&&!sessionModelState&&$('modelSelect').value!==stateToApply.model){
         if(typeof _clearPersistedModelState==='function') _clearPersistedModelState();
         else {
-          localStorage.removeItem('hermes-webui-model');
-          localStorage.removeItem('hermes-webui-model-state');
+          localStorage.removeItem('iris-webui-model');
+          localStorage.removeItem('iris-webui-model-state');
         }
       }
       else if(typeof syncModelChip==='function') syncModelChip();
@@ -3749,8 +3749,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
   if (typeof syncSessionSearchClear === 'function') syncSessionSearchClear();
   if(typeof refreshProviderQuotaIndicator==='function') refreshProviderQuotaIndicator();
   const urlSession=(typeof _sessionIdFromLocation==='function')?_sessionIdFromLocation():null;
-  const pwaLaunchAction=(window.HermesPWA&&typeof window.HermesPWA.launchAction==='function')
-    ? window.HermesPWA.launchAction()
+  const pwaLaunchAction=(window.IrisPWA&&typeof window.IrisPWA.launchAction==='function')
+    ? window.IrisPWA.launchAction()
     : null;
   if(_shouldStartFreshPwaChat(pwaLaunchAction,urlSession)){
     try{
@@ -3770,10 +3770,10 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
   const _profileQueryBlocksSavedLocal=_profileQueryBlocksSavedLocalRestore(profileIntent, urlSession);
   if(_profileQueryBlocksSavedLocal&&_profileSwitchCompleted&&_profileSwitchChangedProfile){
     try{
-      if(localStorage.getItem('hermes-webui-session')===_savedLocalBeforeProfileSwitch) localStorage.removeItem('hermes-webui-session');
+      if(localStorage.getItem('iris-webui-session')===_savedLocalBeforeProfileSwitch) localStorage.removeItem('iris-webui-session');
     }catch(_){}
   }
-  const savedLocal=localStorage.getItem('hermes-webui-session');
+  const savedLocal=localStorage.getItem('iris-webui-session');
   const saved=urlSession||savedLocal;
   if(saved){
     try{
@@ -3782,7 +3782,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
         : null;
       if(savedSidebarOnlyState&&savedSidebarOnlyState.sidebarOnly){
         if(savedSidebarOnlyState.archived){
-          try{localStorage.removeItem('hermes-webui-session');}catch(_){}
+          try{localStorage.removeItem('iris-webui-session');}catch(_){}
         }
         S.session=null; S.messages=[]; S.activeStreamId=null; S.busy=false;
         S._bootReady=true;
@@ -3794,8 +3794,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
       if(_rootPrefillNeedsFreshComposer(urlSession, savedLocal, prefillIntent)){
         S.session=null; S.messages=[]; S.activeStreamId=null; S.busy=false;
         S._bootReady=true;
-        const _ephPanelPref=localStorage.getItem('hermes-webui-workspace-panel-pref')==='open'
-          || localStorage.getItem('hermes-webui-workspace-panel')==='open';
+        const _ephPanelPref=localStorage.getItem('iris-webui-workspace-panel-pref')==='open'
+          || localStorage.getItem('iris-webui-workspace-panel')==='open';
         if(_ephPanelPref&&!_isCompactWorkspaceViewport()) _workspacePanelMode='browse';
         await _maybeBindFreshDefaultWorkspaceSession(prefillIntent);
         syncTopbar();syncWorkspacePanelState();
@@ -3832,8 +3832,8 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
         S._bootReady=true;
         // Restore panel pref before syncing so the workspace panel stays visible
         // even though there is no active session (#workspace-persist).
-        const _ephPanelPref=localStorage.getItem('hermes-webui-workspace-panel-pref')==='open'
-          || localStorage.getItem('hermes-webui-workspace-panel')==='open';
+        const _ephPanelPref=localStorage.getItem('iris-webui-workspace-panel-pref')==='open'
+          || localStorage.getItem('iris-webui-workspace-panel')==='open';
         if(_ephPanelPref&&!_isCompactWorkspaceViewport()) _workspacePanelMode='browse';
         await _maybeBindFreshDefaultWorkspaceSession(prefillIntent);
         syncTopbar();syncWorkspacePanelState();
@@ -3844,22 +3844,22 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
       // Restore the panel from localStorage when the session has a workspace.
       // Preference key takes priority over runtime state so that closing
       // the panel via toolbar X doesn't suppress the "keep open" setting.
-      const panelPref=localStorage.getItem('hermes-webui-workspace-panel-pref')==='open'
-        || localStorage.getItem('hermes-webui-workspace-panel')==='open';
+      const panelPref=localStorage.getItem('iris-webui-workspace-panel-pref')==='open'
+        || localStorage.getItem('iris-webui-workspace-panel')==='open';
       if(S.session&&S.session.workspace&&panelPref&&!_isCompactWorkspaceViewport()){
         _workspacePanelMode='browse';
       }
       S._bootReady=true;
       syncTopbar();syncWorkspacePanelState();await renderSessionList();if(typeof startGatewaySSE==='function')startGatewaySSE();await checkInflightOnBoot(saved);await _finalizeComposerPrefillOnBoot(prefillIntent);return;}
-    catch(e){localStorage.removeItem('hermes-webui-session');}
+    catch(e){localStorage.removeItem('iris-webui-session');}
   }
   // no saved session - show empty state, wait for user to hit +
   S._bootReady=true;
   syncTopbar();
   // Restore panel pref so the workspace panel stays visible on a fresh load if the
   // user had it open during their last session (#workspace-persist).
-  const _freshPanelPref=localStorage.getItem('hermes-webui-workspace-panel-pref')==='open'
-    || localStorage.getItem('hermes-webui-workspace-panel')==='open';
+  const _freshPanelPref=localStorage.getItem('iris-webui-workspace-panel-pref')==='open'
+    || localStorage.getItem('iris-webui-workspace-panel')==='open';
   if(_freshPanelPref&&!_isCompactWorkspaceViewport()) _workspacePanelMode='browse';
   await _maybeBindFreshDefaultWorkspaceSession(prefillIntent);
   syncWorkspacePanelState();
@@ -3868,7 +3868,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
   // Start real-time gateway session sync if setting is enabled
   if(typeof startGatewaySSE==='function') startGatewaySSE();
 })().catch(e=>{
-  console.error('[hermes] boot failed', e);
+  console.error('[iris] boot failed', e);
   try{S._bootReady=true;}catch(_){}
   try{syncTopbar();}catch(_){}
   try{syncWorkspacePanelState();}catch(_){}
@@ -3920,7 +3920,7 @@ window.addEventListener('pageshow', async (event) => {
   // frozen DOM but another tab may have toggled the sidebar in the meantime.
   if (typeof _isSidebarCollapsed === 'function' && typeof toggleSidebar === 'function') {
     try {
-      const _want = localStorage.getItem('hermes-webui-sidebar-collapsed') === '1';
+      const _want = localStorage.getItem('iris-webui-sidebar-collapsed') === '1';
       const _have = _isSidebarCollapsed();
       if (_want !== _have) toggleSidebar(_want);
       if (typeof _syncSidebarAria === 'function') _syncSidebarAria();
@@ -3936,8 +3936,8 @@ async function shutdownServer() {
     danger: true,
   });
   if (!ok) return;
-  localStorage.setItem('hermes-webui-server-stopped', '1');
-  try { var bc = new BroadcastChannel('hermes-webui-shutdown'); bc.postMessage('stop'); bc.close(); } catch(_) {}
+  localStorage.setItem('iris-webui-server-stopped', '1');
+  try { var bc = new BroadcastChannel('iris-webui-shutdown'); bc.postMessage('stop'); bc.close(); } catch(_) {}
   _showServerStopped();
   try { await api('/api/shutdown', { method: 'POST' }); } catch (_) {}
 }

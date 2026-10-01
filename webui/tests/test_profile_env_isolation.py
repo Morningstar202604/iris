@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def test_profile_switch_clears_previous_profile_env_vars(monkeypatch, tmp_path):
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "p1").mkdir(parents=True)
     (base / "profiles" / "p2").mkdir(parents=True)
     (base / "profiles" / "p1" / ".env").write_text(
@@ -13,8 +13,8 @@ def test_profile_switch_clears_previous_profile_env_vars(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("HERMES_BASE_HOME", str(base))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.setenv("IRIS_BASE_HOME", str(base))
+    monkeypatch.delenv("IRIS_HOME", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("CUSTOM_TOKEN", raising=False)
 
@@ -23,7 +23,7 @@ def test_profile_switch_clears_previous_profile_env_vars(monkeypatch, tmp_path):
     # The delitem+import_module approach swapped the module object and poisoned
     # dependent modules' cached references, breaking later tests under sharding.
     import api.profiles as profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
 
     profiles.init_profile_state()
     profiles.switch_profile("p1")
@@ -37,7 +37,7 @@ def test_profile_switch_clears_previous_profile_env_vars(monkeypatch, tmp_path):
 
 
 def test_profile_switch_replaces_overlapping_keys(monkeypatch, tmp_path):
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "p1").mkdir(parents=True)
     (base / "profiles" / "p2").mkdir(parents=True)
     (base / "profiles" / "p1" / ".env").write_text(
@@ -49,8 +49,8 @@ def test_profile_switch_replaces_overlapping_keys(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("HERMES_BASE_HOME", str(base))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.setenv("IRIS_BASE_HOME", str(base))
+    monkeypatch.delenv("IRIS_HOME", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("ONLY_P1", raising=False)
     monkeypatch.delenv("ONLY_P2", raising=False)
@@ -60,7 +60,7 @@ def test_profile_switch_replaces_overlapping_keys(monkeypatch, tmp_path):
     # The delitem+import_module approach swapped the module object and poisoned
     # dependent modules' cached references, breaking later tests under sharding.
     import api.profiles as profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
 
     profiles.init_profile_state()
     profiles.switch_profile("p1")

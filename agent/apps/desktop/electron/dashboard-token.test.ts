@@ -19,23 +19,23 @@ import {
 } from './dashboard-token'
 
 test('extractInjectedDashboardToken reads the JSON-encoded dashboard token', () => {
-  const html = '<script>window.__HERMES_SESSION_TOKEN__="served-token";window.__HERMES_BASE_PATH__=""</script>'
+  const html = '<script>window.__IRIS_SESSION_TOKEN__="served-token";window.__IRIS_BASE_PATH__=""</script>'
   assert.equal(extractInjectedDashboardToken(html), 'served-token')
 })
 
 test('extractInjectedDashboardToken handles escaped token strings', () => {
-  const html = '<script>window.__HERMES_SESSION_TOKEN__="served\\\\token\\"quoted";</script>'
+  const html = '<script>window.__IRIS_SESSION_TOKEN__="served\\\\token\\"quoted";</script>'
   assert.equal(extractInjectedDashboardToken(html), 'served\\token"quoted')
 })
 
 test('extractInjectedDashboardToken returns null for missing or malformed values', () => {
   assert.equal(extractInjectedDashboardToken('<html></html>'), null)
-  assert.equal(extractInjectedDashboardToken('<script>window.__HERMES_SESSION_TOKEN__={bad}</script>'), null)
+  assert.equal(extractInjectedDashboardToken('<script>window.__IRIS_SESSION_TOKEN__={bad}</script>'), null)
 })
 
 test('dashboardIndexUrl preserves dashboard path prefixes', () => {
   assert.equal(dashboardIndexUrl('http://127.0.0.1:9120'), 'http://127.0.0.1:9120/')
-  assert.equal(dashboardIndexUrl('https://host.example/hermes/'), 'https://host.example/hermes/')
+  assert.equal(dashboardIndexUrl('https://host.example/iris/'), 'https://host.example/iris/')
 })
 
 test('resolveServedDashboardToken uses the served token and logs when it differs', async () => {
@@ -45,7 +45,7 @@ test('resolveServedDashboardToken uses the served token and logs when it differs
     fetchText: async url => {
       assert.equal(url, 'http://127.0.0.1:9120/')
 
-      return '<script>window.__HERMES_SESSION_TOKEN__="served-token";</script>'
+      return '<script>window.__IRIS_SESSION_TOKEN__="served-token";</script>'
     },
     rememberLog: line => logs.push(line)
   })
@@ -78,7 +78,7 @@ test('resolveServedDashboardToken propagates fetch errors so callers can fall ba
 })
 
 test('fetchPublicText rejects unsupported protocols', async () => {
-  await assert.rejects(() => fetchPublicText('file:///tmp/index.html'), /Unsupported Hermes backend URL protocol/)
+  await assert.rejects(() => fetchPublicText('file:///tmp/index.html'), /Unsupported Iris backend URL protocol/)
 })
 
 test('isForeignBackendToken only flags a mismatched token from a dead child', () => {
@@ -100,7 +100,7 @@ test('isForeignBackendToken only flags a mismatched token from a dead child', ()
 test('adoptServedDashboardToken adopts drift from a live child', async () => {
   const token = await adoptServedDashboardToken('http://127.0.0.1:9120', 'spawn-token', {
     childAlive: () => true,
-    fetchText: async () => '<script>window.__HERMES_SESSION_TOKEN__="served-token";</script>'
+    fetchText: async () => '<script>window.__IRIS_SESSION_TOKEN__="served-token";</script>'
   })
 
   assert.equal(token, 'served-token')
@@ -111,8 +111,8 @@ test('adoptServedDashboardToken refuses a foreign token when our child is dead',
     () =>
       adoptServedDashboardToken('http://127.0.0.1:9120', 'spawn-token', {
         childAlive: () => false,
-        fetchText: async () => '<script>window.__HERMES_SESSION_TOKEN__="squatter-token";</script>',
-        label: 'Hermes backend for profile "work"'
+        fetchText: async () => '<script>window.__IRIS_SESSION_TOKEN__="squatter-token";</script>',
+        label: 'Iris backend for profile "work"'
       }),
     /profile "work".*process we did not spawn/
   )
@@ -131,5 +131,5 @@ test('adoptServedDashboardToken falls back to the spawn token when the fetch fai
 
   assert.equal(token, 'spawn-token')
   assert.equal(logs.length, 1)
-  assert.match(logs[0], /could not read served dashboard token \(Hermes backend\): boom/)
+  assert.match(logs[0], /could not read served dashboard token \(Iris backend\): boom/)
 })

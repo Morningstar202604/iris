@@ -18,12 +18,12 @@ describe('session list density preference', () => {
 
     first.setSessionListDensity('detailed')
 
-    expect(window.localStorage.getItem('hermes.desktop.sessionListDensity')).toBe('detailed')
+    expect(window.localStorage.getItem('iris.desktop.sessionListDensity')).toBe('detailed')
     expect((await loadStore()).$sessionListDensity.get()).toBe('detailed')
   })
 
   it('falls back to compact for an unknown stored value', async () => {
-    window.localStorage.setItem('hermes.desktop.sessionListDensity', 'tiny')
+    window.localStorage.setItem('iris.desktop.sessionListDensity', 'tiny')
 
     expect((await loadStore()).$sessionListDensity.get()).toBe('compact')
   })

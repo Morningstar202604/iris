@@ -10,7 +10,7 @@ every poll. That is exactly the #4633 allocation churn the earlier fix removed.
 
 Measured in production on 2026-09-14 (Mac docker stack, 5.77 GiB colima VM):
 
-  /data/hermes/webui/sessions/fa3bca34a0c6.json   111,857,574 bytes, 135,634 msgs
+  /data/iris/webui/sessions/fa3bca34a0c6.json   111,857,574 bytes, 135,634 msgs
     "compression_anchor_summary"  offset      1,007   (73,192 bytes long)
     "message_count"               offset     75,446
     "anchor_scene_index"          offset     75,473   <- file IS modern

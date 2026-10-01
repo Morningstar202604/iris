@@ -12,8 +12,8 @@ if str(REPO_ROOT) not in sys.path:
 
 
 def _reload_profiles_module(base_home: Path):
-    os.environ["HERMES_BASE_HOME"] = str(base_home)
-    os.environ["HERMES_HOME"] = str(base_home)
+    os.environ["IRIS_BASE_HOME"] = str(base_home)
+    os.environ["IRIS_HOME"] = str(base_home)
 
     # Save the original module references so we can restore them after the test.
     # Permanently deleting api.config / api.profiles from sys.modules breaks
@@ -41,7 +41,7 @@ def _reload_profiles_module(base_home: Path):
 def test_switch_profile_rejects_path_traversal():
     with tempfile.TemporaryDirectory() as td:
         temp_root = Path(td)
-        base = temp_root / ".hermes"
+        base = temp_root / ".iris"
         (base / "profiles").mkdir(parents=True)
         (temp_root / "escape-target").mkdir()
 
@@ -54,7 +54,7 @@ def test_switch_profile_rejects_path_traversal():
 def test_delete_profile_rejects_path_traversal():
     with tempfile.TemporaryDirectory() as td:
         temp_root = Path(td)
-        base = temp_root / ".hermes"
+        base = temp_root / ".iris"
         (base / "profiles").mkdir(parents=True)
         (temp_root / "escape-target").mkdir()
 
@@ -67,7 +67,7 @@ def test_delete_profile_rejects_path_traversal():
 def test_switch_profile_allows_valid_profile_name():
     with tempfile.TemporaryDirectory() as td:
         temp_root = Path(td)
-        base = temp_root / ".hermes"
+        base = temp_root / ".iris"
         profile_dir = base / "profiles" / "demo"
         profile_dir.mkdir(parents=True)
 
@@ -75,4 +75,4 @@ def test_switch_profile_allows_valid_profile_name():
         result = profiles.switch_profile("demo")
 
         assert result["active"] == "demo"
-        assert Path(os.environ["HERMES_HOME"]).resolve() == profile_dir.resolve()
+        assert Path(os.environ["IRIS_HOME"]).resolve() == profile_dir.resolve()

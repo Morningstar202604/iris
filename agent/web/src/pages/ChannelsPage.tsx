@@ -132,9 +132,9 @@ function normalizeWhatsAppMode(mode: unknown): "bot" | "self-chat" | null {
 
 export default function ChannelsPage() {
   const [platforms, setPlatforms] = useState<MessagingPlatform[]>([]);
-  const [envPath, setEnvPath] = useState("~/.hermes/.env");
+  const [envPath, setEnvPath] = useState("~/.iris/.env");
   const [gatewayStartCommand, setGatewayStartCommand] = useState(
-    "hermes gateway start",
+    "iris gateway start",
   );
   const [loading, setLoading] = useState(true);
   const { toast, showToast } = useToast();
@@ -164,8 +164,8 @@ export default function ChannelsPage() {
       .getMessagingPlatforms()
       .then((res) => {
         setPlatforms(res.platforms);
-        setEnvPath(res.env_path || "~/.hermes/.env");
-        setGatewayStartCommand(res.gateway_start_command || "hermes gateway start");
+        setEnvPath(res.env_path || "~/.iris/.env");
+        setGatewayStartCommand(res.gateway_start_command || "iris gateway start");
       })
       .catch((e) => showToast(`Could not load channels: ${errorMessage(e)}`, "error"));
   }, [showToast]);
@@ -448,7 +448,7 @@ export default function ChannelsPage() {
                     </a>
                   </div>
                   <p className="text-xs">
-                    You can leave allowed users blank. Hermes will then send new DM
+                    You can leave allowed users blank. Iris will then send new DM
                     users a code that you approve from the Pairing page.
                   </p>
                 </div>
@@ -861,7 +861,7 @@ function WhatsAppOnboardingPanel({
         : "waiting";
   const setupHelp =
     phase === "connected" || phase === "applying"
-      ? "WhatsApp is linked but Hermes is not listening yet. Save and restart the gateway to finish setup."
+      ? "WhatsApp is linked but Iris is not listening yet. Save and restart the gateway to finish setup."
       : setup?.status === "installing"
         ? "Preparing the WhatsApp bridge. The QR code will appear here when it is ready."
         : setup?.status === "starting"
@@ -872,24 +872,24 @@ function WhatsAppOnboardingPanel({
     : setup?.account_name || setup?.account_id || "";
   const linkedAccountDetail =
     setup?.account_phone || setup?.account_id
-      ? "This is the WhatsApp account Hermes is now logged into."
-      : "Hermes is logged into the WhatsApp account that scanned the QR code.";
+      ? "This is the WhatsApp account Iris is now logged into."
+      : "Iris is logged into the WhatsApp account that scanned the QR code.";
   const linkedAccountChatUrl = setup?.account_phone
     ? `https://wa.me/${setup.account_phone}`
     : "";
   const messageInstruction =
     mode === "self-chat"
-      ? "After the restart, open Message Yourself on the linked account and send Hermes a message."
-      : "After the restart, start a chat from another WhatsApp account with the linked account and send Hermes a message.";
+      ? "After the restart, open Message Yourself on the linked account and send Iris a message."
+      : "After the restart, start a chat from another WhatsApp account with the linked account and send Iris a message.";
   const hasSavedAllowedUsers = Boolean(platform.whatsapp_setup?.allowed_users_set);
   const pairingInstruction =
     mode === "self-chat" && !allowedUsers.trim()
       ? hasSavedAllowedUsers
-        ? "Hermes will keep the saved WhatsApp allowlist."
+        ? "Iris will keep the saved WhatsApp allowlist."
         : "Self-chat mode will allow the linked account automatically when you save."
       : !allowedUsers.trim() && hasSavedAllowedUsers
-        ? "Hermes will keep the saved WhatsApp allowlist."
-        : "If no allowed numbers were entered, Hermes replies with a pairing code. Approve it from the dashboard Pairing page.";
+        ? "Iris will keep the saved WhatsApp allowlist."
+        : "If no allowed numbers were entered, Iris replies with a pairing code. Approve it from the dashboard Pairing page.";
 
   return (
     <div className="rounded-sm border border-border bg-background/35 p-4">
@@ -971,7 +971,7 @@ function WhatsAppOnboardingPanel({
 
               {phase === "waiting" && (
                 <div className="text-xs text-muted-foreground">
-                  After saving, unknown DMs use Hermes pairing codes unless their
+                  After saving, unknown DMs use Iris pairing codes unless their
                   number is already allowed.
                 </div>
               )}
@@ -1162,7 +1162,7 @@ function TelegramOnboardingPanel({
     setDetectedOwnerId(null);
     setNewAllowedId("");
     try {
-      const res = await api.startTelegramOnboarding({ bot_name: "Hermes Agent" });
+      const res = await api.startTelegramOnboarding({ bot_name: "Iris Agent" });
       const dataUrl = await QRCode.toDataURL(res.qr_payload, {
         errorCorrectionLevel: "M",
         margin: 1,
@@ -1199,7 +1199,7 @@ function TelegramOnboardingPanel({
     setNewAllowedId("");
   };
 
-  // restart_started only means the `hermes gateway restart` child spawned —
+  // restart_started only means the `iris gateway restart` child spawned —
   // not that the restart will succeed (e.g. systemd linger missing, service
   // manager failure). Poll the action status briefly and surface a non-zero
   // exit via the manual-restart banner. Note: in no-service installs the
@@ -1280,7 +1280,7 @@ function TelegramOnboardingPanel({
         </span>
         <span className="text-xs text-muted-foreground">
           Both options connect a bot you control and save its credentials only to
-          this Hermes installation.
+          this Iris installation.
         </span>
       </div>
 
@@ -1293,7 +1293,7 @@ function TelegramOnboardingPanel({
             <Badge tone="success">recommended</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Scan a QR code and confirm in Telegram. Hermes creates the bot and
+            Scan a QR code and confirm in Telegram. Iris creates the bot and
             detects your Telegram user ID automatically.
           </p>
           <Button

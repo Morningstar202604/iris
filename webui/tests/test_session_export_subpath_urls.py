@@ -116,7 +116,7 @@ console.log(JSON.stringify(urls));
 def test_export_builder_keeps_root_and_subpath_mounts() -> None:
     for base_uri, expected_path in (
         ("https://example.test/", "/api/session/export"),
-        ("https://example.test/hermes-webui/", "/hermes-webui/api/session/export"),
+        ("https://example.test/iris-webui/", "/iris-webui/api/session/export"),
     ):
         json_export, html_export = _run_export_actions(base_uri)
         assert json_export == {
@@ -145,7 +145,7 @@ def test_export_actions_keep_the_app_base_from_a_session_deep_link() -> None:
     assert match, "index.html must establish its document base before app scripts load"
     script = f"""
 let emitted = '';
-const location = {{origin: 'https://example.test', pathname: '/hermes-webui/session/deep-link'}};
+const location = {{origin: 'https://example.test', pathname: '/iris-webui/session/deep-link'}};
 const document = {{write(value) {{ emitted += value; }}}};
 {match.group(1)};
 console.log(emitted);
@@ -161,5 +161,5 @@ console.log(emitted);
     assert base_match
 
     json_export, html_export = _run_export_actions(base_match.group(1))
-    assert json_export["pathname"] == "/hermes-webui/api/session/export"
-    assert html_export["pathname"] == "/hermes-webui/api/session/export"
+    assert json_export["pathname"] == "/iris-webui/api/session/export"
+    assert html_export["pathname"] == "/iris-webui/api/session/export"

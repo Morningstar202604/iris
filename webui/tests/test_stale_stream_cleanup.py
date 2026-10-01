@@ -463,7 +463,7 @@ def test_service_worker_cache_bumped_for_frontend_fix_delivery():
     # cache whose key != current CACHE_NAME, so the old shell is reaped on
     # every upgrade and the new sessions.js (with the INFLIGHT[sid] clear)
     # ships to existing browsers.
-    assert "CACHE_NAME = 'hermes-shell-__WEBUI_VERSION__'" in SW_SRC, (
+    assert "CACHE_NAME = 'iris-shell-__WEBUI_VERSION__'" in SW_SRC, (
         "SW CACHE_NAME must include __WEBUI_VERSION__ so each release "
         "invalidates the previous cache and delivers frontend changes."
     )

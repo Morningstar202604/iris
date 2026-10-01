@@ -1,6 +1,6 @@
-# Hermes Web UI — Roadmap
+# Iris Web UI — Roadmap
 
-> Web companion to the Hermes Agent CLI. Same workflows, browser-native.
+> Web companion to the Iris Agent CLI. Same workflows, browser-native.
 >
 > This roadmap tracks the whole ecosystem: the web app, the native clients that
 > wrap it (macOS, Windows/Linux, Android, iOS), the extension system, and the
@@ -17,7 +17,7 @@
 
 | Surface | Status |
 |---|---|
-| **Hermes CLI parity** | ✅ Complete — every CLI workflow has a web equivalent |
+| **Iris CLI parity** | ✅ Complete — every CLI workflow has a web equivalent |
 | **Streaming + tool transparency** | ✅ Live tool cards, reasoning cards, approval prompts, clarify, cancel, steer |
 | **Multi-provider model support** | ✅ Any provider configured in `config.yaml` shows in the picker + live custom-endpoint discovery |
 | **Sessions + projects + search** | ✅ CRUD, content search, projects, tags, archive, fork, import, batch ops, CLI bridge |
@@ -217,7 +217,7 @@ work has shifted from "reach parity" to "harden reliability + widen distribution
 - [x] Credential redaction in API responses
 - [x] Profile `.env` secret isolation on switch
 - [x] Open-redirect guard on `?next=` login param (bounded decode, collapses login-loop chains)
-- [x] Auto-install gate (opt-in via `HERMES_WEBUI_AUTO_INSTALL=1`)
+- [x] Auto-install gate (opt-in via `IRIS_WEBUI_AUTO_INSTALL=1`)
 
 ### Visual / UX
 - [x] 3 base modes — Light, Dark, System (auto-sync)
@@ -237,7 +237,7 @@ work has shifted from "reach parity" to "harden reliability + widen distribution
 - [x] Empty composer hides send button (icon-circle with pop-in animation)
 - [x] Pluggable Lucide SVG icons (no emoji rendering inconsistencies)
 - [x] Composer-centric controls (v0.50.0 UI overhaul)
-- [x] Hermes Control Center modal (centralized actions)
+- [x] Iris Control Center modal (centralized actions)
 - [x] Workspace panel state machine (defaults closed, opens for browsing / preview)
 - [x] Three-panel desktop layout keeps a readable conversation floor when resizing
 - [x] PWA manifest + service worker (offline shell)
@@ -289,14 +289,14 @@ work has shifted from "reach parity" to "harden reliability + widen distribution
 - [x] Consented extension sidecar proxy path (no arbitrary backend route registration)
 - [x] Status + diagnostics endpoint
 - [x] Trust model documented — extensions run with full session authority; install only vetted/self-authored
-- [x] Vetted, versioned library repo with CI safety gates — [hermes-webui/hermes-webui-extensions](https://github.com/hermes-webui/hermes-webui-extensions) ("in the registry == vetted")
+- [x] Vetted, versioned library repo with CI safety gates — [iris-webui/iris-webui-extensions](https://github.com/iris-webui/iris-webui-extensions) ("in the registry == vetted")
 - [x] Core repo bundles zero extensions — clean client-side extensions are migrated to the library repo, not merged into core
 
 ### Distribution
 - [x] Docker support (multi-arch amd64 + arm64, HEALTHCHECK, UID/GID auto-detect)
 - [x] Two-container Docker compose (webui + agent)
 - [x] GHCR auto-publish on tag push
-- [x] Subpath mount support (reverse proxy at `/hermes/`)
+- [x] Subpath mount support (reverse proxy at `/iris/`)
 - [x] PWA installable from any browser
 - [x] Native macOS app — universal Intel + Apple Silicon, signed + notarized DMG, Sparkle 2 auto-update
 - [x] Native Windows + Linux + macOS desktop app — Rust/Tauri, per-platform installers
@@ -309,16 +309,16 @@ See [Native clients](#native-clients) for the per-repo detail.
 
 ## Native clients
 
-The web app is the engine; a small fleet of native shells wrap it so Hermes runs
+The web app is the engine; a small fleet of native shells wrap it so Iris runs
 as a real app on every platform. Each lives in its **own repo** with its own
 versioning and release cadence — none is a fork of the WebUI source.
 
 | Client | Platforms | Tech | Repo |
 |---|---|---|---|
-| **Hermes for Mac** | macOS (Intel + Apple Silicon) | Swift + WKWebView, SSH tunnel, Sparkle 2 auto-update, signed + notarized DMG | [hermes-webui/hermes-swift-mac](https://github.com/hermes-webui/hermes-swift-mac) |
-| **Hermes Desktop** | Windows + Linux + macOS | Rust / Tauri (WebView2 / WebKitGTK), per-platform installers | [hermes-webui/hermes-desktop-rust](https://github.com/hermes-webui/hermes-desktop-rust) |
-| **Hermes for Android** | Android | Native Android, Play-ready releases | [hermes-webui/hermes-android](https://github.com/hermes-webui/hermes-android) |
-| **Hermes for iOS** | iOS (iPhone) | Native Swift, connects over Tailscale (QR / hostname pairing) | [hermes-webui/hermes-swift-ios](https://github.com/hermes-webui/hermes-swift-ios) |
+| **Iris for Mac** | macOS (Intel + Apple Silicon) | Swift + WKWebView, SSH tunnel, Sparkle 2 auto-update, signed + notarized DMG | [iris-webui/iris-swift-mac](https://github.com/iris-webui/iris-swift-mac) |
+| **Iris Desktop** | Windows + Linux + macOS | Rust / Tauri (WebView2 / WebKitGTK), per-platform installers | [iris-webui/iris-desktop-rust](https://github.com/iris-webui/iris-desktop-rust) |
+| **Iris for Android** | Android | Native Android, Play-ready releases | [iris-webui/iris-android](https://github.com/iris-webui/iris-android) |
+| **Iris for iOS** | iOS (iPhone) | Native Swift, connects over Tailscale (QR / hostname pairing) | [iris-webui/iris-swift-ios](https://github.com/iris-webui/iris-swift-ios) |
 
 One server, every client: run the WebUI on one machine and reach it from web,
 desktop, and phone. Live versions and release notes are on each repo's Releases
@@ -328,7 +328,7 @@ page — this table intentionally carries no version numbers (they drift per rep
 
 ## Autonomous project maintenance
 
-Hermes WebUI is maintained by an autonomous agent system: inbound issues and PRs
+Iris WebUI is maintained by an autonomous agent system: inbound issues and PRs
 are triaged, deep-reviewed (multi-model gate + full test suite + browser QA),
 released, and closed with attribution — largely without manual steering. The
 project-agnostic distillation of that system is published as an open framework so
@@ -349,7 +349,7 @@ release cadence runs multiple ships per day.
 
 Most of the original forward-work list has shipped. What remains is either an
 open feature request under active consideration or an explicitly-deferred concept.
-Issue state drifts — re-derive with `gh issue list --repo nesquena/hermes-webui`.
+Issue state drifts — re-derive with `gh issue list --repo X33834/iris`.
 
 ### Open candidates (feature requests under active consideration)
 
@@ -359,9 +359,9 @@ Issue state drifts — re-derive with `gh issue list --repo nesquena/hermes-webu
 | Provider / Model source-of-truth alignment | #1240 | Reconcile WebUI vs CLI vs Gateway provider resolution |
 | Built-in SearXNG web search | #1037 | Lightweight search tool with on / off toggle |
 | Sunset legacy `LMSTUDIO_API_KEY` env var | #1502 | Alias stays for one minor cycle, then removed |
-| Native MCP server expose | #733 | Hermes WebUI as an MCP server for direct agent integration |
+| Native MCP server expose | #733 | Iris WebUI as an MCP server for direct agent integration |
 | Teams / agents management panel | #719 | Editable names, roles, assignments |
-| WebUI profile ↔ Hermes runtime model alignment | #749 | Design parity between WebUI profiles and the runtime model |
+| WebUI profile ↔ Iris runtime model alignment | #749 | Design parity between WebUI profiles and the runtime model |
 | Add agent / replace model modals | #698 | Dedicated modals for agent + model management |
 
 ### Backlog (deferred, listed for visibility)

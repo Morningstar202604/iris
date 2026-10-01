@@ -39,10 +39,10 @@ def _read_sessions_js():
 class TestSessionDBInjection(unittest.TestCase):
     """Verify SessionDB is initialized and passed to AIAgent in streaming.py."""
 
-    def test_hermes_state_import_present(self):
-        """SessionDB must be imported from hermes_state inside _run_agent_streaming."""
+    def test_iris_state_import_present(self):
+        """SessionDB must be imported from iris_state inside _run_agent_streaming."""
         self.assertIn(
-            "from hermes_state import SessionDB",
+            "from iris_state import SessionDB",
             STREAMING_PY,
             "SessionDB import missing from streaming.py (PR #356)",
         )
@@ -64,7 +64,7 @@ class TestSessionDBInjection(unittest.TestCase):
         helper_src = STREAMING_PY[helper_start:helper_end]
         pattern = (
             r"def _build_session_db_for_stream"
-            r"[\s\S]*?try:\s*\n[\s\S]*?from hermes_state import SessionDB[\s\S]*?return SessionDB\(db_path=state_db_path\)[\s\S]*?except Exception as _db_err:"
+            r"[\s\S]*?try:\s*\n[\s\S]*?from iris_state import SessionDB[\s\S]*?return SessionDB\(db_path=state_db_path\)[\s\S]*?except Exception as _db_err:"
         )
         self.assertRegex(
             helper_src,
@@ -91,7 +91,7 @@ class TestSessionDBInjection(unittest.TestCase):
 
     def test_session_db_initialized_before_agent_construction(self):
         """SessionDB initialization must appear before the AIAgent(...) constructor call."""
-        db_pos = STREAMING_PY.find("from hermes_state import SessionDB")
+        db_pos = STREAMING_PY.find("from iris_state import SessionDB")
         agent_pos = STREAMING_PY.find("session_db=_session_db")
         self.assertGreater(
             agent_pos,
@@ -122,7 +122,7 @@ class TestRuntimeRouteInjection(unittest.TestCase):
         """WebUI must pass the runtime route fields that CLI already uses.
 
         Since issue #772 these are passed defensively via inspect-guarded kwargs
-        so the WebUI degrades gracefully against older hermes-agent builds.
+        so the WebUI degrades gracefully against older iris-agent builds.
 
         They are read from the resolved connection bundle rather than straight
         off the runtime provider dict: a named custom provider owns none of them,
@@ -242,12 +242,12 @@ class TestRuntimeRouteInjection(unittest.TestCase):
         fake_stream_id = "stream-runtime-route"
         fake_session.active_stream_id = fake_stream_id
         fake_queue = queue.Queue()
-        fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+        fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
         fake_runtime_module.resolve_runtime_provider = resolve_runtime_provider
-        fake_hermes_cli = types.ModuleType("hermes_cli")
-        fake_hermes_cli.runtime_provider = fake_runtime_module
-        fake_hermes_state = types.ModuleType("hermes_state")
-        fake_hermes_state.SessionDB = mock.Mock(return_value=fake_session_db)
+        fake_iris_cli = types.ModuleType("iris_cli")
+        fake_iris_cli.runtime_provider = fake_runtime_module
+        fake_iris_state = types.ModuleType("iris_state")
+        fake_iris_state.SessionDB = mock.Mock(return_value=fake_session_db)
 
         with mock.patch.object(streaming, "get_session", return_value=fake_session), \
              mock.patch.object(streaming, "_get_ai_agent", return_value=CapturingAgent), \
@@ -257,9 +257,9 @@ class TestRuntimeRouteInjection(unittest.TestCase):
              mock.patch.dict(
                  sys.modules,
                  {
-                     "hermes_cli": fake_hermes_cli,
-                     "hermes_cli.runtime_provider": fake_runtime_module,
-                     "hermes_state": fake_hermes_state,
+                     "iris_cli": fake_iris_cli,
+                     "iris_cli.runtime_provider": fake_runtime_module,
+                     "iris_state": fake_iris_state,
                  },
              ):
             streaming.STREAMS[fake_stream_id] = fake_queue
@@ -380,7 +380,7 @@ class TestRuntimeRouteInjection(unittest.TestCase):
 
         fake_stream_id = "stream-interim-callback"
         fake_queue = queue.Queue()
-        fake_rt_module = types.ModuleType("hermes_cli.runtime_provider")
+        fake_rt_module = types.ModuleType("iris_cli.runtime_provider")
         fake_rt_module.resolve_runtime_provider = mock.Mock(return_value={
             "provider": "openai-codex",
             "base_url": "https://api.openai.com/v1",
@@ -390,10 +390,10 @@ class TestRuntimeRouteInjection(unittest.TestCase):
             "args": ["exec", "--json"],
             "credential_pool": object(),
         })
-        fake_hermes_cli = types.ModuleType("hermes_cli")
-        fake_hermes_cli.runtime_provider = fake_rt_module
-        fake_hermes_state = types.ModuleType("hermes_state")
-        fake_hermes_state.SessionDB = mock.Mock(return_value=object())
+        fake_iris_cli = types.ModuleType("iris_cli")
+        fake_iris_cli.runtime_provider = fake_rt_module
+        fake_iris_state = types.ModuleType("iris_state")
+        fake_iris_state.SessionDB = mock.Mock(return_value=object())
 
         fake_session = FakeSession()
         fake_session.active_stream_id = fake_stream_id
@@ -404,9 +404,9 @@ class TestRuntimeRouteInjection(unittest.TestCase):
              mock.patch("api.config.get_config", return_value={}), \
              mock.patch("api.config._resolve_cli_toolsets", return_value=[]), \
              mock.patch.dict(sys.modules, {
-                 "hermes_cli": fake_hermes_cli,
-                 "hermes_cli.runtime_provider": fake_rt_module,
-                 "hermes_state": fake_hermes_state,
+                 "iris_cli": fake_iris_cli,
+                 "iris_cli.runtime_provider": fake_rt_module,
+                 "iris_state": fake_iris_state,
              }):
             streaming.STREAMS[fake_stream_id] = fake_queue
             streaming._run_agent_streaming(
@@ -421,7 +421,7 @@ class TestRuntimeRouteInjection(unittest.TestCase):
         self.assertIsNotNone(init_kwargs["interim_assistant_callback"])
         self.assertTrue(callable(init_kwargs["interim_assistant_callback"]))
         self.assertIn("WebUI progress guidance", captured["agent"].ephemeral_system_prompt)
-        self.assertIn("Match the normal Hermes messaging style", captured["agent"].ephemeral_system_prompt)
+        self.assertIn("Match the normal Iris messaging style", captured["agent"].ephemeral_system_prompt)
         self.assertIn(
             "do not let long tool-running WebUI turns appear silent",
             captured["agent"].ephemeral_system_prompt,
@@ -664,7 +664,7 @@ class TestRuntimeRouteInjection(unittest.TestCase):
 
         fake_stream_id = "stream-clarify-timeout"
         fake_queue = queue.Queue()
-        fake_rt_module = types.ModuleType("hermes_cli.runtime_provider")
+        fake_rt_module = types.ModuleType("iris_cli.runtime_provider")
         fake_rt_module.resolve_runtime_provider = mock.Mock(return_value={
             "provider": "openai-codex",
             "base_url": "https://api.openai.com/v1",
@@ -674,10 +674,10 @@ class TestRuntimeRouteInjection(unittest.TestCase):
             "args": ["exec", "--json"],
             "credential_pool": object(),
         })
-        fake_hermes_cli = types.ModuleType("hermes_cli")
-        fake_hermes_cli.runtime_provider = fake_rt_module
-        fake_hermes_state = types.ModuleType("hermes_state")
-        fake_hermes_state.SessionDB = mock.Mock(return_value=object())
+        fake_iris_cli = types.ModuleType("iris_cli")
+        fake_iris_cli.runtime_provider = fake_rt_module
+        fake_iris_state = types.ModuleType("iris_state")
+        fake_iris_state.SessionDB = mock.Mock(return_value=object())
 
         fake_session = FakeSession()
         fake_session.active_stream_id = fake_stream_id
@@ -690,9 +690,9 @@ class TestRuntimeRouteInjection(unittest.TestCase):
              mock.patch("api.config._resolve_cli_toolsets", return_value=[]), \
              mock.patch("api.clarify.submit_pending", side_effect=fake_submit_pending), \
              mock.patch.dict(sys.modules, {
-                "hermes_cli": fake_hermes_cli,
-                "hermes_cli.runtime_provider": fake_rt_module,
-                "hermes_state": fake_hermes_state,
+                "iris_cli": fake_iris_cli,
+                "iris_cli.runtime_provider": fake_rt_module,
+                "iris_state": fake_iris_state,
              }):
             streaming.STREAMS[fake_stream_id] = fake_queue
             streaming._run_agent_streaming(
@@ -719,7 +719,7 @@ class TestSessionDBAST(unittest.TestCase):
         The SessionDB try/except is outside the lock scope, which is correct.
         """
         # Find all 'with _ENV_LOCK:' nodes; check none of their bodies contain
-        # a Try node that also contains 'from hermes_state import SessionDB'
+        # a Try node that also contains 'from iris_state import SessionDB'
         for node in ast.walk(self.tree):
             if not isinstance(node, ast.With):
                 continue
@@ -729,10 +729,10 @@ class TestSessionDBAST(unittest.TestCase):
             # Walk the with-body for Try nodes
             for stmt in node.body:
                 if isinstance(stmt, ast.Try):
-                    # Check if this try imports hermes_state
+                    # Check if this try imports iris_state
                     src = ast.unparse(stmt)
                     self.assertNotIn(
-                        "hermes_state",
+                        "iris_state",
                         src,
                         "SessionDB try/except must NOT be inside _ENV_LOCK body (deadlock risk)",
                     )
@@ -946,7 +946,7 @@ def test_routes_restores_prior_reasoning_metadata_after_followup():
 
 class TestCredentialPoolBackwardCompat(unittest.TestCase):
     """Verify credential_pool and other newer kwargs are skipped gracefully
-    when running against an older hermes-agent that lacks them (issue #772)."""
+    when running against an older iris-agent that lacks them (issue #772)."""
 
     def test_older_agent_without_credential_pool_does_not_crash(self):
         """WebUI must not crash with TypeError when AIAgent lacks credential_pool."""
@@ -955,7 +955,7 @@ class TestCredentialPoolBackwardCompat(unittest.TestCase):
         captured = {}
 
         class OlderAgent:
-            """Simulates a hermes-agent build that predates credential_pool."""
+            """Simulates a iris-agent build that predates credential_pool."""
             def __init__(self, model=None, provider=None, base_url=None, api_key=None,
                          platform=None, quiet_mode=False, enabled_toolsets=None,
                          fallback_model=None, session_id=None, session_db=None,
@@ -1014,16 +1014,16 @@ class TestCredentialPoolBackwardCompat(unittest.TestCase):
 
         fake_stream_id = "stream-compat-test"
         fake_queue = queue.Queue()
-        fake_rt_module = types.ModuleType("hermes_cli.runtime_provider")
+        fake_rt_module = types.ModuleType("iris_cli.runtime_provider")
         fake_rt_module.resolve_runtime_provider = mock.Mock(return_value={
             "provider": "openai", "base_url": None, "api_key": "sk-test",
             "api_mode": "chat_completions", "command": None, "args": [],
             "credential_pool": object(),
         })
-        fake_hermes_cli = types.ModuleType("hermes_cli")
-        fake_hermes_cli.runtime_provider = fake_rt_module
-        fake_hermes_state = types.ModuleType("hermes_state")
-        fake_hermes_state.SessionDB = mock.Mock(return_value=None)
+        fake_iris_cli = types.ModuleType("iris_cli")
+        fake_iris_cli.runtime_provider = fake_rt_module
+        fake_iris_state = types.ModuleType("iris_state")
+        fake_iris_state.SessionDB = mock.Mock(return_value=None)
 
         fake_session = FakeSession()
         fake_session.active_stream_id = fake_stream_id
@@ -1034,9 +1034,9 @@ class TestCredentialPoolBackwardCompat(unittest.TestCase):
              mock.patch("api.config.get_config", return_value={}), \
              mock.patch("api.config._resolve_cli_toolsets", return_value=[]), \
              mock.patch.dict(sys.modules, {
-                 "hermes_cli": fake_hermes_cli,
-                 "hermes_cli.runtime_provider": fake_rt_module,
-                 "hermes_state": fake_hermes_state,
+                 "iris_cli": fake_iris_cli,
+                 "iris_cli.runtime_provider": fake_rt_module,
+                 "iris_state": fake_iris_state,
              }):
             streaming.STREAMS[fake_stream_id] = fake_queue
             # Must not raise TypeError

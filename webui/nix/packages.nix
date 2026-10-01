@@ -8,10 +8,10 @@ let
     ]
   );
 
-  runtimeDir = "hermes-webui";
+  runtimeDir = "iris-webui";
 in
 pkgs.stdenv.mkDerivation {
-  pname = "hermes-webui";
+  pname = "iris-webui";
   inherit version;
 
   dontUnpack = true;
@@ -32,15 +32,15 @@ pkgs.stdenv.mkDerivation {
     cp -r "${./../static}" "$out/${runtimeDir}/static"
     printf "__version__ = '%s'\n" "$version" > "$out/${runtimeDir}/api/_version.py"
 
-    makeWrapper ${pythonEnv}/bin/python3 "$out/bin/hermes-webui" \
-      --set HERMES_WEBUI_DISABLE_LOCAL_VENV 1 \
+    makeWrapper ${pythonEnv}/bin/python3 "$out/bin/iris-webui" \
+      --set IRIS_WEBUI_DISABLE_LOCAL_VENV 1 \
       --add-flags "$out/${runtimeDir}/bootstrap.py --foreground --no-browser --skip-agent-install"
 
     runHook postInstall
   '';
 
   meta = {
-    description = "Hermes WebUI package";
-    mainProgram = "hermes-webui";
+    description = "Iris WebUI package";
+    mainProgram = "iris-webui";
   };
 }

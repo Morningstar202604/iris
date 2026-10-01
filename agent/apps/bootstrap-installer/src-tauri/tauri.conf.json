@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Hermes",
-  "version": "0.21.4",
-  "identifier": "com.nousresearch.hermes.setup",
+  "productName": "Iris",
+  "version": "0.12.0",
+  "identifier": "com.nousresearch.iris.setup",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:5175",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Hermes",
+        "title": "Iris",
         "width": 880,
         "height": 620,
         "minWidth": 720,
@@ -34,10 +34,10 @@
   "bundle": {
     "active": true,
     "category": "DeveloperTool",
-    "shortDescription": "Hermes",
-    "longDescription": "Installs Hermes Agent on your machine. Drives scripts/install.ps1 (Windows) and scripts/install.sh (macOS/Linux).",
-    "publisher": "Nous Research",
-    "copyright": "Copyright © 2026 Nous Research",
+    "shortDescription": "Iris",
+    "longDescription": "Installs Iris Agent on your machine. Drives scripts/install.ps1 (Windows) and scripts/install.sh (macOS/Linux).",
+    "publisher": "Iris contributors",
+    "copyright": "Copyright (c) 2026 Iris contributors. Based on Hermes, (c) 2025 Nous Research.",
     "targets": [
       "app",
       "dmg",

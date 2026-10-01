@@ -11,7 +11,7 @@ Iris 是一个**本地优先**的个人 AI 超级助手：完整的 Agent 内核
 ```bash
 git clone https://gitcode.com/badhope/iris.git && cd iris
 
-# 安装 agent 核心（Hermes 内核 + 工具/插件/记忆/技能/定时任务）
+# 安装 agent 核心（Iris 内核 + 工具/插件/记忆/技能/定时任务）
 cd agent && pip install -e . && cd ..
 ```
 
@@ -26,16 +26,16 @@ cd agent && pip install -e . && cd ..
 cd webui && python3 server.py
 ```
 
-浏览器打开 **http://127.0.0.1:8787**（端口可通过 `HERMES_WEBUI_PORT` 环境变量修改）。
+浏览器打开 **http://127.0.0.1:8787**（端口可通过 `IRIS_WEBUI_PORT` 环境变量修改）。
 
 **关键环境变量：**
 
 | 变量 | 作用 | 默认 |
 |---|---|---|
-| `HERMES_WEBUI_AGENT_DIR` | Agent 源码目录（仓库内的 `agent/`） | 自动探测 |
-| `HERMES_WEBUI_STATE_DIR` | 会话/状态数据目录 | `~/.hermes` |
-| `HERMES_WEBUI_PORT` | 监听端口 | `8787` |
-| `HERMES_WEBUI_PASSWORD` | 访问密码（可选） | 空 = 本机免密 |
+| `IRIS_WEBUI_AGENT_DIR` | Agent 源码目录（仓库内的 `agent/`） | 自动探测 |
+| `IRIS_WEBUI_STATE_DIR` | 会话/状态数据目录 | `~/.iris` |
+| `IRIS_WEBUI_PORT` | 监听端口 | `8787` |
+| `IRIS_WEBUI_PASSWORD` | 访问密码（可选） | 空 = 本机免密 |
 
 ## 3. 接入模型
 
@@ -43,7 +43,7 @@ cd webui && python3 server.py
 启动后进入 **设置 → 提供商**，选择一个可用模型即可。
 
 ### 方式 B：接入任意 OpenAI 兼容端点（推荐）
-编辑 `~/.hermes/config.yaml`：
+编辑 `~/.iris/config.yaml`：
 
 ```yaml
 model:

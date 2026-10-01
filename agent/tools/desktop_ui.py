@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Bridge desktop-only tools to Hermes-desktop renderer events.
+"""Bridge desktop-only tools to Iris-desktop renderer events.
 
 The desktop ``tui_gateway`` installs an emitter via :func:`set_emitter`; elsewhere it
-stays ``None`` and tools report "desktop only". Routing keys off ``HERMES_UI_SESSION_ID``
+stays ``None`` and tools report "desktop only". Routing keys off ``IRIS_UI_SESSION_ID``
 so the event lands on the window that owns the turn (the sink is lock-guarded).
 """
 
@@ -34,7 +34,7 @@ def user_enabled(setting: str, default: bool) -> bool:
     the schema. Unreadable config -> ``default`` so a shipped-on feature does not vanish
     on a transient read error."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from iris_cli.config import load_config_readonly
         display = load_config_readonly().get("display")
     except Exception:
         return default
@@ -47,7 +47,7 @@ def emit(event: str, payload: dict) -> bool:
     """Route ``event`` to the window owning the current turn; False when no emitter."""
     if _emit is None:
         return False
-    _emit(get_session_env("HERMES_UI_SESSION_ID", ""), event, payload)
+    _emit(get_session_env("IRIS_UI_SESSION_ID", ""), event, payload)
     return True
 
 

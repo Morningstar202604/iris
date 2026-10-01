@@ -14,7 +14,7 @@ async function configuredHook(context) {
   }
 }
 
-function context(appOutDir, productFilename = 'Hermes Preview') {
+function context(appOutDir, productFilename = 'Iris Preview') {
   // Use electron-builder's real bundle path resolution, including branding.
   const packager = Object.assign(Object.create(PlatformPackager.prototype), {
     platform: Platform.MAC,
@@ -25,7 +25,7 @@ function context(appOutDir, productFilename = 'Hermes Preview') {
 }
 
 it('restores app localizations from the filtered framework without copying locale data', async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-locale-pack-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'iris-locale-pack-'))
   try {
     const ctx = context(root)
     const framework = ctx.packager.getMacOsElectronFrameworkResourcesDir(root)
@@ -48,7 +48,7 @@ it('restores app localizations from the filtered framework without copying local
 })
 
 it('leaves other platforms alone and reports a missing framework without failing packaging', async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-locale-pack-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'iris-locale-pack-'))
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
   try {
     for (const electronPlatformName of ['linux', 'win32']) {

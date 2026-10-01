@@ -172,7 +172,7 @@ if (savedOk && typeof savedOk.auto_scroll_follow === 'boolean' && typeof _persis
 }
 if (_readPersistedAutoScrollFollow() !== true) throw new Error('successful autosave must persist the explicit boolean');
 // 6. storage is a single global scalar, not a profile map
-if (store['hermes-auto-scroll-follow'] !== '1') throw new Error('storage must be a single scalar value: '+store['hermes-auto-scroll-follow']);
+if (store['iris-auto-scroll-follow'] !== '1') throw new Error('storage must be a single scalar value: '+store['iris-auto-scroll-follow']);
 console.log('MIRROR-HELPERS-OK');
 """
     proc = subprocess.run(

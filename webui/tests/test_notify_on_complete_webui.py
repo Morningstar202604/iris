@@ -29,10 +29,10 @@ def test_webui_injects_process_notifications_without_persisting_them_as_user_tex
 def test_webui_sets_gateway_session_platform_for_background_watchers():
     src = Path("api/streaming.py").read_text(encoding="utf-8")
 
-    assert "'HERMES_SESSION_PLATFORM': 'webui'" in src
-    assert "os.environ['HERMES_SESSION_PLATFORM'] = 'webui'" in src
-    assert "old_session_platform = os.environ.get('HERMES_SESSION_PLATFORM')" in src
-    assert "os.environ.pop('HERMES_SESSION_PLATFORM', None)" in src
+    assert "'IRIS_SESSION_PLATFORM': 'webui'" in src
+    assert "os.environ['IRIS_SESSION_PLATFORM'] = 'webui'" in src
+    assert "old_session_platform = os.environ.get('IRIS_SESSION_PLATFORM')" in src
+    assert "os.environ.pop('IRIS_SESSION_PLATFORM', None)" in src
 
 
 def test_webui_age_gates_stale_background_completion_events():
@@ -42,7 +42,7 @@ def test_webui_age_gates_stale_background_completion_events():
 
     # The age-gate helper + its env override exist.
     assert "def _stale_completion_max_age_seconds()" in src
-    assert "HERMES_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS" in src
+    assert "IRIS_WEBUI_STALE_COMPLETION_MAX_AGE_SECONDS" in src
     # The drain reads completed_at and drops over-age events without requeueing.
     assert "completed_at = evt.get('completed_at')" in src
     assert "stale_age = time.time() - completed_at" in src

@@ -56,7 +56,7 @@ def _run_gateway_warning_case(unavailable_reason: str) -> list:
         return resp
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("api.gateway_chat.gateway_supports_approval", return_value=False), \
                  patch("api.gateway_chat.gateway_approval_unavailable_reason", return_value=unavailable_reason), \
                  patch("urllib.request.urlopen", side_effect=fake_urlopen), \
@@ -82,7 +82,7 @@ def test_gateway_chat_emits_offline_warning_for_unreachable_probe():
     warnings = [item for item in events if isinstance(item, tuple) and item[0] == "warning"]
     assert warnings
     assert warnings[0][1]["type"] == "approval_gateway_offline"
-    assert warnings[0][1]["message"] == "Gateway connection failed. Check that the connected Hermes gateway is running and reachable."
+    assert warnings[0][1]["message"] == "Gateway connection failed. Check that the connected Iris gateway is running and reachable."
     assert any(isinstance(item, tuple) and item[0] == "done" for item in events)
     assert not any(
         isinstance(item, tuple) and item[0] == "warning" and item[1].get("type") == "approval_gateway_unsupported"
@@ -95,7 +95,7 @@ def test_gateway_chat_keeps_unsupported_warning_for_reachable_older_gateway():
     warnings = [item for item in events if isinstance(item, tuple) and item[0] == "warning"]
     assert warnings
     assert warnings[0][1]["type"] == "approval_gateway_unsupported"
-    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Hermes gateway to enable this."
+    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Iris gateway to enable this."
     assert any(isinstance(item, tuple) and item[0] == "done" for item in events)
     assert not any(
         isinstance(item, tuple) and item[0] == "warning" and item[1].get("type") == "approval_gateway_offline"
@@ -144,7 +144,7 @@ def test_gateway_chat_keeps_unsupported_warning_for_404_capabilities_probe():
     invalidate_gateway_caps()
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
                  patch("api.gateway_chat._stream_writeback_is_current", return_value=True), \
@@ -164,7 +164,7 @@ def test_gateway_chat_keeps_unsupported_warning_for_404_capabilities_probe():
     warnings = [item for item in events if isinstance(item, tuple) and item[0] == "warning"]
     assert warnings
     assert warnings[0][1]["type"] == "approval_gateway_unsupported"
-    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Hermes gateway to enable this."
+    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Iris gateway to enable this."
     assert any(isinstance(item, tuple) and item[0] == "done" for item in events)
     assert not any(
         isinstance(item, tuple) and item[0] == "warning" and item[1].get("type") == "approval_gateway_offline"
@@ -213,7 +213,7 @@ def test_gateway_chat_keeps_unsupported_warning_for_timeout_capabilities_probe()
     invalidate_gateway_caps()
 
     try:
-        with patch.dict("os.environ", {"HERMES_WEBUI_CHAT_BACKEND": "gateway"}):
+        with patch.dict("os.environ", {"IRIS_WEBUI_CHAT_BACKEND": "gateway"}):
             with patch("urllib.request.urlopen", side_effect=fake_urlopen), \
                  patch("api.gateway_chat.get_session", return_value=mock_session), \
                  patch("api.gateway_chat._stream_writeback_is_current", return_value=True), \
@@ -233,7 +233,7 @@ def test_gateway_chat_keeps_unsupported_warning_for_timeout_capabilities_probe()
     warnings = [item for item in events if isinstance(item, tuple) and item[0] == "warning"]
     assert warnings
     assert warnings[0][1]["type"] == "approval_gateway_unsupported"
-    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Hermes gateway to enable this."
+    assert warnings[0][1]["message"] == "Approvals require a newer gateway. Upgrade the connected Iris gateway to enable this."
     assert any(isinstance(item, tuple) and item[0] == "done" for item in events)
     assert not any(
         isinstance(item, tuple) and item[0] == "warning" and item[1].get("type") == "approval_gateway_offline"
@@ -252,4 +252,4 @@ def test_messages_js_handles_offline_warning_without_touching_unsupported_branch
 def test_gateway_chat_source_mentions_offline_warning_type():
     assert "approval_type = \"approval_gateway_offline\"" in GATEWAY_CHAT
     assert "approval_type = \"approval_gateway_unsupported\"" in GATEWAY_CHAT
-    assert "approval_message = \"Gateway connection failed. Check that the connected Hermes gateway is running and reachable.\"" in GATEWAY_CHAT
+    assert "approval_message = \"Gateway connection failed. Check that the connected Iris gateway is running and reachable.\"" in GATEWAY_CHAT

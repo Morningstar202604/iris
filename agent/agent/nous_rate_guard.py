@@ -3,7 +3,7 @@
 Writes rate limit state to a shared file so all sessions (CLI, gateway, cron,
 auxiliary) can check whether Nous Portal is currently rate-limited before making
 requests. Without it each 429 fans out into up to 9 calls per turn (3 SDK
-retries x 3 Hermes retries), all counted against RPH.
+retries x 3 Iris retries), all counted against RPH.
 """
 
 from __future__ import annotations
@@ -37,10 +37,10 @@ format_remaining = _fmt_seconds
 def _state_path(*, anonymous: bool = False) -> str:
     """Path to the Nous rate limit state file."""
     try:
-        from hermes_constants import get_hermes_home
-        base = get_hermes_home()
+        from iris_constants import get_iris_home
+        base = get_iris_home()
     except ImportError:
-        base = os.path.join(os.path.expanduser("~"), ".hermes")
+        base = os.path.join(os.path.expanduser("~"), ".iris")
     # Signing in must not inherit the anonymous allowance's cooldown (or clear it for
     # another anonymous session). Keep the existing named-account file unchanged.
     return os.path.join(base, "rate_limits", "nous-anonymous.json" if anonymous else "nous.json")
@@ -142,7 +142,7 @@ def is_genuine_nous_rate_limit(
 def is_long_welcome_rate_limit(error_context: Any) -> bool:
     """True for a Nous welcome-tier ``rate_limited`` refusal whose reset is long enough to be an
     exhausted allowance (``WELCOME_LONG_WAIT_SECONDS``), as parsed into ``error_context``
-    (``welcome_refusal`` from ``hermes_cli.anon_auth.parse_welcome_refusal``). Capacity refusals
+    (``welcome_refusal`` from ``iris_cli.anon_auth.parse_welcome_refusal``). Capacity refusals
     (``at_capacity`` / ``admission_closed``) are never this: they are retried in place."""
     if not isinstance(error_context, dict):
         return False
@@ -204,7 +204,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

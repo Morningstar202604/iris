@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Forward-looking ruff lint gate for hermes-webui.
+"""Forward-looking ruff lint gate for iris-webui.
 
 The Python twin of the ESLint runtime guard (``npm run lint:runtime``). It runs the
 curated ``[tool.ruff]`` ruleset from ``pyproject.toml`` (E9 + F + B) but enforces it

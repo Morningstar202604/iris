@@ -313,7 +313,7 @@ def render_openrpc() -> str:
 
     doc = {
         "openrpc": "1.3.2",
-        "info": {"title": "Hermes TUI/Desktop gateway", "version": "1",
+        "info": {"title": "Iris TUI/Desktop gateway", "version": "1",
                  "description": "Generated from tui_gateway/contracts by scripts/gen_gateway_contracts.py."},
         "methods": [
             {"name": m.name, "summary": " ".join(m.doc.split()),

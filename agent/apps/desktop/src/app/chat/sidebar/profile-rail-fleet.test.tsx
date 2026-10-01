@@ -111,7 +111,7 @@ vi.mock('./use-profile-rail-refresh-on-active', () => ({
   useProfileRailRefreshOnActive: () => undefined
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getProfileSoul: vi.fn().mockResolvedValue({ content: '' }),
   updateProfileSoul: vi.fn()
 }))
@@ -153,7 +153,7 @@ const roster: DesktopAgentRoster = {
       connectionKind: 'remote',
       connectionLabel: 'Gateway A',
       profile: 'default',
-      handle: 'hermes-gateway-a'
+      handle: 'iris-gateway-a'
     },
     {
       connectionId: 'gateway-a',
@@ -167,7 +167,7 @@ const roster: DesktopAgentRoster = {
       connectionKind: 'local',
       connectionLabel: 'This device',
       profile: 'default',
-      handle: 'hermes'
+      handle: 'iris'
     },
     {
       connectionId: 'local',
@@ -210,7 +210,7 @@ beforeEach(() => {
   getAgentRoster.mockResolvedValue(roster)
   selectConnection.mockResolvedValue(undefined)
   openWindow.mockResolvedValue({ ok: true })
-  ;(window as { hermesDesktop?: unknown }).hermesDesktop = { getAgentRoster, openWindow }
+  ;(window as { irisDesktop?: unknown }).irisDesktop = { getAgentRoster, openWindow }
 })
 
 afterEach(() => {
@@ -223,7 +223,7 @@ afterEach(() => {
   activeConnectionId.set(null)
   profileScope.set('default')
   profiles.set([{ is_default: true, name: 'default' }])
-  delete (window as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as { irisDesktop?: unknown }).irisDesktop
 })
 
 describe('ProfileRail fleet mode', () => {

@@ -1,4 +1,4 @@
-"""CLI_VISIBLE_SESSION_LIMIT is overridable via HERMES_WEBUI_VISIBLE_SESSION_LIMIT.
+"""CLI_VISIBLE_SESSION_LIMIT is overridable via IRIS_WEBUI_VISIBLE_SESSION_LIMIT.
 
 The sidebar recency window also bounds how many delegated subagent children can
 render at once, since a child only nests when its row wins a slot in the same
@@ -38,11 +38,11 @@ import os
 from pathlib import Path
 import api.config
 import api.profiles
-home = Path(os.environ["HERMES_HOME"])
-(home / ".env").write_text("HERMES_WEBUI_VISIBLE_SESSION_LIMIT=7\\n", encoding="utf-8")
+home = Path(os.environ["IRIS_HOME"])
+(home / ".env").write_text("IRIS_WEBUI_VISIBLE_SESSION_LIMIT=7\\n", encoding="utf-8")
 api.profiles._reload_dotenv(home)
-print("PROTECTED", "HERMES_WEBUI_VISIBLE_SESSION_LIMIT" in api.profiles._PROTECTED_ENV_KEYS)
-print("ENV", os.environ.get("HERMES_WEBUI_VISIBLE_SESSION_LIMIT"))
+print("PROTECTED", "IRIS_WEBUI_VISIBLE_SESSION_LIMIT" in api.profiles._PROTECTED_ENV_KEYS)
+print("ENV", os.environ.get("IRIS_WEBUI_VISIBLE_SESSION_LIMIT"))
 print("LIMIT", api.config.CLI_VISIBLE_SESSION_LIMIT)
 """
 
@@ -52,13 +52,13 @@ def _run_probe(tmp_path, probe, value):
     home.mkdir()
     env = os.environ.copy()
     for key in list(env):
-        if key.startswith("HERMES_WEBUI_") or key in ("HERMES_HOME", "HERMES_BASE_HOME"):
+        if key.startswith("IRIS_WEBUI_") or key in ("IRIS_HOME", "IRIS_BASE_HOME"):
             env.pop(key)
     env["HOME"] = str(home)
-    env["HERMES_HOME"] = str(home)
+    env["IRIS_HOME"] = str(home)
     env["PYTHONPATH"] = str(REPO_ROOT)
     if value is not None:
-        env["HERMES_WEBUI_VISIBLE_SESSION_LIMIT"] = value
+        env["IRIS_WEBUI_VISIBLE_SESSION_LIMIT"] = value
     proc = subprocess.run(
         [sys.executable, "-c", probe],
         cwd=REPO_ROOT,
@@ -111,7 +111,7 @@ def test_profile_env_cannot_override_visible_session_limit(tmp_path):
 def test_setting_is_documented():
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     env_example = (REPO_ROOT / ".env.example").read_text(encoding="utf-8")
-    assert "| `HERMES_WEBUI_VISIBLE_SESSION_LIMIT` | `20` |" in readme
-    assert "# HERMES_WEBUI_VISIBLE_SESSION_LIMIT=20" in env_example
+    assert "| `IRIS_WEBUI_VISIBLE_SESSION_LIMIT` | `20` |" in readme
+    assert "# IRIS_WEBUI_VISIBLE_SESSION_LIMIT=20" in env_example
     assert "200" in readme
     assert "clamped" in env_example

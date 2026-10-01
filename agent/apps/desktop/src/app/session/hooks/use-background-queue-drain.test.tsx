@@ -12,7 +12,7 @@ import {
 } from '@/store/composer-queue'
 import { $sessions, setSessions, setSessionsLoading } from '@/store/session'
 import { clearAllSessionStates, publishSessionState } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 import { useBackgroundQueueDrain } from './use-background-queue-drain'
 import type { SubmitTextOptions } from './use-prompt-actions/utils'

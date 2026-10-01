@@ -8,11 +8,11 @@ def fake_get_model_context_length(model, base_url="", **kwargs):
 
 # Ensure an 'agent' module exists in sys.modules to prevent ModuleNotFoundError
 # when api.routes is imported on a CI runner that has ONLY the WebUI repo (no
-# hermes-agent package). CRITICAL: only install the fake when the REAL agent
+# iris-agent package). CRITICAL: only install the fake when the REAL agent
 # package is not importable. Unconditionally doing `sys.modules["agent"] = fake`
 # with `fake.__path__ = []` clobbers the genuine, importable agent package for
 # the WHOLE process (this runs at collection time and is never restored) — a
-# later `from agent.<sub> import ...` in the full suite (e.g. hermes_state's
+# later `from agent.<sub> import ...` in the full suite (e.g. iris_state's
 # `from agent.memory_manager import sanitize_context`) then fails with
 # ModuleNotFoundError. Guarding on find_spec keeps the real package intact
 # locally while preserving the CI import path. Nothing in this module asserts

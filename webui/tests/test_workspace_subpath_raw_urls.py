@@ -4,7 +4,7 @@ Tests for the workspace panel's raw file URLs under a subpath mount.
 `_workspaceRouteForPath` builds app-relative "/api/…" strings. Most callers
 pass them through `api()`, which strips the leading slash and re-resolves the
 URL against `document.baseURI`, so they work under a subpath mount like
-`/hermes/`. But several callers use the route DIRECTLY, bypassing `api()`:
+`/iris/`. But several callers use the route DIRECTLY, bypassing `api()`:
 
   * `previewImg.src`   (image preview)
   * media / pdf / html frame `.src`
@@ -72,7 +72,7 @@ class TestWorkspaceSubpathRawUrls:
             + json.dumps(helper_block)
             + ";\n"
             + r"""
-global.document = { baseURI: 'https://host.example/pod-123/hermes/' };
+global.document = { baseURI: 'https://host.example/pod-123/iris/' };
 const S = { session: { session_id: 'sess-1' }, currentDir: '.', _escapeGrants: Object.create(null) };
 const runner = new Function(
   'S', 'URLSearchParams', 'document',
@@ -90,7 +90,7 @@ console.log(JSON.stringify({
             [NODE, "-e", js], cwd=ROOT, capture_output=True, text=True, check=True
         )
         result = json.loads(out.stdout)
-        prefix = "https://host.example/pod-123/hermes/api/"
+        prefix = "https://host.example/pod-123/iris/api/"
         assert result["raw"].startswith(prefix), result["raw"]
         assert "download=1" in result["raw"], result["raw"]
         assert result["img"].startswith(prefix), result["img"]
@@ -98,7 +98,7 @@ console.log(JSON.stringify({
         # tolerates (it strips the leading slash of relative inputs only).
         assert result["read"].startswith(prefix), result["read"]
         # The mount prefix must not be duplicated or dropped.
-        assert result["raw"].count("/hermes/") == 1, result["raw"]
+        assert result["raw"].count("/iris/") == 1, result["raw"]
 
     @pytest.mark.skipif(NODE is None, reason="node not on PATH")
     def test_non_http_base_falls_back_to_app_relative(self):

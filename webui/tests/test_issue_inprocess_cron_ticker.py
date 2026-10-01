@@ -1,6 +1,6 @@
 """Regression: WebUI runs its own in-process cron scheduler ticker.
 
-The Tasks panel demanded a separate `hermes gateway` daemon for scheduled jobs
+The Tasks panel demanded a separate `iris gateway` daemon for scheduled jobs
 ("GATEWAY NOT CONFIGURED"), which a single-process local WebUI deployment has
 no reason to run. The gateway's own ticker is `InProcessCronScheduler` — a
 plain 60s loop that works in any process. The WebUI now starts it on a daemon

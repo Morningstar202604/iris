@@ -2,11 +2,11 @@
 name: social-media-content-calendar
 description: "Plan multi-platform social campaigns: briefs to posting."
 version: 0.1.0
-author: Ben Barclay (benbarclay), Hermes Agent
+author: Ben Barclay (benbarclay), Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [Social-Media, Content-Calendar, Campaigns, Publishing]
     related_skills: [xurl, humanizer]
 ---

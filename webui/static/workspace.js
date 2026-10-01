@@ -44,7 +44,7 @@ async function api(path,opts={}){
         if(!res.ok){
           // 401 means the auth session expired. Redirect to login so the user can
           // re-authenticate. This is especially important for iOS PWA (standalone mode)
-          // and for subpath mounts like /hermes/, where /login escapes to the site root.
+          // and for subpath mounts like /iris/, where /login escapes to the site root.
           if(res.status===401){
             // #5578: if we're ALREADY on the login page, appending
             // window.location.pathname+search (which contains ?next=…) into a
@@ -143,7 +143,7 @@ function recordClientSSEError(source, details={}){
 // Persist/restore expanded directory state per workspace in localStorage
 function _wsExpandKey(){
   const ws=S.session&&S.session.workspace;
-  return ws?'hermes-webui-expanded:'+ws:null;
+  return ws?'iris-webui-expanded:'+ws:null;
 }
 function _saveExpandedDirs(){
   const key=_wsExpandKey();if(!key)return;
@@ -245,7 +245,7 @@ function _workspaceRouteForPath(path, kind, opts={}){
   // Resolve the app-relative "/api/…" route against document.baseURI so the
   // URLs that are consumed OUTSIDE api() — previewImg.src, the media/pdf/html
   // frame src, the download anchor, window.open — keep working under a subpath
-  // mount like /hermes/. A bare "/api/…" string resolves to the server root
+  // mount like /iris/. A bare "/api/…" string resolves to the server root
   // there and 404s. (api() strips the leading slash and re-resolves against
   // baseURI itself, so routes passed through it are unaffected by already
   // being absolute.)

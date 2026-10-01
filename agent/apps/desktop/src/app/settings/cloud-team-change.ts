@@ -16,7 +16,7 @@ export function cloudTeamChanged(connection: DesktopRegistryConnection | undefin
 // Resolves false when the silent cascade did not land a gateway session (the
 // caller warns the same way it does for a fresh connect); true once saved.
 export async function reconnectMovedCloudAgent(
-  desktop: NonNullable<Window['hermesDesktop']>,
+  desktop: NonNullable<Window['irisDesktop']>,
   connection: DesktopRegistryConnection & { url: string },
   org: string,
   isCurrent: () => boolean

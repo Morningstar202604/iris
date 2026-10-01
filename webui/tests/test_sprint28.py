@@ -36,9 +36,9 @@ def post(path, body=None):
 def _personalities_dir():
     """Return the personalities directory the test server will look in.
 
-    conftest sets HERMES_HOME=TEST_STATE_DIR in the server's environment.
-    The server's api/profiles._DEFAULT_HERMES_HOME resolves to TEST_STATE_DIR,
-    so get_active_hermes_home() returns TEST_STATE_DIR, and personalities
+    conftest sets IRIS_HOME=TEST_STATE_DIR in the server's environment.
+    The server's api/profiles._DEFAULT_IRIS_HOME resolves to TEST_STATE_DIR,
+    so get_active_iris_home() returns TEST_STATE_DIR, and personalities
     live at TEST_STATE_DIR/personalities.
     """
     p = TEST_STATE_DIR / 'personalities'
@@ -102,7 +102,7 @@ def test_personalities_returns_empty_when_none_configured():
     # so agent.personalities is empty by default
     d, status = get("/api/personalities")
     assert status == 200
-    # May or may not have personalities depending on the real ~/.hermes/config.yaml
+    # May or may not have personalities depending on the real ~/.iris/config.yaml
     # being loaded. Just verify the structure is correct.
     assert isinstance(d.get("personalities"), list)
 

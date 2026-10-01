@@ -65,7 +65,7 @@ beforeEach(async () => {
   $tipShownAt.set({})
   $nextTipAt.set(null)
   $tipsEnabled.set(true)
-  window.hermesDesktop = { api } as never
+  window.irisDesktop = { api } as never
   api.mockImplementation(async request => {
     if (request.path.endsWith('/status')) {
       return eligible
@@ -243,7 +243,7 @@ it('dismisses per target build without installing and persists the retirement', 
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: en.tips.close }))
   })
-  expect(JSON.parse(localStorage.getItem('hermes.desktop.tips.retired.v1')!)).toContain(
+  expect(JSON.parse(localStorage.getItem('iris.desktop.tips.retired.v1')!)).toContain(
     'local-runtime-update:next-build'
   )
   await due()

@@ -1,5 +1,5 @@
 name: jev-skill-router
-repo: https://github.com/DoGMaTiiC/hermes-jev
+repo: https://github.com/DoGMaTiiC/iris-jev
 sha: dfa109f268358b36068c7e436b819858f8913d7a
 subdir: plugins/jev-skill-router
 description: Names the one skill from your live roster that fits the turn, before the model call —
@@ -11,8 +11,8 @@ description: Names the one skill from your live roster that fits the turn, befor
 maintainer: DoGMaTiiC
 tier: community
 category: automation
-requires_hermes: ">=0.21"
-docs_url: https://github.com/DoGMaTiiC/hermes-jev/blob/main/plugins/jev-skill-router/README.md
+requires_iris: ">=0.21"
+docs_url: https://github.com/DoGMaTiiC/iris-jev/blob/main/plugins/jev-skill-router/README.md
 version: "0.1.0"
 platforms: []
 capabilities:

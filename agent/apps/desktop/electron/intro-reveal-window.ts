@@ -164,7 +164,7 @@ export function createIntroRevealWindowController({
       const main = mainWindow()
 
       if (main && !main.isDestroyed()) {
-        main.webContents.send('hermes:intro-reveal:closed')
+        main.webContents.send('iris:intro-reveal:closed')
       }
     })
     loadWindowUrl(win, introRevealUrl(), 'Intro reveal')
@@ -240,18 +240,18 @@ export function createIntroRevealWindowController({
     introRevealWindow = null
   }
 
-  ipcMain.handle('hermes:intro-reveal:open', (_event, payload?: IntroRevealOpenPayload) => openIntroReveal(payload))
-  ipcMain.handle('hermes:intro-reveal:close', (_event, payload?: IntroRevealClosePayload) => closeIntroReveal(payload))
-  ipcMain.on('hermes:intro-reveal:ready', event => {
+  ipcMain.handle('iris:intro-reveal:open', (_event, payload?: IntroRevealOpenPayload) => openIntroReveal(payload))
+  ipcMain.handle('iris:intro-reveal:close', (_event, payload?: IntroRevealClosePayload) => closeIntroReveal(payload))
+  ipcMain.on('iris:intro-reveal:ready', event => {
     if (event.sender === introRevealWindow?.webContents) {
       introRevealShow?.reveal()
     }
   })
-  ipcMain.on('hermes:intro-reveal:skip', event => {
+  ipcMain.on('iris:intro-reveal:skip', event => {
     const main = mainWindow()
 
     if (event.sender === introRevealWindow?.webContents && main && !main.isDestroyed()) {
-      main.webContents.send('hermes:intro-reveal:skip')
+      main.webContents.send('iris:intro-reveal:skip')
     }
   })
 

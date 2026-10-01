@@ -315,7 +315,7 @@ _ANTHROPIC_FAST_MODE_PRICING: Dict[str, PricingEntry] = {
 del _BEDROCK_URL, _ANTHROPIC_URL, _GOOGLE_URL, _OPUS, _SONNET
 
 # GPT-5.6 / GPT-6 tier "-pro" high-effort variants bill at the base tier's per-token
-# rates (more tokens per task, not a higher rate); the Hermes-side "-900k" Codex
+# rates (more tokens per task, not a higher rate); the Iris-side "-900k" Codex
 # picker variants are the same model with the suffix stripped on the wire.
 # The direct Gemini provider emits preview IDs for two models; key the snapshot
 # by both the documented stable name and the emitted ID.

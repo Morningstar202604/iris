@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import type { ProjectInfo } from '@/types/hermes'
+import type { ProjectInfo } from '@/types/iris'
 
 import { makeCwdSession } from '../test/session-info'
 

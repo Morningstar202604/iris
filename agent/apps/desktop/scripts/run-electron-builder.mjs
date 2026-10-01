@@ -37,7 +37,7 @@ function electronBuilderCli() {
 }
 
 const dist = electronDistDir()
-// Local `hermes desktop` builds only ever package (--dir or dist), never
+// Local `iris desktop` builds only ever package (--dir or dist), never
 // publish a GitHub release — no CI workflow drives this script. But the npm
 // lifecycle env sets CI=1 (so esbuild's postinstall doesn't try interactive
 // animations), and electron-builder treats CI=1 as a signal to implicitly

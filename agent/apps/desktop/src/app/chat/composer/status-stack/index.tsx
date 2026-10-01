@@ -62,7 +62,7 @@ const GROUP_ICON: Record<StatusGroup['type'], string> = {
 }
 
 // Goals and todos are the plan the user is following; subagents and background
-// processes are how Hermes is executing it. Simple mode shows the plan only.
+// processes are how Iris is executing it. Simple mode shows the plan only.
 const GROUP_TIER: Record<StatusGroup['type'], Tiered> = {
   goal: {},
   todo: {},

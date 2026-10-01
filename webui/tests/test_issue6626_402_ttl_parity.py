@@ -6,7 +6,7 @@ runtime exposes the 2-minute 402 cooldown, WebUI uses it; on mixed-version
 installs the one-hour fallback is preserved, so display/probe code never marks
 an entry usable earlier than ``CredentialPool.select()`` will.
 
-The WebUI test suite runs standalone (the Hermes Agent runtime is not
+The WebUI test suite runs standalone (the Iris Agent runtime is not
 installed in CI), so parity tests simulate the runtime contract with a fake
 ``agent.credential_pool`` module instead of importing the real one.
 """
@@ -38,7 +38,7 @@ def providers():
 def fake_runtime(monkeypatch):
     """Install a fake ``agent.credential_pool`` module in ``sys.modules``.
 
-    Mirrors the standalone CI environment where the real Hermes Agent runtime
+    Mirrors the standalone CI environment where the real Iris Agent runtime
     is not installed. Exposes ``_exhausted_ttl`` (default: 120s for 402, the
     contract when ``EXHAUSTED_TTL_402_SECONDS`` is present in the runtime).
     """

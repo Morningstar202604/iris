@@ -1,11 +1,11 @@
 /**
- * Shared E2E fixtures for the Hermes desktop Playwright suite.
+ * Shared E2E fixtures for the Iris desktop Playwright suite.
  *
  * Two fixture modes:
  *
  *  1. `mockBackend` — starts a mock inference server, writes a config.yaml
  *     that points at it, and launches the desktop app so the full chain
- *     (electron → hermes serve → provider → inference → renderer) is
+ *     (electron → iris serve → provider → inference → renderer) is
  *     exercised with a real backend but a fake LLM.
  *
  *  2. `noProvider` — launches the app with an empty config (no provider
@@ -14,7 +14,7 @@
  *
  * Both modes launch the *dev* Electron app (`electron .` against the built
  * `dist/`), not the packaged binary. This avoids the multi-minute
- * `electron-builder --dir` step and matches `hermes desktop --source`. The
+ * `electron-builder --dir` step and matches `iris desktop --source`. The
  * packaged-binary path is already covered by `launch.spec.ts`.
  *
  * Prerequisite: `npm run build` must have been run so that `dist/` exists.
@@ -70,14 +70,14 @@ function isCredentialEnvVar(name: string): boolean {
   return CREDENTIAL_SUFFIXES.some((suffix) => name.endsWith(suffix))
 }
 
-// Runtime state of whatever Hermes launched this run. A spec driven from inside
-// an agent's terminal inherits HERMES_YOLO_MODE, HERMES_INTERACTIVE,
-// HERMES_SESSION_ID…, and the sandboxed backend then skips approvals or binds
+// Runtime state of whatever Iris launched this run. A spec driven from inside
+// an agent's terminal inherits IRIS_YOLO_MODE, IRIS_INTERACTIVE,
+// IRIS_SESSION_ID…, and the sandboxed backend then skips approvals or binds
 // the caller's session — the approval spec failed locally on the leaked yolo
 // flag while CI (which never has these) stayed green. The fixtures set every
-// HERMES_* the app needs themselves; only the harness's own knobs pass.
-function isInheritedHermesRuntimeVar(name: string): boolean {
-  return name.startsWith('HERMES_') && !name.startsWith('HERMES_DESKTOP_') && !name.startsWith('HERMES_E2E_')
+// IRIS_* the app needs themselves; only the harness's own knobs pass.
+function isInheritedIrisRuntimeVar(name: string): boolean {
+  return name.startsWith('IRIS_') && !name.startsWith('IRIS_DESKTOP_') && !name.startsWith('IRIS_E2E_')
 }
 
 function stripCredentials(env: Record<string, string | undefined>): Record<string, string> {
@@ -88,7 +88,7 @@ function stripCredentials(env: Record<string, string | undefined>): Record<strin
       continue
     }
 
-    if (isCredentialEnvVar(key) || isInheritedHermesRuntimeVar(key)) {
+    if (isCredentialEnvVar(key) || isInheritedIrisRuntimeVar(key)) {
       continue
     }
 
@@ -102,17 +102,17 @@ function stripCredentials(env: Record<string, string | undefined>): Record<strin
 
 export interface Sandbox {
   root: string
-  hermesHome: string
+  irisHome: string
   userDataDir: string
   cleanup: () => void
 }
 
 export function createSandbox(prefix: string): Sandbox {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), `hermes-e2e-${prefix}-${Math.random()}`))
-  const hermesHome = path.join(root, 'hermes-home')
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), `iris-e2e-${prefix}-${Math.random()}`))
+  const irisHome = path.join(root, 'iris-home')
   const userDataDir = path.join(root, 'electron-user-data')
 
-  fs.mkdirSync(hermesHome, { recursive: true })
+  fs.mkdirSync(irisHome, { recursive: true })
   fs.mkdirSync(userDataDir, { recursive: true })
 
   // Write a fixed window-state.json so the Electron window opens at a
@@ -143,7 +143,7 @@ export function createSandbox(prefix: string): Sandbox {
 
   return {
     root,
-    hermesHome,
+    irisHome,
     userDataDir,
     cleanup: () => {
       try {
@@ -168,13 +168,13 @@ export function createSandbox(prefix: string): Sandbox {
  * @param modelContextLength optional primary-model context limit.
  */
 export function writeMockProviderConfig(
-  hermesHome: string,
+  irisHome: string,
   mockUrl: string,
   extraDisplayConfig?: string,
   extraConfig?: string,
   modelContextLength?: number,
 ): void {
-  const configPath = path.join(hermesHome, 'config.yaml')
+  const configPath = path.join(irisHome, 'config.yaml')
 
   const displaySection = extraDisplayConfig
     ? `\ndisplay:\n${extraDisplayConfig}\n`
@@ -225,8 +225,8 @@ ${autoTitleDefault}${approvalsDefault}${displaySection}${extraConfig ? `\n${extr
  * Write a minimal .env with the mock API key. The key_env in config.yaml
  * references MOCK_API_KEY, so the backend resolves credentials from here.
  */
-export function writeEnvFile(hermesHome: string, apiKey = 'e2e-mock-key'): void {
-  const envPath = path.join(hermesHome, '.env')
+export function writeEnvFile(irisHome: string, apiKey = 'e2e-mock-key'): void {
+  const envPath = path.join(irisHome, '.env')
   fs.writeFileSync(envPath, `MOCK_API_KEY=${apiKey}\n`, 'utf8')
 }
 
@@ -234,8 +234,8 @@ export function writeEnvFile(hermesHome: string, apiKey = 'e2e-mock-key'): void 
  * Write an empty config (no providers). The desktop app should show the
  * onboarding overlay because no inference provider is configured.
  */
-function writeEmptyConfig(hermesHome: string): void {
-  const configPath = path.join(hermesHome, 'config.yaml')
+function writeEmptyConfig(irisHome: string): void {
+  const configPath = path.join(irisHome, 'config.yaml')
   fs.writeFileSync(configPath, '# Auto-generated by E2E test fixtures — no providers configured\n', 'utf8')
 }
 
@@ -245,12 +245,12 @@ function writeEmptyConfig(hermesHome: string): void {
  * Build the environment for the Electron app process.
  *
  * Key env vars:
- *  - HERMES_HOME → sandbox hermes-home (isolated config/sessions)
- *  - HERMES_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
- *  - HERMES_DESKTOP_IGNORE_EXISTING=1 → don't pick up `hermes` from PATH
+ *  - IRIS_HOME → sandbox iris-home (isolated config/sessions)
+ *  - IRIS_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
+ *  - IRIS_DESKTOP_IGNORE_EXISTING=1 → don't pick up `iris` from PATH
  *    (we want the dev checkout at REPO_ROOT)
- *  - HERMES_DESKTOP_HERMES_ROOT → REPO_ROOT (dev checkout resolution)
- *  - HERMES_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
+ *  - IRIS_DESKTOP_IRIS_ROOT → REPO_ROOT (dev checkout resolution)
+ *  - IRIS_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
  *  - XDG_RUNTIME_DIR → ensure Electron has a writable runtime dir on Linux
  */
 export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}): Record<string, string> {
@@ -269,23 +269,23 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
 
   return {
     ...clean,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    // One `hermes serve` per host, and profile roots are HOME-anchored
-    // (`~/.hermes/profiles`, the default profile's own home): without both of
+    IRIS_HOME: sandbox.irisHome,
+    IRIS_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    IRIS_DESKTOP_IGNORE_EXISTING: '1',
+    // One `iris serve` per host, and profile roots are HOME-anchored
+    // (`~/.iris/profiles`, the default profile's own home): without both of
     // these a local e2e run attaches to the developer's running backend or
     // lists and writes their real profiles, and chats through their real
     // model and state.db instead of the sandbox + mock provider. CI never has
     // either, so only local runs ever took that path.
-    HERMES_DESKTOP_ISOLATED_BACKEND: '1',
+    IRIS_DESKTOP_ISOLATED_BACKEND: '1',
     HOME: sandbox.root,
-    HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
-    HERMES_DESKTOP_APP_NAME: `HermesE2E-${Date.now()}`,
+    IRIS_DESKTOP_IRIS_ROOT: REPO_ROOT,
+    IRIS_DESKTOP_APP_NAME: `IrisE2E-${Date.now()}`,
     // `app.close()` in teardown must exit even when a spec leaves a turn
     // mid-flight — otherwise the quit confirmation waits on a click that no
     // one is there to make, and the worker dies on a teardown timeout.
-    HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    IRIS_DESKTOP_SKIP_QUIT_CONFIRM: '1',
     // Clear dev-server override — we want the built dist/, not a vite server.
     // The dev-server check in main.ts looks for this env var; if it's set,
     // it loads from the vite URL instead of the local file.
@@ -339,8 +339,8 @@ export function findElectron(): string {
 /**
  * Launch the desktop app in dev mode.
  *
- * @param sandbox  - isolated HERMES_HOME + userData
- * @param env      - the process environment (already has HERMES_HOME etc.)
+ * @param sandbox  - isolated IRIS_HOME + userData
+ * @param env      - the process environment (already has IRIS_HOME etc.)
  * @returns the ElectronApplication + first Page
  */
 export async function launchDesktop(
@@ -414,13 +414,13 @@ export async function setupMockBackend(options: MockBackendOptions = {}): Promis
   // 2. Create sandbox + write config
   const sandbox = createSandbox('mock')
   writeMockProviderConfig(
-    sandbox.hermesHome,
+    sandbox.irisHome,
     mock.url,
     options.extraDisplayConfig,
     options.extraConfig,
     options.modelContextLength,
   )
-  writeEnvFile(sandbox.hermesHome)
+  writeEnvFile(sandbox.irisHome)
 
   // 3. Build env + launch
   const env = buildAppEnv(sandbox)
@@ -453,7 +453,7 @@ export interface NoProviderFixture {
  */
 export async function setupNoProvider(): Promise<NoProviderFixture> {
   const sandbox = createSandbox('noprovider')
-  writeEmptyConfig(sandbox.hermesHome)
+  writeEmptyConfig(sandbox.irisHome)
 
   const env = buildAppEnv(sandbox)
   const { app, page } = await launchDesktop(env)
@@ -478,7 +478,7 @@ export interface DeadBackendFixture {
 
 export interface DeadBackendOptions {
   /**
-   * When true, inject a fake boot error via HERMES_DESKTOP_BOOT_FAKE_ERROR
+   * When true, inject a fake boot error via IRIS_DESKTOP_BOOT_FAKE_ERROR
    * so the backend resolution itself "fails" with a controlled error message.
    * This is the only reliable way to trigger BootFailureOverlay in dev mode
    * (the real backend always resolves via SOURCE_REPO_ROOT).
@@ -488,14 +488,14 @@ export interface DeadBackendOptions {
 
 /**
  * Launch the app with a provider pointing at a dead endpoint (port 1, which
- * nothing listens on). By default the backend still boots (`hermes serve`
+ * nothing listens on). By default the backend still boots (`iris serve`
  * starts fine — the dead endpoint only matters at chat time). Pass
  * `{ fakeError: true }` to inject a fake boot failure, triggering the
  * BootFailureOverlay.
  */
 export async function setupDeadBackend(options: DeadBackendOptions = {}): Promise<DeadBackendFixture> {
   const sandbox = createSandbox('dead')
-  const configPath = path.join(sandbox.hermesHome, 'config.yaml')
+  const configPath = path.join(sandbox.irisHome, 'config.yaml')
   fs.writeFileSync(
     configPath,
     `# Auto-generated by E2E test fixtures — dead provider
@@ -514,9 +514,9 @@ providers:
 `,
     'utf8',
   )
-  writeEnvFile(sandbox.hermesHome)
+  writeEnvFile(sandbox.irisHome)
 
-  const env = buildAppEnv(sandbox, options.fakeError ? { HERMES_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to Hermes backend: connection refused' } : {})
+  const env = buildAppEnv(sandbox, options.fakeError ? { IRIS_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to Iris backend: connection refused' } : {})
   const { app, page } = await launchDesktop(env)
 
   return {
@@ -538,16 +538,16 @@ providers:
  */
 function resolvePackagedBinaryPath(): string {
   if (process.platform === 'win32') {
-    return path.join(RELEASE_ROOT, 'win-unpacked', 'Hermes.exe')
+    return path.join(RELEASE_ROOT, 'win-unpacked', 'Iris.exe')
   }
 
   if (process.platform === 'darwin') {
     const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
 
-    return path.join(RELEASE_ROOT, `mac-${arch}`, 'Hermes.app', 'Contents', 'MacOS', 'Hermes')
+    return path.join(RELEASE_ROOT, `mac-${arch}`, 'Iris.app', 'Contents', 'MacOS', 'Iris')
   }
 
-  return path.join(RELEASE_ROOT, 'linux-unpacked', 'hermes')
+  return path.join(RELEASE_ROOT, 'linux-unpacked', 'iris')
 }
 
 export const PACKAGED_BINARY_PATH = resolvePackagedBinaryPath()
@@ -566,10 +566,10 @@ export interface PackagedAppFixture {
 /**
  * Launch the *packaged* Electron binary (from `npm run pack` →
  * `electron-builder --dir`) with `BOOT_FAKE=1` so it simulates boot
- * progress without spawning a real Hermes backend.
+ * progress without spawning a real Iris backend.
  *
  * Uses the same sandbox isolation (credential stripping, isolated
- * HERMES_HOME + userData, unique app name) as the dev-mode fixtures.
+ * IRIS_HOME + userData, unique app name) as the dev-mode fixtures.
  *
  * Skips if the packaged binary doesn't exist — run `npm run pack` first.
  */
@@ -586,15 +586,15 @@ export async function setupPackagedApp(): Promise<PackagedAppFixture> {
   // packaged-binary-specific overrides.
   const env = buildAppEnv(sandbox, {
     // Fake boot: simulates progress steps without spawning the real backend.
-    HERMES_DESKTOP_BOOT_FAKE: '1',
-    HERMES_DESKTOP_BOOT_FAKE_STEP_MS: '120',
+    IRIS_DESKTOP_BOOT_FAKE: '1',
+    IRIS_DESKTOP_BOOT_FAKE_STEP_MS: '120',
   })
 
-  // Clear dev-server + hermes-root overrides — the packaged binary
+  // Clear dev-server + iris-root overrides — the packaged binary
   // should use its own bundled renderer, not the dev checkout.
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_DEV_SERVER
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES_ROOT
+  delete (env as Record<string, string | undefined>).IRIS_DESKTOP_DEV_SERVER
+  delete (env as Record<string, string | undefined>).IRIS_DESKTOP_IRIS
+  delete (env as Record<string, string | undefined>).IRIS_DESKTOP_IRIS_ROOT
 
   const app = await _electron.launch({
     executablePath: PACKAGED_BINARY_PATH,

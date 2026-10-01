@@ -159,8 +159,8 @@ _index_lock = threading.Lock()
 
 def _cache_dir() -> Optional[Path]:
     try:
-        from hermes_constants import get_hermes_dir
-        d = get_hermes_dir("cache/web", "web_cache")
+        from iris_constants import get_iris_dir
+        d = get_iris_dir("cache/web", "web_cache")
         d.mkdir(parents=True, exist_ok=True)
         return d
     except Exception:  # noqa: BLE001

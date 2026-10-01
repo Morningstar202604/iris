@@ -21,7 +21,7 @@ def _compact(text: str) -> str:
 
 def test_dismissed_approvals_key_defined():
     assert "_DISMISSED_APPROVALS_KEY" in MESSAGES_JS
-    assert "hermes_dismissed_approvals" in MESSAGES_JS
+    assert "iris_dismissed_approvals" in MESSAGES_JS
 
 
 def test_get_dismissed_approvals_defined():
@@ -295,7 +295,7 @@ def test_same_approval_id_in_two_sessions_does_not_collide():
         "  getItem: k => (k in _store ? _store[k] : null),\n"
         "  setItem: (k, v) => { _store[k] = String(v); },\n"
         "};\n"
-        "const _DISMISSED_APPROVALS_KEY = 'hermes_dismissed_approvals';\n"
+        "const _DISMISSED_APPROVALS_KEY = 'iris_dismissed_approvals';\n"
         + helpers +
         "\n"
         "// Dismiss approval 'X' in session A.\n"

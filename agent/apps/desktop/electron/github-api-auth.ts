@@ -9,7 +9,7 @@ import { delimiterForPlatform, pathEnvKey, POSIX_SANE_PATH_ENTRIES } from './bac
 // The passive check asks the REST API for the branch tip SHA. Unauthenticated
 // that budget is 60 requests/hour keyed on the *client IP*, so a shared exit —
 // office NAT, VPN, a proxy node many users sit behind — exhausts the bucket for
-// everyone on it and the check reports a rate limit that reads as "Hermes can't
+// everyone on it and the check reports a rate limit that reads as "Iris can't
 // reach the update server". Authenticating moves the caller onto the token's
 // 5,000/hour budget.
 //

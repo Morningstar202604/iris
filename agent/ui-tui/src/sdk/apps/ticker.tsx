@@ -1,4 +1,4 @@
-import { Box, Text } from '@hermes/ink'
+import { Box, Text } from '@iris/ink'
 import { useEffect, useState } from 'react'
 
 import { Dialog } from '../../components/overlay.js'

@@ -21,7 +21,7 @@ def _install_fake_skill_bundles(monkeypatch, *, bundles=None, resolver=None, bui
     agent_pkg = sys.modules.get("agent") or ModuleType("agent")
     # `sys.modules.get(...)` returns the REAL agent package; emptying its
     # __path__ in place strands it for the rest of the suite (later
-    # `from agent.<sub> import ...` — e.g. hermes_state's `agent.memory_manager`
+    # `from agent.<sub> import ...` — e.g. iris_state's `agent.memory_manager`
     # — then fails). monkeypatch.setattr snapshots and restores it on teardown.
     monkeypatch.setattr(agent_pkg, "__path__", [], raising=False)
     skill_bundles = ModuleType("agent.skill_bundles")

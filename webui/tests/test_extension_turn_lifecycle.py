@@ -83,7 +83,7 @@ async ({kind}) => {
   const activeSid = 'session-a';
   const streamId = `stream-${kind}`;
   const lifecycle = [];
-  const extension = window.hermesExt.register('lifecycle-probe');
+  const extension = window.irisExt.register('lifecycle-probe');
   if (!extension) throw new Error('lifecycle probe did not register');
   for (const type of ['turn:start', 'turn:complete', 'turn:error', 'turn:cancel']) {
     extension.events.on(type, event => {
@@ -231,7 +231,7 @@ def test_registered_extension_receives_bounded_turn_lifecycle_events():
         const store = new Map();
         const loggedErrors = [];
         global.window = {{
-          __HERMES_EXTENSION_CONFIG__: {{
+          __IRIS_EXTENSION_CONFIG__: {{
             extensions: [
               {{id: 'alpha.ext', storage_owned: false}},
               {{id: 'beta.ext', storage_owned: false}},
@@ -248,8 +248,8 @@ def test_registered_extension_receives_bounded_turn_lifecycle_events():
         }};
         eval(fs.readFileSync({str(EXTENSION_SETTINGS_JS)!r}, 'utf8'));
 
-        const alpha = window.hermesExt.register('alpha.ext');
-        const beta = window.hermesExt.register('beta.ext');
+        const alpha = window.irisExt.register('alpha.ext');
+        const beta = window.irisExt.register('beta.ext');
         assert.deepStrictEqual(Object.keys(alpha).sort(), ['events', 'id', 'settings', 'storage']);
         assert.strictEqual(Object.isFrozen(alpha.events), true);
 
@@ -269,7 +269,7 @@ def test_registered_extension_receives_bounded_turn_lifecycle_events():
         assert.strictEqual(alpha.events.on('token', () => {{}}), null);
         assert.strictEqual(alpha.events.on('turn:start', null), null);
 
-        const emit = window.HermesExtensionSettings._dispatchTurnLifecycle;
+        const emit = window.IrisExtensionSettings._dispatchTurnLifecycle;
         assert.strictEqual(typeof emit, 'function');
         assert.strictEqual(emit('turn:start', {{sessionId: '', streamId: 'stream-a'}}), false);
         assert.strictEqual(emit('turn:start', {{sessionId: 'session-a', streamId: ''}}), false);
@@ -333,7 +333,7 @@ def test_live_stream_bridge_forwards_normalized_lifecycle_details():
         const assert = require('assert');
         const calls = [];
         global.window = {{
-          HermesExtensionSettings: {{
+          IrisExtensionSettings: {{
             _dispatchTurnLifecycle(type, details) {{
               calls.push([type, details]);
               return 'delivered';
@@ -353,13 +353,13 @@ def test_live_stream_bridge_forwards_normalized_lifecycle_details():
           {{sessionId: 'session-a', streamId: 'stream-a', status: 'connection_lost'}},
         ]]);
 
-        delete window.HermesExtensionSettings;
+        delete window.IrisExtensionSettings;
         assert.strictEqual(
           _dispatchExtensionTurnLifecycle('turn:start', 'session-b', 'stream-b'),
           false,
         );
 
-        window.HermesExtensionSettings = {{
+        window.IrisExtensionSettings = {{
           _dispatchTurnLifecycle() {{ throw new Error('broken extension runtime'); }},
         }};
         global.console = {{error() {{}}}};
@@ -401,7 +401,7 @@ def _run_lifecycle_scenario(browser, kind: str) -> list[dict]:
         page.goto("http://harness.test/", wait_until="domcontentloaded")
         page.evaluate(
             """
-            window.__HERMES_EXTENSION_CONFIG__ = {
+            window.__IRIS_EXTENSION_CONFIG__ = {
               extensions: [{id: 'lifecycle-probe', storage_owned: false}],
             };
             """

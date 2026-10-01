@@ -63,10 +63,10 @@ def test_reload_config_expands_env_vars(tmp_path, monkeypatch):
     resolves against os.environ after reload_config (the #798 invariant)."""
     import api.config as cfg
 
-    monkeypatch.setenv("HERMES_TEST_RELOAD_TOKEN", "expanded-value-xyz")
+    monkeypatch.setenv("IRIS_TEST_RELOAD_TOKEN", "expanded-value-xyz")
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "providers:\n  openai:\n    api_key: ${HERMES_TEST_RELOAD_TOKEN}\n",
+        "providers:\n  openai:\n    api_key: ${IRIS_TEST_RELOAD_TOKEN}\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(cfg, "_get_config_path", lambda: config_path)
@@ -88,7 +88,7 @@ def test_reload_config_reexpands_env_when_mtime_unchanged(tmp_path, monkeypatch)
 
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "providers:\n  openai:\n    api_key: ${HERMES_TEST_REEXPAND_TOKEN}\n",
+        "providers:\n  openai:\n    api_key: ${IRIS_TEST_REEXPAND_TOKEN}\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(cfg, "_get_config_path", lambda: config_path)
@@ -96,14 +96,14 @@ def test_reload_config_reexpands_env_when_mtime_unchanged(tmp_path, monkeypatch)
         cfg._yaml_file_cache.clear()
 
     # First reload under env value A.
-    monkeypatch.setenv("HERMES_TEST_REEXPAND_TOKEN", "value-A")
+    monkeypatch.setenv("IRIS_TEST_REEXPAND_TOKEN", "value-A")
     cfg.reload_config()
     key_a = ((cfg.get_config().get("providers") or {}).get("openai") or {}).get("api_key")
     assert key_a == "value-A", f"first expansion wrong: {key_a!r}"
 
     # Change ONLY the env var — the file (and its mtime) is untouched, so the YAML
     # parse cache will hit. The expansion must still pick up the new env value.
-    monkeypatch.setenv("HERMES_TEST_REEXPAND_TOKEN", "value-B")
+    monkeypatch.setenv("IRIS_TEST_REEXPAND_TOKEN", "value-B")
     cfg.reload_config()
     key_b = ((cfg.get_config().get("providers") or {}).get("openai") or {}).get("api_key")
     assert key_b == "value-B", (

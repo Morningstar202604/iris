@@ -2,7 +2,7 @@
 Tests for #634: CLI sessions not visible when setting is enabled.
 
 Root cause: get_cli_sessions() swallowed all errors silently (bare except → return []).
-Users with older hermes-agent versions (missing 'source' column in state.db) got
+Users with older iris-agent versions (missing 'source' column in state.db) got
 an empty list with no log output, making diagnosis impossible.
 
 Fixes:
@@ -41,8 +41,8 @@ class TestCliSessionsErrorSurface:
         assert "no 'source' column" in combined_src or "has no 'source' column" in combined_src
 
     def test_missing_source_column_suggests_upgrade(self):
-        """Warning message must suggest upgrading hermes-agent."""
-        assert "Upgrade hermes-agent" in combined_src or "upgrade hermes-agent" in combined_src.lower()
+        """Warning message must suggest upgrading iris-agent."""
+        assert "Upgrade iris-agent" in combined_src or "upgrade iris-agent" in combined_src.lower()
 
     def test_exception_path_logs_warning(self):
         """The except clause must call logger.warning, not silently pass."""
@@ -131,7 +131,7 @@ class TestMissingSourceColumnWarnsOncePerDb:
         assert len(warnings) == 1, [w.getMessage() for w in warnings]
         # Message text is unchanged: still names the path and the upgrade hint.
         assert str(db) in warnings[0].getMessage()
-        assert "Upgrade hermes-agent" in warnings[0].getMessage()
+        assert "Upgrade iris-agent" in warnings[0].getMessage()
 
     def test_different_db_path_logs_again(self, tmp_path, caplog):
         db_a = tmp_path / "planner" / "state.db"

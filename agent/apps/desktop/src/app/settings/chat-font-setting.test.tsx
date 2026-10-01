@@ -16,8 +16,8 @@ const mocks = vi.hoisted(() => ({
   writeScope: { connectionId: 'connection-a', profile: 'default' }
 }))
 
-vi.mock('@/hermes', () => ({
-  saveHermesConfig: (config: Record<string, unknown>, scope?: unknown) => mocks.save(config, scope)
+vi.mock('@/iris', () => ({
+  saveIrisConfig: (config: Record<string, unknown>, scope?: unknown) => mocks.save(config, scope)
 }))
 
 vi.mock('@/i18n', () => ({
@@ -43,8 +43,8 @@ vi.mock('@/store/notifications', () => ({
 }))
 
 vi.mock('../hooks/use-config-record', () => ({
-  setHermesConfigCache: (config: Record<string, unknown>) => mocks.cache(config),
-  useHermesConfigRecord: () => ({
+  setIrisConfigCache: (config: Record<string, unknown>) => mocks.cache(config),
+  useIrisConfigRecord: () => ({
     data: mocks.loadedConfig,
     dataUpdatedAt: mocks.configUpdatedAt,
     writeScope: mocks.writeScope

@@ -2,7 +2,7 @@
 
 `api.config.STATE_DIR` is a module-level global computed from the environment at
 import time. Exercising how it's derived requires importing config under a
-specific HERMES_HOME / HERMES_WEBUI_STATE_DIR. We do this in a SUBPROCESS rather
+specific IRIS_HOME / IRIS_WEBUI_STATE_DIR. We do this in a SUBPROCESS rather
 than `importlib.reload(config)` in-process: reloading config inside the shared
 pytest process leaks recomputed globals (STATE_DIR/SESSION_DIR) and stale
 references into later tests (the cancel/stream/health/state-isolation suites),
@@ -35,12 +35,12 @@ def _state_dir_for_env(platform_home: Path, **env_overrides) -> Path:
     env["LOCALAPPDATA"] = str(platform_home / "AppData" / "Local")
     # Start from a clean slate for the vars that can redirect state or trigger
     # startup settings reconciliation in the child process.
-    env.pop("HERMES_HOME", None)
-    env.pop("HERMES_BASE_HOME", None)
-    env.pop("HERMES_WEBUI_STATE_DIR", None)
-    env.pop("HERMES_WEBUI_TEST_STATE_DIR", None)
-    env.pop("HERMES_WEBUI_DEFAULT_WORKSPACE", None)
-    env.pop("HERMES_CONFIG_PATH", None)
+    env.pop("IRIS_HOME", None)
+    env.pop("IRIS_BASE_HOME", None)
+    env.pop("IRIS_WEBUI_STATE_DIR", None)
+    env.pop("IRIS_WEBUI_TEST_STATE_DIR", None)
+    env.pop("IRIS_WEBUI_DEFAULT_WORKSPACE", None)
+    env.pop("IRIS_CONFIG_PATH", None)
     for key, value in env_overrides.items():
         if value is None:
             env.pop(key, None)
@@ -59,7 +59,7 @@ def _state_dir_for_env(platform_home: Path, **env_overrides) -> Path:
 
 
 def _platform_default_state_dir(platform_home: Path) -> Path:
-    """What STATE_DIR resolves to with HERMES_HOME + STATE_DIR both unset."""
+    """What STATE_DIR resolves to with IRIS_HOME + STATE_DIR both unset."""
     return _state_dir_for_env(platform_home)
 
 
@@ -70,10 +70,10 @@ def test_state_dir_probe_does_not_mutate_platform_default_settings(
     platform_home = tmp_path / "platform-home"
     if os.name == "nt":
         settings_file = (
-            platform_home / "AppData" / "Local" / "hermes" / "webui" / "settings.json"
+            platform_home / "AppData" / "Local" / "iris" / "webui" / "settings.json"
         )
     else:
-        settings_file = platform_home / ".hermes" / "webui" / "settings.json"
+        settings_file = platform_home / ".iris" / "webui" / "settings.json"
     settings_file.parent.mkdir(parents=True)
     persisted_workspace = tmp_path / "persisted-workspace"
     persisted_workspace.mkdir()
@@ -85,7 +85,7 @@ def test_state_dir_probe_does_not_mutate_platform_default_settings(
     monkeypatch.setenv("HOME", str(platform_home))
     monkeypatch.setenv("USERPROFILE", str(platform_home))
     monkeypatch.setenv(
-        "HERMES_WEBUI_DEFAULT_WORKSPACE", str(tmp_path / "pytest-workspace")
+        "IRIS_WEBUI_DEFAULT_WORKSPACE", str(tmp_path / "pytest-workspace")
     )
 
     state_dir = _platform_default_state_dir(platform_home)
@@ -94,43 +94,43 @@ def test_state_dir_probe_does_not_mutate_platform_default_settings(
     assert state_dir == settings_file.parent.resolve()
 
 
-def test_config_state_dir_defaults_to_hermes_home_webui(tmp_path):
-    hermes_home = tmp_path / ".hermes" / "profiles" / "isolated"
-    hermes_home.mkdir(parents=True)
+def test_config_state_dir_defaults_to_iris_home_webui(tmp_path):
+    iris_home = tmp_path / ".iris" / "profiles" / "isolated"
+    iris_home.mkdir(parents=True)
 
-    state_dir = _state_dir_for_env(tmp_path / "platform-home", HERMES_HOME=hermes_home)
-    assert state_dir == (hermes_home / "webui").resolve()
+    state_dir = _state_dir_for_env(tmp_path / "platform-home", IRIS_HOME=iris_home)
+    assert state_dir == (iris_home / "webui").resolve()
 
 
-def test_config_state_dir_unchanged_for_normal_install_hermes_home_unset(tmp_path):
-    """Backward-compat: with HERMES_HOME unset, STATE_DIR stays at the platform
-    default `<~/.hermes>/webui` — a normal install's state must NOT relocate
-    (the #4449/#4454 state-dir move only affects an explicitly-set HERMES_HOME).
+def test_config_state_dir_unchanged_for_normal_install_iris_home_unset(tmp_path):
+    """Backward-compat: with IRIS_HOME unset, STATE_DIR stays at the platform
+    default `<~/.iris>/webui` — a normal install's state must NOT relocate
+    (the #4449/#4454 state-dir move only affects an explicitly-set IRIS_HOME).
 
-    Cross-check: the unset-HERMES_HOME result must NOT equal the result of
-    pointing HERMES_HOME at an arbitrary other base — i.e. the default is
+    Cross-check: the unset-IRIS_HOME result must NOT equal the result of
+    pointing IRIS_HOME at an arbitrary other base — i.e. the default is
     genuinely the platform home, not whatever the test environment injected."""
     platform_home = tmp_path / "platform-home"
     default = _platform_default_state_dir(platform_home)
     assert default.name == "webui"
-    # Pointing HERMES_HOME elsewhere produces a DIFFERENT dir, proving the unset
+    # Pointing IRIS_HOME elsewhere produces a DIFFERENT dir, proving the unset
     # case resolves to the platform default rather than echoing an injected base.
     elsewhere_base = tmp_path / "elsewhere-base"
-    elsewhere = _state_dir_for_env(platform_home, HERMES_HOME=elsewhere_base)
+    elsewhere = _state_dir_for_env(platform_home, IRIS_HOME=elsewhere_base)
     assert elsewhere == (elsewhere_base / "webui").resolve()
     assert default != elsewhere
 
 
 def test_config_state_dir_explicit_override_takes_precedence(tmp_path):
-    """HERMES_WEBUI_STATE_DIR always wins over the HERMES_HOME-derived default,
+    """IRIS_WEBUI_STATE_DIR always wins over the IRIS_HOME-derived default,
     so an operator who pinned a state dir keeps it even in isolated mode."""
-    hermes_home = tmp_path / ".hermes" / "profiles" / "isolated"
-    hermes_home.mkdir(parents=True)
+    iris_home = tmp_path / ".iris" / "profiles" / "isolated"
+    iris_home.mkdir(parents=True)
     explicit = tmp_path / "custom-state"
 
     state_dir = _state_dir_for_env(
         tmp_path / "platform-home",
-        HERMES_HOME=hermes_home,
-        HERMES_WEBUI_STATE_DIR=explicit,
+        IRIS_HOME=iris_home,
+        IRIS_WEBUI_STATE_DIR=explicit,
     )
     assert state_dir == explicit.resolve()

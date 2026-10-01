@@ -331,7 +331,7 @@ class TestIndexHtmlIntegration:
         assert "pwa-browser" in src
         assert "beforeinstallprompt" in src
         assert "appinstalled" in src
-        assert "HermesPWA" in src
+        assert "IrisPWA" in src
         assert "launchAction" in src
         assert "promptInstall" in src
 
@@ -371,7 +371,7 @@ class TestIndexHtmlIntegration:
 
         index.html sets a dynamic <base href> via script at the top of <head>.
         All static asset paths must be relative so that installs behind a reverse
-        proxy at a subpath (e.g. /hermes/) resolve correctly.
+        proxy at a subpath (e.g. /iris/) resolve correctly.
 
         An absolute '/sw.js' breaks subpath mounts because the browser requests
         <origin>/sw.js — outside the proxy mount root.  A relative 'sw.js'
@@ -467,7 +467,7 @@ class _FakeHandler:
 class TestSessionManifestRoute:
     """Assert /session/manifest.json and /session/manifest.webmanifest
     return the real manifest JSON (not index.html) so Firefox Android can
-    find the Hermes icons when installing from a /session/<id> page."""
+    find the Iris icons when installing from a /session/<id> page."""
 
     def _get(self, path):
         from urllib.parse import urlparse
@@ -493,10 +493,10 @@ class TestSessionManifestRoute:
         data = json.loads(bytes(handler.body).decode("utf-8"))
         assert isinstance(data, dict)
 
-    def test_session_manifest_json_has_hermes_name(self):
+    def test_session_manifest_json_has_iris_name(self):
         handler = self._get("/session/manifest.json")
         data = json.loads(bytes(handler.body).decode("utf-8"))
-        assert data.get("name") == "Hermes"
+        assert data.get("name") == "Iris"
 
     def test_session_manifest_json_has_512_icon(self):
         handler = self._get("/session/manifest.json")
@@ -528,7 +528,7 @@ class TestSessionManifestRoute:
     def test_session_manifest_webmanifest_is_parseable_json(self):
         handler = self._get("/session/manifest.webmanifest")
         data = json.loads(bytes(handler.body).decode("utf-8"))
-        assert data.get("name") == "Hermes"
+        assert data.get("name") == "Iris"
 
     def test_session_manifest_webmanifest_is_not_html(self):
         handler = self._get("/session/manifest.webmanifest")
@@ -558,10 +558,10 @@ class TestRootManifestRoute:
             f"expected application/manifest+json, got {ct!r}"
         )
 
-    def test_root_manifest_json_has_hermes_name_and_512_icon(self):
+    def test_root_manifest_json_has_iris_name_and_512_icon(self):
         handler = self._get("/manifest.json")
         data = json.loads(bytes(handler.body).decode("utf-8"))
-        assert data.get("name") == "Hermes"
+        assert data.get("name") == "Iris"
         icons = data.get("icons", [])
         sizes = [icon.get("sizes", "") for icon in icons]
         assert any("512" in s for s in sizes)
@@ -576,7 +576,7 @@ class TestSessionManifestAuthExemption:
     can fetch the manifest during PWA install without being redirected."""
 
     def test_session_manifest_json_is_public(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+        monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
         from api.auth import check_auth, _invalidate_password_hash_cache
         from types import SimpleNamespace
         _invalidate_password_hash_cache()
@@ -584,7 +584,7 @@ class TestSessionManifestAuthExemption:
         assert check_auth(handler, SimpleNamespace(path="/session/manifest.json", query="")) is True
 
     def test_session_manifest_webmanifest_is_public(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+        monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
         from api.auth import check_auth, _invalidate_password_hash_cache
         from types import SimpleNamespace
         _invalidate_password_hash_cache()

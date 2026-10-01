@@ -1,7 +1,7 @@
-"""Hermes Kanban bridge for the WebUI.
+"""Iris Kanban bridge for the WebUI.
 
 This module exposes a full CRUD API under ``/api/kanban/*`` while keeping
-Hermes Agent's ``hermes_cli.kanban_db`` as the only source of truth.
+Iris Agent's ``iris_cli.kanban_db`` as the only source of truth.
 
 Supported operations:
 - Task CRUD (create, read, patch, bulk update, archive)
@@ -28,15 +28,15 @@ _TASK_PREFIX = "/api/kanban/tasks/"
 
 
 def _kb():
-    """Lazily import hermes_cli.kanban_db to avoid circular imports at module load."""
-    from hermes_cli import kanban_db as kb
+    """Lazily import iris_cli.kanban_db to avoid circular imports at module load."""
+    from iris_cli import kanban_db as kb
 
     return kb
 
 
 def _kb_connect(kb, board=None):
-    """Raw ``kb.connect`` (moved to ``hermes_cli.kanban_db_connect`` by the Agent split)."""
-    return agent_attr(kb, "connect", "hermes_cli.kanban_db_connect")(board=board)
+    """Raw ``kb.connect`` (moved to ``iris_cli.kanban_db_connect`` by the Agent split)."""
+    return agent_attr(kb, "connect", "iris_cli.kanban_db_connect")(board=board)
 
 
 def _resolve_board(parsed):
@@ -99,7 +99,7 @@ def _conn(board=None):
     """
     kb = _kb()
     kb.init_db(board=board)
-    closing = agent_attr(kb, "connect_closing", "hermes_cli.kanban_db_connect", None)
+    closing = agent_attr(kb, "connect_closing", "iris_cli.kanban_db_connect", None)
     if closing is not None:
         return closing(board=board)
     # Older kanban_db builds (and lightweight test doubles) without
@@ -566,7 +566,7 @@ def _events_payload(parsed):
 
 
 def _config_payload(*, board=None):
-    """Return kanban configuration: column names, known assignees, and lane/display settings from hermes_cli.config."""
+    """Return kanban configuration: column names, known assignees, and lane/display settings from iris_cli.config."""
     kb = _kb()
     try:
         with _conn(board=board) as conn:
@@ -577,7 +577,7 @@ def _config_payload(*, board=None):
     except Exception:
         assignees = []
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
 
         cfg = load_config() or {}
     except Exception:
@@ -726,7 +726,7 @@ def _dispatch_payload(parsed):
     kb = _kb()
     dry_run = _bool_query(parsed, "dry_run", False)
     max_spawn = _int_query(parsed, "max", 8, minimum=1, maximum=100)
-    dispatch_once = agent_attr(kb, "dispatch_once", "hermes_cli.kanban_db_dispatch", None)
+    dispatch_once = agent_attr(kb, "dispatch_once", "iris_cli.kanban_db_dispatch", None)
     if dispatch_once is None:
         raise ValueError("dispatcher is unavailable")
     with _conn(board=board) as conn:
@@ -1216,7 +1216,7 @@ def handle_kanban_get(handler, parsed) -> bool | None:
             return j(handler, payload) or True
         return False
     except ImportError as exc:
-        # hermes_cli not installed (webui-only deploy). Return a clean 503
+        # iris_cli not installed (webui-only deploy). Return a clean 503
         # "kanban unavailable" rather than a 500 so the frontend's existing
         # try/catch surfaces a useful toast.
         return bad(handler, f"kanban unavailable: {exc}", status=503)

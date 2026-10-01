@@ -21,8 +21,8 @@ function mkdtemp(prefix: string) {
 
 describe('resolvePluginGitUrl', () => {
   it('maps owner/repo shorthand to github git url', () => {
-    expect(resolvePluginGitUrl('NousResearch/hermes-example-plugins')).toEqual({
-      gitUrl: 'https://github.com/NousResearch/hermes-example-plugins.git',
+    expect(resolvePluginGitUrl('acme/sample-plugin')).toEqual({
+      gitUrl: 'https://github.com/acme/sample-plugin.git',
       subdir: null
     })
   })
@@ -54,7 +54,7 @@ describe('desktopPluginFolderName', () => {
 
 describe('resolveSubdirWithin', () => {
   it('rejects path traversal', () => {
-    const root = mkdtemp('hermes-plugin-root-')
+    const root = mkdtemp('iris-plugin-root-')
 
     expect(() => resolveSubdirWithin(root, '../escape')).toThrow(/escapes/)
   })
@@ -62,7 +62,7 @@ describe('resolveSubdirWithin', () => {
 
 describe('findDesktopEntry', () => {
   it('finds root plugin.js', () => {
-    const root = mkdtemp('hermes-plugin-detect-')
+    const root = mkdtemp('iris-plugin-detect-')
     fs.mkdirSync(path.join(root, 'desktop'), { recursive: true })
     fs.writeFileSync(path.join(root, 'plugin.js'), 'export default {}')
 
@@ -70,7 +70,7 @@ describe('findDesktopEntry', () => {
   })
 
   it('finds desktop/plugin.js', () => {
-    const root = mkdtemp('hermes-plugin-detect-')
+    const root = mkdtemp('iris-plugin-detect-')
     fs.mkdirSync(path.join(root, 'desktop'), { recursive: true })
     fs.writeFileSync(path.join(root, 'desktop', 'plugin.js'), 'export default {}')
 
@@ -91,7 +91,7 @@ describe('detectPluginComponents', () => {
   })
 
   it('detects agent-only layout', async () => {
-    const root = mkdtemp('hermes-plugin-agent-')
+    const root = mkdtemp('iris-plugin-agent-')
     roots.push(root)
     fs.writeFileSync(path.join(root, 'plugin.yaml'), 'name: hello-agent\n')
     fs.writeFileSync(path.join(root, '__init__.py'), 'def register(ctx): pass\n')
@@ -104,7 +104,7 @@ describe('detectPluginComponents', () => {
   })
 
   it('detects dual layout', async () => {
-    const root = mkdtemp('hermes-plugin-dual-')
+    const root = mkdtemp('iris-plugin-dual-')
     roots.push(root)
     fs.mkdirSync(path.join(root, 'desktop'), { recursive: true })
     fs.writeFileSync(path.join(root, 'plugin.yaml'), 'name: dual\n')

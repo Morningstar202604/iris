@@ -3,14 +3,14 @@ import { atom } from 'nanostores'
 import { notifyError } from '@/store/notifications'
 
 /**
- * Feature store for backend (agent) plugins — the native Hermes plugins plus
+ * Feature store for backend (agent) plugins — the native Iris plugins plus
  * portable Agent Plugins v1 packages the backend discovers on disk. Settings
  * renders this next to the desktop (renderer) plugin inventory so every plugin
  * the user has is discoverable and toggleable from one page, whatever process
  * it runs in.
  *
  * Backed by the gateway's `plugins.manage` RPC — the same list/toggle
- * primitives `hermes plugins` and the dashboard use, so all surfaces agree on
+ * primitives `iris plugins` and the dashboard use, so all surfaces agree on
  * what's installed and what's enabled. Works against every backend topology
  * (local spawn, SSH, URL+token) because it rides the session's own transport.
  */
@@ -39,7 +39,7 @@ export interface AgentPluginRow {
   /** 'bundled' | 'user' | 'git' | 'project' | 'entrypoint' */
   source: string
   status: 'enabled' | 'disabled' | 'not enabled'
-  /** Agent Plugins v1 package (portable skills/MCP format) vs native Hermes. */
+  /** Agent Plugins v1 package (portable skills/MCP format) vs native Iris. */
   portable?: boolean
   /** Curated-catalog provenance (from the install sidecar), when present. */
   catalog_name?: string
@@ -132,7 +132,7 @@ const withProfile = (params: Record<string, unknown>, profile?: string | null) =
   profile ? { ...params, profile } : params
 
 /** Fetch the backend plugin list, optionally scoped to another profile's
- *  HERMES_HOME. Always refetches (it's a cheap local disk scan on the
+ *  IRIS_HOME. Always refetches (it's a cheap local disk scan on the
  *  backend); concurrent callers for the SAME profile share one in-flight
  *  request — a different profile starts fresh so a scope switch can't get a
  *  stale list. */
@@ -272,7 +272,7 @@ export async function installAgentPlugin(
     catalogName?: string
     /** Pin a custom source to one full commit SHA (team-wide reproducible install). */
     ref?: string
-    /** Target profile's HERMES_HOME (null/undefined = backend launch profile). */
+    /** Target profile's IRIS_HOME (null/undefined = backend launch profile). */
     profile?: string | null
   }
 ): Promise<AgentPluginInstallResult> {
@@ -384,7 +384,7 @@ export async function updateAgentPlugin(
 }
 
 /** Uninstall a user-installed agent plugin (backend `plugins.manage remove`;
- *  deletes `<HERMES_HOME>/plugins/<name>` and its install metadata). Drops the
+ *  deletes `<IRIS_HOME>/plugins/<name>` and its install metadata). Drops the
  *  row locally on success — callers rescan so a unified package's desktop half
  *  is pruned too. Returns whether the plugin was removed. */
 export async function removeAgentPlugin(

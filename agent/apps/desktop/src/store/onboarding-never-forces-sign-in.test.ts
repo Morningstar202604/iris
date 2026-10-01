@@ -29,7 +29,7 @@ vi.mock('@/lib/storage', async importOriginal => ({
 
 async function load(phase: string) {
   storage.clear()
-  storage.set('hermes-onboarding-phase-v1', phase)
+  storage.set('iris-onboarding-phase-v1', phase)
   vi.resetModules()
 
   const gate = await import('./onboarding-gate')

@@ -138,7 +138,7 @@ def test_active_pending_current_user_is_removed_from_model_context():
         context_messages=[
             {"role": "user", "content": "older"},
             {"role": "assistant", "content": "prior"},
-            {"role": "user", "content": "[Workspace::v1: /tmp/hermes]\ncurrent prompt"},
+            {"role": "user", "content": "[Workspace::v1: /tmp/iris]\ncurrent prompt"},
         ],
         active_stream_id="stream-current",
         pending_user_message="current prompt",

@@ -232,7 +232,7 @@ def test_first_passkey_registration_options_rejects_remote_bootstrap(monkeypatch
     import api.routes as routes
 
     _set_paths(monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_PASSKEY", "1")
+    monkeypatch.setenv("IRIS_WEBUI_PASSKEY", "1")
     monkeypatch.setattr(routes, "_check_csrf", lambda handler: True)
     monkeypatch.setattr(auth, "get_password_hash", lambda: None)
 
@@ -249,7 +249,7 @@ def test_first_passkey_registration_rejects_remote_bootstrap(monkeypatch, tmp_pa
     import api.routes as routes
 
     _set_paths(monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_PASSKEY", "1")
+    monkeypatch.setenv("IRIS_WEBUI_PASSKEY", "1")
     monkeypatch.setattr(routes, "_check_csrf", lambda handler: True)
     monkeypatch.setattr(auth, "get_password_hash", lambda: None)
 
@@ -267,7 +267,7 @@ def test_first_passkey_registration_options_allows_local_bootstrap(monkeypatch, 
     import api.routes as routes
 
     _set_paths(monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_PASSKEY", "1")
+    monkeypatch.setenv("IRIS_WEBUI_PASSKEY", "1")
     monkeypatch.setattr(routes, "_check_csrf", lambda handler: True)
     monkeypatch.setattr(auth, "get_password_hash", lambda: None)
     monkeypatch.setattr(passkeys, "registration_options", lambda handler: {"challenge": "local-bootstrap"})
@@ -285,7 +285,7 @@ def test_first_passkey_registration_allows_local_bootstrap(monkeypatch, tmp_path
     import api.routes as routes
 
     _set_paths(monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_PASSKEY", "1")
+    monkeypatch.setenv("IRIS_WEBUI_PASSKEY", "1")
     monkeypatch.setattr(routes, "_check_csrf", lambda handler: True)
     monkeypatch.setattr(auth, "get_password_hash", lambda: None)
     monkeypatch.setattr(passkeys, "finish_registration", lambda body, handler: {"ok": True})
@@ -351,8 +351,8 @@ def test_login_page_has_default_hidden_passkey_button_and_script_wiring():
 
 def test_passwordless_mode_keeps_auth_enabled_with_passkeys(monkeypatch, tmp_path):
     import api.auth as auth
-    # Stage-batch14: passkey support is opt-in default-off behind HERMES_WEBUI_PASSKEY=1
-    monkeypatch.setenv("HERMES_WEBUI_PASSKEY", "1")
+    # Stage-batch14: passkey support is opt-in default-off behind IRIS_WEBUI_PASSKEY=1
+    monkeypatch.setenv("IRIS_WEBUI_PASSKEY", "1")
     passkeys = _set_paths(monkeypatch, tmp_path)
     passkeys._save_credentials([{"id": "cred-1", "label": "This device"}])
     monkeypatch.setattr(auth, "get_password_hash", lambda: None)
@@ -362,11 +362,11 @@ def test_passwordless_mode_keeps_auth_enabled_with_passkeys(monkeypatch, tmp_pat
 
 
 def test_passkey_feature_flag_off_disables_passkeys_even_with_credentials(monkeypatch, tmp_path):
-    """When HERMES_WEBUI_PASSKEY is unset/0, are_passkeys_enabled() returns False."""
+    """When IRIS_WEBUI_PASSKEY is unset/0, are_passkeys_enabled() returns False."""
     import api.auth as auth
     passkeys = _set_paths(monkeypatch, tmp_path)
     passkeys._save_credentials([{"id": "cred-1", "label": "This device"}])
-    monkeypatch.delenv("HERMES_WEBUI_PASSKEY", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSKEY", raising=False)
     monkeypatch.setattr(auth, "get_config", lambda: {}, raising=False)
     assert auth.are_passkeys_enabled() is False
 
@@ -376,7 +376,7 @@ def test_passkey_feature_flag_via_config(monkeypatch, tmp_path):
     import api.auth as auth
     passkeys = _set_paths(monkeypatch, tmp_path)
     passkeys._save_credentials([{"id": "cred-1", "label": "This device"}])
-    monkeypatch.delenv("HERMES_WEBUI_PASSKEY", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSKEY", raising=False)
     # Patch the config import inside _passkey_feature_flag_enabled
     import api.config
     monkeypatch.setattr(api.config, "get_config", lambda: {"webui_passkey_enabled": True})

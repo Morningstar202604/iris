@@ -16,7 +16,7 @@ export async function openConnectorsAdmin(): Promise<void> {
   let url = FALLBACK_CONNECTORS_ADMIN_URL
 
   try {
-    const status = await window.hermesDesktop?.cloud?.status()
+    const status = await window.irisDesktop?.cloud?.status()
 
     if (status) {
       url = adminUrl(status.portalBaseUrl)

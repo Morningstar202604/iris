@@ -6,19 +6,19 @@
 
 ## Problem
 
-The WebUI currently depends on Hermes Agent Python source being importable at
+The WebUI currently depends on Iris Agent Python source being importable at
 runtime. In local installs this usually means a neighboring checkout; in the
-multi-container Docker setup it means the WebUI reads the `hermes-agent-src`
+multi-container Docker setup it means the WebUI reads the `iris-agent-src`
 volume that the agent container also uses.
 
 That source mount is a compatibility bridge, not the desired long-term contract.
 Even when mounted read-only on the WebUI side, it couples WebUI releases to
-Hermes Agent internal module layout and makes the multi-container setup look more
+Iris Agent internal module layout and makes the multi-container setup look more
 isolated than it really is.
 
 ## Current safety posture
 
-- The multi-container compose files mount `hermes-agent-src` read-only into the
+- The multi-container compose files mount `iris-agent-src` read-only into the
   WebUI service by default.
 - `docker_init.bash` prunes the agent source subtree from `chown` so read-only
   mounts do not break startup.
@@ -30,7 +30,7 @@ isolated than it really is.
 ## Source-access inventory
 
 These are the current WebUI capabilities that still rely on Agent source or
-`hermes_cli`/`agent` modules being importable. Each item should eventually move
+`iris_cli`/`agent` modules being importable. Each item should eventually move
 behind an explicit, versioned Agent API or a packaged library contract that does
 not require mounting the live source checkout.
 
@@ -38,16 +38,16 @@ not require mounting the live source checkout.
 |---|---|---|---|
 | Browser chat execution | `run_agent.AIAgent` imported by `api/streaming.py` | Run lifecycle API: start, observe, status, cancel, approval, clarify, final usage | Covered by the runtime-adapter migration in [#1925](https://github.com/nesquena/hermes-webui/issues/1925), but still source-backed today. |
 | Runtime event rendering | WebUI callbacks around Agent token/reasoning/tool events | Stable event envelope for tokens, reasoning, progress, tool lifecycle, approvals, clarify, errors, and final usage | The existing run-adapter RFC describes the browser-facing shape; Agent still needs a durable producer contract. |
-| Profile list/create/delete/seed | `hermes_cli.profiles` from `api/profiles.py` | Profile management API with profile metadata, env/runtime context, seed/delete operations, and validation errors | WebUI has fallback filesystem handling for some operations, but feature parity follows Hermes CLI internals. |
-| Goal command state | `hermes_cli.goals` from `api/goals.py` | Goal CRUD/control API: get, save, pause/resume/clear, and status | Should preserve current `/goal` WebUI behavior without direct module import. |
-| Slash command registry and plugin commands | `hermes_cli.commands` and `hermes_cli.plugins` from `api/commands.py` | Command/plugin capability discovery API scoped by active profile | WebUI should render command help from a stable capability response. |
-| Provider/auth/model catalogs | `hermes_cli.models`, `hermes_cli.auth`, and `agent.credential_pool` from `api/config.py` | Provider registry, model catalog, auth status, OAuth/credential-pool status APIs | WebUI has static fallbacks, but exact parity and custom provider state come from Agent internals. |
+| Profile list/create/delete/seed | `iris_cli.profiles` from `api/profiles.py` | Profile management API with profile metadata, env/runtime context, seed/delete operations, and validation errors | WebUI has fallback filesystem handling for some operations, but feature parity follows Iris CLI internals. |
+| Goal command state | `iris_cli.goals` from `api/goals.py` | Goal CRUD/control API: get, save, pause/resume/clear, and status | Should preserve current `/goal` WebUI behavior without direct module import. |
+| Slash command registry and plugin commands | `iris_cli.commands` and `iris_cli.plugins` from `api/commands.py` | Command/plugin capability discovery API scoped by active profile | WebUI should render command help from a stable capability response. |
+| Provider/auth/model catalogs | `iris_cli.models`, `iris_cli.auth`, and `agent.credential_pool` from `api/config.py` | Provider registry, model catalog, auth status, OAuth/credential-pool status APIs | WebUI has static fallbacks, but exact parity and custom provider state come from Agent internals. |
 | Redaction helper parity | `agent.redact.redact_sensitive_text` from `api/helpers.py` | Redaction service/library contract with signature/version compatibility | WebUI keeps a fallback redactor because this import has changed before. |
 | CLI/Gateway session bridge | Agent `state.db` schema and gateway metadata read by sidebar/session helpers | Session listing/transcript/metadata API for non-WebUI-originated sessions | Direct SQLite/schema coupling should narrow over time, especially for messaging/email/gateway sessions. |
 
 ## Decoupling task list
 
-1. Keep the Docker default safe: WebUI-side `hermes-agent-src` stays read-only in
+1. Keep the Docker default safe: WebUI-side `iris-agent-src` stays read-only in
    two- and three-container compose files.
 2. Keep documenting the boundary honestly: multi-container isolates process,
    network, and resources, not filesystem/source compatibility.
@@ -63,8 +63,8 @@ not require mounting the live source checkout.
 
 ## Non-goals for this slice
 
-- Do not remove `HERMES_WEBUI_AGENT_DIR`.
+- Do not remove `IRIS_WEBUI_AGENT_DIR`.
 - Do not break local source-checkout development.
 - Do not fail startup solely because the agent source is writable.
-- Do not replace the runtime adapter or Hermes Agent API in this document-only
+- Do not replace the runtime adapter or Iris Agent API in this document-only
   inventory slice.

@@ -14,10 +14,10 @@ const gatewayMocks = vi.hoisted(() => ({
   closed: [] as string[]
 }))
 
-vi.mock('@/hermes', async importActual => ({
+vi.mock('@/iris', async importActual => ({
   ...(await importActual<Record<string, unknown>>()),
   setApiRequestConnection: vi.fn(),
-  HermesGateway: class {
+  IrisGateway: class {
     connectionState = 'closed'
     wsUrl = ''
     connect = async (wsUrl: string): Promise<void> => {
@@ -48,7 +48,7 @@ const {
 const { $sessionTiles, foregroundSessionScopes, liveSessionScopes } = await import('./session-states')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
     getConnection: vi.fn(async () => ({
       authMode: 'token',
       profile: 'default',
@@ -94,7 +94,7 @@ afterEach(() => {
   closeSecondaryGateways()
   $sessionTiles.set([])
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
 })
 
 describe('foreground tile retention vs. the live-work pruner (#93892)', () => {

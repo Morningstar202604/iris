@@ -168,7 +168,7 @@ def test_profile_switch_clears_persisted_old_profile_cron_markers_only():
     reset = _extract_function(PANELS_JS, "_resetCronUnreadForProfileSwitch")
     switch = _extract_function(SESSIONS_JS, "_switchProfileForSessionLoad")
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{}})}};
+const store={{'iris-session-completion-unread':JSON.stringify({{}})}};
 global.localStorage={{
   getItem:(key)=>Object.prototype.hasOwnProperty.call(store,key)?store[key]:null,
   setItem:(key,value)=>{{ store[key]=String(value); }},
@@ -176,7 +176,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 let _cronPollSince=10;
 let _cronUnreadCount=0;
 let _cronPollGeneration=0;
@@ -224,7 +224,7 @@ function _clearSessionCompletionUnread(sid){{
     badgeCount:_cronUnreadCount,
     generation:_cronPollGeneration,
     renders,
-    persisted:JSON.parse(store['hermes-session-completion-unread']),
+    persisted:JSON.parse(store['iris-session-completion-unread']),
   }};
   process.stdout.write(JSON.stringify({{before, after}}));
 }})().catch(error=>{{ console.error(error); process.exit(1); }});
@@ -385,7 +385,7 @@ def test_legacy_untagged_cron_marker_cleared_via_sidebar_metadata():
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{
+const store={{'iris-session-completion-unread':JSON.stringify({{
   'legacy-cron':{{message_count:2, completed_at:1}},
   'chat':{{message_count:4, completed_at:1}},
 }})}};
@@ -396,7 +396,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 global.S={{activeProfile:'profile-b',activeProfileIsDefault:false}};
 global._allSessions=[
   {{session_id:'legacy-cron', source_tag:'cron', profile:'profile-a', message_count:2}},
@@ -414,7 +414,7 @@ _clearCronSessionCompletionUnreadForInactiveProfiles('profile-b');
 const after={{
   legacy:_hasUnreadForSession({{session_id:'legacy-cron'}}),
   chat:_hasUnreadForSession({{session_id:'chat'}}),
-  persisted:JSON.parse(store['hermes-session-completion-unread']),
+  persisted:JSON.parse(store['iris-session-completion-unread']),
 }};
 process.stdout.write(JSON.stringify({{before, after}}));
 """
@@ -448,7 +448,7 @@ def test_root_alias_keeps_current_profile_cron_marker():
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{
+const store={{'iris-session-completion-unread':JSON.stringify({{
   'root-cron':{{message_count:2, completed_at:1, source:'cron', profile:'default'}},
   'other-cron':{{message_count:1, completed_at:1, source:'cron', profile:'other'}},
 }})}};
@@ -459,7 +459,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 // Renamed root profile is active.
 global.S={{activeProfile:'kinni',activeProfileIsDefault:true}};
 global._allSessions=[];
@@ -468,7 +468,7 @@ function _getSessionViewedCounts(){{ return _sessionViewedCounts; }}
 function _setSessionViewedCount(){{}}
 {helpers}
 _clearCronSessionCompletionUnreadForInactiveProfiles('kinni');
-const persisted=JSON.parse(store['hermes-session-completion-unread']);
+const persisted=JSON.parse(store['iris-session-completion-unread']);
 process.stdout.write(JSON.stringify({{
   rootKept:_hasUnreadForSession({{session_id:'root-cron'}}),
   otherCleared:!_hasUnreadForSession({{session_id:'other-cron'}}),
@@ -510,7 +510,7 @@ def test_switch_to_literal_default_clears_other_profile_cron_markers():
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{
+const store={{'iris-session-completion-unread':JSON.stringify({{
   'tagged-old-cron':{{message_count:3, completed_at:1, source:'cron', profile:'profile-a'}},
   'legacy-old-cron':{{message_count:2, completed_at:1}},
   'root-cron':{{message_count:2, completed_at:1, source:'cron', profile:'default'}},
@@ -524,7 +524,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 // Root profile is active under its literal 'default' name.
 global.S={{activeProfile:'default',activeProfileIsDefault:true}};
 // Sidebar metadata resolves the legacy-untagged marker to profile-a cron;
@@ -543,7 +543,7 @@ function _getSessionViewedCounts(){{ return _sessionViewedCounts; }}
 function _setSessionViewedCount(){{}}
 {helpers}
 _clearCronSessionCompletionUnreadForInactiveProfiles('default');
-const persisted=JSON.parse(store['hermes-session-completion-unread']);
+const persisted=JSON.parse(store['iris-session-completion-unread']);
 process.stdout.write(JSON.stringify({{
   taggedCleared:!_hasUnreadForSession({{session_id:'tagged-old-cron'}}),
   legacyCleared:!_hasUnreadForSession({{session_id:'legacy-old-cron'}}),
@@ -590,7 +590,7 @@ def test_switch_to_literal_default_without_roster_fails_closed_on_unknown_names(
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{
+const store={{'iris-session-completion-unread':JSON.stringify({{
   'other-cron':{{message_count:1, completed_at:1, source:'cron', profile:'profile-a'}},
   'root-cron':{{message_count:2, completed_at:1, source:'cron', profile:'default'}},
 }})}};
@@ -601,7 +601,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 global.S={{activeProfile:'default',activeProfileIsDefault:true}};
 global._allSessions=[];
 global.renderSessionListFromCache=()=>{{}};
@@ -609,7 +609,7 @@ function _getSessionViewedCounts(){{ return _sessionViewedCounts; }}
 function _setSessionViewedCount(){{}}
 {helpers}
 _clearCronSessionCompletionUnreadForInactiveProfiles('default');
-const persisted=JSON.parse(store['hermes-session-completion-unread']);
+const persisted=JSON.parse(store['iris-session-completion-unread']);
 process.stdout.write(JSON.stringify({{
   otherCleared:!_hasUnreadForSession({{session_id:'other-cron'}}),
   rootKept:_hasUnreadForSession({{session_id:'root-cron'}}),
@@ -652,7 +652,7 @@ def test_stale_pre_switch_session_list_does_not_recreate_cron_markers():
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{}})}};
+const store={{'iris-session-completion-unread':JSON.stringify({{}})}};
 global.localStorage={{
   getItem:(key)=>Object.prototype.hasOwnProperty.call(store,key)?store[key]:null,
   setItem:(key,value)=>{{ store[key]=String(value); }},
@@ -660,7 +660,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 let _cronPollGeneration=0;
 let _cronPollSince=10;
 let _cronUnreadCount=0;
@@ -739,7 +739,7 @@ const sessData={{
   other_profile_count:0,
 }};
 _applySessionListPayload(sessData, {{projects:[]}}, {{unreadGen:unreadGenAtStart}});
-const persisted=JSON.parse(store['hermes-session-completion-unread']||'{{}}');
+const persisted=JSON.parse(store['iris-session-completion-unread']||'{{}}');
 process.stdout.write(JSON.stringify({{
   generation:_cronPollGeneration,
   badgeJobs:Array.from(_cronNewJobIds),
@@ -778,7 +778,7 @@ def test_fresh_session_list_still_marks_when_unread_gen_matches():
         ]
     )
     script = f"""
-const store={{'hermes-session-completion-unread':JSON.stringify({{}})}};
+const store={{'iris-session-completion-unread':JSON.stringify({{}})}};
 global.localStorage={{
   getItem:(key)=>Object.prototype.hasOwnProperty.call(store,key)?store[key]:null,
   setItem:(key,value)=>{{ store[key]=String(value); }},
@@ -786,7 +786,7 @@ global.localStorage={{
 }};
 let _sessionCompletionUnread=null;
 let _sessionViewedCounts={{}};
-const SESSION_COMPLETION_UNREAD_KEY='hermes-session-completion-unread';
+const SESSION_COMPLETION_UNREAD_KEY='iris-session-completion-unread';
 let _cronPollGeneration=3;
 let _allSessions=[];
 let _allSessionsScope=null;
@@ -852,7 +852,7 @@ _applySessionListPayload({{
   }}],
   active_profile:'profile-b',
 }}, {{projects:[]}}, {{unreadGen:3}});
-const persisted=JSON.parse(store['hermes-session-completion-unread']||'{{}}');
+const persisted=JSON.parse(store['iris-session-completion-unread']||'{{}}');
 process.stdout.write(JSON.stringify({{
   marked:Object.prototype.hasOwnProperty.call(persisted,'new-cron'),
   meta:persisted['new-cron']||null,

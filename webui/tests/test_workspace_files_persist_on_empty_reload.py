@@ -28,7 +28,7 @@ BOOT_JS = (REPO / "static" / "boot.js").read_text(encoding="utf-8")
 
 def test_ephemeral_guard_does_not_remove_session_localstorage_key():
     """The empty-session guard block must NOT call
-    localStorage.removeItem('hermes-webui-session') — that's exactly what
+    localStorage.removeItem('iris-webui-session') — that's exactly what
     breaks the second refresh."""
     # Find the guard block (message_count===0 check)
     guard_idx = BOOT_JS.find("(S.session.message_count||0) === 0")
@@ -37,13 +37,13 @@ def test_ephemeral_guard_does_not_remove_session_localstorage_key():
     block_end = BOOT_JS.find("return;", guard_idx)
     assert block_end > guard_idx
     block = BOOT_JS[guard_idx:block_end]
-    assert "removeItem('hermes-webui-session')" not in block, (
-        "The empty-session guard must NOT remove 'hermes-webui-session' from "
+    assert "removeItem('iris-webui-session')" not in block, (
+        "The empty-session guard must NOT remove 'iris-webui-session' from "
         "localStorage. Removing it sends the next refresh into the no-saved-"
         "session boot path which never calls loadDir(), leaving the workspace "
         "file tree permanently blank (#workspace-files)."
     )
-    assert 'removeItem("hermes-webui-session")' not in block, (
+    assert 'removeItem("iris-webui-session")' not in block, (
         "Same as above (double-quoted form)."
     )
 
@@ -72,7 +72,7 @@ def test_ephemeral_guard_still_restores_panel_pref():
     guard_idx = BOOT_JS.find("(S.session.message_count||0) === 0")
     block_end = BOOT_JS.find("return;", guard_idx)
     block = BOOT_JS[guard_idx:block_end]
-    assert "hermes-webui-workspace-panel-pref" in block, (
-        "Empty-session guard must still read 'hermes-webui-workspace-panel-pref' "
+    assert "iris-webui-workspace-panel-pref" in block, (
+        "Empty-session guard must still read 'iris-webui-workspace-panel-pref' "
         "from localStorage to keep the panel open across refreshes (#1187)"
     )

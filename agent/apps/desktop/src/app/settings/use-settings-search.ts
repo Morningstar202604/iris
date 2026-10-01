@@ -4,14 +4,14 @@ import { useCallback, useEffect } from 'react'
 
 import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { $pluginRecords } from '@/contrib/plugins-store'
-import { getEnvVars, getHermesConfigSchema } from '@/hermes'
+import { getEnvVars, getIrisConfigSchema } from '@/iris'
 import { useI18n } from '@/i18n'
 import { type IconComponent, Monitor, Package, Palette, Settings2, Wrench } from '@/lib/icons'
 import { $agentPlugins, isDesktopRelevantPlugin, loadAgentPlugins } from '@/store/agent-plugins'
 import { $gatewayState } from '@/store/session'
 import { TRANSLUCENCY_SUPPORTED } from '@/store/translucency'
 
-import { useHermesConfigRecord } from '../hooks/use-config-record'
+import { useIrisConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 
 import { SECTIONS } from './constants'
@@ -44,11 +44,11 @@ export interface PluginSearchEntry {
  */
 export function useSettingsSearchCatalog(enabled: boolean) {
   const { t } = useI18n()
-  const configQuery = useHermesConfigRecord()
+  const configQuery = useIrisConfigRecord()
 
   const schemaQuery = useQuery({
-    queryKey: ['hermes-config-schema'],
-    queryFn: () => getHermesConfigSchema(),
+    queryKey: ['iris-config-schema'],
+    queryFn: () => getIrisConfigSchema(),
     enabled,
     staleTime: 5 * 60 * 1000
   })
@@ -125,7 +125,7 @@ export function useSettingsSearchCatalog(enabled: boolean) {
   const appearance = t.settings.appearance
 
   const appearanceEntries: SettingsSearchEntry[] = [
-    ...(window.hermesDesktop?.minimizeToTray
+    ...(window.irisDesktop?.minimizeToTray
       ? [
           {
             context: appearanceContext,
@@ -301,7 +301,7 @@ export function useSettingsSearchCatalog(enabled: boolean) {
   return {
     subpageEntries: [
       ...subpageEntries,
-      ...(window.hermesDesktop?.hudModifier
+      ...(window.irisDesktop?.hudModifier
         ? [
             {
               context: t.keybinds.title,

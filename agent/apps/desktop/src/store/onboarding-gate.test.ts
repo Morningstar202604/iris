@@ -22,14 +22,14 @@ it('restores every persisted onboarding phase and rejects unknown phases', async
 
   for (const phase of ONBOARDING_PHASES.filter(phase => phase !== 'idle')) {
     storage.clear()
-    storage.set('hermes-onboarding-phase-v1', phase)
+    storage.set('iris-onboarding-phase-v1', phase)
     vi.resetModules()
     const { $onboardingGate } = await import('./onboarding-gate')
 
     expect($onboardingGate.get().phase).toBe(phase)
   }
 
-  storage.set('hermes-onboarding-phase-v1', 'unknown-phase')
+  storage.set('iris-onboarding-phase-v1', 'unknown-phase')
   vi.resetModules()
   const { $onboardingGate } = await import('./onboarding-gate')
 
@@ -45,7 +45,7 @@ it('a skipped intro still queues the guided flow, and never replays the film', a
   const { $onboardingGate } = await import('./onboarding-gate')
 
   expect($onboardingGate.get()).toEqual({ phase: 'cinematic', guideQueued: true })
-  // The film is recorded as watched: a later launch without HERMES_SKIP_INTRO
+  // The film is recorded as watched: a later launch without IRIS_SKIP_INTRO
   // must adopt the persisted guide, not play the film over it.
   expect(hasSeenIntroReveal()).toBe(true)
 

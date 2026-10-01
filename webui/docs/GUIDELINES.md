@@ -1,6 +1,6 @@
 # Change guidelines — writing a PR that lands cleanly
 
-Hermes WebUI is deliberately simple: Python on the server, vanilla JS in the browser, no build
+Iris WebUI is deliberately simple: Python on the server, vanilla JS in the browser, no build
 step. That simplicity only survives if every change is scoped, verified, and complete. This
 document is the distilled set of principles that make the difference between a PR that merges on the
 first review and one that needs several rounds of back-and-forth. It applies to human and

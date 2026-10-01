@@ -53,9 +53,9 @@ def test_docker_init_has_both_filtered_context_seed_paths():
     """Both startup modes must seed /app from the Dockerfile context copy."""
     init = (REPO / "docker_init.bash").read_text(encoding="utf-8")
 
-    assert "rsync -av --chown=hermeswebui:hermeswebui /apptoo/ /app/" in init
+    assert "rsync -av --chown=iriswebui:iriswebui /apptoo/ /app/" in init
     assert "cp -a /apptoo/. /app/" in init
-    assert "HERMES_WEBUI_DEFAULT_WORKSPACE=\"/workspace\"" in init
+    assert "IRIS_WEBUI_DEFAULT_WORKSPACE=\"/workspace\"" in init
     assert "cd /app" in init
 
 
@@ -75,7 +75,7 @@ def _docker_runtime_available() -> bool:
 
 
 @pytest.mark.skipif(
-    not os.environ.get("HERMES_RUN_DOCKER_RUNTIME_TESTS") or not _docker_runtime_available(),
+    not os.environ.get("IRIS_RUN_DOCKER_RUNTIME_TESTS") or not _docker_runtime_available(),
     reason="Docker runtime proof is opt-in for the CI integration job",
 )
 @pytest.mark.timeout(900)
@@ -83,7 +83,7 @@ def test_docker_runtime_keeps_app_clean_in_both_seed_modes_and_workspace_intact(
     """Build the image and exercise the exact normal/rootless seed destinations."""
     docker = shutil.which("docker")
     assert docker is not None
-    tag = f"hermes-webui-pr-6853-{os.getpid()}"
+    tag = f"iris-webui-pr-6853-{os.getpid()}"
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     (workspace / "AGENTS.md").write_text("workspace instructions\n", encoding="utf-8")
@@ -98,7 +98,7 @@ def test_docker_runtime_keeps_app_clean_in_both_seed_modes_and_workspace_intact(
             command = (
                 "set -eu; rm -rf /app/* /app/.[!.]* /app/..?*; "
                 + (
-                    "rsync -a --chown=hermeswebui:hermeswebui /apptoo/ /app/"
+                    "rsync -a --chown=iriswebui:iriswebui /apptoo/ /app/"
                     if user is None
                     else "cp -a /apptoo/. /app/"
                 )

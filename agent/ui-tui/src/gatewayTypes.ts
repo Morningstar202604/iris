@@ -1,4 +1,4 @@
-import type { UsageModelData } from '@hermes/shared/billing'
+import type { UsageModelData } from '@iris/shared/billing'
 import type {
   ConnectionRequestPayload,
   GatewayEvent,
@@ -6,14 +6,14 @@ import type {
   InflightTurn,
   TranscriptMessage,
   Usage
-} from '@hermes/shared/gateway-events'
-import type { HermesSkin } from '@hermes/shared/skin'
+} from '@iris/shared/gateway-events'
+import type { IrisSkin } from '@iris/shared/skin'
 
 import type { SessionInfo, SlashCategory } from './types.js'
 
-/** The cross-surface skin contract (canonical shape in `@hermes/shared`).
+/** The cross-surface skin contract (canonical shape in `@iris/shared`).
  *  Includes the paired light_colors/dark_colors overlays from #20379. */
-export type GatewaySkin = HermesSkin
+export type GatewaySkin = IrisSkin
 
 /** Distributive form of the shared `GatewayEvent<K>` so `switch (ev.type)`
  *  narrows `ev.payload` per case (the generic-defaulted interface does not). */
@@ -51,7 +51,7 @@ export interface SlashExecResponse {
 
 // ── Remote Spending (Phase 2b) ───────────────────────────────────────
 
-// Wire shapes now live in @hermes/shared for reuse by TypeScript clients.
+// Wire shapes now live in @iris/shared for reuse by TypeScript clients.
 export type {
   BillingAutoReload,
   BillingBlock,
@@ -68,7 +68,7 @@ export type {
   SubscriptionUpgradeResponse,
   UsageBarData,
   UsageModelData
-} from '@hermes/shared/billing'
+} from '@iris/shared/billing'
 
 // ── Config ───────────────────────────────────────────────────────────
 

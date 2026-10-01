@@ -7,14 +7,14 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-from hermes_cli.config import (
+from iris_cli.config import (
     check_config_version,
     get_config_path,
     get_env_path,
     migrate_config,
 )
-from hermes_cli.config_backups import backup_config, list_config_backups
-from hermes_cli.config_migrations import (
+from iris_cli.config_backups import backup_config, list_config_backups
+from iris_cli.config_migrations import (
     SUPPORT_FLOOR_VERSION,
     support_floor_message,
 )
@@ -43,8 +43,8 @@ def _restore_backups(backups: dict[Path, Path]) -> list[Path]:
 
 
 def main() -> int:
-    if env_var_enabled("HERMES_SKIP_CONFIG_MIGRATION"):
-        print("[config-migrate] HERMES_SKIP_CONFIG_MIGRATION is set; skipping config migration")
+    if env_var_enabled("IRIS_SKIP_CONFIG_MIGRATION"):
+        print("[config-migrate] IRIS_SKIP_CONFIG_MIGRATION is set; skipping config migration")
         return 0
 
     current_ver, latest_ver = check_config_version()

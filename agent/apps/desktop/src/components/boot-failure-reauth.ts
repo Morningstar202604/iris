@@ -62,7 +62,7 @@ export function isRemoteReauthError(error: string | null | undefined): boolean {
 
 /**
  * After a healthy cold boot, main may still re-emit boot-progress errors when a
- * post-boot startHermes()/ticket mint fails (liveness reset → rebuild, wake
+ * post-boot startIris()/ticket mint fails (liveness reset → rebuild, wake
  * recovery, etc.). Only CONFIRMED reauth should take over the full-screen
  * recovery overlay then — transient "could not reach … WebSocket ticket"
  * blips must stay in the reconnect loop so reading/drafting is not locked out

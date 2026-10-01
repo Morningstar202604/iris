@@ -1,6 +1,6 @@
 /**
  * The handoff tour: three steps shown when the build session first appears, because the profile changed under
- * the user without their asking. The user was talking to Hermes on its own profile and now sits mid-build in a
+ * the user without their asking. The user was talking to Iris on its own profile and now sits mid-build in a
  * session of their own. Nothing on screen says where the welcome chat went, or that the sessions list now
  * belongs to a different profile.
  *

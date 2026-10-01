@@ -71,7 +71,7 @@ def _manual_compression_reply_lines(summary: dict, compressor, focus_topic) -> l
 def _compress_preview_reply(history, partial: bool, keep_last, focus_topic, agg_note: str) -> str:
     """``/compress --preview``: report what WOULD be compressed — no agent, no writes."""
     from agent.model_metadata import estimate_request_tokens_rough
-    from hermes_cli.partial_compress import summarize_compress_preview
+    from iris_cli.partial_compress import summarize_compress_preview
 
     pv_msgs = [{"role": m.get("role"), "content": m.get("content")} for m in history
                if m.get("role") in {"user", "assistant"} and m.get("content")]
@@ -209,14 +209,14 @@ class GatewaySessionCommandsMixin:
         _new_sid = new_entry.session_id if new_entry else None
         # Plugin on_session_reset hook (new session guaranteed to exist); best-effort.
         try:
-            from hermes_cli.lifecycle import invoke_hook as _invoke_hook
+            from iris_cli.lifecycle import invoke_hook as _invoke_hook
             _invoke_hook("on_session_reset", session_id=_new_sid, reason="new_session",
                          platform=source.platform.value if source.platform else "",
                          old_session_id=_old_sid, new_session_id=_new_sid)
         except Exception:
             pass
         try:
-            from hermes_cli.tips import get_random_tip
+            from iris_cli.tips import get_random_tip
             _tip_line = t("gateway.reset.tip", tip=get_random_tip())
         except Exception:
             _tip_line = ""
@@ -225,7 +225,7 @@ class GatewaySessionCommandsMixin:
 
     async def _reset_titled_header(self, header: str, session_id: str, title_arg: str) -> str:
         """``/new <title>``: titled header on success, else the header plus a rejection note."""
-        from hermes_state import SessionDB
+        from iris_state import SessionDB
         note = ""
         try:
             sanitized = SessionDB.sanitize_title(title_arg)
@@ -578,7 +578,7 @@ class GatewaySessionCommandsMixin:
         """Build the throwaway AIAgent that performs a manual /compress rewrite of *session_id*."""
         from run_agent import AIAgent
         from gateway.run import _GATEWAY_HYGIENE_PLATFORM, _seed_hygiene_system_prompt
-        from hermes_cli.config import load_config as _load_cfg
+        from iris_cli.config import load_config as _load_cfg
         from utils import is_truthy_value as _is_truthy
 
         # _compress_context may persist its cached system prompt, and this agent runs outside the
@@ -707,7 +707,7 @@ class GatewaySessionCommandsMixin:
     async def _handle_save_command(self, event: MessageEvent) -> str:
         """Handle /save — export the current session and send it as a document."""
         import tempfile
-        from hermes_cli.session_export import (
+        from iris_cli.session_export import (
             SAVE_TRANSCRIPT_FORMATS, SAVE_USAGE, default_save_filename, normalize_save_format,
             render_session_for_save)
 
@@ -734,9 +734,9 @@ class GatewaySessionCommandsMixin:
         if not export_data:
             return f"No stored messages found for this session ({session_id})."
         if redact:
-            from hermes_cli.session_export_md import redact_session_data
+            from iris_cli.session_export_md import redact_session_data
             export_data = redact_session_data(export_data)
-        temp_dir = tempfile.mkdtemp(prefix="hermes_save_")
+        temp_dir = tempfile.mkdtemp(prefix="iris_save_")
         temp_path = os.path.join(temp_dir, filename)
         try:
             # Off-loop: render + write scale with transcript size (multi-MB) and would stall the loop.
@@ -786,7 +786,7 @@ class GatewaySessionCommandsMixin:
                 return t("gateway.title.current_with_title", session_id=session_id, title=title)
             return t("gateway.title.current_no_title", session_id=session_id)
         try:
-            from hermes_state import SessionDB
+            from iris_state import SessionDB
             sanitized = SessionDB.sanitize_title(title_arg)
         except ValueError as e:
             return t("gateway.shared.warn_passthrough", error=e)
@@ -953,7 +953,7 @@ class GatewaySessionCommandsMixin:
         """Handle /sessions — list previous sessions for gateway chats."""
         if not self._session_db:
             return self._session_db_unavailable_reply()
-        from hermes_cli.session_listing import (
+        from iris_cli.session_listing import (
             format_gateway_session_listing, parse_session_listing_args, query_session_listing)
         try:
             include_all, include_unnamed, target, search_query = parse_session_listing_args(

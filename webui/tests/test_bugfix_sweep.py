@@ -117,13 +117,13 @@ def test_critical_boot_storage_access_is_guarded():
     boot = (ROOT / "static" / "boot.js").read_text(encoding="utf-8")
     i18n = (ROOT / "static" / "i18n.js").read_text(encoding="utf-8")
 
-    theme_script = re.search(r"<script>\(function\(\)\{[\s\S]*?hermes-theme[\s\S]*?\}\)\(\)</script>", index)
-    font_script = re.search(r"<script>\(function\(\)\{[\s\S]*?hermes-font-size[\s\S]*?\}\)\(\)</script>", index)
+    theme_script = re.search(r"<script>\(function\(\)\{[\s\S]*?iris-theme[\s\S]*?\}\)\(\)</script>", index)
+    font_script = re.search(r"<script>\(function\(\)\{[\s\S]*?iris-font-size[\s\S]*?\}\)\(\)</script>", index)
     assert theme_script and "try" in theme_script.group(0)
     assert font_script and "try" in font_script.group(0)
-    assert "try{localStorage.removeItem('hermes-webui-server-stopped')" in boot
-    assert "try { localStorage.setItem('hermes-lang', resolved); } catch" in i18n
-    assert "try { stored = localStorage.getItem('hermes-lang'); } catch" in i18n
+    assert "try{localStorage.removeItem('iris-webui-server-stopped')" in boot
+    assert "try { localStorage.setItem('iris-lang', resolved); } catch" in i18n
+    assert "try { stored = localStorage.getItem('iris-lang'); } catch" in i18n
 
 
 def test_stale_session_recovery_preserves_subpath_mount_root():

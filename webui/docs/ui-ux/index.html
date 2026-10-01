@@ -2,7 +2,7 @@
 <html lang="en" class="dark" data-skin="slate">
 <head>
   <meta charset="utf-8">
-  <title>Hermes WebUI — Messages UI Inventory</title>
+  <title>Iris WebUI — Messages UI Inventory</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <!-- Real app stylesheet -->
   <link rel="stylesheet" href="../../static/style.css">
@@ -51,7 +51,7 @@
 <body>
 
 <header class="doc-header">
-  <div class="doc-title">Hermes WebUI — Messages UI Inventory<small>Every message-area element &amp; combination, wired to the real <code>static/style.css</code>. &nbsp;·&nbsp; <a href="./two-stage-proposal.html" style="color:var(--blue);text-decoration:none;">Two-stage proposal (#536) →</a></small></div>
+  <div class="doc-title">Iris WebUI — Messages UI Inventory<small>Every message-area element &amp; combination, wired to the real <code>static/style.css</code>. &nbsp;·&nbsp; <a href="./two-stage-proposal.html" style="color:var(--blue);text-decoration:none;">Two-stage proposal (#536) →</a></small></div>
   <div class="doc-toggles">
     <strong style="font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;align-self:center;margin-right:4px;">Theme</strong>
     <button data-mode-btn="system">System</button>
@@ -147,30 +147,30 @@
 <section class="doc-section">
   <div class="doc-kicker">3 · Assistant — markdown basics</div>
   <h2 class="doc-h">Paragraphs, emphasis, lists, blockquote, hr, links</h2>
-  <p class="doc-note">Assistant output is a single <code>.msg-row.assistant-turn</code> that holds one role header + an <code>.assistant-turn-blocks</code> column of one-or-more <code>.assistant-segment</code> children. Each segment may contain a <code>.thinking-card</code>, a <code>.msg-body</code>, and its own <code>.msg-foot</code> (copy / regen). This lets a turn stream reasoning → text → tool calls → more text without repeating the Hermes avatar each time.</p>
+  <p class="doc-note">Assistant output is a single <code>.msg-row.assistant-turn</code> that holds one role header + an <code>.assistant-turn-blocks</code> column of one-or-more <code>.assistant-segment</code> children. Each segment may contain a <code>.thinking-card</code>, a <code>.msg-body</code>, and its own <code>.msg-foot</code> (copy / regen). This lets a turn stream reasoning → text → tool calls → more text without repeating the Iris avatar each time.</p>
 
   <div class="doc-card"><span class="doc-label">.msg-body — rich prose</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn force-show" data-role="assistant">
         <div class="msg-role assistant" title="Thu, Apr 16 2026, 10:42 AM">
           <span class="role-icon assistant">H</span>
-          <span>Hermes</span>
+          <span>Iris</span>
         </div>
         <div class="assistant-turn-blocks">
           <div class="assistant-segment" data-raw-text="Running the dev server...">
             <div class="msg-body">
               <h1>Running the dev server</h1>
-              <p>You can start Hermes with the built-in launcher. The <strong>simplest path</strong> is <em>no docker, no proxy</em> — the CLI handles everything.</p>
+              <p>You can start Iris with the built-in launcher. The <strong>simplest path</strong> is <em>no docker, no proxy</em> — the CLI handles everything.</p>
               <h2>Prerequisites</h2>
               <ul>
                 <li>Node <code>&gt;= 18</code></li>
                 <li>A workspace directory you own
                   <ul>
                     <li>Read/write permissions</li>
-                    <li>No existing <code>.hermes</code> folder</li>
+                    <li>No existing <code>.iris</code> folder</li>
                   </ul>
                 </li>
-                <li>An API key set via <code>HERMES_API_KEY</code></li>
+                <li>An API key set via <code>IRIS_API_KEY</code></li>
               </ul>
               <h2>Steps</h2>
               <ol>
@@ -197,7 +197,7 @@
   <div class="doc-card"><span class="doc-label">.msg-body table</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks">
           <div class="assistant-segment">
             <div class="msg-body">
@@ -226,7 +226,7 @@
   <div class="doc-card"><span class="doc-label">pre + code (no header)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
 <pre><code class="language-bash">npm install
@@ -240,7 +240,7 @@ npm run dev -- --workspace ~/code</code></pre>
   <div class="doc-card"><span class="doc-label">.pre-header + pre + .code-copy-btn</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
             <div style="position:relative;">
@@ -249,14 +249,14 @@ npm run dev -- --workspace ~/code</code></pre>
   const port = opts.port ?? 3000;
   const app = createApp();
   app.listen(port, () =&gt; {
-    console.log(`Hermes listening on :${port}`);
+    console.log(`Iris listening on :${port}`);
   });
   return app;
 }</code></pre>
             </div>
             <div style="position:relative;margin-top:14px;">
               <div class="pre-header">python <button class="code-copy-btn" style="margin-left:auto;">Copy</button></div>
-<pre><code class="language-python">from hermes import Agent
+<pre><code class="language-python">from iris import Agent
 
 def main() -&gt; None:
     agent = Agent(model="claude-opus-4-6")
@@ -289,7 +289,7 @@ if __name__ == "__main__":
   <div class="doc-card"><span class="doc-label">.msg-media-img (default + .msg-media-img--full)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
             <p>Here's the screenshot you asked for (click to zoom):</p>
@@ -305,7 +305,7 @@ if __name__ == "__main__":
   <div class="doc-card"><span class="doc-label">.msg-media-link — non-image downloads</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
             <p>I saved the generated files:</p>
@@ -325,7 +325,7 @@ if __name__ == "__main__":
   <div class="doc-card"><span class="doc-label">.katex-inline + .katex-block</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
             <p>Inline math: <span class="katex-inline" data-math-inline>\(E = mc^2\)</span> and the quadratic formula below:</p>
@@ -341,7 +341,7 @@ if __name__ == "__main__":
   <div class="doc-card"><span class="doc-label">.mermaid-block (pre-render placeholder)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body">
             <p>The request flow:</p>
@@ -371,7 +371,7 @@ if __name__ == "__main__":
     <div class="doc-card"><span class="doc-label">.thinking-card (collapsed, inside .assistant-segment)</span>
       <div class="messages doc-messages"><div class="messages-inner doc-inner" style="padding-top:8px;">
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
             <div class="thinking-card">
               <div class="thinking-card-header">
@@ -390,7 +390,7 @@ if __name__ == "__main__":
     <div class="doc-card"><span class="doc-label">.thinking-card.open (animated — max-height + opacity)</span>
       <div class="messages doc-messages"><div class="messages-inner doc-inner" style="padding-top:8px;">
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
             <div class="thinking-card open">
               <div class="thinking-card-header">
@@ -414,7 +414,7 @@ then mention the env var for the API key at the end.</pre></div>
   <div class="doc-card"><span class="doc-label">.thinking — live 3-dot loader (pre-reasoning)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment" data-live-assistant="1">
           <div class="thinking">Thinking <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
         </div></div>
@@ -425,7 +425,7 @@ then mention the env var for the API key at the end.</pre></div>
   <div class="doc-card"><span class="doc-label">[data-live-assistant="1"] — streaming cursor at end of last child</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant" id="liveAssistantTurn">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment" data-live-assistant="1">
           <div class="msg-body"><p>Sure — the simplest way is to run <code>npm run dev</code>. The CLI will pick up the default</p></div>
         </div></div>
@@ -484,7 +484,7 @@ then mention the env var for the API key at the end.</pre></div>
           <div class="tool-card-detail">
             <div class="tool-card-args">
               <div><span class="tool-arg-key">command:</span> <span class="tool-arg-val">grep -rn "msg-role" static/</span></div>
-              <div><span class="tool-arg-key">cwd:</span> <span class="tool-arg-val">/Users/aron/hermes-webui</span></div>
+              <div><span class="tool-arg-key">cwd:</span> <span class="tool-arg-val">/Users/aron/iris-webui</span></div>
               <div><span class="tool-arg-key">timeout:</span> <span class="tool-arg-val">30000</span></div>
             </div>
             <div class="tool-card-result">
@@ -576,7 +576,7 @@ static/ui.js:1141:    const roleEl = el('div', 'msg-role ' + role);</pre>
       <div class="msg-row assistant-turn force-show" data-role="assistant">
         <div class="msg-role assistant" title="Thu, Apr 16 2026, 10:42 AM">
           <span class="role-icon assistant">H</span>
-          <span>Hermes</span>
+          <span>Iris</span>
         </div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
           <div class="msg-body"><p>Built and type-checked successfully — server is running on <code>:3000</code>.</p></div>
@@ -615,7 +615,7 @@ static/ui.js:1141:    const roleEl = el('div', 'msg-role ' + role);</pre>
 
       <div class="msg-row assistant-turn force-show" data-role="assistant">
         <div class="msg-role assistant" title="Thu, Apr 16 2026, 10:42 AM">
-          <span class="role-icon assistant">H</span><span>Hermes</span>
+          <span class="role-icon assistant">H</span><span>Iris</span>
         </div>
         <div class="assistant-turn-blocks">
           <div class="assistant-segment">
@@ -680,7 +680,7 @@ Run typecheck to confirm, then patch.</pre></div>
   <div class="doc-card"><span class="doc-label">Italic system notices (still italic — info, not errors)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks">
           <div class="assistant-segment"><div class="msg-body"><p><em>[Context was auto-compressed to continue the conversation]</em></p></div></div>
           <div class="assistant-segment"><div class="msg-body"><p><em>Task cancelled.</em></p></div></div>
@@ -692,7 +692,7 @@ Run typecheck to confirm, then patch.</pre></div>
   <div class="doc-card"><span class="doc-label">.assistant-segment[data-error="1"] — real error card, red accent, no italic</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks">
           <div class="assistant-segment" data-error="1"><div class="msg-body"><p><strong>Error:</strong> Connection lost. Your last message was saved — refresh to continue.</p></div></div>
           <div class="assistant-segment" data-error="1"><div class="msg-body"><p><strong>Error:</strong> Upstream rate-limited (429). Retrying in 30s…</p></div></div>
@@ -712,13 +712,13 @@ Run typecheck to confirm, then patch.</pre></div>
       <div class="msg-date-sep">Yesterday</div>
       <div class="msg-row" data-role="user"><div class="msg-body"><p>Can you summarise the PR I opened earlier?</p></div></div>
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment"><div class="msg-body"><p>Yes — three files changed, net +42 / -18. Main change is the new rail variable…</p></div></div></div>
       </div>
       <div class="msg-date-sep">Today</div>
       <div class="msg-row" data-role="user"><div class="msg-body"><p>Did CI pass overnight?</p></div></div>
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment"><div class="msg-body"><p>All green — three jobs, 4m 12s total. Here's the breakdown:</p></div></div></div>
       </div>
     </div></div>
@@ -734,7 +734,7 @@ Run typecheck to confirm, then patch.</pre></div>
     <div class="approval-card doc-visible">
       <div class="approval-inner">
         <div class="approval-header">⚠ Approval required</div>
-        <div class="approval-desc" style="font-size:12px;color:var(--muted);margin-bottom:8px;">The agent wants to run a shell command in <code>/Users/aron/hermes-webui</code>.</div>
+        <div class="approval-desc" style="font-size:12px;color:var(--muted);margin-bottom:8px;">The agent wants to run a shell command in <code>/Users/aron/iris-webui</code>.</div>
         <div class="approval-cmd">rm -rf node_modules &amp;&amp; npm install</div>
         <div class="approval-btns">
           <button class="approval-btn once">✓ <span class="approval-btn-label">Allow once</span><kbd class="approval-kbd">↵</kbd></button>

@@ -1,4 +1,4 @@
-"""Hermes Agent names that moved modules keep working at every WebUI call site.
+"""Iris Agent names that moved modules keep working at every WebUI call site.
 
 The Agent's September 2026 decomposition moved names such as
 ``tools.approval.set_current_session_key`` into sibling modules. The old paths
@@ -223,7 +223,7 @@ def test_lmstudio_reasoning_options_use_agent_probe(monkeypatch, shape):
         return ["low", "high"]
 
     monkeypatch.setattr(config, "_lmstudio_reasoning_probe_options_fallback", lambda *a, **k: ["fallback"])
-    _install_agent(monkeypatch, shape, "hermes_cli.models", {"hermes_cli.models_local": {
+    _install_agent(monkeypatch, shape, "iris_cli.models", {"iris_cli.models_local": {
         "lmstudio_model_reasoning_options": lmstudio_model_reasoning_options,
     }})
 
@@ -258,16 +258,16 @@ def _install_kanban_agent(monkeypatch, shape):
         return {"dry_run": dry_run, "max_spawn": max_spawn, "tasks_seen": tasks}
 
     kb = _install_agent(
-        monkeypatch, shape, "hermes_cli.kanban_db",
+        monkeypatch, shape, "iris_cli.kanban_db",
         {
-            "hermes_cli.kanban_db_connect": {"connect": connect, "connect_closing": connect_closing},
-            "hermes_cli.kanban_db_dispatch": {"dispatch_once": dispatch_once},
+            "iris_cli.kanban_db_connect": {"connect": connect, "connect_closing": connect_closing},
+            "iris_cli.kanban_db_dispatch": {"dispatch_once": dispatch_once},
         },
         native={"init_db": lambda *, board=None: None, "board_exists": lambda slug: True, "DEFAULT_BOARD": "default"},
     )
-    pkg = types.ModuleType("hermes_cli")
+    pkg = types.ModuleType("iris_cli")
     pkg.kanban_db = kb
-    monkeypatch.setitem(sys.modules, "hermes_cli", pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli", pkg)
     return bridge
 
 

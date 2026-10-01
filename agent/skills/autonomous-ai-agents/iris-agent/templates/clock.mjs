@@ -1,6 +1,6 @@
 /**
  * Reference user widget: a live clock docked above the status bar.
- * Copy to ~/.hermes/tui-widgets/clock.mjs, then `/widgets-reload` and `/clock`.
+ * Copy to ~/.iris/tui-widgets/clock.mjs, then `/widgets-reload` and `/clock`.
  */
 export default function register(sdk) {
   const { Box, Dialog, React, Text, defineWidgetApp, h } = sdk

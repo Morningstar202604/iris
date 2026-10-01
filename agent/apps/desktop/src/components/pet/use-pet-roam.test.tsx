@@ -68,7 +68,7 @@ describe('usePetRoam RAF scheduling', () => {
     vi.useRealTimers()
     vi.restoreAllMocks()
     setDocumentHidden(false)
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
   })
 
   it('uses a pause timer, not RAF, while dwelling at idle', () => {

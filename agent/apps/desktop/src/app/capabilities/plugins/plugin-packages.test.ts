@@ -26,18 +26,18 @@ const desktop = (over: Partial<PluginRecord>): PluginRecord => ({
 describe('mergePluginPackages', () => {
   it('shows a unified package as ONE row with both halves, never two rows', () => {
     const rows = mergePluginPackages(
-      [desktop({ id: 'media', name: 'Media Studio', packageName: 'hermes-media-studio' })],
-      [agent({ name: 'hermes-media-studio', has_desktop_half: true, description: 'Generate media.' })]
+      [desktop({ id: 'media', name: 'Media Studio', packageName: 'iris-media-studio' })],
+      [agent({ name: 'iris-media-studio', has_desktop_half: true, description: 'Generate media.' })]
     )
 
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ kind: 'both', agentMissingInProfile: false, desktopMissing: false })
     expect(rows[0].desktop?.id).toBe('media')
-    expect(rows[0].agent?.name).toBe('hermes-media-studio')
+    expect(rows[0].agent?.name).toBe('iris-media-studio')
   })
 
   it('a desktop half whose agent half is absent from THIS profile offers the install-here affordance', () => {
-    const rows = mergePluginPackages([desktop({ id: 'media', packageName: 'hermes-media-studio' })], [])
+    const rows = mergePluginPackages([desktop({ id: 'media', packageName: 'iris-media-studio' })], [])
 
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ kind: 'both', agent: null, agentMissingInProfile: true })

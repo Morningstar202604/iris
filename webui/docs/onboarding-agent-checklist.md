@@ -1,7 +1,7 @@
 # Agent-assisted onboarding checklist
 
 This checklist is for an AI assistant helping a human install, reinstall, or
-debug Hermes WebUI onboarding. It does not replace the human first-run wizard.
+debug Iris WebUI onboarding. It does not replace the human first-run wizard.
 Use it before running bootstrap commands, inspecting logs, or recommending a
 cleanup path.
 
@@ -15,7 +15,7 @@ The human operator owns:
 - choosing the install path
 - choosing the provider and model
 - entering API keys, OAuth codes, and passwords
-- approving any cleanup of a real Hermes home
+- approving any cleanup of a real Iris home
 - approving any external exposure outside localhost
 
 The assistant owns:
@@ -28,7 +28,7 @@ The assistant owns:
 
 ## Hard safety rules
 
-- Do not delete, move, or overwrite the real `~/.hermes` directory unless the
+- Do not delete, move, or overwrite the real `~/.iris` directory unless the
   human explicitly asks for that exact action.
 - Do not print API keys, OAuth tokens, cookies, full `.env` files, full
   `auth.json` files, or password hashes.
@@ -53,24 +53,24 @@ python3 --version
 Check whether repo-local environment overrides will affect bootstrap:
 
 ```bash
-test -f .env && grep -n 'HERMES_HOME\|HERMES_WEBUI_STATE_DIR\|HERMES_WEBUI_PORT\|HERMES_WEBUI_HOST' .env
+test -f .env && grep -n 'IRIS_HOME\|IRIS_WEBUI_STATE_DIR\|IRIS_WEBUI_PORT\|IRIS_WEBUI_HOST' .env
 ```
 
 If `.env` exists, do not print the full file. Inspect only the specific
-non-secret keys needed to understand the active Hermes home, WebUI state
+non-secret keys needed to understand the active Iris home, WebUI state
 directory, port, or host.
 
 ## Isolated local trial
 
-Use an isolated Hermes home and WebUI state directory for a reinstall or support
+Use an isolated Iris home and WebUI state directory for a reinstall or support
 trial. This keeps the test away from the operator's real memory, sessions,
 profiles, credentials, and cron state.
 
 ```bash
-mkdir -p ~/hermes-onboarding-test
-HERMES_HOME=~/hermes-onboarding-test/.hermes \
-HERMES_WEBUI_STATE_DIR=~/hermes-onboarding-test/webui \
-HERMES_WEBUI_PORT=8789 \
+mkdir -p ~/iris-onboarding-test
+IRIS_HOME=~/iris-onboarding-test/.iris \
+IRIS_WEBUI_STATE_DIR=~/iris-onboarding-test/webui \
+IRIS_WEBUI_PORT=8789 \
 python3 bootstrap.py
 ```
 
@@ -84,14 +84,14 @@ The bootstrap writes a port-specific log under the selected WebUI state
 directory:
 
 ```text
-~/hermes-onboarding-test/webui/bootstrap-8789.log
+~/iris-onboarding-test/webui/bootstrap-8789.log
 ```
 
 For daemon-style installs, `ctl.sh` writes the daemon log to the active
-`HERMES_HOME` by default:
+`IRIS_HOME` by default:
 
 ```text
-~/.hermes/webui.log
+~/.iris/webui.log
 ```
 
 When using the isolated trial environment, prefer the bootstrap command above
@@ -104,14 +104,14 @@ After the server starts, collect status without secrets:
 ```bash
 curl -sS http://127.0.0.1:8789/health
 curl -sS http://127.0.0.1:8789/api/onboarding/status
-find ~/hermes-onboarding-test -maxdepth 3 -type f | sort
-tail -n 120 ~/hermes-onboarding-test/webui/bootstrap-8789.log
+find ~/iris-onboarding-test -maxdepth 3 -type f | sort
+tail -n 120 ~/iris-onboarding-test/webui/bootstrap-8789.log
 ```
 
 When summarizing `/api/onboarding/status`, focus on:
 
 - `completed`
-- `system.hermes_found`
+- `system.iris_found`
 - `system.imports_ok`
 - `system.config_path`
 - `system.config_exists`
@@ -136,17 +136,17 @@ A local onboarding trial passes when:
 - `/api/onboarding/status` returns JSON.
 - The wizard appears when `completed` is false.
 - The wizard stays out of the way when `completed` is true or
-  `HERMES_WEBUI_SKIP_ONBOARDING=1` is intentionally set.
-- `system.hermes_found` and `system.imports_ok` match the expected bootstrap
+  `IRIS_WEBUI_SKIP_ONBOARDING=1` is intentionally set.
+- `system.iris_found` and `system.imports_ok` match the expected bootstrap
   state.
 - `system.provider_ready` and `system.chat_ready` become true after the human
   completes a provider path that should support chat.
 - `system.config_path` and `system.env_path` point inside the intended isolated
-  `HERMES_HOME` during a trial.
-- WebUI files are written under the intended `HERMES_WEBUI_STATE_DIR`.
+  `IRIS_HOME` during a trial.
+- WebUI files are written under the intended `IRIS_WEBUI_STATE_DIR`.
 
 If the human chooses a provider that must be completed in the CLI, passing can
-mean the wizard correctly points them to `hermes model` or `hermes auth` rather
+mean the wizard correctly points them to `iris model` or `iris auth` rather
 than trying to collect unsupported credentials in the browser.
 
 ## Failure triage
@@ -160,7 +160,7 @@ If the server does not start:
 
 If onboarding reports `agent_unavailable`:
 
-- confirm the bootstrap found or installed Hermes Agent
+- confirm the bootstrap found or installed Iris Agent
 - check whether the running Python can import `run_agent.AIAgent`
 - use `docs/troubleshooting.md`, especially the `AIAgent not available` flow
 

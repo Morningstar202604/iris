@@ -32,7 +32,7 @@ afterEach(async () => {
 describe('bundled Radio plugin', () => {
   it('inventories off by default and follows the ordinary live enable/disable lifecycle without autoplay', async () => {
     // Other bundled plugins are outside this integration test; Radio has no saved decision.
-    $pluginDecisions.set({ accent: false, kanban: false, 'hermes-bots': false })
+    $pluginDecisions.set({ accent: false, kanban: false, 'iris-bots': false })
     const fetch = vi.fn()
     const audio = vi.fn()
     vi.stubGlobal('fetch', fetch)
@@ -57,7 +57,7 @@ describe('bundled Radio plugin', () => {
   })
 
   it('releases the stream on disable and ignores late media events from the old player', async () => {
-    $pluginDecisions.set({ accent: false, kanban: false, 'hermes-bots': false })
+    $pluginDecisions.set({ accent: false, kanban: false, 'iris-bots': false })
     discoverBundledPlugins()
     // jsdom has no decoder: the actual player and plugin lifecycle run against DOM media events.
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()

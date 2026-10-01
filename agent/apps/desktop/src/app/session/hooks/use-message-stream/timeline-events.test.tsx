@@ -1,4 +1,4 @@
-import type { GatewayEventName } from '@hermes/shared'
+import type { GatewayEventName } from '@iris/shared'
 import { act, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

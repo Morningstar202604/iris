@@ -35,13 +35,13 @@ def _run_two_concurrent(fn):
 def test_anthropic_onboarding_oauth_start_reuses_pending_flow(monkeypatch, tmp_path):
     """Repeated unauthenticated starts must not spawn unbounded pending workers."""
     spawned = []
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
 
     monkeypatch.setattr(oauth, "_read_claude_code_credentials", lambda: None)
     monkeypatch.setattr(oauth, "_spawn_anthropic_credential_worker", lambda flow_id: spawned.append(flow_id))
 
-    first = oauth._start_anthropic_flow(hermes_home)
-    second = oauth._start_anthropic_flow(hermes_home)
+    first = oauth._start_anthropic_flow(iris_home)
+    second = oauth._start_anthropic_flow(iris_home)
 
     assert first["status"] == "pending"
     assert second["status"] == "pending"
@@ -55,7 +55,7 @@ def test_anthropic_onboarding_oauth_start_reuses_pending_flow(monkeypatch, tmp_p
 def test_anthropic_onboarding_oauth_start_single_flight_is_thread_safe(monkeypatch, tmp_path):
     """Concurrent unauthenticated Anthropic starts must reserve one pending worker atomically."""
     spawned = []
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
     credential_reads = threading.Barrier(2)
 
     def no_credentials():
@@ -65,7 +65,7 @@ def test_anthropic_onboarding_oauth_start_single_flight_is_thread_safe(monkeypat
     monkeypatch.setattr(oauth, "_read_claude_code_credentials", no_credentials)
     monkeypatch.setattr(oauth, "_spawn_anthropic_credential_worker", lambda flow_id: spawned.append(flow_id))
 
-    first, second = _run_two_concurrent(lambda: oauth._start_anthropic_flow(hermes_home))
+    first, second = _run_two_concurrent(lambda: oauth._start_anthropic_flow(iris_home))
 
     assert first["status"] == "pending"
     assert second["status"] == "pending"
@@ -80,9 +80,9 @@ def test_codex_onboarding_oauth_start_reuses_pending_flow_before_requesting_code
     """A second Codex start should reuse the live flow before creating a new device code or worker."""
     spawned = []
     requested = []
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
 
-    monkeypatch.setattr(oauth, "_get_active_hermes_home", lambda: Path(hermes_home))
+    monkeypatch.setattr(oauth, "_get_active_iris_home", lambda: Path(iris_home))
 
     def fake_request_code():
         requested.append(True)
@@ -107,9 +107,9 @@ def test_codex_onboarding_oauth_start_reuses_pending_flow_before_requesting_code
 def test_codex_onboarding_oauth_start_does_not_hold_lock_while_requesting_code(monkeypatch, tmp_path):
     """The slow Codex device-code request must not block unrelated flow operations."""
     lock_available_during_request = []
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
 
-    monkeypatch.setattr(oauth, "_get_active_hermes_home", lambda: Path(hermes_home))
+    monkeypatch.setattr(oauth, "_get_active_iris_home", lambda: Path(iris_home))
     monkeypatch.setattr(oauth, "_spawn_codex_oauth_worker", lambda flow_id: None)
 
     def fake_request_code():
@@ -131,9 +131,9 @@ def test_codex_onboarding_oauth_start_single_flight_is_thread_safe(monkeypatch, 
     """Concurrent Codex starts must request one device code and spawn one worker."""
     spawned = []
     requested = []
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
 
-    monkeypatch.setattr(oauth, "_get_active_hermes_home", lambda: Path(hermes_home))
+    monkeypatch.setattr(oauth, "_get_active_iris_home", lambda: Path(iris_home))
 
     def fake_request_code():
         requested.append(True)

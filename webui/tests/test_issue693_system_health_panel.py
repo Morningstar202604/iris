@@ -224,7 +224,7 @@ def test_system_health_route_registered_and_auth_gated(monkeypatch):
     assert "build_system_health_payload()" in ROUTES_PY
     assert '"/api/system/health"' not in AUTH_PY, "system metrics must not be public"
 
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
     from api import auth as _auth
     from api.auth import check_auth
 
@@ -240,7 +240,7 @@ def test_system_health_route_registered_and_auth_gated(monkeypatch):
         assert check_auth(handler, SimpleNamespace(path="/api/system/health", query="")) is False
         assert handler.status in (302, 401)
     finally:
-        monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
         _auth._invalidate_password_hash_cache()
 
 
@@ -442,7 +442,7 @@ def test_health_route_completes_while_config_cache_lock_is_held(monkeypatch, tmp
 
     config_path = tmp_path / "config.yaml"
     config_path.write_text("webui:\n  sessions_cache_max: 41\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(config_path))
     # Cold cache: get_config() takes the reload branch, which waits on _cfg_lock.
     monkeypatch.setattr(config, "_cfg_cache", {})
     monkeypatch.setattr(config, "_cfg_mtime", 0.0)
@@ -484,7 +484,7 @@ def test_sessions_snapshot_never_resolves_config_or_profile(monkeypatch):
 
     monkeypatch.setattr(config, "get_config", trap)
     monkeypatch.setattr(config, "_get_config_path", trap)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", trap)
+    monkeypatch.setattr(profiles, "get_active_iris_home", trap)
     monkeypatch.setattr(config, "_LAST_APPLIED_SESSIONS_CACHE_MAX", 57, raising=False)
 
     with _seeded_mapping(config.LOCK, config.SESSIONS, {"trap-probe": object()}):
@@ -608,7 +608,7 @@ def test_diagnostics_cap_tracks_the_eviction_owner(monkeypatch, tmp_path):
 
     _pin_config_module_cache(monkeypatch)
     config_path = tmp_path / "config.yaml"
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(config_path))
     fallback = (
         config.SESSIONS_MAX
         if isinstance(config.SESSIONS_MAX, int) and config.SESSIONS_MAX >= 1
@@ -688,7 +688,7 @@ def test_the_cap_getter_does_not_publish_diagnostics_state(monkeypatch, tmp_path
     _pin_config_module_cache(monkeypatch)
     config_path = tmp_path / "config.yaml"
     config_path.write_text("webui:\n  sessions_cache_max: 88\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(config_path))
     monkeypatch.setattr(config, "_cfg_cache", {})
     monkeypatch.setattr(config, "_cfg_mtime", 0.0)
     monkeypatch.setattr(config, "_cfg_path", None)
@@ -705,7 +705,7 @@ def test_the_cap_getter_does_not_publish_diagnostics_state(monkeypatch, tmp_path
     seeded = subprocess.run(
         [sys.executable, "-c", "import api.config as c; print(c._LAST_APPLIED_SESSIONS_CACHE_MAX)"],
         cwd=str(REPO_ROOT),
-        env={**os.environ, "HERMES_CONFIG_PATH": str(config_path)},
+        env={**os.environ, "IRIS_CONFIG_PATH": str(config_path)},
         capture_output=True,
         text=True,
         timeout=45,
@@ -738,7 +738,7 @@ def test_infinite_cap_falls_back_instead_of_raising(tmp_path):
     booted = subprocess.run(
         [sys.executable, "-c", "import api.config as c; print(c._LAST_APPLIED_SESSIONS_CACHE_MAX)"],
         cwd=str(REPO_ROOT),
-        env={**os.environ, "HERMES_CONFIG_PATH": str(config_path)},
+        env={**os.environ, "IRIS_CONFIG_PATH": str(config_path)},
         capture_output=True,
         text=True,
         timeout=45,
@@ -1045,14 +1045,14 @@ def test_runtime_route_auth_and_privacy(monkeypatch):
     from api.auth import check_auth
     from api import system_health
 
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
     _auth._invalidate_password_hash_cache()
     handler = _FakeHandler()
     try:
         assert check_auth(handler, SimpleNamespace(path="/api/system/health", query="")) is False
         assert handler.status in (302, 401)
     finally:
-        monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
         _auth._invalidate_password_hash_cache()
 
     monkeypatch.setattr(system_health, "_cpu_percent", lambda: 1.0)
@@ -1088,13 +1088,13 @@ def test_runtime_diagnostics_ignore_profile_storage(monkeypatch, tmp_path):
     from api import config, profiles, system_health
 
     _fixed_host_metrics(monkeypatch)
-    hermes_home = tmp_path / ".hermes"
-    leftover_profile = hermes_home / "profiles" / "work"
+    iris_home = tmp_path / ".iris"
+    leftover_profile = iris_home / "profiles" / "work"
     (leftover_profile / "sessions").mkdir(parents=True)
     (leftover_profile / "config.yaml").write_text(
         "webui:\n  sessions_cache_max: 7\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("IRIS_HOME", str(iris_home))
 
     fired = []
 
@@ -1102,7 +1102,7 @@ def test_runtime_diagnostics_ignore_profile_storage(monkeypatch, tmp_path):
         fired.append(True)
         raise AssertionError("health collection must not resolve profile storage")
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", trap)
+    monkeypatch.setattr(profiles, "get_active_iris_home", trap)
     monkeypatch.setattr(config, "_get_config_path", trap)
 
     payload = system_health.build_system_health_payload()
@@ -1111,5 +1111,5 @@ def test_runtime_diagnostics_ignore_profile_storage(monkeypatch, tmp_path):
     assert payload["status"] in {"ok", "partial"}
     rendered = repr(payload)
     assert "profiles" not in rendered
-    assert str(hermes_home) not in rendered
+    assert str(iris_home) not in rendered
     assert "work" not in rendered

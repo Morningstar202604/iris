@@ -154,7 +154,7 @@ class DisplayStatusPayload(DisplayStatus, Payload):
 
 
 event("display.status", DisplayStatusPayload,
-      doc="This profile's screen started or stopped (also for transitions made outside hermes serve).")
+      doc="This profile's screen started or stopped (also for transitions made outside iris serve).")
 
 
 class DisplayLeasePayload(Payload):

@@ -7,7 +7,7 @@ import { triggerHaptic } from '@/lib/haptics'
 import { QUICK_REACTIONS, toggleMessageReaction } from '@/store/reactions'
 import { $reactionsEnabled } from '@/store/reactions-enabled'
 import { $agentReactions, $localReactions, mergeReactions, setLocalReaction } from '@/store/reactions-local'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/iris'
 
 // Stable empty identity — a fresh [] per render would re-run every consumer.
 const EMPTY_REACTIONS: MessageReaction[] = []

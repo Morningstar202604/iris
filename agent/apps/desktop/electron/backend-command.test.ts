@@ -9,10 +9,10 @@ test('serveBackendArgs pins a profile when provided', () => {
 })
 
 test('dashboardFallbackArgs preserves a --profile flag ahead of serve', () => {
-  const serve = ['-m', 'hermes_cli.main', '--profile', 'worker', 'serve', '--host', '127.0.0.1', '--port', '0']
+  const serve = ['-m', 'iris_cli.main', '--profile', 'worker', 'serve', '--host', '127.0.0.1', '--port', '0']
   assert.deepEqual(dashboardFallbackArgs(serve), [
     '-m',
-    'hermes_cli.main',
+    'iris_cli.main',
     '--profile',
     'worker',
     'dashboard',
@@ -25,7 +25,7 @@ test('dashboardFallbackArgs preserves a --profile flag ahead of serve', () => {
 })
 
 test('dashboardFallbackArgs is a no-op (copy) when there is no serve token', () => {
-  const args = ['-m', 'hermes_cli.main', 'dashboard', '--no-open']
+  const args = ['-m', 'iris_cli.main', 'dashboard', '--no-open']
   const out = dashboardFallbackArgs(args)
   assert.deepEqual(out, args)
 })
@@ -39,7 +39,7 @@ test('sourceDeclaresServe detects the serve subparser registration', () => {
 test('sourceDeclaresServe does not false-positive on the substring "server"', () => {
   const oldSource = `
     dashboard_parser = subparsers.add_parser("dashboard", help="Start the web UI dashboard")
-    from hermes_cli.web_server import start_server  # web server
+    from iris_cli.web_server import start_server  # web server
   `
 
   assert.equal(sourceDeclaresServe(oldSource), false)

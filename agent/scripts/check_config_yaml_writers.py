@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Fail when a ``config.yaml`` is written by anything but the comment-preserving writer.
 
-Every writer of ``~/.hermes/config.yaml`` (and ``profiles/*/config.yaml``) must go through
-``hermes_cli.config.atomic_config_write`` → ``utils.atomic_roundtrip_yaml_save`` (ruamel
+Every writer of ``~/.iris/config.yaml`` (and ``profiles/*/config.yaml``) must go through
+``iris_cli.config.atomic_config_write`` → ``utils.atomic_roundtrip_yaml_save`` (ruamel
 round-trip). A PyYAML dump (``yaml.dump`` / ``yaml.safe_dump`` / ``utils.atomic_yaml_write``)
 of a config path re-serialises the parsed dict and destroys every user comment — the #92554
 class, which regressed several times because each new writer picked the plain dumper again.
@@ -13,8 +13,8 @@ Flags, in the scanned trees:
   first argument names a config path (``config_path``, ``cfg_path``, ``config.yaml``,
   ``get_config_path()``, ``_active_config_path()``, ``live_path``);
 * ``<config path>.write_text(... dump(...) ...)``;
-* any ``yaml.dump`` / ``yaml.safe_dump`` / ``atomic_yaml_write`` call inside ``hermes_cli/config.py``
-  or ``hermes_cli/config_*.py`` (the config system has exactly one writer).
+* any ``yaml.dump`` / ``yaml.safe_dump`` / ``atomic_yaml_write`` call inside ``iris_cli/config.py``
+  or ``iris_cli/config_*.py`` (the config system has exactly one writer).
 
 Suppress a true false positive with ``# config-writer: ok — <why>`` on the call's line.
 
@@ -28,13 +28,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TREES = ("hermes_cli", "agent", "gateway", "tui_gateway", "cron", "plugins", "tools", "cli.py", "utils.py")
+DEFAULT_TREES = ("iris_cli", "agent", "gateway", "tui_gateway", "cron", "plugins", "tools", "cli.py", "utils.py")
 # The writer module itself and the on-disk primitive it wraps.
 ALLOWED_FILES = {ROOT / "utils.py"}
 DUMPERS = {"atomic_yaml_write", "safe_dump", "dump"}
 CONFIG_PATH_RE = re.compile(
     r"config_path|cfg_path|config\.yaml|get_config_path\(\)|_active_config_path\(\)|\blive_path\b")
-CONFIG_MODULE_RE = re.compile(r"^hermes_cli/config(_[a-z_]+)?\.py$")
+CONFIG_MODULE_RE = re.compile(r"^iris_cli/config(_[a-z_]+)?\.py$")
 SUPPRESS = "# config-writer: ok"
 
 
@@ -72,7 +72,7 @@ def scan_file(path: Path) -> list[str]:
         line = lines[node.lineno - 1]
         if SUPPRESS in line:
             return
-        problems.append(f"{rel}:{node.lineno}: {why} — route it through hermes_cli.config.atomic_config_write")
+        problems.append(f"{rel}:{node.lineno}: {why} — route it through iris_cli.config.atomic_config_write")
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):

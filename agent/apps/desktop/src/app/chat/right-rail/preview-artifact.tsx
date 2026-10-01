@@ -47,7 +47,7 @@ function composeArtifactHtml(content: string): string {
  *  buffer-save IPC, then hand it to the OS browser. A blob/data URL can't
  *  cross into the OS default browser, so a file on disk is the honest path. */
 async function openHtmlInBrowser(content: string): Promise<void> {
-  const bridge = window.hermesDesktop
+  const bridge = window.irisDesktop
 
   if (!bridge?.saveImageBuffer || !bridge.openExternal) {
     throw new Error('Desktop bridge unavailable')
@@ -234,7 +234,7 @@ export function ArtifactPreview({ target }: { target: PreviewTarget }) {
                 <Download className="size-3" />
               </button>
             </Tip>
-            {record.kind === 'html' && window.hermesDesktop && (
+            {record.kind === 'html' && window.irisDesktop && (
               <Tip label={copy.openInBrowser}>
                 <button
                   aria-label={copy.openInBrowser}

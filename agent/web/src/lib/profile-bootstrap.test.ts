@@ -31,7 +31,7 @@ describe("dashboardServingProfile", () => {
   });
 
   it.each([
-    ["an injected serving profile", { __HERMES_DASHBOARD_PROFILE__: "served" }, "served"],
+    ["an injected serving profile", { __IRIS_DASHBOARD_PROFILE__: "served" }, "served"],
     ["a window without one", {}, ""],
   ])("reports %s", (_label, windowStub, expected) => {
     vi.stubGlobal("window", windowStub);
@@ -56,7 +56,7 @@ describe("initialProfileScope precedence", () => {
   });
 
   it("defaults the serving profile to the one this backend injected", () => {
-    vi.stubGlobal("window", { __HERMES_DASHBOARD_PROFILE__: "served" });
+    vi.stubGlobal("window", { __IRIS_DASHBOARD_PROFILE__: "served" });
     expect(initialProfileScope(new URLSearchParams("resume=s1"), "")).toBe("served");
   });
 });

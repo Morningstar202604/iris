@@ -1,6 +1,6 @@
 # TUI Widgets — Live Panels for the Ink TUI Dock
 
-Author widget apps for the Hermes TUI (`hermes --tui`): glanceable ambient
+Author widget apps for the Iris TUI (`iris --tui`): glanceable ambient
 panels docked above the status bar, or modal overlays that own the keyboard.
 Widgets are plain ESM files the TUI loads at startup — no build step, no
 repo changes. This skill does not cover desktop-app or web-dashboard
@@ -15,14 +15,14 @@ widgets.
 
 ## Prerequisites
 
-- The TUI must be in use (`hermes --tui`). Widgets do not render in the
+- The TUI must be in use (`iris --tui`). Widgets do not render in the
   classic CLI or messaging platforms.
 - Network-backed widgets need whatever credentials their API needs; fetch
   failures must land as an error phase, never a crash.
 
 ## How to Run
 
-1. Use `write_file` to create `~/.hermes/tui-widgets/<name>.mjs` (see
+1. Use `write_file` to create `~/.iris/tui-widgets/<name>.mjs` (see
    `templates/clock.mjs` for a complete working widget).
 2. If the TUI is running it hot-loads the file within ~a second (the
    widgets directory is watched); `/widgets-reload` forces a rescan.
@@ -127,7 +127,7 @@ Contract essentials:
 - Ambient widgets must stay small (≤ ~6 rows) — the dock sits between the
   transcript and the status bar.
 - A thrown `register()` is logged and skipped; check
-  `~/.hermes/logs/tui_gateway_crash.log` if a widget never appears.
+  `~/.iris/logs/tui_gateway_crash.log` if a widget never appears.
 
 ## Verification
 

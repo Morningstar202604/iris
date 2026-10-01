@@ -85,10 +85,10 @@ def test_session_scoped_tag_is_preserved(tmp_path):
     """The session-scoped tag stays so stale notifications are still replaced
     in the notification center (no duplicate clutter)."""
     out = _run_driver(tmp_path)
-    assert out["withSid"]["tag"] == "hermes-sess-6673"
+    assert out["withSid"]["tag"] == "iris-sess-6673"
 
 
 def test_fallback_tag_without_session(tmp_path):
     out = _run_driver(tmp_path)
-    assert out["withoutSid"]["tag"] == "hermes-webui"
+    assert out["withoutSid"]["tag"] == "iris-webui"
     assert out["withoutSid"]["renotify"] is True

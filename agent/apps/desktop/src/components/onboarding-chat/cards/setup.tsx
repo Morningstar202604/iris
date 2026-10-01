@@ -170,7 +170,7 @@ export function ConnectorPicks({ catalog, commit, done, locked, plugins }: Conne
           here. Saying so is what keeps the Connect cards later from reading as
           a second ask for the same thing. */}
       <p className="text-xs text-muted-foreground">
-        <strong className="font-medium text-foreground">Nothing connects or installs yet.</strong> Hermes will offer to
+        <strong className="font-medium text-foreground">Nothing connects or installs yet.</strong> Iris will offer to
         link these, or install a plugin, when a task needs them, and asks first.
       </p>
     </CardFrame>

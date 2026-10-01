@@ -10,7 +10,7 @@ from the workspace a new chat would actually inherit for that profile.
 Fix: GET /api/profile/active now includes ``default_workspace``, resolved with
 the SAME profile-scoped priority used by POST /api/profile/switch — reusing
 ``api.workspace.get_last_workspace()`` (which is already keyed off the
-per-request hermes_profile cookie via the thread-local):
+per-request iris_profile cookie via the thread-local):
     {profile_home}/webui_state/last_workspace.txt
       -> config.yaml workspace / default_workspace
       -> terminal.cwd
@@ -54,7 +54,7 @@ def test_profile_active_includes_default_workspace_from_resolver(monkeypatch):
     """
     captured = _capture_j(monkeypatch)
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "work")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: "/home/u/.hermes/profiles/work")
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: "/home/u/.iris/profiles/work")
     monkeypatch.setattr(profiles, "_is_root_profile", lambda name: name in ("default", ""))
     # The resolver is the single source of truth for the workspace value.
     monkeypatch.setattr(routes, "get_profile_default_workspace", lambda: "/srv/projects/work")
@@ -74,13 +74,13 @@ def test_profile_active_includes_default_workspace_from_resolver(monkeypatch):
 def test_profile_active_default_workspace_resolves_from_named_profile(monkeypatch, tmp_path):
     """End-to-end: a named profile's last_workspace.txt drives default_workspace.
 
-    Mirrors the real boot path — the per-request hermes_profile cookie sets the
+    Mirrors the real boot path — the per-request iris_profile cookie sets the
     thread-local profile (set_request_profile), so get_last_workspace() reads the
     target profile's {home}/webui_state/last_workspace.txt rather than the global
     default.
     """
-    # ── Single-user layout: base ~/.hermes with a named 'work' profile ──
-    base_home = tmp_path / ".hermes"
+    # ── Single-user layout: base ~/.iris with a named 'work' profile ──
+    base_home = tmp_path / ".iris"
     profile_home = base_home / "profiles" / "work"
     for subdir in ("memories", "sessions", "skills", "webui_state"):
         (profile_home / subdir).mkdir(parents=True, exist_ok=True)
@@ -98,14 +98,14 @@ def test_profile_active_default_workspace_resolves_from_named_profile(monkeypatc
     # Point the profile machinery at our temp base home and force normal
     # multi-profile mode (no isolated opt-in) so the named profile resolves
     # to {base}/profiles/work.
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base_home)
-    monkeypatch.delenv("HERMES_WEBUI_ISOLATED_PROFILE", raising=False)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base_home)
+    monkeypatch.delenv("IRIS_WEBUI_ISOLATED_PROFILE", raising=False)
     monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "")
     # Defensive: keep resolution hermetic w.r.t. the test runner's real config —
     # a remote terminal backend would otherwise reject the local last_workspace.
     monkeypatch.setattr(workspace, "_remote_terminal_cwd", lambda: None)
 
-    # Simulate the request carrying a hermes_profile=work cookie.
+    # Simulate the request carrying a iris_profile=work cookie.
     profiles.set_request_profile("work")
     try:
         routes.handle_get(SimpleNamespace(), urlparse("/api/profile/active"))
@@ -127,7 +127,7 @@ def test_profile_active_default_workspace_falls_back_to_config_workspace(monkeyp
     This exercises the second tier of the shared resolution priority used by
     POST /api/profile/switch.
     """
-    base_home = tmp_path / ".hermes"
+    base_home = tmp_path / ".iris"
     profile_home = base_home / "profiles" / "work"
     (profile_home / "webui_state").mkdir(parents=True, exist_ok=True)
 
@@ -136,8 +136,8 @@ def test_profile_active_default_workspace_falls_back_to_config_workspace(monkeyp
     resolved_cfg_ws = str(cfg_workspace.resolve())
 
     captured = _capture_j(monkeypatch)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base_home)
-    monkeypatch.delenv("HERMES_WEBUI_ISOLATED_PROFILE", raising=False)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base_home)
+    monkeypatch.delenv("IRIS_WEBUI_ISOLATED_PROFILE", raising=False)
     monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "")
     monkeypatch.setattr(workspace, "_remote_terminal_cwd", lambda: None)
     # Neutralize the global last_workspace.txt fallback so this test exercises the
@@ -172,7 +172,7 @@ def test_profile_active_default_workspace_ignores_global_last_workspace(monkeypa
     get_profile_default_workspace(), which skips the global file: profile-scoped
     last_workspace.txt -> config.yaml -> terminal.cwd -> default.
     """
-    base_home = tmp_path / ".hermes"
+    base_home = tmp_path / ".iris"
     profile_home = base_home / "profiles" / "work"
     (profile_home / "webui_state").mkdir(parents=True, exist_ok=True)
 
@@ -188,8 +188,8 @@ def test_profile_active_default_workspace_ignores_global_last_workspace(monkeypa
     resolved_cfg_ws = str(cfg_workspace.resolve())
 
     captured = _capture_j(monkeypatch)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base_home)
-    monkeypatch.delenv("HERMES_WEBUI_ISOLATED_PROFILE", raising=False)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base_home)
+    monkeypatch.delenv("IRIS_WEBUI_ISOLATED_PROFILE", raising=False)
     monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "")
     monkeypatch.setattr(workspace, "_remote_terminal_cwd", lambda: None)
     # The global last-workspace file DOES exist (and is valid) — the named-profile

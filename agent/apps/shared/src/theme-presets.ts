@@ -1,5 +1,5 @@
 /**
- * Raw palette table for every built-in Hermes theme preset — the single source
+ * Raw palette table for every built-in Iris theme preset — the single source
  * of truth shared by the desktop app (which layers OKLCH synthesis, terminal
  * palettes and typography on top) and the web dashboard (which projects each
  * preset down to its 3-slot background/midground/foreground model via

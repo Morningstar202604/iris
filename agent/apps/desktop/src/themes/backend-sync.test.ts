@@ -33,8 +33,8 @@ describe('ingestBackendSkin', () => {
     expect($pendingSkinApply.get()).toBeNull()
 
     // The activation event was missed (skin set while disconnected / backend
-    // restarted). Hermes re-affirms it — `hermes config set display.skin neon`
-    // or a `hermes skin set` recolor. That explicit event must repaint even
+    // restarted). Iris re-affirms it — `iris config set display.skin neon`
+    // or a `iris skin set` recolor. That explicit event must repaint even
     // though the name matches the seed.
     ingestBackendSkin(skin('neon'), { apply: true })
     expect($pendingSkinApply.get()).toBe('neon')
@@ -45,7 +45,7 @@ describe('ingestBackendSkin', () => {
     expect($pendingSkinApply.get()).toBeNull()
 
     // ...and a genuine switch still applies.
-    ingestBackendSkin(skin('forest'), { apply: true }) // Hermes authored a new skin
+    ingestBackendSkin(skin('forest'), { apply: true }) // Iris authored a new skin
     expect($pendingSkinApply.get()).toBe('forest')
   })
 
@@ -75,7 +75,7 @@ describe('ingestBackendSkin', () => {
 
   it('applies a runtime switch back to default (repaints the desktop to its own default)', () => {
     ingestBackendSkin(skin('neon'), { apply: false }) // gateway.ready seed on some skin
-    ingestBackendSkin(skin('default'), { apply: true }) // Hermes switched back to default
+    ingestBackendSkin(skin('default'), { apply: true }) // Iris switched back to default
 
     expect($pendingSkinApply.get()).toBe('default')
   })
@@ -96,7 +96,7 @@ describe('ingestBackendSkin', () => {
 
   it('hydrates the registry from storage on load, so a persisted pick resolves before the gateway connects', async () => {
     ingestBackendSkin(skin('neon'), { apply: false })
-    expect(JSON.parse(window.localStorage.getItem('hermes-desktop-backend-themes-v1') ?? '{}').neon?.name).toBe('neon')
+    expect(JSON.parse(window.localStorage.getItem('iris-desktop-backend-themes-v1') ?? '{}').neon?.name).toBe('neon')
 
     // Relaunch: a fresh module instance with the same storage.
     vi.resetModules()
@@ -107,7 +107,7 @@ describe('ingestBackendSkin', () => {
 
   it('drops junk and built-in names from the cached registry', async () => {
     const mono = { name: 'mono', label: 'x', colors: { background: '#000', foreground: '#fff', primary: '#f0f' } }
-    window.localStorage.setItem('hermes-desktop-backend-themes-v1', JSON.stringify({ mono, bad: { name: 'bad' } }))
+    window.localStorage.setItem('iris-desktop-backend-themes-v1', JSON.stringify({ mono, bad: { name: 'bad' } }))
 
     vi.resetModules()
     const fresh = await import('./backend-sync')

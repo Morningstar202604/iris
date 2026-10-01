@@ -3,21 +3,21 @@
 Codex round-1 SHOULD-FIX: the PR's only test change mocks sync_session_title to a
 no-op, so the new state.db-writing path had no direct test proving it actually
 persists a generated title AND preserves a manual rename. These tests exercise
-the real function against a temporary hermes-agent SessionDB.
+the real function against a temporary iris-agent SessionDB.
 """
 
 import pytest
 
 
 def _make_db(tmp_path):
-    hermes_state = pytest.importorskip("hermes_state")
-    SessionDB = hermes_state.SessionDB
+    iris_state = pytest.importorskip("iris_state")
+    SessionDB = iris_state.SessionDB
     return SessionDB(db_path=tmp_path / "state.db")
 
 
 @pytest.mark.requires_agent_modules
 def test_sync_session_title_persists_generated_title(tmp_path, monkeypatch):
-    """A generated title is written to state.db so `hermes sessions list` isn't blank."""
+    """A generated title is written to state.db so `iris sessions list` isn't blank."""
     from api import state_sync
 
     db = _make_db(tmp_path)

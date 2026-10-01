@@ -101,9 +101,9 @@ def worker_scene(tmp_path, monkeypatch):
     monkeypatch.setattr(streaming, "resolve_model_provider", lambda *a, **kw: ("test-model", "openai", None))
     monkeypatch.setattr(config, "get_config", lambda *a, **kw: {})
     monkeypatch.setattr(config, "_resolve_cli_toolsets", lambda *a, **kw: [])
-    state = types.ModuleType("hermes_state")
+    state = types.ModuleType("iris_state")
     state.SessionDB = lambda *a, **kw: object()
-    monkeypatch.setitem(sys.modules, "hermes_state", state)
+    monkeypatch.setitem(sys.modules, "iris_state", state)
     scene.run = lambda: streaming._run_agent_streaming(
         "original", "Do the task.", "test-model", str(tmp_path), "run")
     return scene

@@ -1,11 +1,11 @@
 import type { AppendMessage, ThreadMessage } from '@assistant-ui/react'
-import { JsonRpcGatewayError } from '@hermes/shared'
-import { SLASH_COMMAND_RE } from '@hermes/shared'
-import { stripAnsi } from '@hermes/shared/ansi'
+import { JsonRpcGatewayError } from '@iris/shared'
+import { SLASH_COMMAND_RE } from '@iris/shared'
+import { stripAnsi } from '@iris/shared/ansi'
 import { useStore } from '@nanostores/react'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 
-import { transcribeAudio } from '@/hermes'
+import { transcribeAudio } from '@/iris'
 import { useI18n } from '@/i18n'
 import { type ChatMessage, textPart } from '@/lib/chat-messages'
 import { pathLabel } from '@/lib/chat-runtime'
@@ -532,7 +532,7 @@ export function usePromptActions({
 
   // Queue a handoff of this session to a messaging platform and watch it to
   // a terminal state. We only write the request through the gateway; the
-  // separate `hermes gateway` process performs the actual transfer, so we
+  // separate `iris gateway` process performs the actual transfer, so we
   // poll `handoff.state` (mirror of the CLI's block-poll) for the result.
   const handoffSession = useCallback(
     async (

@@ -234,7 +234,7 @@ def test_successor_alignment_prefers_stable_ids_over_content():
     assert restore(idless, None) == restored_shape
 
 
-_REAL_SIDECAR = os.environ.get("HERMES_WEBUI_REAL_CLONE_SIDECAR", "")
+_REAL_SIDECAR = os.environ.get("IRIS_WEBUI_REAL_CLONE_SIDECAR", "")
 
 
 def _assistant_successor_history(n_anchors: int) -> tuple[list[dict], list[dict]]:
@@ -583,7 +583,7 @@ def test_handle_chat_sync_passes_result_turn_authority_to_settlement(tmp_path, m
 
 @pytest.mark.skipif(
     not _REAL_SIDECAR or not pathlib.Path(_REAL_SIDECAR).is_file(),
-    reason="set HERMES_WEBUI_REAL_CLONE_SIDECAR to a captured sidecar to run",
+    reason="set IRIS_WEBUI_REAL_CLONE_SIDECAR to a captured sidecar to run",
 )
 def test_real_captured_sidecar_does_not_double_per_settled_turn():
     data = json.loads(pathlib.Path(_REAL_SIDECAR).read_text())

@@ -1,4 +1,4 @@
-# Running Hermes Web UI under a process supervisor
+# Running Iris Web UI under a process supervisor
 
 Use a process supervisor (launchd, systemd, supervisord, runit, s6) when you
 want the Web UI to start at boot, restart on crash, or be managed alongside
@@ -12,11 +12,11 @@ Pass ``--foreground`` to ``bootstrap.py`` (or ``bash start.sh``):
 bash start.sh --foreground
 ```
 
-Or set ``HERMES_WEBUI_FOREGROUND=1`` in the environment. The Web UI will
+Or set ``IRIS_WEBUI_FOREGROUND=1`` in the environment. The Web UI will
 auto-detect launchd / systemd / supervisord even without the flag, but being
 explicit is safer.
 
-**Important (launchd on macOS):** if the ``com.parantoux.hermes-webui`` LaunchAgent is enabled, treat launchd as the single source of truth for WebUI lifecycle. Do **not** also run ``./ctl.sh start``, ``bash start.sh``, ``python bootstrap.py``, or ``python server.py`` against the same state dir/port, or you can create a second WebUI instance and trigger port-8787 restart churn.
+**Important (launchd on macOS):** if the ``com.parantoux.iris-webui`` LaunchAgent is enabled, treat launchd as the single source of truth for WebUI lifecycle. Do **not** also run ``./ctl.sh start``, ``bash start.sh``, ``python bootstrap.py``, or ``python server.py`` against the same state dir/port, or you can create a second WebUI instance and trigger port-8787 restart churn.
 
 ## Why ``--foreground`` matters
 
@@ -40,7 +40,7 @@ sees the long-lived server as the original child. ``KeepAlive=true`` /
 
 ## launchd (macOS)
 
-``~/Library/LaunchAgents/com.example.hermes-webui.plist``:
+``~/Library/LaunchAgents/com.example.iris-webui.plist``:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -48,17 +48,17 @@ sees the long-lived server as the original child. ``KeepAlive=true`` /
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.example.hermes-webui</string>
+    <string>com.example.iris-webui</string>
 
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/yourname/hermes-webui/start.sh</string>
+        <string>/Users/yourname/iris-webui/start.sh</string>
         <string>--foreground</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/yourname/hermes-webui</string>
+    <string>/Users/yourname/iris-webui</string>
 
     <key>RunAtLoad</key>
     <true/>
@@ -67,10 +67,10 @@ sees the long-lived server as the original child. ``KeepAlive=true`` /
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/yourname/.hermes/webui/launchd-stdout.log</string>
+    <string>/Users/yourname/.iris/webui/launchd-stdout.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/yourname/.hermes/webui/launchd-stderr.log</string>
+    <string>/Users/yourname/.iris/webui/launchd-stderr.log</string>
 
     <key>EnvironmentVariables</key>
     <dict>
@@ -86,15 +86,15 @@ sees the long-lived server as the original child. ``KeepAlive=true`` /
 Load:
 
 ```bash
-launchctl load ~/Library/LaunchAgents/com.example.hermes-webui.plist
-launchctl print gui/$(id -u)/com.example.hermes-webui   # check state
+launchctl load ~/Library/LaunchAgents/com.example.iris-webui.plist
+launchctl print gui/$(id -u)/com.example.iris-webui   # check state
 ```
 
 Reload after editing the plist:
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.example.hermes-webui.plist
-launchctl load   ~/Library/LaunchAgents/com.example.hermes-webui.plist
+launchctl unload ~/Library/LaunchAgents/com.example.iris-webui.plist
+launchctl load   ~/Library/LaunchAgents/com.example.iris-webui.plist
 ```
 
 launchd sets ``XPC_SERVICE_NAME`` automatically, so even without the
@@ -103,17 +103,17 @@ The flag is still recommended as documentation of intent.
 
 ## systemd (Linux)
 
-``~/.config/systemd/user/hermes-webui.service``:
+``~/.config/systemd/user/iris-webui.service``:
 
 ```ini
 [Unit]
-Description=Hermes Web UI
+Description=Iris Web UI
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/hermes-webui
-ExecStart=/bin/bash %h/hermes-webui/start.sh --foreground
+WorkingDirectory=%h/iris-webui
+ExecStart=/bin/bash %h/iris-webui/start.sh --foreground
 Restart=on-failure
 RestartSec=5
 
@@ -129,8 +129,8 @@ Enable + start:
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now hermes-webui.service
-journalctl --user -u hermes-webui.service -f
+systemctl --user enable --now iris-webui.service
+journalctl --user -u iris-webui.service -f
 ```
 
 systemd sets ``INVOCATION_ID`` and ``JOURNAL_STREAM`` (when stdio is wired to
@@ -138,19 +138,19 @@ the journal), both of which auto-promote to foreground mode.
 
 ## supervisord (cross-platform)
 
-``/etc/supervisor/conf.d/hermes-webui.conf``:
+``/etc/supervisor/conf.d/iris-webui.conf``:
 
 ```ini
-[program:hermes-webui]
-command=/bin/bash /home/youruser/hermes-webui/start.sh --foreground
-directory=/home/youruser/hermes-webui
+[program:iris-webui]
+command=/bin/bash /home/youruser/iris-webui/start.sh --foreground
+directory=/home/youruser/iris-webui
 user=youruser
 autostart=true
 autorestart=true
 stopsignal=TERM
 stopwaitsecs=10
-stdout_logfile=/var/log/hermes-webui.out.log
-stderr_logfile=/var/log/hermes-webui.err.log
+stdout_logfile=/var/log/iris-webui.out.log
+stderr_logfile=/var/log/iris-webui.err.log
 environment=HOME="/home/youruser",PATH="/usr/local/bin:/usr/bin:/bin"
 ```
 
@@ -159,7 +159,7 @@ Reload + start:
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl status hermes-webui
+sudo supervisorctl status iris-webui
 ```
 
 supervisord sets ``SUPERVISOR_ENABLED``, which auto-promotes to foreground
@@ -176,7 +176,7 @@ These trigger ``--foreground`` behavior even when the flag is not passed:
 | ``NOTIFY_SOCKET`` | systemd ``Type=notify`` / s6 | sd_notify-style notification socket |
 | ``XPC_SERVICE_NAME`` | launchd | Set to the plist Label — narrowed to ``com.<rdns>.<svc>`` form (see below) |
 | ``SUPERVISOR_ENABLED`` | supervisord | Always set under supervisord |
-| ``HERMES_WEBUI_FOREGROUND`` | you | Explicit opt-in; accepts ``1`` / ``true`` / ``yes`` / ``on`` |
+| ``IRIS_WEBUI_FOREGROUND`` | you | Explicit opt-in; accepts ``1`` / ``true`` / ``yes`` / ``on`` |
 
 ### XPC_SERVICE_NAME noise filter
 
@@ -194,13 +194,13 @@ the most common installation path. We narrow detection to launchd
 **Label-style** names (typically reverse-DNS like ``com.example.foo``).
 Real launchd plists always use this form. If you ever see
 ``XPC_SERVICE_NAME=0`` in your service environment, the auto-detect will
-ignore it — set ``HERMES_WEBUI_FOREGROUND=1`` or pass ``--foreground``
+ignore it — set ``IRIS_WEBUI_FOREGROUND=1`` or pass ``--foreground``
 explicitly to be safe.
 
 ### Supervisors that are NOT auto-detected
 
 The following set no env var that we can reliably detect. Pass
-``--foreground`` (or ``HERMES_WEBUI_FOREGROUND=1``) explicitly:
+``--foreground`` (or ``IRIS_WEBUI_FOREGROUND=1``) explicitly:
 
 - **runit** (without sd_notify) — pure runit chains
 - **daemontools** / ``svc``
@@ -210,7 +210,7 @@ The following set no env var that we can reliably detect. Pass
 - **Custom shell-script supervisors** that fork-and-wait
 
 If your supervisor isn't in the auto-detect list and you see the orphan-PID
-respawn loop, set ``HERMES_WEBUI_FOREGROUND=1`` in the service environment.
+respawn loop, set ``IRIS_WEBUI_FOREGROUND=1`` in the service environment.
 
 ## Diagnostic recipe
 
@@ -244,12 +244,12 @@ is reaching the process.
 process is still listening on the port but request handling is wedged, pair your
 supervisor with an HTTP probe and force a restart when the probe fails.
 
-Hermes Web UI exposes two health levels:
+Iris Web UI exposes two health levels:
 
 - ``/health`` — cheap liveness probe with ``active_streams``, uptime, and an
   ``accept_loop`` heartbeat counter.
 - ``/health?deep=1`` — readiness probe that briefly acquires the stream lock,
-  reads the sidebar/session path, reads projects state, and touches Hermes
+  reads the sidebar/session path, reads projects state, and touches Iris
   ``state.db`` if it exists. Use this for watchdogs.
 
 At startup the server also tries to raise its file-descriptor soft limit to
@@ -262,7 +262,7 @@ Minimal macOS launchd watchdog script:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-LABEL="com.example.hermes-webui"
+LABEL="com.example.iris-webui"
 BASE="http://127.0.0.1:8787"
 
 if ! curl -fsS --max-time 10 "$BASE/health?deep=1" >/dev/null; then
@@ -272,7 +272,7 @@ fi
 
 Run it every few minutes from a separate ``StartInterval`` LaunchAgent. For
 systemd, prefer a timer/service pair that runs the same curl probe and
-``systemctl --user restart hermes-webui.service`` on failure.
+``systemctl --user restart iris-webui.service`` on failure.
 
 The ``accept_loop.requests_total`` value should increase when probes arrive. If
 it stays flat while the process is still alive, the server accept loop is not

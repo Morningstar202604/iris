@@ -30,7 +30,7 @@ function fakePackager(metadata) {
     get repositoryInfo() {
       return getRepositoryInfo(desktopDir, metadata, null)
     },
-    appInfo: { version: '0.0.0', channel: null, updaterCacheDirName: 'hermes' },
+    appInfo: { version: '0.0.0', channel: null, updaterCacheDirName: 'iris' },
     config: {},
     options: {}
   }
@@ -79,8 +79,8 @@ describe('local desktop pack stays out of the publish path', () => {
 
     assert.ok(Array.isArray(configs) && configs.length > 0)
     assert.equal(configs[0].provider, 'github')
-    assert.equal(configs[0].owner, 'NousResearch')
-    assert.equal(configs[0].repo, 'hermes-agent')
+    assert.equal(configs[0].owner, 'X33834')
+    assert.equal(configs[0].repo, 'iris')
   })
 
   test('a package without the repository field is what breaks resolution', async () => {

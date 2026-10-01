@@ -107,7 +107,7 @@ class ReloadEnvResult(Result):
 
 
 method("reload.env", params=ReloadEnvParams, result=ReloadEnvResult,
-       doc="Re-read ~/.hermes/.env (CLI /reload parity); built agents keep their pool until /new.")
+       doc="Re-read ~/.iris/.env (CLI /reload parity); built agents keep their pool until /new.")
 
 
 class ReloadMcpParams(Params):
@@ -165,7 +165,7 @@ class SkillHubHit(Result):
 
 
 class SkillBrowseItem(OpenModel):
-    """``hermes_cli.skills_hub.browse_skills`` row."""
+    """``iris_cli.skills_hub.browse_skills`` row."""
 
     name: str = ""
     description: str = ""
@@ -175,7 +175,7 @@ class SkillBrowseItem(OpenModel):
 
 
 class SkillInspectInfo(OpenModel):
-    """``hermes_cli.skills_hub.inspect_skill``; ``{}`` when the identifier resolves nowhere."""
+    """``iris_cli.skills_hub.inspect_skill``; ``{}`` when the identifier resolves nowhere."""
 
     name: str | None = None
     description: str | None = None
@@ -619,7 +619,7 @@ class PluginSettingFieldType(WireEnum):
 
 class PluginSettingField(Result):
     """One ``config_schema`` key of a plugin manifest, rendered by the Plugins hub
-    (``hermes_cli.plugins_settings.plugin_settings_fields``). ``secret`` fields carry no value: ``env``
+    (``iris_cli.plugins_settings.plugin_settings_fields``). ``secret`` fields carry no value: ``env``
     names the ``.env`` variable and ``has_value`` whether it is set."""
 
     key: str
@@ -695,7 +695,7 @@ class PluginLiveNow(Result):
 
 
 class PluginActivation(Result):
-    """What a plugin loaded mid-run does NOW vs later (``hermes_cli.plugins_activation``). ``activated_now``
+    """What a plugin loaded mid-run does NOW vs later (``iris_cli.plugins_activation``). ``activated_now``
     kinds (``{kind: [names]}``): ``gateway_commands`` (slash names), ``gateway_transforms`` / ``hooks`` (hook
     names), ``callbacks`` (platforms / ``slack:<action_id>``) — live in the running gateway once it reloaded
     (``gateway_reloaded``). ``live_now``: the plugin's MCP servers (connected, with their tools, or the
@@ -726,7 +726,7 @@ class OnboardingCatalogPlugin(Result):
 
 class PluginsManageResult(Result):
     """``list`` → ``plugins`` + counts; ``toggle`` → ``ok``/``unchanged``/``restart_required``/``name``
-    (the canonical key written)/``plugin``; ``install`` → ``hermes_cli.plugins_cmd.dashboard_install_plugin``'s
+    (the canonical key written)/``plugin``; ``install`` → ``iris_cli.plugins_cmd.dashboard_install_plugin``'s
     ok payload; ``toggle``/``install``/``update`` that loaded a plugin also carry ``gateway_reloaded`` (the
     running gateway picked it up and re-wired its handlers) and ``activation`` — the honest split of what is
     live now vs deferred, so ``restart_required`` is True only when no gateway answered; ``update`` → ``ok``/``unchanged``/``sha``, or ``ok=false`` + ``consent_required`` with the

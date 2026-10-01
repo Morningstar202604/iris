@@ -1,14 +1,14 @@
 """Agent session turn-lease waits surface as WebUI ``warning`` events.
 
-When another Hermes process (gateway, CLI, cron) holds a session's turn lease,
+When another Iris process (gateway, CLI, cron) holds a session's turn lease,
 the Agent's ``agent/turn_facade_lease.py`` emits:
 
 * ``_emit_status`` (kind ``lifecycle``):
-  "⏳ Another Hermes process is using this session; waiting for it to finish
-  before starting your turn..." then "⏳ Still waiting for the other Hermes
+  "⏳ Another Iris process is using this session; waiting for it to finish
+  before starting your turn..." then "⏳ Still waiting for the other Iris
   process on this session (Ns)..." and, on admission, "Session is free; loading
   the latest transcript...";
-* ``_emit_warning`` (kind ``warn``) on timeout: "⏳ Another Hermes process kept
+* ``_emit_warning`` (kind ``warn``) on timeout: "⏳ Another Iris process kept
   this session busy too long. Your message was not processed - ...".
 
 ``_agent_status_callback`` used to drop every one of these, so a WebUI turn
@@ -26,13 +26,13 @@ from api import streaming
 REPO = pathlib.Path(__file__).resolve().parents[1]
 
 AGENT_WAIT = (
-    "⏳ Another Hermes process is using this session; "
+    "⏳ Another Iris process is using this session; "
     "waiting for it to finish before starting your turn..."
 )
-AGENT_STILL = "⏳ Still waiting for the other Hermes process on this session (30s)..."
+AGENT_STILL = "⏳ Still waiting for the other Iris process on this session (30s)..."
 AGENT_FREE = "Session is free; loading the latest transcript..."
 AGENT_TIMEOUT = (
-    "⏳ Another Hermes process kept this session busy too long. Your message was not "
+    "⏳ Another Iris process kept this session busy too long. Your message was not "
     "processed - wait for the other process to finish, then send it again."
 )
 

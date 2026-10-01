@@ -53,7 +53,7 @@ def test_delivery_options_includes_common_platforms():
     result, status = get("/api/crons/delivery-options")
     assert status == 200
     values = [p["value"] for p in result["platforms"]]
-    # These are from the hardcoded _KNOWN_DELIVERY_PLATFORMS in hermes-agent
+    # These are from the hardcoded _KNOWN_DELIVERY_PLATFORMS in iris-agent
     for expected in ("local", "telegram", "discord", "slack", "feishu"):
         assert expected in values, f"Expected platform '{expected}' not found in: {values}"
 

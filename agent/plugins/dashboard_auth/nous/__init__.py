@@ -1,7 +1,7 @@
 """NousDashboardAuthProvider — Nous Portal OAuth (authorization-code + PKCE).
 
 Implements ``nous-account-service/docs/agent-dashboard-oauth-contract.md``; registers only
-when a client_id (``dashboard.oauth.client_id`` / ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``, shape
+when a client_id (``dashboard.oauth.client_id`` / ``IRIS_DASHBOARD_OAUTH_CLIENT_ID``, shape
 ``agent:{instance_id}``) is configured. Access tokens are RS256 JWTs verified against the
 Portal JWKS with ``aud`` = bare client_id. Portal issues a 24h *rotating* refresh token with
 reuse detection: the middleware MUST persist ``Session.refresh_token`` back to the cookie on
@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from hermes_cli.dashboard_auth import LoginStart, ProviderError, Session
+from iris_cli.dashboard_auth import LoginStart, ProviderError, Session
 from plugins.dashboard_auth._shared import (
     JwtOAuthProvider,
     SkipRegistration,
@@ -126,19 +126,19 @@ def _load_config_oauth_section() -> dict:
 def _settings() -> dict:
     """Resolve NousDashboardAuthProvider kwargs; the skip reason names BOTH configuration surfaces."""
     section = _load_config_oauth_section()
-    client_id = resolve_env_or_cfg("HERMES_DASHBOARD_OAUTH_CLIENT_ID", section.get("client_id", ""))
-    portal_url = resolve_env_or_cfg("HERMES_DASHBOARD_PORTAL_URL", section.get("portal_url", "")) or _DEFAULT_PORTAL_URL
+    client_id = resolve_env_or_cfg("IRIS_DASHBOARD_OAUTH_CLIENT_ID", section.get("client_id", ""))
+    portal_url = resolve_env_or_cfg("IRIS_DASHBOARD_PORTAL_URL", section.get("portal_url", "")) or _DEFAULT_PORTAL_URL
     if not client_id:
         raise SkipRegistration(
-            "HERMES_DASHBOARD_OAUTH_CLIENT_ID is not set (and dashboard.oauth.client_id "
+            "IRIS_DASHBOARD_OAUTH_CLIENT_ID is not set (and dashboard.oauth.client_id "
             "in config.yaml is empty). The Nous Portal provisions this env var (shape "
-            "'agent:{instance_id}') when it deploys a Hermes Agent instance — set it to "
+            "'agent:{instance_id}') when it deploys a Iris Agent instance — set it to "
             "your provisioned client id (either as an env var or under "
             "dashboard.oauth.client_id in config.yaml), or pass --insecure to skip the "
             "OAuth gate entirely.")
     if not client_id.startswith("agent:"):
         raise SkipRegistration(
-            f"HERMES_DASHBOARD_OAUTH_CLIENT_ID={client_id!r} doesn't match the contract "
+            f"IRIS_DASHBOARD_OAUTH_CLIENT_ID={client_id!r} doesn't match the contract "
             f"shape 'agent:{{instance_id}}'. The Nous Portal provisions this value at deploy "
             f"time; check your Fly app's secrets or override with the value from the Portal admin UI.",
             level="warning")
@@ -168,10 +168,10 @@ import urllib.parse  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'DashboardAuthProvider': ('hermes_cli.dashboard_auth', 'DashboardAuthProvider'),
-    'InvalidCodeError': ('hermes_cli.dashboard_auth', 'InvalidCodeError'),
-    'RefreshExpiredError': ('hermes_cli.dashboard_auth', 'RefreshExpiredError'),
-    'classify_jwks_lookup_error': ('hermes_cli.dashboard_auth', 'classify_jwks_lookup_error'),
+    'DashboardAuthProvider': ('iris_cli.dashboard_auth', 'DashboardAuthProvider'),
+    'InvalidCodeError': ('iris_cli.dashboard_auth', 'InvalidCodeError'),
+    'RefreshExpiredError': ('iris_cli.dashboard_auth', 'RefreshExpiredError'),
+    'classify_jwks_lookup_error': ('iris_cli.dashboard_auth', 'classify_jwks_lookup_error'),
 }
 
 
@@ -180,7 +180,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

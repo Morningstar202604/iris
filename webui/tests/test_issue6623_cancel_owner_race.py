@@ -81,7 +81,7 @@ class _PoppingStreams(dict):
 
 
 def test_issue6623_owner_must_be_captured_before_stream_pop(tmp_path, monkeypatch):
-    """Deterministic repro of the nesquena-hermes interleaving:
+    """Deterministic repro of the nesquena-iris interleaving:
 
     1. Stop sees the stream while AGENT_INSTANCES and ACTIVE_RUNS are empty.
     2. Stop removes STREAMS[stream_id] (via the _PoppingStreams wrapper, which

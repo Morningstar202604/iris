@@ -3,7 +3,7 @@
 Composer model-picker search was a literal substring on the rendered name and
 id. OpenRouter overflow rows were labeled with the raw id (``stealth/ox-alpha``)
 instead of the provider display name (``Ox Alpha``), and spaces were not
-normalized to hyphens — so typing the name users see in Hermes Desktop
+normalized to hyphens — so typing the name users see in Iris Desktop
 (``Ox Alpha``) always yielded "No models found".
 
 Fixed in three layers (issue requirement):

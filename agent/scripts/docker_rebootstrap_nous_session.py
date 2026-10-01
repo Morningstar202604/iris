@@ -3,14 +3,14 @@
 
 Background
 ----------
-A Nous bootstrap session (client_id ``hermes-cli-vps``) can take a terminal
+A Nous bootstrap session (client_id ``iris-cli-vps``) can take a terminal
 ``invalid_grant`` and be quarantined locally — the refresh path clears the dead
 tokens from ``auth.json`` and stamps
 ``providers.nous.last_auth_error.relogin_required = true``. From then on every
 inference turn hard-fails with a provider-auth error until the credential is
 replaced, even though the gateway and dashboard otherwise look healthy.
 
-``stage2-hook.sh`` seeds ``auth.json`` from ``HERMES_AUTH_JSON_BOOTSTRAP`` only
+``stage2-hook.sh`` seeds ``auth.json`` from ``IRIS_AUTH_JSON_BOOTSTRAP`` only
 on a *blank* volume (``[ ! -f auth.json ]``) — that guard is load-bearing: it
 stops a container restart from clobbering a healthy, rotated refresh token. So a
 plain restart with a fresh seed env can NOT recover a container whose volume
@@ -18,7 +18,7 @@ already has an auth.json.
 
 This script is the narrow, safe exception. An orchestrator that manages the
 container can supply a freshly-issued bootstrap session via
-``HERMES_AUTH_JSON_REBOOTSTRAP`` (plus a restart). On boot we re-seed the Nous
+``IRIS_AUTH_JSON_REBOOTSTRAP`` (plus a restart). On boot we re-seed the Nous
 provider entry from that env when the on-disk entry is provably terminal, or
 when the orchestrator seed's ``obtained_at`` is newer than the local session.
 The latter matters because an orchestrator may revoke the previous session
@@ -27,7 +27,7 @@ incomparable seeds remain no-ops, so a retained env cannot roll auth backward.
 
 Design constraints
 ------------------
-- Pure stdlib, no hermes_cli imports: runs early in the boot hook, before the
+- Pure stdlib, no iris_cli imports: runs early in the boot hook, before the
   app venv/modules are guaranteed importable, as its own subprocess.
 - Surgical: replaces ONLY ``providers.nous`` in the existing auth.json, leaving
   every other provider, the version, and any other top-level state untouched.
@@ -44,18 +44,18 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 # Env var the orchestrator sets to the re-seed payload. Deliberately DISTINCT
-# from HERMES_AUTH_JSON_BOOTSTRAP (create-only, blank-volume seed) so the two
+# from IRIS_AUTH_JSON_BOOTSTRAP (create-only, blank-volume seed) so the two
 # paths can never be confused: BOOTSTRAP seeds a fresh volume; REBOOTSTRAP
 # overwrites a terminally-dead Nous entry on an existing volume.
-REBOOTSTRAP_ENV = "HERMES_AUTH_JSON_REBOOTSTRAP"
-BOOTSTRAP_CLIENT_ID = "hermes-cli-vps"
+REBOOTSTRAP_ENV = "IRIS_AUTH_JSON_REBOOTSTRAP"
+BOOTSTRAP_CLIENT_ID = "iris-cli-vps"
 
 
 def _nous_entry_is_terminal(nous_state: Any) -> bool:
     """True iff the on-disk Nous provider entry is in the terminal/quarantined
     state AND holds no usable credential.
 
-    Mirrors the ``terminal`` predicate in ``hermes_cli.auth.get_nous_session_validity``:
+    Mirrors the ``terminal`` predicate in ``iris_cli.auth.get_nous_session_validity``:
     a persisted ``last_auth_error.relogin_required`` with the token material
     already cleared. Keeping this in lockstep is what guarantees we only re-seed
     a session that is genuinely dead.
@@ -73,9 +73,9 @@ def _nous_entry_is_terminal(nous_state: Any) -> bool:
 
 
 def _extract_nous_from_seed(seed_raw: str) -> Optional[dict]:
-    """Pull the ``providers.nous`` block out of a HERMES_AUTH_JSON_REBOOTSTRAP
+    """Pull the ``providers.nous`` block out of a IRIS_AUTH_JSON_REBOOTSTRAP
     payload. The payload is a full auth.json document (same shape as
-    HERMES_AUTH_JSON_BOOTSTRAP). Returns None unless it carries the expected VPS
+    IRIS_AUTH_JSON_BOOTSTRAP). Returns None unless it carries the expected VPS
     bootstrap client plus non-empty access and refresh tokens — caller treats
     None as "nothing to do"."""
     try:
@@ -144,7 +144,7 @@ def reseed_if_terminal(auth_path: str, seed_raw: str) -> str:
       - "no_seed"          — seed env empty/absent
       - "bad_seed"         — seed present but unparseable / no nous entry
       - "no_auth_file"     — auth.json absent (blank volume → let the normal
-                             HERMES_AUTH_JSON_BOOTSTRAP path handle it)
+                             IRIS_AUTH_JSON_BOOTSTRAP path handle it)
       - "auth_unreadable"  — auth.json present but unparseable (leave as-is)
       - "not_terminal"     — local entry is healthy and at least as new → no-op
       - "reseeded"         — terminal entry replaced from seed
@@ -212,7 +212,7 @@ def reseed_if_terminal(auth_path: str, seed_raw: str) -> str:
 def main() -> int:
     auth_path = sys.argv[1] if len(sys.argv) > 1 else ""
     if not auth_path:
-        home = os.environ.get("HERMES_HOME", "")
+        home = os.environ.get("IRIS_HOME", "")
         auth_path = os.path.join(home, "auth.json") if home else "auth.json"
     seed_raw = os.environ.get(REBOOTSTRAP_ENV, "")
 

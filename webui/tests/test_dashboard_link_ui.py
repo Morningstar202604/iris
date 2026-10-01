@@ -386,13 +386,13 @@ def test_dashboard_probe_initializes_after_shared_api_helper_is_loaded():
 
 
 def test_dashboard_frontend_opens_external_tab_safely_and_derives_browser_host_url():
-    assert "function openHermesDashboard" in UI_JS
+    assert "function openIrisDashboard" in UI_JS
     assert "window.open" in UI_JS
     assert "noopener,noreferrer" in UI_JS
     assert "window.location.hostname" in UI_JS
     assert "_dashboardBrowserUrl" in UI_JS
     assert 'id="dashboardRailBtn"' in INDEX_HTML
-    assert re.search(r'id="dashboardRailBtn"[^>]*onclick="openHermesDashboard\(event\)"', INDEX_HTML)
+    assert re.search(r'id="dashboardRailBtn"[^>]*onclick="openIrisDashboard\(event\)"', INDEX_HTML)
 
 
 def test_dashboard_loopback_warning_and_external_badge_are_present():

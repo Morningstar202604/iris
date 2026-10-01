@@ -35,7 +35,7 @@ from gateway.platforms.base import (
     cache_audio_from_bytes_async, cache_document_from_bytes_async, cache_image_from_bytes_async,
 )
 from gateway.platforms.event import MessageEvent, MessageType
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from utils import atomic_json_write
 from gateway.platforms._shared import extra_or_secret as _extra_or_env, get_scoped_secret as _wx_secret
 
@@ -150,8 +150,8 @@ def _headers(token: Optional[str], body: str) -> Dict[str, str]:
     }
 
 
-def _account_dir(hermes_home: str) -> Path:
-    path = Path(hermes_home) / "weixin" / "accounts"
+def _account_dir(iris_home: str) -> Path:
+    path = Path(iris_home) / "weixin" / "accounts"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -163,23 +163,23 @@ def _read_json(path: Path) -> Any:
         return None
 
 
-def save_weixin_account(hermes_home: str, *, account_id: str, token: str, base_url: str, user_id: str = "") -> None:
-    path = _account_dir(hermes_home) / f"{account_id}.json"
+def save_weixin_account(iris_home: str, *, account_id: str, token: str, base_url: str, user_id: str = "") -> None:
+    path = _account_dir(iris_home) / f"{account_id}.json"
     saved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     atomic_json_write(path, {"token": token, "base_url": base_url, "user_id": user_id, "saved_at": saved_at})
     with contextlib.suppress(OSError):
         path.chmod(0o600)
 
 
-def load_weixin_account(hermes_home: str, account_id: str) -> Optional[Dict[str, Any]]:
-    return _read_json(_account_dir(hermes_home) / f"{account_id}.json")
+def load_weixin_account(iris_home: str, account_id: str) -> Optional[Dict[str, Any]]:
+    return _read_json(_account_dir(iris_home) / f"{account_id}.json")
 
 
 class ContextTokenStore:
     """Disk-backed ``context_token`` cache keyed by account + peer."""
 
-    def __init__(self, hermes_home: str):
-        self._root = _account_dir(hermes_home)
+    def __init__(self, iris_home: str):
+        self._root = _account_dir(iris_home)
         self._cache: Dict[str, str] = {}
         # Serializes the offloaded flushes so two concurrent set() calls
         # cannot land their writes out of order (last-writer-wins would drop
@@ -560,13 +560,13 @@ def _message_type_from_media(media_types: List[str], text: str) -> MessageType:
     return MessageType.DOCUMENT if media_types else MessageType.COMMAND if text.startswith("/") else MessageType.TEXT
 
 
-def _load_sync_buf(hermes_home: str, account_id: str) -> str:
-    data = _read_json(_account_dir(hermes_home) / f"{account_id}.sync.json")
+def _load_sync_buf(iris_home: str, account_id: str) -> str:
+    data = _read_json(_account_dir(iris_home) / f"{account_id}.sync.json")
     return data.get("get_updates_buf", "") if isinstance(data, dict) else ""
 
 
-def _save_sync_buf(hermes_home: str, account_id: str, sync_buf: str) -> None:
-    atomic_json_write(_account_dir(hermes_home) / f"{account_id}.sync.json", {"get_updates_buf": sync_buf})
+def _save_sync_buf(iris_home: str, account_id: str, sync_buf: str) -> None:
+    atomic_json_write(_account_dir(iris_home) / f"{account_id}.sync.json", {"get_updates_buf": sync_buf})
 
 
 async def _fetch_qr(session: "aiohttp.ClientSession", bot_type: str) -> Tuple[str, str]:
@@ -589,7 +589,7 @@ def _print_qr(qrcode_value: str, qrcode_url: str, *, report_render_error: bool) 
             print(f"（终端二维码渲染失败: {_qr_exc}，请直接打开上面的二维码链接）")
 
 
-async def qr_login(hermes_home: str, *, bot_type: str = "3", timeout_seconds: int = 480) -> Optional[Dict[str, str]]:
+async def qr_login(iris_home: str, *, bot_type: str = "3", timeout_seconds: int = 480) -> Optional[Dict[str, str]]:
     if not AIOHTTP_AVAILABLE:
         raise RuntimeError("aiohttp is required for Weixin QR login")
     async with _new_session() as session:
@@ -639,7 +639,7 @@ async def qr_login(hermes_home: str, *, bot_type: str = "3", timeout_seconds: in
                 if not creds["account_id"] or not creds["token"]:
                     logger.error("weixin: QR confirmed but credential payload was incomplete")
                     return None
-                save_weixin_account(hermes_home, **creds)
+                save_weixin_account(iris_home, **creds)
                 print(f"\n微信连接成功，account_id={creds['account_id']}")
                 return creds
             await asyncio.sleep(1)
@@ -698,8 +698,8 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
     def __init__(self, config: PlatformConfig):
         super().__init__(config, Platform.WEIXIN)
         extra = config.extra or {}
-        self._hermes_home = hermes_home = str(get_hermes_home())
-        self._token_store = ContextTokenStore(hermes_home)
+        self._iris_home = iris_home = str(get_iris_home())
+        self._token_store = ContextTokenStore(iris_home)
         self._typing_cache = TypingTicketCache()
         self._poll_session = self._send_session = None  # type: Optional[aiohttp.ClientSession]
         self._poll_task: Optional[asyncio.Task] = None
@@ -727,7 +727,7 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
         # Text debounce batching (Telegram pattern): iLink delivers messages individually, so rapid bursts would each
         # trigger a separate agent run. Telegram cadence and ceilings (#44883); ``0`` dispatches immediately.
         self._configure_text_batch_delays()
-        persisted = load_weixin_account(hermes_home, self._account_id) if self._account_id and not self._token else None
+        persisted = load_weixin_account(iris_home, self._account_id) if self._account_id and not self._token else None
         if persisted:
             self._token = str(persisted.get("token") or "").strip()
             self._base_url = str(persisted.get("base_url") or self._base_url).strip().rstrip("/")
@@ -767,8 +767,8 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
             logger.warning(
                 "[%s] WEIXIN_GROUP_POLICY=%s is set, but QR-login connects an iLink bot identity (e.g. ...@im.bot) "
                 "which typically cannot be invited into ordinary WeChat groups. iLink usually does not deliver "
-                "ordinary-group events for these accounts, so group messages may never reach Hermes regardless of "
-                "this policy. If group delivery doesn't work, the limitation is on the iLink side, not in Hermes.",
+                "ordinary-group events for these accounts, so group messages may never reach Iris regardless of "
+                "this policy. If group delivery doesn't work, the limitation is on the iLink side, not in Iris.",
                 self.name, self._group_policy)
         self._wire_plugin_handlers(None)  # plugin-registered native handlers
         return True
@@ -794,7 +794,7 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
 
     async def _poll_loop(self) -> None:
         assert self._poll_session is not None
-        sync_buf = _load_sync_buf(self._hermes_home, self._account_id)
+        sync_buf = _load_sync_buf(self._iris_home, self._account_id)
         timeout_ms = LONG_POLL_TIMEOUT_MS
         consecutive_failures = 0
 
@@ -831,7 +831,7 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
                 # moved (an empty long-poll echoes the same buffer back every cycle).
                 if response.get("get_updates_buf") and str(response["get_updates_buf"]) != sync_buf:
                     sync_buf = str(response["get_updates_buf"])
-                    await asyncio.to_thread(_save_sync_buf, self._hermes_home, self._account_id, sync_buf)
+                    await asyncio.to_thread(_save_sync_buf, self._iris_home, self._account_id, sync_buf)
             except asyncio.CancelledError:
                 break
             except Exception as exc:
@@ -1046,7 +1046,7 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
                     logger.warning("[%s] %s delivery failed for %s: %s", self.name, label, path, exc)
             chunks = [c for c in self._split_text(self.format_message(final_content)) if c and c.strip()]
             for idx, chunk in enumerate(chunks):
-                client_id = f"hermes-weixin-{uuid.uuid4().hex}"
+                client_id = f"iris-weixin-{uuid.uuid4().hex}"
                 await self._send_text_chunk(chat_id=chat_id, chunk=chunk, context_token=context_token, client_id=client_id)
                 last_message_id = client_id
                 if idx < len(chunks) - 1 and self._send_chunk_delay_seconds > 0:
@@ -1158,7 +1158,7 @@ class WeixinAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
             item_lists.insert(0, [{"type": ITEM_TEXT, "text_item": {"text": self.format_message(caption)}}])
         last_message_id = ""
         for item_list in item_lists:
-            last_message_id = f"hermes-weixin-{uuid.uuid4().hex}"
+            last_message_id = f"iris-weixin-{uuid.uuid4().hex}"
             while True:
                 resp = await _send_items(
                     self._send_session, base_url=self._base_url, token=self._token, to=chat_id, item_list=item_list,
@@ -1226,7 +1226,7 @@ async def send_weixin_direct(
         return {"error": "Weixin token missing. Configure WEIXIN_TOKEN or platforms.weixin.token."}
     if not account_id:
         return {"error": "Weixin account ID missing. Configure WEIXIN_ACCOUNT_ID or platforms.weixin.extra.account_id."}
-    token_store = ContextTokenStore(str(get_hermes_home()))
+    token_store = ContextTokenStore(str(get_iris_home()))
     token_store.restore(account_id)
     context_token = token_store.get(account_id, chat_id)
     live_adapter = _LIVE_ADAPTERS.get(resolved_token)

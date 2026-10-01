@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // the main process for windows with a console hook, is minified, and loses
     // the component stack. This survives the window and names the component.
     try {
-      window.hermesDesktop?.reportRendererError?.({
+      window.irisDesktop?.reportRendererError?.({
         label: new URLSearchParams(window.location.search).get('win') ?? 'main',
         boundary: label || 'unlabeled',
         message: error.message,
@@ -173,7 +173,7 @@ function RootErrorFallback({ error, reset }: ErrorBoundaryFallbackProps) {
         <Button onClick={() => window.location.reload()} variant="text">
           {t.errors.reloadWindow}
         </Button>
-        <Button onClick={() => void window.hermesDesktop?.revealLogs()?.catch(() => undefined)} variant="text">
+        <Button onClick={() => void window.irisDesktop?.revealLogs()?.catch(() => undefined)} variant="text">
           {t.errors.openLogs}
         </Button>
         <Button onClick={() => requestSendDiagnostics(error.stack || error.message)} variant="text">

@@ -1422,7 +1422,7 @@ def test_runner_observe_reconnect_uses_last_event_id_header(monkeypatch):
         def end_headers(self):
             pass
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "runner-local")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "runner-local")
     monkeypatch.setattr(routes, "_runtime_runner_client_factory", lambda: FakeRunnerClient())
     handler = Handler(last_event_id="run-1:5")
     try:
@@ -1430,7 +1430,7 @@ def test_runner_observe_reconnect_uses_last_event_id_header(monkeypatch):
             handler, urlparse("/api/chat/stream?stream_id=run-1")
         ) is True
     finally:
-        monkeypatch.delenv("HERMES_WEBUI_RUNTIME_ADAPTER", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_RUNTIME_ADAPTER", raising=False)
 
     # The header cursor is carried through to the runner, not dropped.
     assert calls == [("run-1", "run-1:5")]
@@ -1473,13 +1473,13 @@ def _run_runner_probe(monkeypatch, url, last_event_id=None):
                 ],
             }
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "runner-local")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "runner-local")
     monkeypatch.setattr(routes, "_runtime_runner_client_factory", lambda: FakeRunnerClient())
     handler = _RunnerProbeHandler(last_event_id=last_event_id)
     try:
         routes._handle_sse_stream(handler, urlparse(url))
     finally:
-        monkeypatch.delenv("HERMES_WEBUI_RUNTIME_ADAPTER", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_RUNTIME_ADAPTER", raising=False)
     return calls
 
 

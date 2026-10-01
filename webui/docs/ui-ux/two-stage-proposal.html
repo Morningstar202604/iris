@@ -2,7 +2,7 @@
 <html lang="en" class="dark" data-skin="slate">
 <head>
   <meta charset="utf-8">
-  <title>Hermes WebUI — Two-Stage Chat Proposal (Issue #536)</title>
+  <title>Iris WebUI — Two-Stage Chat Proposal (Issue #536)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="../../static/style.css">
   <style>
@@ -223,7 +223,7 @@
           <div class="msg-body"><p>Does our dev server pick up the workspace from an env var or a flag?</p></div>
         </div>
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
             <div class="thinking-card open">
               <div class="thinking-card-header">
@@ -232,7 +232,7 @@
                 <span class="thinking-card-toggle">▶</span>
               </div>
               <div class="thinking-card-body"><pre>Check how the CLI resolves workspace:
-grep for HERMES_WORKSPACE and --workspace
+grep for IRIS_WORKSPACE and --workspace
 inspect argv vs env precedence.</pre></div>
             </div>
           </div></div>
@@ -242,11 +242,11 @@ inspect argv vs env precedence.</pre></div>
             <div class="tool-card-header">
               <span class="tool-card-icon">⚡</span>
               <span class="tool-card-name">bash</span>
-              <span class="tool-card-preview">grep -rn "HERMES_WORKSPACE" . · exit 0</span>
+              <span class="tool-card-preview">grep -rn "IRIS_WORKSPACE" . · exit 0</span>
               <span class="tool-card-toggle">▶</span>
             </div>
             <div class="tool-card-detail">
-              <div class="tool-card-result"><pre>cli/main.py:14:WORKSPACE_ENV = "HERMES_WORKSPACE"
+              <div class="tool-card-result"><pre>cli/main.py:14:WORKSPACE_ENV = "IRIS_WORKSPACE"
 cli/main.py:92:    ws = os.getenv(WORKSPACE_ENV) or args.workspace</pre></div>
             </div>
           </div>
@@ -262,11 +262,11 @@ cli/main.py:92:    ws = os.getenv(WORKSPACE_ENV) or args.workspace</pre></div>
           </div>
         </div>
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
             <div class="msg-body">
               <p>Both work, but <strong>env wins</strong>. The CLI reads
-              <code>HERMES_WORKSPACE</code> first and only falls back to the
+              <code>IRIS_WORKSPACE</code> first and only falls back to the
               <code>--workspace</code> flag if the env var is unset.</p>
               <p>So in practice:</p>
               <ul>
@@ -287,7 +287,7 @@ cli/main.py:92:    ws = os.getenv(WORKSPACE_ENV) or args.workspace</pre></div>
           <div class="msg-body"><p>Does our dev server pick up the workspace from an env var or a flag?</p></div>
         </div>
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
 
             <!-- Stage 1 — settled, collapsed to summary (click to expand) -->
@@ -309,7 +309,7 @@ cli/main.py:92:    ws = os.getenv(WORKSPACE_ENV) or args.workspace</pre></div>
                     <span class="thinking-card-toggle">▶</span>
                   </div>
                   <div class="thinking-card-body"><pre>Check how the CLI resolves workspace:
-grep for HERMES_WORKSPACE and --workspace
+grep for IRIS_WORKSPACE and --workspace
 inspect argv vs env precedence.</pre></div>
                 </div>
                 <div class="tool-card-row">
@@ -317,7 +317,7 @@ inspect argv vs env precedence.</pre></div>
                     <div class="tool-card-header">
                       <span class="tool-card-icon">⚡</span>
                       <span class="tool-card-name">bash</span>
-                      <span class="tool-card-preview">grep -rn "HERMES_WORKSPACE" . · exit 0</span>
+                      <span class="tool-card-preview">grep -rn "IRIS_WORKSPACE" . · exit 0</span>
                       <span class="tool-card-toggle">▶</span>
                     </div>
                   </div>
@@ -341,7 +341,7 @@ inspect argv vs env precedence.</pre></div>
               <div class="p2s-answer-kicker">Answer</div>
               <div class="msg-body">
                 <p>Both work, but <strong>env wins</strong>. The CLI reads
-                <code>HERMES_WORKSPACE</code> first and only falls back to the
+                <code>IRIS_WORKSPACE</code> first and only falls back to the
                 <code>--workspace</code> flag if the env var is unset.</p>
                 <p>So in practice:</p>
                 <ul>
@@ -373,7 +373,7 @@ inspect argv vs env precedence.</pre></div>
   <div class="doc-card"><span class="doc-label proposed">.p2s-stage1.is-live — Round 1 done, Round 2 running</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment" data-live-assistant="1">
 
           <div class="p2s-stage1 is-live">
@@ -469,7 +469,7 @@ tool_calls get attached before save.</pre></div>
     <div class="doc-card"><span class="doc-label proposed">Approve card — inline in Stage 1</span>
       <div class="messages doc-messages"><div class="messages-inner doc-inner">
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment" data-live-assistant="1">
 
             <div class="p2s-stage1 is-live">
@@ -484,7 +484,7 @@ tool_calls get attached before save.</pre></div>
                     <div class="tool-card-header">
                       <span class="tool-card-icon">⚡</span>
                       <span class="tool-card-name">bash</span>
-                      <span class="tool-card-preview">ls -la ~/.hermes/sessions · exit 0</span>
+                      <span class="tool-card-preview">ls -la ~/.iris/sessions · exit 0</span>
                       <span class="tool-card-toggle">▶</span>
                     </div>
                   </div>
@@ -495,8 +495,8 @@ tool_calls get attached before save.</pre></div>
                     <span class="approval-card-title">Approve command</span>
                   </div>
                   <div class="approval-card-body">
-                    <p class="approval-card-desc">Hermes wants to run a potentially destructive command:</p>
-                    <pre class="approval-card-cmd">rm -rf ~/.hermes/sessions/*.json.bak</pre>
+                    <p class="approval-card-desc">Iris wants to run a potentially destructive command:</p>
+                    <pre class="approval-card-cmd">rm -rf ~/.iris/sessions/*.json.bak</pre>
                   </div>
                   <div class="approval-card-actions">
                     <button class="approval-btn approve">Approve</button>
@@ -516,7 +516,7 @@ tool_calls get attached before save.</pre></div>
     <div class="doc-card"><span class="doc-label proposed">Clarify card — Stage 1 → Stage 2 transition</span>
       <div class="messages doc-messages"><div class="messages-inner doc-inner">
         <div class="msg-row assistant-turn" data-role="assistant">
-          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+          <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
           <div class="assistant-turn-blocks"><div class="assistant-segment">
 
             <div class="p2s-stage1 is-settled" data-p2s-toggle>
@@ -565,7 +565,7 @@ tool_calls get attached before save.</pre></div>
                 <div class="clarify-card-actions">
                   <button class="clarify-opt">npm script</button>
                   <button class="clarify-opt">CLI entry-point</button>
-                  <button class="clarify-opt">Let Hermes pick</button>
+                  <button class="clarify-opt">Let Iris pick</button>
                 </div>
               </div>
             </div>
@@ -592,7 +592,7 @@ tool_calls get attached before save.</pre></div>
   <div class="doc-card"><span class="doc-label proposed">.p2s-answer (Stage 1 collapsed above)</span>
     <div class="messages doc-messages"><div class="messages-inner doc-inner">
       <div class="msg-row assistant-turn" data-role="assistant">
-        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Hermes</span></div>
+        <div class="msg-role assistant"><span class="role-icon assistant">H</span><span>Iris</span></div>
         <div class="assistant-turn-blocks"><div class="assistant-segment">
 
           <div class="p2s-stage1 is-settled" data-p2s-toggle>

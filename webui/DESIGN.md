@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: Hermes Calm Console
+name: Iris Calm Console
 description: "A restrained agent control surface: conversational content first, tool traces as quiet metadata, minimal chrome."
 colors:
   primary: "#EAE0D5"
@@ -95,7 +95,7 @@ components:
 
 ## Overview
 
-Hermes WebUI should feel like a calm developer console, not a demo page assembled from colorful cards. The primary artifact is the conversation. Tool calls, thinking traces, context compaction records, token usage, and runtime status are useful, but they are transcript metadata and should sit below the visual priority of user and assistant prose.
+Iris WebUI should feel like a calm developer console, not a demo page assembled from colorful cards. The primary artifact is the conversation. Tool calls, thinking traces, context compaction records, token usage, and runtime status are useful, but they are transcript metadata and should sit below the visual priority of user and assistant prose.
 
 The desired direction is Linear/Vercel precision with a little Claude-style conversational warmth: quiet surfaces, clear spacing, restrained accent use, and progressive disclosure for debugging detail.
 

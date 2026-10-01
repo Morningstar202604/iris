@@ -94,11 +94,11 @@ def test_audit_reports_compose_source_volume_anchors():
     anchors = _anchors(classes["docker_agent_source_volume"])
     texts = _texts(classes["docker_agent_source_volume"])
 
-    assert ("docker-compose.two-container.yml", "hermes-agent-src") in anchors
-    assert ("docker-compose.three-container.yml", "hermes-agent-src") in anchors
-    assert any("hermes-agent-src:/opt/hermes" in text for text in texts)
+    assert ("docker-compose.two-container.yml", "iris-agent-src") in anchors
+    assert ("docker-compose.three-container.yml", "iris-agent-src") in anchors
+    assert any("iris-agent-src:/opt/iris" in text for text in texts)
     assert any(
-        "hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent:ro" in text
+        "iris-agent-src:/home/iriswebui/.iris/iris-agent:ro" in text
         for text in texts
     )
 
@@ -108,9 +108,9 @@ def test_audit_reports_startup_install_dependencies():
     anchors = _anchors(classes["startup_dependency_install"])
     texts = _texts(classes["startup_dependency_install"])
 
-    assert ("api/startup.py", "HERMES_WEBUI_AGENT_DIR") in anchors
-    assert ("bootstrap.py", "HERMES_WEBUI_AGENT_DIR") in anchors
-    assert ("start.ps1", "HERMES_WEBUI_AGENT_DIR") in anchors
+    assert ("api/startup.py", "IRIS_WEBUI_AGENT_DIR") in anchors
+    assert ("bootstrap.py", "IRIS_WEBUI_AGENT_DIR") in anchors
+    assert ("start.ps1", "IRIS_WEBUI_AGENT_DIR") in anchors
     assert ("api/startup.py", "auto_install_agent_deps") in anchors
     assert ("server.py", "auto_install_agent_deps") in anchors
     assert any("uv pip install" in text and "[all]" in text for text in texts)
@@ -132,7 +132,7 @@ def test_audit_reports_runtime_auxiliary_and_model_metadata_imports():
 
     assert ("api/streaming.py", "agent.auxiliary_client") in anchors
     assert ("api/streaming.py", "agent.model_metadata") in anchors
-    assert ("api/config.py", "hermes_cli.models") in anchors
+    assert ("api/config.py", "iris_cli.models") in anchors
     assert ("api/providers.py", "agent.account_usage") in anchors
 
 
@@ -161,10 +161,10 @@ def test_audit_reports_runtime_state_and_provider_imports():
     state_anchors = _anchors(classes["runtime_session_state"])
     provider_anchors = _anchors(classes["runtime_gateway_provider"])
 
-    assert ("api/streaming.py", "hermes_state") in state_anchors
-    assert ("api/state_sync.py", "hermes_state") in state_anchors
-    assert ("api/streaming.py", "hermes_cli.runtime_provider") in provider_anchors
-    assert ("api/routes.py", "hermes_cli.runtime_provider") in provider_anchors
+    assert ("api/streaming.py", "iris_state") in state_anchors
+    assert ("api/state_sync.py", "iris_state") in state_anchors
+    assert ("api/streaming.py", "iris_cli.runtime_provider") in provider_anchors
+    assert ("api/routes.py", "iris_cli.runtime_provider") in provider_anchors
 
 
 def test_runtime_import_scan_includes_root_python_entrypoints():
@@ -184,9 +184,9 @@ def test_audit_keeps_client_package_candidates_visible():
     classes = _class_by_id(_run_audit())
     anchors = _anchors(classes["webui_local_or_client_package"])
 
-    assert ("api/streaming.py", "hermes_constants") in anchors
+    assert ("api/streaming.py", "iris_constants") in anchors
     assert ("api/routes.py", "agent.skill_utils") in anchors
-    assert ("api/routes.py", "hermes_cli.plugins") in anchors
+    assert ("api/routes.py", "iris_cli.plugins") in anchors
     assert ("api/providers.py", "agent.credential_pool") in anchors
 
 

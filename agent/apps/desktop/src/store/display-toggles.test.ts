@@ -11,7 +11,7 @@ vi.mock('@/store/gateway', () => ({
 
 const { mirrorDisplayToggle } = await import('./display-toggles')
 
-const STORAGE_KEY = 'hermes.desktop.test-toggle.v1'
+const STORAGE_KEY = 'iris.desktop.test-toggle.v1'
 
 const $enabled = atom(true)
 

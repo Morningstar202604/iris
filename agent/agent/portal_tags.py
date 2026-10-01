@@ -1,9 +1,9 @@
 """Centralized Nous Portal request tags.
 
-Every Hermes request to the Nous Portal (main loop, auxiliary client, fallback
+Every Iris request to the Nous Portal (main loop, auxiliary client, fallback
 paths) must carry the same product-attribution tags, sent in OpenAI-compatible
-``extra_body['tags']``: ``["product=hermes-agent", "client=hermes-client-v<__version__>"]``.
-The version is read live from ``hermes_cli.__version__`` — do NOT pre-compute it
+``extra_body['tags']``: ``["product=iris-agent", "client=iris-client-v<__version__>"]``.
+The version is read live from ``iris_cli.__version__`` — do NOT pre-compute it
 as a module constant in consumers; it can change at runtime (editable installs,
 hot reload).
 """
@@ -27,7 +27,7 @@ _conversation_id: ContextVar[Optional[str]] = ContextVar("nous_portal_conversati
 # chat (``prompt_cache_scope.declared_conversation_scope``). Only that declared value
 # is published; unset means consumers fall back to the conversation id, so delegate
 # trees keep sharing their parent's sticky key.
-_affinity_scope: ContextVar[Optional[str]] = ContextVar("hermes_affinity_scope", default=None)
+_affinity_scope: ContextVar[Optional[str]] = ContextVar("iris_affinity_scope", default=None)
 
 
 def _reset_var(var: ContextVar, token) -> None:
@@ -71,13 +71,13 @@ def get_conversation_context() -> Optional[str]:
     return _conversation_id.get()
 
 
-def hermes_client_tag() -> str:
-    """``client=hermes-client-v<MAJOR>.<MINOR>.<PATCH>`` ("unknown" if hermes_cli is unimportable)."""
+def iris_client_tag() -> str:
+    """``client=iris-client-v<MAJOR>.<MINOR>.<PATCH>`` ("unknown" if iris_cli is unimportable)."""
     try:
-        from hermes_cli import __version__
+        from iris_cli import __version__
     except Exception:
         __version__ = "unknown"
-    return f"client=hermes-client-v{__version__}"
+    return f"client=iris-client-v{__version__}"
 
 
 def conversation_tag(session_id: str) -> str:
@@ -92,7 +92,7 @@ def nous_portal_tags(session_id: str | None = None) -> List[str]:
     The ambient conversation context (lineage ROOT id) wins over the explicit
     ``session_id``, a fallback for callers outside any agent turn.
     """
-    tags = ["product=hermes-agent", hermes_client_tag()]
+    tags = ["product=iris-agent", iris_client_tag()]
     effective = get_conversation_context() or session_id
     if effective:
         tags.append(conversation_tag(effective))

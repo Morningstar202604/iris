@@ -1,4 +1,4 @@
-import type { ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionsResult } from '@iris/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 

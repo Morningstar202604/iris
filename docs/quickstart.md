@@ -10,7 +10,7 @@ consumer-grade Web UI. This guide gets you running in 3 steps.
 ```bash
 git clone https://gitcode.com/badhope/iris.git && cd iris
 
-# Install the agent core (Hermes kernel + tools / plugins / memory / skills / cron)
+# Install the agent core (Iris kernel + tools / plugins / memory / skills / cron)
 cd agent && pip install -e . && cd ..
 ```
 
@@ -25,16 +25,16 @@ cd agent && pip install -e . && cd ..
 cd webui && python3 server.py
 ```
 
-Open **http://127.0.0.1:8787** in your browser (change the port with `HERMES_WEBUI_PORT`).
+Open **http://127.0.0.1:8787** in your browser (change the port with `IRIS_WEBUI_PORT`).
 
 **Key environment variables:**
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `HERMES_WEBUI_AGENT_DIR` | Agent source dir (this repo's `agent/`) | auto-detected |
-| `HERMES_WEBUI_STATE_DIR` | Session / state data dir | `~/.hermes` |
-| `HERMES_WEBUI_PORT` | Listen port | `8787` |
-| `HERMES_WEBUI_PASSWORD` | Access password (optional) | empty = localhost, no password |
+| `IRIS_WEBUI_AGENT_DIR` | Agent source dir (this repo's `agent/`) | auto-detected |
+| `IRIS_WEBUI_STATE_DIR` | Session / state data dir | `~/.iris` |
+| `IRIS_WEBUI_PORT` | Listen port | `8787` |
+| `IRIS_WEBUI_PASSWORD` | Access password (optional) | empty = localhost, no password |
 
 ## 3. Connect a model
 
@@ -42,7 +42,7 @@ Open **http://127.0.0.1:8787** in your browser (change the port with `HERMES_WEB
 Open **Settings → Providers** and pick an available model.
 
 ### Option B — any OpenAI-compatible endpoint (recommended)
-Edit `~/.hermes/config.yaml`:
+Edit `~/.iris/config.yaml`:
 
 ```yaml
 model:

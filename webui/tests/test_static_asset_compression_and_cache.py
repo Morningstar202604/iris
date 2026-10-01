@@ -235,9 +235,9 @@ def test_apk_is_served_as_android_package_when_platform_database_lacks_it(
 
     monkeypatch.setattr(routes.mimetypes, "guess_type", lambda _name: (None, None))
     payload = b"PK\x03\x04" + b"\x00" * 128
-    _make_static_file(isolated_static, "hermes-webui.apk", payload)
+    _make_static_file(isolated_static, "iris-webui.apk", payload)
 
-    h = _serve(routes, "/static/hermes-webui.apk")
+    h = _serve(routes, "/static/iris-webui.apk")
     assert h.status == 200
     assert h.header("Content-Type") == "application/vnd.android.package-archive"
     assert bytes(h.body) == payload
@@ -248,9 +248,9 @@ def test_unknown_static_extension_falls_back_to_octet_stream(isolated_static):
     from api import routes
 
     payload = b"\x00\xff\x10binary"
-    _make_static_file(isolated_static, "artifact.hermes-unknown", payload)
+    _make_static_file(isolated_static, "artifact.iris-unknown", payload)
 
-    h = _serve(routes, "/static/artifact.hermes-unknown")
+    h = _serve(routes, "/static/artifact.iris-unknown")
     assert h.status == 200
     assert h.header("Content-Type") == "application/octet-stream"
     assert bytes(h.body) == payload

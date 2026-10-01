@@ -1,5 +1,5 @@
 """Profile JSON-RPC handlers — the ws twin of the dashboard's /api/profiles (desktop plugins
-only have the ws door), on the same `hermes_cli.profiles` primitives. Bodies are rebound onto
+only have the ws door), on the same `iris_cli.profiles` primitives. Bodies are rebound onto
 server.py's globals (method_ctx.bind_module) and use them bare; module-level names are published
 onto server.py, so they must not collide with its globals.
 """
@@ -37,7 +37,7 @@ def _lazy(module, name):
 
 
 def _pin_profile_model(profile_dir, provider, model) -> None:
-    _lazy("hermes_cli.web_routers.profiles", "_write_profile_model")(profile_dir, provider, model)
+    _lazy("iris_cli.web_routers.profiles", "_write_profile_model")(profile_dir, provider, model)
 
 
 def _model_provider_params(params) -> tuple:
@@ -57,13 +57,13 @@ def _best_effort(fn) -> bool:
 
 
 @contextlib.contextmanager
-def _hermes_home_scope(path):
+def _iris_home_scope(path):
     """Scope config/auth resolution to ``path`` for the block."""
-    token = set_hermes_home_override(str(path))
+    token = set_iris_home_override(str(path))
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_iris_home_override(token)
 
 
 def _resolve_profile(rid, params):
@@ -71,7 +71,7 @@ def _resolve_profile(rid, params):
     name = str(params.get("name") or "").strip()
     if not name:
         return name, None, _err(rid, 4063, "name required")
-    from hermes_cli.profiles import get_profile_dir
+    from iris_cli.profiles import get_profile_dir
     try:
         profile_dir = Path(get_profile_dir(name))
     except ValueError:
@@ -131,15 +131,15 @@ def _resurrect_recoverable_canonical(db, profile_path, session_id):
             return False
         tip_id = _try(lambda: db.get_compression_tip(session_id), None) or session_id
         tip = (_try(lambda: db.get_session(tip_id), None) or row) if tip_id != session_id else row
-        from hermes_state import SessionDB
-        from hermes_state_registry import acquire
+        from iris_state import SessionDB
+        from iris_state_registry import acquire
         if (tip.get("end_reason") or "") not in SessionDB.RECOVERABLE_END_REASONS:
             return False
         wdb = acquire(Path(profile_path) / "state.db")
         try:
             return bool(wdb.unarchive_recoverable_session(session_id))
         finally:
-            _best_effort(lambda: _lazy("hermes_state_registry", "release_or_close")(wdb))
+            _best_effort(lambda: _lazy("iris_state_registry", "release_or_close")(wdb))
     except Exception:
         return False
 
@@ -152,7 +152,7 @@ def _canonical_session_row(db, profile_path):
     The canonical chat's identity is the NAME: the session titled exactly "Bot Chat" on this profile (core
     UNIQUE(title) makes it a registry of at most one row). Complements ``last_session``: that field answers
     "what is the newest conversation", this answers "where is the forever-chat" — so a roster row's preview
-    and its click target describe the same session (hermes-agent#88200) with no client-side pointer
+    and its click target describe the same session (iris-agent#88200) with no client-side pointer
     involved.
     """
     try:
@@ -188,7 +188,7 @@ def _latest_profile_session_rows(db):
     First element mirrors session.list's deny-list (drops ``tool`` sub-agent rows and ``kanban`` dispatcher
     workers). Second element is the newest DENIED row — the freshest kanban/tool worker — so roster UIs can
     show that a profile is actively working even though worker sessions never surface in conversation lists
-    (hermes-agent#90268). Workers heartbeat ``last_activity_at`` every ≤60s while running (#72016), so a
+    (iris-agent#90268). Workers heartbeat ``last_activity_at`` every ≤60s while running (#72016), so a
     live worker's ``last_active`` stays fresh and the client can apply its own liveness window. Best-effort:
     any failure (missing state.db, locked db, older schema) degrades to (None, None) rather than failing the
     whole profiles.list call.
@@ -221,7 +221,7 @@ def _profile_session_fields(row, profile_path):
         db_path = Path(profile_path) / "state.db"
         db = None
         if _try(db_path.exists, False):
-            db = _try(lambda: _lazy("hermes_state", "SessionDB")(db_path=db_path, read_only=True), None)
+            db = _try(lambda: _lazy("iris_state", "SessionDB")(db_path=db_path, read_only=True), None)
         try:
             last, worker = _latest_profile_session_rows(db)
             # Resolved server-side on every listing so no client carries a session pointer.
@@ -265,9 +265,9 @@ def _profile_ui_meta_fields(row: dict, profile_dir) -> None:
 
 @_profile_handler("profiles.list", 5061)
 def _(rid, params: dict) -> dict:
-    """List Hermes profiles. ``include_sessions`` (default true) adds ``last_session`` /
+    """List Iris profiles. ``include_sessions`` (default true) adds ``last_session`` /
     ``worker_session`` / ``canonical_session`` so a roster paints previews without N calls."""
-    from hermes_cli.profiles import list_profiles
+    from iris_cli.profiles import list_profiles
     include_sessions = is_truthy_value(params.get("include_sessions", True))
     out = []
     # Roster polls this every 5s: ``skill_count`` is the last known value, refreshed off-request.
@@ -306,12 +306,12 @@ def _mirror_voice_sections(path) -> bool:
     """Copy stt/tts/voice sections from the launch profile (a fresh profile has only ``model``,
     so voice fell back to defaults); True if written."""
     try:
-        from hermes_cli.config import load_config_readonly, read_user_config_raw, save_config
+        from iris_cli.config import load_config_readonly, read_user_config_raw, save_config
         src_cfg = load_config_readonly() or {}
         sections = {k: src_cfg[k] for k in ("stt", "tts", "voice") if src_cfg.get(k)}
         if not sections:
             return False
-        with _hermes_home_scope(path):
+        with _iris_home_scope(path):
             # RAW file: load_config() merges DEFAULT_CONFIG (every section would look present).
             dst_cfg = read_user_config_raw() or {}
             missing = {k: v for k, v in sections.items() if k not in dst_cfg}
@@ -329,8 +329,8 @@ def _inherit_launch_model(path) -> bool:
     # sections, #85755) legitimately create the file first, and a file-existence gate silently skipped
     # inheritance for every non-clone bot ("No inference provider configured" on first message, tester
     # report). Clones bring their own model section and stay untouched.
-    from hermes_cli.config import load_config_readonly, read_user_config_raw
-    with _hermes_home_scope(path):
+    from iris_cli.config import load_config_readonly, read_user_config_raw
+    with _iris_home_scope(path):
         dst_model = (read_user_config_raw() or {}).get("model") or {}
     if dst_model.get("provider") and dst_model.get("default"):
         return False
@@ -341,10 +341,10 @@ def _inherit_launch_model(path) -> bool:
     # A custom `providers:` gateway travels with the model it backs (same seed as the CLI path). It is
     # written BEFORE the pin: the pin validates the pick inside the new profile, and an empty profile
     # rejects a provider it has not been told about ("Unknown provider").
-    custom = _lazy("hermes_cli.profiles", "launch_model_seed")(launch_cfg).get("providers")
+    custom = _lazy("iris_cli.profiles", "launch_model_seed")(launch_cfg).get("providers")
     if custom:
-        from hermes_cli.config import load_config, save_config
-        with _hermes_home_scope(path):
+        from iris_cli.config import load_config, save_config
+        with _iris_home_scope(path):
             cfg = load_config()
             cfg["providers"] = {**(cfg.get("providers") if isinstance(cfg.get("providers"), dict) else {}), **custom}
             save_config(cfg)
@@ -361,21 +361,21 @@ def _mirror_launch_credentials(path, params: dict) -> dict:
                 "voice": False}
     if not is_truthy_value(params.get("mirror_credentials", True)):
         return mirrored
-    launch_home = get_hermes_home()
+    launch_home = get_iris_home()
     # .env: only over the seeded comment-only stub (never a clone's secrets).
     mirrored["env"] = _try(lambda: _mirror_secret(path, launch_home, ".env", lambda src, dst: (
         _env_has_content(src) and not _try(lambda: _env_has_content(dst), False))), False)
     if mirrored["env"] and not is_truthy_value(params.get("clone_channels", False)):
         # Provider/tool keys are what "mirror credentials" means; the launch profile's bot tokens
         # and allowlists would make the new bot collide with it over one Telegram/Discord bot.
-        _best_effort(lambda: _lazy("hermes_cli.profile_channels", "strip_channel_env_file")(path / ".env"))
+        _best_effort(lambda: _lazy("iris_cli.profile_channels", "strip_channel_env_file")(path / ".env"))
     if not share_auth:  # a copy forks token state: the first refresh in either store strands the other
         mirrored["auth"] = _try(lambda: _mirror_secret(path, launch_home, "auth.json",
                                                        lambda src, dst: not dst.exists()), False)
         if mirrored["auth"]:
             # Drop single-use OAuth grants (first refresh strands every sibling); they read from the
             # root grant via the pool fallback. API keys stay.
-            _best_effort(lambda: _lazy("hermes_cli.auth", "strip_cloned_single_use_oauth_grants")(path))
+            _best_effort(lambda: _lazy("iris_cli.auth", "strip_cloned_single_use_oauth_grants")(path))
     mirrored["voice"] = _mirror_voice_sections(path)
     return mirrored
 
@@ -391,7 +391,7 @@ def _(rid, params: dict) -> dict:
     if not name:
         return _err(rid, 4061, "name required")
     try:
-        from hermes_cli import profiles as profiles_mod
+        from iris_cli import profiles as profiles_mod
         clone_from = str(params.get("clone_from") or "").strip() or None
         clone_all = is_truthy_value(params.get("clone_all", False))
         path = profiles_mod.create_profile(
@@ -424,16 +424,16 @@ def _(rid, params: dict) -> dict:
 
 
 def _describe_toolsets(cfg):
-    """``(toolsets, pinned_set)`` as the `hermes tools` checklist presents them (the raw registry
+    """``(toolsets, pinned_set)`` as the `iris tools` checklist presents them (the raw registry
     leaks platform composites and reports everything enabled without a pin)."""
-    from hermes_cli.tools_config import (
+    from iris_cli.tools_config import (
         _coerce_platform_toolsets_value, _get_effective_configurable_toolsets, _get_platform_tools,
         _toolset_allowed_for_platform)
     from toolsets import resolve_toolset
     pinned = _coerce_platform_toolsets_value((cfg.get("platform_toolsets") or {}).get("cli"), "cli")
     pinned_set = _clean_names(pinned) if isinstance(pinned, list) else None
     platform_enabled = _try(lambda: set(_get_platform_tools(cfg, "cli", include_default_mcp_servers=False)), set())
-    default_off = _try(lambda: _lazy("hermes_cli.tools_config", "_DEFAULT_OFF_TOOLSETS"), set())
+    default_off = _try(lambda: _lazy("iris_cli.tools_config", "_DEFAULT_OFF_TOOLSETS"), set())
     toolsets_out = []
     for ts_name, ts_label, ts_desc in _get_effective_configurable_toolsets():
         enabled = ts_name in (pinned_set if pinned_set is not None else platform_enabled)
@@ -454,10 +454,10 @@ def _(rid, params: dict) -> dict:
     name, profile_dir, err = _resolve_profile(rid, params)
     if err is not None:
         return err
-    with _hermes_home_scope(profile_dir):
+    with _iris_home_scope(profile_dir):
         from agent.skill_utils import iter_skill_index_files
-        from hermes_cli.config import load_config
-        from hermes_cli.skills_config import get_disabled_skills
+        from iris_cli.config import load_config
+        from iris_cli.skills_config import get_disabled_skills
         cfg = load_config() or {}
         disabled = {s.lower() for s in get_disabled_skills(cfg)}
         skills_root = profile_dir / "skills"
@@ -475,7 +475,7 @@ def _(rid, params: dict) -> dict:
             if isinstance(entry, dict)
         ], []) if isinstance(mcp_cfg, dict) else []
         model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
-        meta = _try(lambda: _lazy("hermes_cli.profiles", "read_profile_meta")(profile_dir), {})
+        meta = _try(lambda: _lazy("iris_cli.profiles", "read_profile_meta")(profile_dir), {})
         return _ok(rid, {
             "name": name, "description": str(meta.get("description") or ""), "soul": soul,
             "model": {"provider": str(model_cfg.get("provider") or ""),
@@ -545,7 +545,7 @@ def _configure_model(profile_dir, params, applied):
     # misbehaving guard must never break the save (treated as "no warning"), matching
     # ``_apply_model_switch``.
     if not is_truthy_value(params.get("confirm_expensive_model", False)):
-        warn = _lazy("hermes_cli.model_selection_guards", "combined_selection_warning")
+        warn = _lazy("iris_cli.model_selection_guards", "combined_selection_warning")
         confirm_message = _try(lambda: getattr(warn(model, provider=provider or None), "message", None), None)
     if confirm_message is None:
         applied["model"] = _best_effort(lambda: _pin_profile_model(profile_dir, provider, model))
@@ -557,9 +557,9 @@ def _clean_names(values) -> set:
 
 
 def _save_toolset_pin(cfg, enabled, save_config) -> None:
-    """Pin ``platform_toolsets.cli``: the key ``_load_enabled_toolsets`` reads and ``hermes tools`` writes.
+    """Pin ``platform_toolsets.cli``: the key ``_load_enabled_toolsets`` reads and ``iris tools`` writes.
     An empty selection clears the pin so the platform default applies again."""
-    from hermes_cli.tools_config import _save_platform_tools
+    from iris_cli.tools_config import _save_platform_tools
 
     wanted = _clean_names(enabled)
     if wanted:
@@ -572,7 +572,7 @@ def _save_toolset_pin(cfg, enabled, save_config) -> None:
 def _mcp_entry_enabled(entry: dict) -> bool:
     """The runtime's ``enabled`` reader; a legacy ``disabled: true`` (what older editors wrote,
     migrated by config v46) still reads as off."""
-    from hermes_cli.tools_config import _parse_enabled_flag
+    from iris_cli.tools_config import _parse_enabled_flag
     from tools.mcp_tool_common import mcp_server_enabled
     return mcp_server_enabled(entry) and not _parse_enabled_flag(entry.get("disabled", False), default=False)
 
@@ -601,15 +601,15 @@ def _configure_cfg_sections(profile_dir, params, applied) -> None:
     want_mcp = isinstance(params.get("enabled_mcp_servers"), list)
     launch_mcp = {}
     if want_mcp:  # launch catalog read BEFORE the home override flips config resolution
-        load_launch = _lazy("hermes_cli.config", "load_config_readonly")
+        load_launch = _lazy("iris_cli.config", "load_config_readonly")
         launch_mcp = _try(lambda: (load_launch() or {}).get("mcp_servers"), {})
         launch_mcp = launch_mcp if isinstance(launch_mcp, dict) else {}
-    with _hermes_home_scope(profile_dir):
-        from hermes_cli.config import load_config, save_config
+    with _iris_home_scope(profile_dir):
+        from iris_cli.config import load_config, save_config
         cfg = load_config() or {}
         if isinstance(params.get("disabled_skills"), list):
             try:
-                from hermes_cli.skills_config import save_disabled_skills
+                from iris_cli.skills_config import save_disabled_skills
                 save_disabled_skills(cfg, _clean_names(params["disabled_skills"]))
                 applied["skills"] = True
                 cfg = load_config() or {}
@@ -636,7 +636,7 @@ def _(rid, params: dict) -> dict:
     if isinstance(params.get("soul"), str):
         applied["soul"] = _best_effort(lambda: (profile_dir / "SOUL.md").write_text(params["soul"], encoding="utf-8"))
     if isinstance(params.get("description"), str):
-        write_meta = _lazy("hermes_cli.profiles", "write_profile_meta")
+        write_meta = _lazy("iris_cli.profiles", "write_profile_meta")
         applied["description"] = _best_effort(lambda: write_meta(
             profile_dir, description=params["description"].strip(), description_auto=False))
     confirm_message = _configure_model(profile_dir, params, applied)

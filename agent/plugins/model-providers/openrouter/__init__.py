@@ -77,8 +77,8 @@ class OpenRouterProfile(ProviderProfile):
         if not effort and not disabled:
             return cfg
         try:
-            from hermes_cli.models import clamp_reasoning_effort_to_supported
-            from hermes_cli.models_reasoning_caps import openrouter_model_reasoning_capabilities
+            from iris_cli.models import clamp_reasoning_effort_to_supported
+            from iris_cli.models_reasoning_caps import openrouter_model_reasoning_capabilities
 
             caps = openrouter_model_reasoning_capabilities(model)
             if not caps or not caps.get("supports_reasoning"):
@@ -105,7 +105,7 @@ class OpenRouterProfile(ProviderProfile):
         self, *, api_key: str | None = None, base_url: str | None = None, timeout: float = 8.0
     ) -> list[str] | None:
         """Public OpenRouter catalog (no auth), cached per process. Tool-call
-        filtering happens in hermes_cli/models.py, which the picker reaches first."""
+        filtering happens in iris_cli/models.py, which the picker reaches first."""
         global _CACHE  # noqa: PLW0603
         if _CACHE is not None:
             return _CACHE
@@ -167,12 +167,12 @@ class OpenRouterProfile(ProviderProfile):
             # pointless and actively harmful: - any enabled form, on a tool-continuation turn whose prior
             # assistant tool_call carries no thinking block (chat_completions never replays signed thinking
             # blocks), ALSO makes OpenRouter emit ``thinking: {type: "disabled"}`` → the same 400 on every
-            # turn after the first tool call. See hermes-agent#42991 (disable case) and the tool-replay
+            # turn after the first tool call. See iris-agent#42991 (disable case) and the tool-replay
             # follow-up. ``reasoning.effort`` being ignored does NOT mean these models have no effort lever
             # — OpenRouter honors the requested effort on the top-level ``verbosity`` field instead (it maps
             # to Anthropic's ``output_config.effort``; ``reasoning.effort`` is accepted but ignored —
             # confirmed by OpenRouter's Claude migration docs and a live token-spend probe in
-            # hermes-agent#43432). Route the existing ``reasoning_config["effort"]`` (sourced from
+            # iris-agent#43432). Route the existing ``reasoning_config["effort"]`` (sourced from
             # ``agent.reasoning_effort``) onto ``verbosity`` so the knob the user already sets keeps working
             # for these models.
             if _anthropic_reasoning_is_mandatory(model):

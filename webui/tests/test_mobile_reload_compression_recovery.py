@@ -55,7 +55,7 @@ def test_load_session_follows_backend_continuation_hint():
     assert "skipContinuationResolve:true" in load_session
     # Restore-state safety: the continuation id must NOT be written to localStorage/URL
     # before the inner load proves it is loadable.
-    assert "localStorage.setItem('hermes-webui-session',continuationSid)" not in load_session
+    assert "localStorage.setItem('iris-webui-session',continuationSid)" not in load_session
     assert "_setActiveSessionUrl(continuationSid)" not in load_session
 
 

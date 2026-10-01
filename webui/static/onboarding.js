@@ -225,9 +225,9 @@ function _renderOnboardingProviderOAuthField(provider){
   return `<div class="onboarding-oauth-card onboarding-oauth-pending" style="margin-top:12px">
     <div class="onboarding-oauth-icon">🔑</div>
     <div style="flex:1">
-      <strong>Use Claude Code OAuth instead</strong>
-      <p style="margin-top:6px;color:var(--muted);font-size:13px"><strong>Claude Code subscription credentials are not the same as an Anthropic API key.</strong> 仅在希望 Iris 使用服务器上已有的 Claude Code 凭据时使用此路径，或启动短轮询流程，同时你可在主机上完成 <code>claude setup-token</code>。</p>
-      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="anthropicOAuthBtn" onclick="startAnthropicOAuth()" type="button">Login with Claude Code</button></div>
+      <strong>${t('onboarding_claude_oauth_title')}</strong>
+      <p style="margin-top:6px;color:var(--muted);font-size:13px">${t('onboarding_claude_oauth_help')}</p>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="anthropicOAuthBtn" onclick="startAnthropicOAuth()" type="button">${t('onboarding_claude_oauth_login')}</button></div>
       <div id="anthropicOAuthFlow" style="display:none;margin-top:12px"></div>
     </div>
   </div>`;
@@ -262,13 +262,13 @@ function _renderOnboardingBody(){
   if(nextBtn) nextBtn.textContent=key==='finish'?t('onboarding_open'):t('onboarding_continue');
 
   if(key==='system'){
-    const hermesOk=system.hermes_found&&system.imports_ok;
+    const irisOk=system.iris_found&&system.imports_ok;
     const setupOk=!!system.chat_ready;
     const providerNote=_localizedOnboardingProviderNote(system);
-    _setOnboardingNotice(providerNote|| (setupOk?t('onboarding_notice_system_ready'):t('onboarding_notice_system_unavailable')),setupOk?'success':(hermesOk?'info':'warn'));
+    _setOnboardingNotice(providerNote|| (setupOk?t('onboarding_notice_system_ready'):t('onboarding_notice_system_unavailable')),setupOk?'success':(irisOk?'info':'warn'));
     body.innerHTML=`
       <div class="onboarding-panel-grid">
-        <div class="onboarding-check ${hermesOk?'ok':'warn'}"><strong>${t('onboarding_check_agent')}</strong><span>${hermesOk?t('onboarding_check_agent_ready'):t('onboarding_check_agent_missing')}</span></div>
+        <div class="onboarding-check ${irisOk?'ok':'warn'}"><strong>${t('onboarding_check_agent')}</strong><span>${irisOk?t('onboarding_check_agent_ready'):t('onboarding_check_agent_missing')}</span></div>
         <div class="onboarding-check ${(setupOk?'ok':system.provider_configured?'warn':'muted')}"><strong>${t('onboarding_check_provider')}</strong><span>${_providerStatusLabel(system)}</span></div>
         <div class="onboarding-check ${(settings.password_enabled?'ok':'muted')}"><strong>${t('onboarding_check_password')}</strong><span>${settings.password_enabled?t('onboarding_check_password_enabled'):t('onboarding_check_password_disabled')}</span></div>
       </div>
@@ -520,7 +520,7 @@ async function _saveOnboardingDefaults(){
   if(ONBOARDING.status){
     ONBOARDING.status.settings={...(ONBOARDING.status.settings||{}),password_enabled:!!saved.auth_enabled};
   }
-  try{localStorage.setItem('hermes-webui-model',model)}catch{}
+  try{localStorage.setItem('iris-webui-model',model)}catch{}
   if($('modelSelect')) _applyModelToDropdown(model,$('modelSelect'));
 }
 

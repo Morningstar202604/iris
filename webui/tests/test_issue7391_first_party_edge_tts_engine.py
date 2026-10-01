@@ -48,8 +48,8 @@ def _run_node(script: str) -> list[dict]:
 _UI_HARNESS = r"""
 const requests = [];
 const store = {
-  'hermes-tts-engine': 'edge',
-  'hermes-tts-voice': 'en-US-AriaNeural',
+  'iris-tts-engine': 'edge',
+  'iris-tts-voice': 'en-US-AriaNeural',
 };
 globalThis.window = globalThis;
 globalThis.speechSynthesis = { cancel() {}, getVoices() { return []; } };
@@ -82,8 +82,8 @@ console.log(JSON.stringify(requests));
 _BOOT_HARNESS = r"""
 const requests = [];
 const store = {
-  'hermes-tts-engine': 'edge',
-  'hermes-tts-voice': 'en-US-AriaNeural',
+  'iris-tts-engine': 'edge',
+  'iris-tts-voice': 'en-US-AriaNeural',
 };
 globalThis.window = globalThis;
 globalThis.localStorage = {

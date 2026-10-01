@@ -11,7 +11,7 @@
  *
  * Background on the two auth models a remote gateway can use:
  *   - 'token': legacy static dashboard session token. REST uses an
- *     `X-Hermes-Session-Token` header; WS uses `?token=`.
+ *     `X-Iris-Session-Token` header; WS uses `?token=`.
  *   - 'oauth': hosted gateways gate behind an OAuth provider. REST is authed
  *     by an HttpOnly session cookie; WS upgrades require a single-use
  *     `?ticket=` minted at POST /api/auth/ws-ticket. The gateway advertises
@@ -21,14 +21,14 @@
 // Bare + prefixed variants of the session cookies the gateway may set,
 // depending on its deploy shape (HTTPS direct → __Host-, behind a path prefix
 // → __Secure-, loopback HTTP → bare). Mirrors
-// hermes_cli/dashboard_auth/cookies.py.
+// iris_cli/dashboard_auth/cookies.py.
 //
 // Two cookies are in play (see that module):
-//   - hermes_session_at: the OAuth access token. Short-lived (~15 min); its
+//   - iris_session_at: the OAuth access token. Short-lived (~15 min); its
 //     Max-Age tracks the access-token TTL, so the cookie jar drops it the
 //     instant the AT expires.
-//   - hermes_session_rt: the OAuth refresh token. Long-lived (24h rotating,
-//     reuse-detected — Portal NAS #293 / hermes #37247). When the AT cookie
+//   - iris_session_rt: the OAuth refresh token. Long-lived (24h rotating,
+//     reuse-detected — Portal NAS #293 / iris #37247). When the AT cookie
 //     has lapsed but the RT cookie is still present, the gateway middleware
 //     transparently rotates a fresh AT on the next authenticated request
 //     (POST /api/auth/ws-ticket), so the session is still LIVE even with no
@@ -37,12 +37,12 @@
 import { readStatusCode } from './api-transport'
 import { sharesHostBackend } from './host-backend-singleton'
 
-const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
-const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
+const AT_COOKIE_VARIANTS = ['__Host-iris_session_at', '__Secure-iris_session_at', 'iris_session_at']
+const RT_COOKIE_VARIANTS = ['__Host-iris_session_rt', '__Secure-iris_session_rt', 'iris_session_rt']
 
-// Keep this aligned with hermes_cli.profiles.validate_profile_name(). `default`
+// Keep this aligned with iris_cli.profiles.validate_profile_name(). `default`
 // is the built-in root alias; these names cannot be created as profiles.
-const RESERVED_REMOTE_PROFILES = new Set(['hermes', 'test', 'tmp', 'root', 'sudo'])
+const RESERVED_REMOTE_PROFILES = new Set(['iris', 'test', 'tmp', 'root', 'sudo'])
 
 function normalizeRemoteBaseUrl(rawUrl) {
   let value = String(rawUrl || '').trim()
@@ -117,7 +117,7 @@ function gatewayTicketFailure(error, authMessage, transportMessage) {
     // cookie path only sees a 401/403 after the gateway's transparent AT/RT
     // rotation has already failed, and the native-bearer path only after
     // mintGatewayWsTicket's forced /auth/native/refresh has. Nothing will
-    // change until the user signs in, so tag it the way startHermes latches
+    // change until the user signs in, so tag it the way startIris latches
     // (isReauthRequiredError): the boot is marked non-retryable and the
     // overlay's Sign in button stops flickering away under the renderer's
     // transient-boot retry loop (#95701).
@@ -253,7 +253,7 @@ function connectionScopeKey(profile) {
   return String(profile ?? '').trim() || null
 }
 
-/** Which Hermes profile the remote SSH dashboard should actually run as.
+/** Which Iris profile the remote SSH dashboard should actually run as.
  *  Registry pool keys (`conn:mac-mini::default`) are desktop routing labels —
  *  they must never be sent to the remote as a profile name. `default` and
  *  empty mean the remote root home. */
@@ -294,7 +294,7 @@ const FORBIDDEN_REMOTE_HEADER_NAMES = new Set([
   'trailer',
   'transfer-encoding',
   'upgrade',
-  'x-hermes-session-token'
+  'x-iris-session-token'
 ])
 
 /**
@@ -374,7 +374,7 @@ function remoteRequestMatchesBaseUrl(requestUrl, baseUrl) {
 }
 
 // True for connection modes that resolve to a REMOTE backend. 'cloud' is a
-// Hermes Cloud connection (cloud-auto-discovery Q3/Q6): it carries a
+// Iris Cloud connection (cloud-auto-discovery Q3/Q6): it carries a
 // remote-shaped block and reuses the entire remote connect/probe/reconnect
 // path, so every resolution site treats it exactly like 'remote'. The only
 // places that distinguish cloud from remote are the settings UI (which card to
@@ -449,15 +449,15 @@ function normalizeSshConfig(entry) {
     out.keyPath = keyPath
   }
 
-  const remoteHermesPath = String(entry.remoteHermesPath || '').trim()
+  const remoteIrisPath = String(entry.remoteIrisPath || '').trim()
 
-  if (remoteHermesPath) {
-    out.remoteHermesPath = remoteHermesPath
+  if (remoteIrisPath) {
+    out.remoteIrisPath = remoteIrisPath
   }
 
   // A Desktop profile can be a local routing label rather than the profile
-  // name used by the remote Hermes installation. Preserve an explicit mapping
-  // when it is a valid Hermes profile identifier; otherwise fall back to the
+  // name used by the remote Iris installation. Preserve an explicit mapping
+  // when it is a valid Iris profile identifier; otherwise fall back to the
   // historical same-name behavior in the caller.
   const remoteProfile = String(entry.remoteProfile || '').trim()
 
@@ -562,7 +562,7 @@ export interface ProfileRouteOptions {
   primaryRemoteActive?: boolean
   /** A stored per-profile entry exists for this profile (local or remote). */
   ownEntry?: boolean
-  /** `HERMES_DESKTOP_ISOLATED_BACKEND=1`: opt out of the host singleton. */
+  /** `IRIS_DESKTOP_ISOLATED_BACKEND=1`: opt out of the host singleton. */
   isolatedBackend?: boolean
   requestMethod?: null | string
   requestPath?: null | string
@@ -633,7 +633,7 @@ const LOCAL_PRIMARY_SCOPED_ROUTES = new Set([
   'POST /api/curator/run',
   'GET /api/logs',
   'GET /api/portal',
-  'GET /api/hermes/update/check',
+  'GET /api/iris/update/check',
   'POST /api/local-models/activate',
   'GET /api/dashboard/themes',
   'PUT /api/dashboard/theme',
@@ -664,7 +664,7 @@ function localPrimaryRequestScope(opts: ProfileRouteOptions): boolean | null {
   }
 
   // Action-status polls MUST land on the same backend as the endpoints that
-  // spawned them: `_spawn_hermes_action` registers the (often dynamic, e.g.
+  // spawned them: `_spawn_iris_action` registers the (often dynamic, e.g.
   // `skills-install-<slug>-<hash>`) action name only in the spawning
   // process's memory. Every action-spawning route above scopes to the
   // primary, so the poll family follows — a pooled-backend poll 404s with
@@ -726,7 +726,7 @@ const SAFE_REQUEST_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
  * `?profile=`, no `body.profile`, no target named in the path).
  *
  * Such a route has exactly one scope left — the backend process's own
- * `HERMES_HOME` — so it keeps a pooled, profile-scoped backend even though every
+ * `IRIS_HOME` — so it keeps a pooled, profile-scoped backend even though every
  * other local request now shares the host one. Mechanical on purpose: the day a
  * handler learns to read `profile` it joins `LOCAL_PRIMARY_SCOPED_ROUTES` (or a
  * family above), `localPrimaryRequestScope` stops returning null, and this
@@ -764,15 +764,15 @@ export function unscopableMutatingRequest(opts: ProfileRouteOptions = {}): boole
  *     backend, with `?profile=` when the handler reads the query (handlers that
  *     name their target in the path or `body.profile` get no query).
  *  6. Every other LOCAL profile also shares the one host backend
- *     (multiplex-only: one `hermes serve` per HOST). The descriptor carries
+ *     (multiplex-only: one `iris serve` per HOST). The descriptor carries
  *     `sharedPrimary: true`, and the renderer honours it on BOTH request paths
  *     (`requestGatewayForProfile` and the session-owner
  *     `requestGatewayForAgent` family): the profile's calls ride the primary
  *     socket with a `profile` param, never a second socket to the same
  *     process (#120005). The two ways out are
- *     `HERMES_DESKTOP_ISOLATED_BACKEND=1`, which gives this app a private
+ *     `IRIS_DESKTOP_ISOLATED_BACKEND=1`, which gives this app a private
  *     backend, and a MUTATING request the server cannot scope at all — that
- *     one keeps a pooled backend whose HERMES_HOME does the scoping, so a
+ *     one keeps a pooled backend whose IRIS_HOME does the scoping, so a
  *     destructive call can never fall through to the primary's home.
  *
  * Routing used to be spread across three overlapping predicates that each
@@ -790,13 +790,13 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
   if (scopedProfile === primaryProfile) {
     // A global remote is a multi-profile dashboard, not a backend process
     // launched for this Desktop label. Even its "primary" label must travel on
-    // the wire: the dashboard's process HERMES_HOME can belong to a different
+    // the wire: the dashboard's process IRIS_HOME can belong to a different
     // launch profile, so a bare request silently reads that profile instead.
     if (opts.globalRemote) {
       return { backend: 'primary', descriptorProfile: scopedProfile, scopePath: true }
     }
 
-    // The same holds for the LOCAL host backend: with one `hermes serve` per
+    // The same holds for the LOCAL host backend: with one `iris serve` per
     // host the app attaches to whatever backend is running, and that process
     // was launched under some OTHER profile's home whenever another app (or an
     // earlier boot) registered it. A bare request the server can scope then
@@ -843,9 +843,9 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
 
   // 6. Multiplex-only: every other LOCAL profile shares the one host backend
   //    too, carrying `?profile=` / the `profile` RPC param instead of getting
-  //    a `hermes serve` child of its own — UNLESS this request mutates state
+  //    a `iris serve` child of its own — UNLESS this request mutates state
   //    the server cannot scope, in which case the pooled backend's own
-  //    HERMES_HOME is the only scope left and it keeps one.
+  //    IRIS_HOME is the only scope left and it keeps one.
   if (sharesHostBackend({ isolated: opts.isolatedBackend, unscopableRequest: unscopableMutatingRequest(opts) })) {
     return { backend: 'primary', descriptorProfile: scopedProfile, scopePath: true }
   }
@@ -891,7 +891,7 @@ const SELF_PROFILE_QUERY_KEYS_BY_PATH: Record<string, string[]> = {
  * equal to the alias itself are rewritten; cross-profile selectors (`all`,
  * another concrete profile) and unfiltered paths pass through untouched. Used
  * by the v1 profile route above and by the registry SSH branch of the
- * `hermes:api` handler — both routes reach a backend whose namespace is the
+ * `iris:api` handler — both routes reach a backend whose namespace is the
  * remote profile, not the alias.
  */
 function translateSelfProfileQuery(path, profile, backendProfile) {
@@ -911,7 +911,7 @@ function translateSelfProfileQuery(path, profile, backendProfile) {
   let parsed
 
   try {
-    parsed = new URL(rawPath, 'http://hermes.local')
+    parsed = new URL(rawPath, 'http://iris.local')
   } catch {
     return path
   }
@@ -957,7 +957,7 @@ function pathWithProfileScope(path, profile) {
   let parsed
 
   try {
-    parsed = new URL(rawPath, 'http://hermes.local')
+    parsed = new URL(rawPath, 'http://iris.local')
   } catch {
     return path
   }
@@ -1016,7 +1016,7 @@ export interface ProfileApiRequestRoute {
 }
 
 /**
- * Resolve the two decisions made by the `hermes:api` IPC handler from the same
+ * Resolve the two decisions made by the `iris:api` IPC handler from the same
  * routing table: which backend serves the request, and whether its URL needs a
  * profile query scope.
  */
@@ -1073,7 +1073,7 @@ function resolveAuthMode(inputAuthMode, existingAuthMode) {
 }
 
 /**
- * True if any cookie in `cookies` is a hermes session ACCESS-token cookie
+ * True if any cookie in `cookies` is a iris session ACCESS-token cookie
  * with a non-empty value. `cookies` is an array of {name, value} (the shape
  * Electron's session.cookies.get returns).
  *

@@ -25,11 +25,11 @@ def test_runtime_adapter_interface_and_legacy_journal_methods_exist():
 
     assert runtime.runtime_adapter_mode({}) == "legacy-direct"
     assert runtime.runtime_adapter_enabled({}) is False
-    assert runtime.runtime_adapter_mode({"HERMES_WEBUI_RUNTIME_ADAPTER": "legacy-journal"}) == "legacy-journal"
-    assert runtime.runtime_adapter_enabled({"HERMES_WEBUI_RUNTIME_ADAPTER": "legacy-journal"}) is True
-    assert runtime.runtime_adapter_mode({"HERMES_WEBUI_RUNTIME_ADAPTER": "runner-local"}) == "runner-local"
-    assert runtime.runtime_adapter_runner_enabled({"HERMES_WEBUI_RUNTIME_ADAPTER": "runner-local"}) is True
-    assert runtime.runtime_adapter_mode({"HERMES_WEBUI_RUNTIME_ADAPTER": "sidecar"}) == "legacy-direct"
+    assert runtime.runtime_adapter_mode({"IRIS_WEBUI_RUNTIME_ADAPTER": "legacy-journal"}) == "legacy-journal"
+    assert runtime.runtime_adapter_enabled({"IRIS_WEBUI_RUNTIME_ADAPTER": "legacy-journal"}) is True
+    assert runtime.runtime_adapter_mode({"IRIS_WEBUI_RUNTIME_ADAPTER": "runner-local"}) == "runner-local"
+    assert runtime.runtime_adapter_runner_enabled({"IRIS_WEBUI_RUNTIME_ADAPTER": "runner-local"}) is True
+    assert runtime.runtime_adapter_mode({"IRIS_WEBUI_RUNTIME_ADAPTER": "sidecar"}) == "legacy-direct"
 
 
 def test_runtime_adapter_factory_selects_only_explicit_default_off_modes():
@@ -50,14 +50,14 @@ def test_runtime_adapter_factory_selects_only_explicit_default_off_modes():
     assert runtime.build_runtime_adapter(environ={}) is None
 
     legacy = runtime.build_runtime_adapter(
-        environ={"HERMES_WEBUI_RUNTIME_ADAPTER": "legacy-journal"},
+        environ={"IRIS_WEBUI_RUNTIME_ADAPTER": "legacy-journal"},
         legacy_adapter_factory=legacy_factory,
         runner_client_factory=runner_factory,
     )
     assert isinstance(legacy, runtime.LegacyJournalRuntimeAdapter)
 
     runner = runtime.build_runtime_adapter(
-        environ={"HERMES_WEBUI_RUNTIME_ADAPTER": "runner-local"},
+        environ={"IRIS_WEBUI_RUNTIME_ADAPTER": "runner-local"},
         legacy_adapter_factory=legacy_factory,
         runner_client_factory=runner_factory,
     )
@@ -75,7 +75,7 @@ def test_runner_local_factory_requires_injected_client_and_does_not_fallback_to_
 
     try:
         runtime.build_runtime_adapter(
-            environ={"HERMES_WEBUI_RUNTIME_ADAPTER": "runner-local"},
+            environ={"IRIS_WEBUI_RUNTIME_ADAPTER": "runner-local"},
             legacy_adapter_factory=legacy_factory,
         )
     except NotImplementedError as exc:
@@ -264,7 +264,7 @@ def test_chat_cancel_route_uses_adapter_only_when_flag_enabled():
     assert "LegacyJournalRuntimeAdapter(cancel_delegate=cancel_stream)" in cancel_body
     assert "adapter.cancel_run(stream_id).accepted" in cancel_body
     assert "else:\n            cancelled = cancel_stream(stream_id)" in cancel_body
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in cancel_body, "route should use runtime_adapter_enabled(), not inline env checks"
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in cancel_body, "route should use runtime_adapter_enabled(), not inline env checks"
 
 
 def test_approval_and_clarify_routes_use_adapter_only_when_flag_enabled():
@@ -280,13 +280,13 @@ def test_approval_and_clarify_routes_use_adapter_only_when_flag_enabled():
     assert "LegacyJournalRuntimeAdapter(approval_delegate=_resolve_approval_legacy)" in approval_body
     assert "adapter.respond_approval(sid, approval_id, choice).accepted" in approval_body
     assert "else:\n        ok = _resolve_approval_legacy(sid, approval_id, choice)" in approval_body
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in approval_body
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in approval_body
 
     assert "runtime_adapter_enabled()" in clarify_body
     assert "LegacyJournalRuntimeAdapter(clarify_delegate=_resolve_clarify_legacy)" in clarify_body
     assert "adapter.respond_clarify(sid, clarify_id, response).accepted" in clarify_body
     assert "else:\n        ok = _resolve_clarify_legacy(sid, clarify_id, response)" in clarify_body
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in clarify_body
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in clarify_body
 
 
 def test_goal_route_uses_adapter_only_when_flag_enabled():
@@ -302,7 +302,7 @@ def test_goal_route_uses_adapter_only_when_flag_enabled():
     assert "goal_adapter_action," in goal_body
     assert "payload = dict(control_result.payload)" in goal_body
     assert "else:\n        payload = _legacy_goal_update" in goal_body
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in goal_body
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in goal_body
 
 
 def test_goal_adapter_action_is_bounded_to_slice3c_actions():
@@ -426,8 +426,8 @@ def test_chat_start_route_selects_adapter_only_when_flag_enabled():
     assert "_start_chat_stream_for_session(" in helper_body
     # Route delegates to the helper instead of inlining env checks:
     assert "_start_run(" in start_body
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in start_body, "route should use runtime_adapter_enabled() via _start_run, not inline env checks"
-    assert "HERMES_WEBUI_RUNTIME_ADAPTER" not in helper_body, "helper should use runtime_adapter_enabled(), not inline env checks"
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in start_body, "route should use runtime_adapter_enabled() via _start_run, not inline env checks"
+    assert "IRIS_WEBUI_RUNTIME_ADAPTER" not in helper_body, "helper should use runtime_adapter_enabled(), not inline env checks"
 
 
 def test_runner_local_chat_start_selection_does_not_fallback_to_legacy():
@@ -522,7 +522,7 @@ def test_chat_start_response_from_run_start_filters_adapter_internal_fields():
 
 def test_rfc_distinguishes_goal_routing_from_queue_route_staging():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#2544 shipped the first Slice 3c implementation" in rfc
     assert "#2560 shipped the queue-staging clarification" in rfc
@@ -534,13 +534,13 @@ def test_rfc_distinguishes_goal_routing_from_queue_route_staging():
 
 def test_rfc_defines_slice4_runner_contract_before_runner_code():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4a: Runner contract gate" in rfc
     assert "docs/test contract PR before any\nrunner code lands" in rfc
     assert "feature-flagged, default-off" in rfc
     assert "The runner, not the main WebUI request process, owns" in rfc
-    assert "restart only\n   `hermes-webui.service`" in rfc
+    assert "restart only\n   `iris-webui.service`" in rfc
     assert "profile,\n   workspace, attachments, model/provider, toolset, and source metadata" in rfc
     assert "no removal of the legacy in-process backend" in rfc
     assert "no default-on runner mode" in rfc
@@ -552,11 +552,11 @@ def test_rfc_defines_slice4_runner_contract_before_runner_code():
 
 def test_rfc_defines_slice4c_runner_backend_harness_gate():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4c: Feature-flagged runner backend and restart/reattach harness" in rfc
     assert "Status as of 2026-05-21: shipped in v0.51.105 via #2696" in rfc
-    assert "`HERMES_WEBUI_RUNTIME_ADAPTER=runner-local`" in rfc
+    assert "`IRIS_WEBUI_RUNTIME_ADAPTER=runner-local`" in rfc
     assert "`legacy-direct` remains the default" in rfc
     assert "No route-shape drift" in rfc
     assert "Restart/reattach harness" in rfc
@@ -567,7 +567,7 @@ def test_rfc_defines_slice4c_runner_backend_harness_gate():
 
 def test_rfc_defines_slice4d_supervised_runner_route_gate():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4d: Supervised runner backend route gate" in rfc
     assert "Status as of 2026-05-23: shipped in v0.51.108 via #2744" in rfc
@@ -584,7 +584,7 @@ def test_rfc_defines_slice4d_supervised_runner_route_gate():
 
 def test_rfc_defines_slice4e_runner_chat_start_route_selection_harness():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4e: Default-off runner chat-start route-selection harness" in rfc
     assert "Status as of 2026-05-24: shipped in v0.51.129 via #2794" in rfc
@@ -599,15 +599,15 @@ def test_rfc_defines_slice4e_runner_chat_start_route_selection_harness():
 
 def test_rfc_defines_slice4f_supervised_local_runner_client_gate():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4f: Supervised local runner client backend gate" in rfc
     assert "Status as of 2026-05-31: shipped in v0.51.188 via #3073 / #3274" in rfc
-    assert "The client\ntransport is now implemented behind `HERMES_WEBUI_RUNNER_BASE_URL`" in rfc
+    assert "The client\ntransport is now implemented behind `IRIS_WEBUI_RUNNER_BASE_URL`" in rfc
     assert "`HttpRunnerClient` rejects non-`http(s)` base URL schemes" in rfc
     assert "uses an opener that\ndoes not follow redirects" in rfc
     assert "the configured\nrunner must emit events that are already compatible with the browser SSE event\nnames/payloads" in rfc
-    assert "a later runner-owned normalization layer must translate\nHermes runtime families such as `token.delta`, `tool.started`, and `done`" in rfc
+    assert "a later runner-owned normalization layer must translate\nIris runtime families such as `token.delta`, `tool.started`, and `done`" in rfc
     assert "After the configured runner-client boundary ships" in rfc
     assert "configured external endpoint or fake-runner fixture" in rfc
     assert "cancel as the first required live control" in rfc
@@ -621,25 +621,25 @@ def test_rfc_defines_slice4f_supervised_local_runner_client_gate():
 
 def test_rfc_defines_slice4g_supervised_local_runner_process_gate():
     routes = importlib.import_module("api.routes")
-    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "hermes-run-adapter-contract.md").read_text(encoding="utf-8")
+    rfc = (routes.Path(__file__).parent.parent / "docs" / "rfcs" / "iris-run-adapter-contract.md").read_text(encoding="utf-8")
 
     assert "#### Slice 4g: Supervised local runner process harness gate" in rfc
     assert "After #3073 / #3274, WebUI has an explicit configured-runner HTTP client" in rfc
     assert "still does not ship the supervised runner process itself" in rfc
     assert "own\n`AIAgent` execution outside the main WebUI request process" in rfc
-    assert "keep WebUI as a client of `HERMES_WEBUI_RUNNER_BASE_URL`" in rfc
+    assert "keep WebUI as a client of `IRIS_WEBUI_RUNNER_BASE_URL`" in rfc
     assert "without WebUI process-global\n  environment mutation" in rfc
     assert "Process ownership moved" in rfc
     assert "Restart/reattach with a real runner" in rfc
     assert "No runtime-surrogate globals in WebUI" in rfc
     assert "Default-off and reversible" in rfc
     assert "Runner health and failure are observable" in rfc
-    assert "no claim that this is the canonical Hermes Agent Runtime API" in rfc
+    assert "no claim that this is the canonical Iris Agent Runtime API" in rfc
 
 def test_runtime_runner_client_factory_stays_bounded_until_endpoint_configured(monkeypatch):
     routes = importlib.import_module("api.routes")
 
-    monkeypatch.delenv("HERMES_WEBUI_RUNNER_BASE_URL", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_RUNNER_BASE_URL", raising=False)
     try:
         routes._runtime_runner_client_factory()
     except NotImplementedError as exc:
@@ -647,7 +647,7 @@ def test_runtime_runner_client_factory_stays_bounded_until_endpoint_configured(m
     else:  # pragma: no cover - defensive assertion
         raise AssertionError("runner-local should remain bounded without an endpoint")
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNNER_BASE_URL", "http://runner.local/")
+    monkeypatch.setenv("IRIS_WEBUI_RUNNER_BASE_URL", "http://runner.local/")
     client = routes._runtime_runner_client_factory()
 
     assert client.base_url == "http://runner.local"
@@ -684,7 +684,7 @@ def test_configured_runner_sse_stream_observes_runner_without_process_maps(monke
         def end_headers(self):
             self.headers.append(("__end__", ""))
 
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "runner-local")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "runner-local")
     monkeypatch.setattr(routes, "_runtime_runner_client_factory", lambda: FakeRunnerClient())
     handler = FakeHandler()
 

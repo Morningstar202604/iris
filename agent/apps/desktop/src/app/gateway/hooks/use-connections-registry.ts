@@ -61,7 +61,7 @@ export function useConnectionsRegistry(): void {
       }
     }
 
-    const off = window.hermesDesktop?.connections?.onChanged?.(() => void refresh())
+    const off = window.irisDesktop?.connections?.onChanged?.(() => void refresh())
     window.addEventListener('focus', onFocus)
     void refresh()
 

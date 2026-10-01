@@ -3,7 +3,7 @@
 A composer, script or older client can pin a model the selected provider cannot serve
 (``gpt-5.5`` on ``anthropic``); the session used to be minted fine and the FIRST turn died with
 the provider's 404, leaving a dead chat. The gate is offline (curated catalogs only) and stays
-permissive wherever Hermes cannot know better — see ``models_validate.static_model_provider_conflict``.
+permissive wherever Iris cannot know better — see ``models_validate.static_model_provider_conflict``.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ def model_override_conflict(params: dict, build_scope) -> dict | None:
     model = str(params.get("model") or "").strip()
     if not model:
         return None
-    from hermes_cli.models_validate import static_model_provider_conflict
-    from hermes_cli.runtime_provider import resolve_requested_provider
+    from iris_cli.models_validate import static_model_provider_conflict
+    from iris_cli.runtime_provider import resolve_requested_provider
 
     provider = str(params.get("provider") or "").strip()
     if not provider:

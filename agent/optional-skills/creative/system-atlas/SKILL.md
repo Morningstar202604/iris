@@ -2,11 +2,11 @@
 name: system-atlas
 description: "Build explorable isometric architecture atlases as HTML."
 version: 1.0.0
-author: Harshyt Goel (adapted by Nous Research)
+author: Harshyt Goel (adapted by Nous Research; Iris fork)
 license: MIT
 platforms: [linux, macos]
 metadata:
-  hermes:
+  iris:
     tags: [architecture, diagrams, isometric, documentation]
     category: creative
     related_skills: [architecture-diagram, excalidraw]

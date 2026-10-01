@@ -1,4 +1,4 @@
-import type { PluginRestOptions } from '@hermes/plugin-sdk'
+import type { PluginRestOptions } from '@iris/plugin-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -12,7 +12,7 @@ import { TaskDrawer } from './drawer'
 import { en, KANBAN_LOCALES } from './i18n'
 import type { KanbanTaskDetail } from './types'
 
-vi.mock('@/hermes', () => ({ setApiRequestProfile: vi.fn() }))
+vi.mock('@/iris', () => ({ setApiRequestProfile: vi.fn() }))
 
 const legacyDetail: Omit<KanbanTaskDetail, 'attachments'> = {
   task: { id: 't_example', title: 'Example task', body: 'Keep this description readable.', status: 'todo' },
@@ -167,7 +167,7 @@ describe('task modal dialog', () => {
   })
 
   it('shows the workspace path as its own value, not prefixed with the raw kind', async () => {
-    const path = '/Users/example/.hermes/kanban/workspaces/a_very_long_directory_name_that_must_wrap'
+    const path = '/Users/example/.iris/kanban/workspaces/a_very_long_directory_name_that_must_wrap'
     detail = {
       ...legacyDetail,
       attachments: [],

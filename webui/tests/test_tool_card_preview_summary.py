@@ -67,7 +67,7 @@ def test_collapsed_tool_header_prefers_argument_summary_over_result_json(driver_
             "args": {
                 "target": "content",
                 "pattern": "Hattest du https://github.com/huggingface/speech-to-speech",
-                "path": "/tmp/hermes-webui",
+                "path": "/tmp/iris-webui",
                 "limit": "20",
             },
             "snippet": '{"total_count": 26, "matches": [{"path": "..."}]}',
@@ -77,7 +77,7 @@ def test_collapsed_tool_header_prefers_argument_summary_over_result_json(driver_
     )
 
     assert "pattern=" in preview
-    assert "/tmp/hermes-webui" in preview
+    assert "/tmp/iris-webui" in preview
     assert "total_count" not in preview
     assert "matches" not in preview
 

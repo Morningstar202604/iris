@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- File upload: multipart parser and upload handler.
+Iris Web UI -- File upload: multipart parser and upload handler.
 """
 import mimetypes
 import os
@@ -30,11 +30,11 @@ def _max_extracted_bytes() -> int:
     """Total-extracted-bytes cap for archive uploads (zip/tar-bomb guard).
 
     Independently tunable from the upload size cap via
-    HERMES_WEBUI_MAX_EXTRACTED_MB; defaults to 10x the upload cap. Read at call
+    IRIS_WEBUI_MAX_EXTRACTED_MB; defaults to 10x the upload cap. Read at call
     time (not import) so the value reflects the running process's environment
     and is exercisable by tests against the out-of-process test server.
     """
-    raw = os.getenv("HERMES_WEBUI_MAX_EXTRACTED_MB", "").strip()
+    raw = os.getenv("IRIS_WEBUI_MAX_EXTRACTED_MB", "").strip()
     if raw:
         try:
             mb = float(raw)
@@ -202,9 +202,9 @@ def _attachment_root() -> Path:
 
     Plain chat attachments are transient context for the agent, not project
     source files.  Keep them out of the active workspace by default while still
-    allowing operators to move the inbox with HERMES_WEBUI_ATTACHMENT_DIR.
+    allowing operators to move the inbox with IRIS_WEBUI_ATTACHMENT_DIR.
     """
-    override = os.getenv('HERMES_WEBUI_ATTACHMENT_DIR', '').strip()
+    override = os.getenv('IRIS_WEBUI_ATTACHMENT_DIR', '').strip()
     if override:
         return Path(override).expanduser().resolve()
     return (STATE_DIR / 'attachments').resolve()

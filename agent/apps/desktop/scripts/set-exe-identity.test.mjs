@@ -7,10 +7,10 @@ import { test } from 'vitest'
 import { stampExeIdentity } from './set-exe-identity.mjs'
 
 function makeDesktopRoot() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-exe-identity-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-exe-identity-'))
   fs.mkdirSync(path.join(root, 'assets'))
   fs.writeFileSync(path.join(root, 'assets', 'icon.ico'), 'icon')
-  const exe = path.join(root, 'Hermes.exe')
+  const exe = path.join(root, 'Iris.exe')
   fs.writeFileSync(exe, 'exe')
   return { exe, root }
 }

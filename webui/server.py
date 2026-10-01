@@ -16,7 +16,7 @@ def _ignore_sigpipe() -> None:
         signal.signal(sigpipe, signal.SIG_IGN)
 
 # Test-mode network isolation keeps subprocess-backed tests hermetic.
-if os.environ.get("HERMES_WEBUI_TEST_NETWORK_BLOCK", "").strip() in ("1", "true", "yes"):
+if os.environ.get("IRIS_WEBUI_TEST_NETWORK_BLOCK", "").strip() in ("1", "true", "yes"):
     from api.test_network_block import install as _install_test_network_block
 
     _install_test_network_block()
@@ -252,7 +252,7 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 pass
     _ver_suffix = WEBUI_VERSION.removeprefix('v')
-    server_version = ('HermesWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'HermesWebUI'
+    server_version = ('IrisWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'IrisWebUI'
     _CSP_REPORT_TO = '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"/api/csp-report"}]}'
 
     @classmethod
@@ -475,7 +475,7 @@ def _abort_if_already_serving(host: str, port: int) -> None:
 
 
 def main() -> None:
-    from api.config import print_startup_config, verify_hermes_imports, _HERMES_FOUND
+    from api.config import print_startup_config, verify_iris_imports, _IRIS_FOUND
 
     _ignore_sigpipe()
 
@@ -529,27 +529,27 @@ def main() -> None:
     if HOST not in ('127.0.0.1', '::1', 'localhost') and not is_auth_enabled():
         print(f'[!!] WARNING: Binding to {HOST} with NO PASSWORD SET.', flush=True)
         print(f'     Anyone on the network can access your filesystem and agent.', flush=True)
-        print(f'     Set a password via Settings or HERMES_WEBUI_PASSWORD env var.', flush=True)
+        print(f'     Set a password via Settings or IRIS_WEBUI_PASSWORD env var.', flush=True)
         print(f'     To suppress: bind to 127.0.0.1 or set a password.', flush=True)
         if within_container:
             print(f'     Note: You are running within a container, must bind to 0.0.0.0 (IPv4) or :: (IPv6) to publish the port.', flush=True)
     elif not is_auth_enabled():
         print(f'  [tip] No password set. Any process on this machine can read sessions', flush=True)
-        print(f'        and memory via the local API. Set HERMES_WEBUI_PASSWORD to', flush=True)
+        print(f'        and memory via the local API. Set IRIS_WEBUI_PASSWORD to', flush=True)
         print(f'        enable authentication.', flush=True)
 
     oidc_startup_warning = get_oidc_startup_warning()
     if oidc_startup_warning:
         print(f'[!!] WARNING: {oidc_startup_warning}', flush=True)
 
-    ok, missing, errors = verify_hermes_imports()
-    if not ok and _HERMES_FOUND:
-        print(f'[!!] Warning: Hermes agent found but missing modules: {missing}', flush=True)
+    ok, missing, errors = verify_iris_imports()
+    if not ok and _IRIS_FOUND:
+        print(f'[!!] Warning: Iris agent found but missing modules: {missing}', flush=True)
         for mod, err in errors.items():
             print(f'     {mod}: {err}', flush=True)
         print('     Attempting to install missing dependencies from agent requirements.txt...', flush=True)
         auto_install_agent_deps()
-        ok, missing, errors = verify_hermes_imports()
+        ok, missing, errors = verify_iris_imports()
         if not ok:
             print(f'[!!] Still missing after install attempt: {missing}', flush=True)
             for mod, err in errors.items():
@@ -594,7 +594,7 @@ def main() -> None:
         print(f'[!!] WARNING: SessionChannel reaper failed to start: {e}', flush=True)
 
     # In-process cron scheduler: single-process deployments get scheduled jobs
-    # without a separate `hermes gateway` daemon. Yields automatically when an
+    # without a separate `iris gateway` daemon. Yields automatically when an
     # external gateway owns the cron tick.
     try:
         from api.cron_ticker import start_in_process_cron_ticker

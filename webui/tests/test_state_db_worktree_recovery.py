@@ -32,9 +32,9 @@ def test_state_db_recovery_preserves_worktree_metadata():
             {"role": "assistant", "content": "hi", "timestamp": 1700000002},
             {"role": "user", "content": "more", "timestamp": 1700000003},
         ],
-        "workspace": "/home/user/proj/.worktrees/hermes-1234",
-        "worktree_path": "/home/user/proj/.worktrees/hermes-1234",
-        "worktree_branch": "hermes/abc123",
+        "workspace": "/home/user/proj/.worktrees/iris-1234",
+        "worktree_path": "/home/user/proj/.worktrees/iris-1234",
+        "worktree_branch": "iris/abc123",
         "worktree_repo_root": "/home/user/proj",
         "worktree_created_at": 1700000000,
     }
@@ -45,13 +45,13 @@ def test_state_db_recovery_preserves_worktree_metadata():
     assert sidecar["title"] == "My worktree session"
     # The four worktree_* fields must survive the rebuild — without them the
     # sidebar filter at api/models.py:1067 hides the session.
-    assert sidecar["worktree_path"] == "/home/user/proj/.worktrees/hermes-1234"
-    assert sidecar["worktree_branch"] == "hermes/abc123"
+    assert sidecar["worktree_path"] == "/home/user/proj/.worktrees/iris-1234"
+    assert sidecar["worktree_branch"] == "iris/abc123"
     assert sidecar["worktree_repo_root"] == "/home/user/proj"
     assert sidecar["worktree_created_at"] == 1700000000
     # Workspace must round-trip from the row so terminal panels / file pickers
     # operate on the correct path, not on empty string.
-    assert sidecar["workspace"] == "/home/user/proj/.worktrees/hermes-1234"
+    assert sidecar["workspace"] == "/home/user/proj/.worktrees/iris-1234"
     # message_count must come from the row so the sidebar exempt-empty filter
     # accepts message-bearing sessions (was hard-coded 0 pre-fix).
     assert sidecar["message_count"] == 3
@@ -99,9 +99,9 @@ def test_state_db_recovery_zero_message_worktree_session_visible_in_sidebar():
         "parent_session_id": None,
         "message_count": 0,
         "messages": [],
-        "workspace": "/home/user/proj/.worktrees/hermes-empty",
-        "worktree_path": "/home/user/proj/.worktrees/hermes-empty",
-        "worktree_branch": "hermes/empty",
+        "workspace": "/home/user/proj/.worktrees/iris-empty",
+        "worktree_path": "/home/user/proj/.worktrees/iris-empty",
+        "worktree_branch": "iris/empty",
         "worktree_repo_root": "/home/user/proj",
         "worktree_created_at": 1700000000,
     }

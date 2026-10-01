@@ -82,14 +82,14 @@ def _call_uncached(tmp_path, sessions):
     """Build a state.db from ``sessions``, call _load_cli_sessions_uncached, return results."""
     db = tmp_path / 'state.db'
     _make_state_db(db, sessions)
-    hermes_home = tmp_path
+    iris_home = tmp_path
 
     # Patch out side-effects that touch the real filesystem.
     with (
         unittest.mock.patch('api.models.get_claude_code_sessions', return_value=[]),
         unittest.mock.patch('api.models.ensure_cron_project', return_value='cron-project-id'),
     ):
-        return models._load_cli_sessions_uncached(hermes_home, db, None)
+        return models._load_cli_sessions_uncached(iris_home, db, None)
 
 
 def _find(results, sid):

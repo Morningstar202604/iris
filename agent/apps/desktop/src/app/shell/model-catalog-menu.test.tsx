@@ -12,7 +12,7 @@ import {
   setModelVisibilityOpen,
   setVisibleModels
 } from '@/store/model-visibility'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/iris'
 
 import { ModelCatalogMenu, type ModelMenuController } from './model-catalog-menu'
 
@@ -25,7 +25,7 @@ beforeAll(() => {
 
 const getGlobalModelOptions = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getGlobalModelOptions: (...args: unknown[]) => getGlobalModelOptions(...args),
   // The menu kicks the app-level job poller on mount; echo the store so a
   // poll can't wipe the jobs a test staged (the real backend is authority,

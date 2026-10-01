@@ -16,10 +16,10 @@ import pytest
 @pytest.fixture(autouse=True)
 def _clear_extension_env(monkeypatch):
     for name in (
-        "HERMES_WEBUI_EXTENSION_DIR",
-        "HERMES_WEBUI_EXTENSION_MANIFEST",
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
-        "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS",
+        "IRIS_WEBUI_EXTENSION_DIR",
+        "IRIS_WEBUI_EXTENSION_MANIFEST",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_STYLESHEET_URLS",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -51,9 +51,9 @@ class FakeHandler:
 
 
 def test_extension_config_disabled_by_default(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_DIR", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_DIR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     # Point the managed state dir at an empty temp dir so the default extension
     # root does not exist yet — config stays disabled until the first install.
     import api.extensions as extensions
@@ -72,9 +72,9 @@ def test_extension_config_disabled_by_default(tmp_path, monkeypatch):
 def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypatch):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
         ", ".join(
             [
                 "/extensions/app.js",
@@ -90,7 +90,7 @@ def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypat
         ),
     )
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS",
+        "IRIS_WEBUI_EXTENSION_STYLESHEET_URLS",
         "/extensions/app.css, /static/theme.css, data:text/css,body{}",
     )
 
@@ -104,8 +104,8 @@ def test_extension_config_accepts_only_safe_same_origin_urls(tmp_path, monkeypat
 
 
 def test_index_html_injection_escapes_urls_and_preserves_disabled_default(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_DIR", raising=False)
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js")
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_DIR", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js")
 
     from api.extensions import inject_extension_tags
 
@@ -114,9 +114,9 @@ def test_index_html_injection_escapes_urls_and_preserves_disabled_default(tmp_pa
 
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js?v=1&mode=dev")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", "/extensions/app.css")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/app.js?v=1&mode=dev")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", "/extensions/app.css")
 
     injected = inject_extension_tags(html)
 
@@ -146,18 +146,18 @@ def test_extension_settings_runtime_config_injects_before_extension_scripts(tmp_
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api.extensions import inject_extension_tags
 
     injected = inject_extension_tags("<html><head></head><body></body></html>")
 
-    assert "window.__HERMES_EXTENSION_CONFIG__" in injected
-    assert "window.HermesExtensionSettings.primeFromStatus(window.__HERMES_EXTENSION_CONFIG__)" in injected
+    assert "window.__IRIS_EXTENSION_CONFIG__" in injected
+    assert "window.IrisExtensionSettings.primeFromStatus(window.__IRIS_EXTENSION_CONFIG__)" in injected
     assert '"storage_owned":true' in injected
     assert '"settings_schema":[{"key":"flag","type":"boolean"' in injected
-    assert injected.index("window.__HERMES_EXTENSION_CONFIG__") < injected.index("/extensions/settings-ok.js")
+    assert injected.index("window.__IRIS_EXTENSION_CONFIG__") < injected.index("/extensions/settings-ok.js")
 
 
 def test_extension_settings_only_manifest_still_injects_runtime_config(tmp_path, monkeypatch):
@@ -179,20 +179,20 @@ def test_extension_settings_only_manifest_still_injects_runtime_config(tmp_path,
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api.extensions import inject_extension_tags
 
     injected = inject_extension_tags("<html><head></head><body></body></html>")
 
-    assert "window.__HERMES_EXTENSION_CONFIG__" in injected
+    assert "window.__IRIS_EXTENSION_CONFIG__" in injected
     assert '"id":"settings-only"' in injected
-    assert injected.index("window.__HERMES_EXTENSION_CONFIG__") < injected.index("</body>")
+    assert injected.index("window.__IRIS_EXTENSION_CONFIG__") < injected.index("</body>")
 
 
 def test_extension_route_remains_behind_webui_auth(monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
 
     from api.auth import check_auth, _invalidate_password_hash_cache
 
@@ -246,14 +246,14 @@ def test_extension_manifest_adds_bundled_assets_before_env_urls(tmp_path, monkey
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
         "/extensions/templates/app.js, /extensions/env-only.js",
     )
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS",
+        "IRIS_WEBUI_EXTENSION_STYLESHEET_URLS",
         "/extensions/env-only.css",
     )
 
@@ -302,10 +302,10 @@ def test_extension_manifest_relative_assets_resolve_from_manifest_directory(tmp_
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "desktop-companion/manifest.json")
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "desktop-companion/manifest.json")
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
 
     from api.extensions import get_extension_config
 
@@ -325,8 +325,8 @@ def test_extension_manifest_relative_assets_resolve_from_manifest_directory(tmp_
 
 
 def test_extension_manifest_reuses_url_safety_rules(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     root = tmp_path / "extensions"
     root.mkdir()
     (root / "bundle.json").write_text(
@@ -344,8 +344,8 @@ def test_extension_manifest_reuses_url_safety_rules(tmp_path, monkeypatch):
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "bundle.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "bundle.json")
 
     from api.extensions import get_extension_config
 
@@ -359,8 +359,8 @@ def test_extension_manifest_reuses_url_safety_rules(tmp_path, monkeypatch):
 def test_extension_manifest_deeply_nested_json_fails_safe(tmp_path, monkeypatch):
     """A <=64KB but deeply-nested manifest makes json.loads raise RecursionError.
     It must fail safe (empty lists) — NOT escape and 503 every page load."""
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     root = tmp_path / "extensions"
     root.mkdir()
     # ~6000 nested arrays: well under 64KB but blows the recursion limit in json.loads.
@@ -368,8 +368,8 @@ def test_extension_manifest_deeply_nested_json_fails_safe(tmp_path, monkeypatch)
     payload = "[" * depth + "]" * depth
     assert len(payload.encode("utf-8")) < 64 * 1024
     (root / "deep.json").write_text(payload, encoding="utf-8")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "deep.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "deep.json")
 
     from api.extensions import get_extension_config
 
@@ -380,14 +380,14 @@ def test_extension_manifest_deeply_nested_json_fails_safe(tmp_path, monkeypatch)
 
 
 def test_extension_manifest_path_must_stay_inside_extension_root(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     root = tmp_path / "extensions"
     root.mkdir()
     outside = tmp_path / "outside.json"
     outside.write_text('{"scripts":["outside.js"]}', encoding="utf-8")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "../outside.json")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "../outside.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
 
     from api.extensions import get_extension_config
 
@@ -399,14 +399,14 @@ def test_extension_manifest_path_must_stay_inside_extension_root(tmp_path, monke
 
 
 def test_extension_manifest_url_list_shares_cap_with_env_urls(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     root = tmp_path / "extensions"
     root.mkdir()
     scripts = ",".join(f'"script{i}.js"' for i in range(40))
     (root / "manifest.json").write_text(f'{{"scripts":[{scripts}]}}', encoding="utf-8")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
 
     from api.extensions import _MAX_URL_LIST, get_extension_config
 
@@ -420,8 +420,8 @@ def test_extension_manifest_url_list_shares_cap_with_env_urls(tmp_path, monkeypa
 def test_extension_manifest_logs_invalid_json_separately_from_oversize(tmp_path, monkeypatch, caplog):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
     (root / "manifest.json").write_text('{"scripts": [', encoding="utf-8")
 
     from api.extensions import get_extension_config
@@ -441,8 +441,8 @@ def test_extension_manifest_logs_invalid_json_separately_from_oversize(tmp_path,
 def test_extension_manifest_logs_invalid_utf8_as_unreadable(tmp_path, monkeypatch, caplog):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
     (root / "manifest.json").write_bytes(b"{\xff}")
 
     from api.extensions import get_extension_config
@@ -461,8 +461,8 @@ def test_extension_manifest_logs_invalid_utf8_as_unreadable(tmp_path, monkeypatc
 def test_extension_manifest_logs_oversize_distinctly(tmp_path, monkeypatch, caplog):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api import extensions
 
@@ -484,8 +484,8 @@ def test_extension_manifest_logs_oversize_distinctly(tmp_path, monkeypatch, capl
 def test_extension_manifest_reads_only_bounded_size(tmp_path, monkeypatch):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api import extensions
 
@@ -505,8 +505,8 @@ def test_extension_manifest_reads_only_bounded_size(tmp_path, monkeypatch):
 def test_extension_manifest_multibyte_payload_is_bounded_by_bytes(tmp_path, monkeypatch):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api import extensions
 
@@ -534,8 +534,8 @@ def test_extension_manifest_cap_warning_logs_once_across_many_entries(tmp_path, 
     (root / "manifest.json").write_text(
         __import__("json").dumps({"extensions": entries}), encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
 
     from api.extensions import _MAX_URL_LIST, _warned_urls, get_extension_config
 
@@ -569,10 +569,10 @@ def test_extension_manifest_ignores_non_list_asset_fields(tmp_path, monkeypatch)
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "manifest.json")
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "manifest.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", "/extensions/env.js")
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
 
     from api.extensions import get_extension_config
 
@@ -587,13 +587,13 @@ def test_extension_manifest_ignores_non_list_asset_fields(tmp_path, monkeypatch)
 def test_extension_env_only_duplicate_urls_preserve_legacy_behavior(tmp_path, monkeypatch):
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_MANIFEST", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_MANIFEST", raising=False)
     monkeypatch.setenv(
-        "HERMES_WEBUI_EXTENSION_SCRIPT_URLS",
+        "IRIS_WEBUI_EXTENSION_SCRIPT_URLS",
         "/extensions/app.js, /extensions/app.js",
     )
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
 
     from api.extensions import get_extension_config
 
@@ -616,10 +616,10 @@ def test_extension_manifest_accepts_top_level_extension_array(tmp_path, monkeypa
         """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "extensions.json")
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "extensions.json")
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
 
     from api.extensions import get_extension_config
 
@@ -641,7 +641,7 @@ def test_extension_static_serving_is_sandboxed(tmp_path, monkeypatch):
     outside = tmp_path / "outside.txt"
     outside.write_text("outside", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
 
     from api.extensions import serve_extension_static
 
@@ -666,7 +666,7 @@ def test_extension_static_serving_is_sandboxed(tmp_path, monkeypatch):
 
 def test_extension_static_serving_fails_closed_when_disabled_or_unreadable(tmp_path, monkeypatch):
     missing_root = tmp_path / "missing"
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(missing_root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(missing_root))
 
     from api.extensions import serve_extension_static
 
@@ -676,7 +676,7 @@ def test_extension_static_serving_fails_closed_when_disabled_or_unreadable(tmp_p
 
     root = tmp_path / "extensions"
     root.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
     (root / "nested").mkdir()
     (root / "nested" / "app.js").write_text("ok", encoding="utf-8")
 
@@ -706,7 +706,7 @@ def test_extension_static_serving_rejects_symlink_escape(tmp_path, monkeypatch):
         # behavior is still covered by traversal tests above.
         return
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
 
     from api.extensions import serve_extension_static
 

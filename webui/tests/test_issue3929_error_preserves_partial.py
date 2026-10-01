@@ -71,24 +71,24 @@ def _isolate_agent_locks():
 
 
 @pytest.fixture(autouse=True)
-def _mock_hermes_modules(monkeypatch):
-    """Inject mock hermes modules to prevent side-effects during tests."""
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+def _mock_iris_modules(monkeypatch):
+    """Inject mock iris modules to prevent side-effects during tests."""
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_provider_fn = lambda requested=None: {
         "provider": requested or "test-provider",
         "api_key": "synthetic-key",
         "base_url": None,
     }
     fake_runtime_module.resolve_runtime_provider = fake_runtime_provider_fn
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=None)
 
     _injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     _MISSING = object()
     _saved = {k: sys.modules.get(k, _MISSING) for k in _injected}

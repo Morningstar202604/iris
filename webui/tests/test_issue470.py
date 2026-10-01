@@ -164,7 +164,7 @@ def test_autolink_no_esc_on_href():
 
 def test_labeled_link_renders_as_single_anchor():
     """[#461](https://github.com/.../461) must produce exactly one <a> tag."""
-    url = 'https://github.com/nesquena/hermes-webui/issues/461'
+    url = 'https://github.com/nesquena/iris-webui/issues/461'
     md = f'[#461]({url})'
     result = render_links_only(md)
     assert result.count('<a ') == 1, f"Expected 1 <a> tag, got: {result}"
@@ -200,7 +200,7 @@ def test_href_not_html_escaped():
 
 def test_bare_url_not_double_linked():
     """A bare https:// URL must produce exactly one <a> tag."""
-    url = 'https://github.com/nesquena/hermes-webui/issues/461'
+    url = 'https://github.com/nesquena/iris-webui/issues/461'
     result = render_links_only(url)
     assert result.count('<a ') == 1, f"Expected 1 <a> tag, got: {result}"
     assert result.count('</a>') == 1
@@ -208,7 +208,7 @@ def test_bare_url_not_double_linked():
 
 def test_labeled_link_in_table_cell_single_anchor():
     """[#461](url) inside a markdown table cell must produce exactly one <a> tag."""
-    url = 'https://github.com/nesquena/hermes-webui/issues/461'
+    url = 'https://github.com/nesquena/iris-webui/issues/461'
     md = f'| Issue | Title |\n|---|---|\n| [#461]({url}) | Reasoning effort |'
     result = render_table_with_links(md)
     assert result.count('<a ') == 1, f"Expected 1 <a> in table, got: {result}"
@@ -221,9 +221,9 @@ def test_labeled_link_in_table_cell_single_anchor():
 def test_multiple_links_in_table_no_double_linking():
     """Multiple [label](url) links in a table must each produce exactly one <a>."""
     urls = [
-        'https://github.com/nesquena/hermes-webui/issues/461',
-        'https://github.com/nesquena/hermes-webui/issues/462',
-        'https://github.com/nesquena/hermes-webui/issues/463',
+        'https://github.com/nesquena/iris-webui/issues/461',
+        'https://github.com/nesquena/iris-webui/issues/462',
+        'https://github.com/nesquena/iris-webui/issues/463',
     ]
     rows = '\n'.join(f'| [#{461+i}]({url}) | Title {i} |' for i, url in enumerate(urls))
     md = f'| Issue | Title |\n|---|---|\n{rows}'

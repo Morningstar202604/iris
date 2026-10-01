@@ -1,6 +1,6 @@
-"""Argument layer for the legacy ``hermes-agent`` runner (``run_agent.main``).
+"""Argument layer for the legacy ``iris-agent`` runner (``run_agent.main``).
 
-A console script calls its target with no arguments, so pointing ``hermes-agent``
+A console script calls its target with no arguments, so pointing ``iris-agent``
 at ``run_agent.main`` ignored argv entirely: ``--help``, ``--version`` and a bare
 invocation all ran a real model turn with ``main()``'s built-in demo query, and
 ``--query`` was silently dropped (#54648). ``python run_agent.py`` routes through
@@ -14,11 +14,11 @@ from typing import Callable, List, Optional
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    from hermes_cli import __release_date__, __version__
+    from iris_cli import __release_date__, __version__
 
     parser = argparse.ArgumentParser(
-        prog="hermes-agent",
-        description="Legacy single-query Iris runner. For the full CLI use `hermes`.",
+        prog="iris-agent",
+        description="Legacy single-query Iris runner. For the full CLI use `iris`.",
     )
     parser.add_argument("--version", action="version", version=f"Iris v{__version__} ({__release_date__})")
     parser.add_argument("prompt", nargs="*", help="query to run (same as --query)")
@@ -58,7 +58,7 @@ def main(argv: Optional[List[str]] = None, *, run: Optional[Callable[..., object
     query = args.query or positional or None
     if query is None and not args.list_tools:
         parser.print_help()
-        print("\nNo query given: pass one with --query (or run `hermes` for the interactive CLI).")
+        print("\nNo query given: pass one with --query (or run `iris` for the interactive CLI).")
         return 0
 
     if run is None:

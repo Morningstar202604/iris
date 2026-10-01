@@ -13,7 +13,7 @@ pytestmark = requires_agent_modules
 
 
 def _state_dir() -> pathlib.Path:
-    return pathlib.Path(os.environ["HERMES_WEBUI_TEST_STATE_DIR"])
+    return pathlib.Path(os.environ["IRIS_WEBUI_TEST_STATE_DIR"])
 
 
 def _remove_path(path: pathlib.Path) -> None:
@@ -67,7 +67,7 @@ def _write_skill(skills_dir: pathlib.Path, name: str, description: str, body: st
 def _get(path: str, *, profile: str | None = None):
     headers = {}
     if profile:
-        headers["Cookie"] = f"hermes_profile={profile}"
+        headers["Cookie"] = f"iris_profile={profile}"
     req = urllib.request.Request(BASE + path, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -79,7 +79,7 @@ def _get(path: str, *, profile: str | None = None):
 def _post(path: str, body: dict, *, profile: str | None = None):
     headers = {"Content-Type": "application/json"}
     if profile:
-        headers["Cookie"] = f"hermes_profile={profile}"
+        headers["Cookie"] = f"iris_profile={profile}"
     req = urllib.request.Request(
         BASE + path,
         data=json.dumps(body).encode("utf-8"),

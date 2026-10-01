@@ -1,4 +1,4 @@
-function Test-HermesUpdateShouldRetry {
+function Test-IrisUpdateShouldRetry {
     param(
         [int]$ExitCode,
         [string]$InstallRoot

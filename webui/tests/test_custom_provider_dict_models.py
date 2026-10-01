@@ -1,7 +1,7 @@
 """Regression tests for custom_providers models dict shape in get_providers().
 
 The ``models`` field in a ``custom_providers`` config entry can be a list
-or a dict (the standard shape produced by ``hermes config set``):
+or a dict (the standard shape produced by ``iris config set``):
 
     custom_providers:
       - name: litellm
@@ -18,26 +18,26 @@ import sys
 import types
 
 
-def _install_fake_hermes_cli(monkeypatch):
-    """Stub hermes_cli modules so tests are deterministic and offline."""
-    fake_pkg = types.ModuleType("hermes_cli")
+def _install_fake_iris_cli(monkeypatch):
+    """Stub iris_cli modules so tests are deterministic and offline."""
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda pid: []
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
 
 def _setup_providers_module(monkeypatch):
     """Patch api.providers for offline unit testing of get_providers()."""
-    _install_fake_hermes_cli(monkeypatch)
+    _install_fake_iris_cli(monkeypatch)
 
     from api import providers as prov
 

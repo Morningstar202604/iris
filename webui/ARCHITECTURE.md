@@ -1,7 +1,7 @@
-# Hermes Web UI: Developer and Architecture Guide
+# Iris Web UI: Developer and Architecture Guide
 
 > This document is the canonical reference for anyone (human or agent) working on the
-> Hermes Web UI. It covers the exact current state of the code, every design decision and
+> Iris Web UI. It covers the exact current state of the code, every design decision and
 > quirk discovered during development, and a phased architecture improvement roadmap that
 > runs in parallel with the feature roadmap in ROADMAP.md.
 >
@@ -12,14 +12,14 @@
 > Python 3.11, 3.12, and 3.13 (3 parallel shards each) against every PR, plus a ruff
 > lint gate, a headless browser smoke test, and a Docker smoke test.
 >
-> Notable architecture state: the bootstrap and first-run onboarding flow own setup discovery; the default WebUI state directory is `~/.hermes/webui`; `ctl.sh` provides a daemon wrapper for homelab installs; chat streaming is still WebUI-owned SSE with stream-ownership guards, cancellation, async manual compression, and turn-journal audit plumbing; provider/model discovery is profile-aware with live-model cache invalidation and custom-provider scoping. (Version/test-count numbers above are a periodic snapshot — the authoritative source is the latest git tag and `pytest --collect-only`.)
+> Notable architecture state: the bootstrap and first-run onboarding flow own setup discovery; the default WebUI state directory is `~/.iris/webui`; `ctl.sh` provides a daemon wrapper for homelab installs; chat streaming is still WebUI-owned SSE with stream-ownership guards, cancellation, async manual compression, and turn-journal audit plumbing; provider/model discovery is profile-aware with live-model cache invalidation and custom-provider scoping. (Version/test-count numbers above are a periodic snapshot — the authoritative source is the latest git tag and `pytest --collect-only`.)
 
 ---
 
 ## 1. Overview and Purpose
 
-The Hermes Web UI is a lightweight web application that gives you a browser-based
-interface to the Hermes agent that is functionally equivalent to the CLI. It is modeled on
+The Iris Web UI is a lightweight web application that gives you a browser-based
+interface to the Iris agent that is functionally equivalent to the CLI. It is modeled on
 the Claude-style interface: a sidebar for session management, a central chat area,
 and a demand-driven right panel used for workspace browsing and preview surfaces.
 The right panel is closed by default on desktop and opens only when it is actively
@@ -35,8 +35,8 @@ frontend framework. The Python server is split into a routing shell (server.py) 
 business logic modules (api/). The frontend is seven vanilla JS modules loaded from static/.
 This makes the code easy to modify from a terminal or by an agent.
 
-Hermes-level chrome is intentionally consolidated: the sidebar has no dedicated brand header.
-Instead, the footer exposes a single "Hermes WebUI" launch button that opens one tabbed
+Iris-level chrome is intentionally consolidated: the sidebar has no dedicated brand header.
+Instead, the footer exposes a single "Iris WebUI" launch button that opens one tabbed
 control-center modal for global preferences, conversation import/export, and clear-conversation
 actions. The topbar remains focused on conversation context and the workspace/files toggle.
 
@@ -56,18 +56,18 @@ actions. The topbar remains focused on conversation context and the workspace/fi
     .dockerignore          Excludes .git, tests/, .env* from Docker builds
     api/
       __init__.py          Package marker
-      agent_compat.py      Resolver for Hermes Agent names moved to sibling modules (compatibility-only)
+      agent_compat.py      Resolver for Iris Agent names moved to sibling modules (compatibility-only)
       auth.py              Optional password authentication, signed cookies, passkeys/WebAuthn
       config.py            Discovery, globals, model detection, reloadable config
       helpers.py           HTTP helpers: j(), bad(), require(), safe_resolve(), security headers
       goals.py             Persistent-goal commands and profile-scoped native GoalManager bridge
       models.py            Session model + CRUD, per-session profile tracking, CLI/state.db bridge
-      profiles.py          Profile state management, hermes_cli wrapper
+      profiles.py          Profile state management, iris_cli wrapper
       onboarding.py        First-run onboarding status, real provider config writes, OAuth linking, readiness detection
       routes.py            All GET + POST route handlers (if/elif dispatch, no decorators)
       startup.py           Startup helpers: auto_install_agent_deps()
       state_sync.py        /insights sync — message_count to the agent's state.db
-      streaming.py         SSE engine, run_agent, cancel, compression, HERMES_HOME save/restore
+      streaming.py         SSE engine, run_agent, cancel, compression, IRIS_HOME save/restore
       updates.py           Self-update check and release notes
       upload.py            Multipart parser, file upload handler
       workspace.py         File ops: list_dir, read_file_content, git detection, workspace helpers
@@ -106,7 +106,7 @@ actions. The topbar remains focused on conversation context and the workspace/fi
 
 State directory (runtime data, separate from source):
 
-    ~/.hermes/webui/
+    ~/.iris/webui/
     sessions/          One JSON file per session: {session_id}.json
     workspaces.json    Registered workspaces list
     last_workspace.txt Last-used workspace path
@@ -115,40 +115,40 @@ State directory (runtime data, separate from source):
 
 Log file:
 
-    ~/.hermes/webui/bootstrap-8787.log   start.sh/bootstrap background server log
-    ~/.hermes/webui.log                  ctl.sh daemon log
+    ~/.iris/webui/bootstrap-8787.log   start.sh/bootstrap background server log
+    ~/.iris/webui.log                  ctl.sh daemon log
 
 ---
 
 ## 3. Runtime Environment
 
 - Python interpreter: <agent-dir>/venv/bin/python
-- The venv has all Hermes agent dependencies (run_agent, tools/*, cron/*)
+- The venv has all Iris agent dependencies (run_agent, tools/*, cron/*)
 - Server binds to 127.0.0.1:8787 (localhost only, not public internet)
 - Access from Mac: SSH tunnel: ssh -N -L 8787:127.0.0.1:8787 <user>@<your-server>
-- The server imports Hermes modules via sys.path.insert(0, parent_dir)
+- The server imports Iris modules via sys.path.insert(0, parent_dir)
 
 Environment variables controlling behavior:
 
-    HERMES_WEBUI_HOST              Bind address (default: 127.0.0.1)
-    HERMES_WEBUI_PORT              Port (default: 8787)
-    HERMES_WEBUI_DEFAULT_WORKSPACE Default workspace path for new sessions
-    HERMES_WEBUI_STATE_DIR         Where sessions/ folder lives
-    HERMES_CONFIG_PATH             Path to ~/.hermes/config.yaml
-    HERMES_WEBUI_DEFAULT_MODEL     Optional model override; unset means provider default
-    HERMES_WEBUI_PASSWORD          Optional: enable password auth (off by default)
-    HERMES_WEBUI_SKIP_ONBOARDING   Optional: bypass the first-run onboarding wizard
-    HERMES_PREFILL_MESSAGES_FILE   Optional JSON message list for browser-turn prefill context
-    HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT Optional command that prints JSON messages or plain-text user prefill context
-    HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT Optional script timeout in seconds (default 5, max 30)
-    HERMES_WEBUI_PREFILL_CONTEXT_MAX_CHARS Optional parsed prefill budget in characters (default 12000, 0 disables)
-    HERMES_HOME                    Base directory for Hermes state (~/.hermes by default)
+    IRIS_WEBUI_HOST              Bind address (default: 127.0.0.1)
+    IRIS_WEBUI_PORT              Port (default: 8787)
+    IRIS_WEBUI_DEFAULT_WORKSPACE Default workspace path for new sessions
+    IRIS_WEBUI_STATE_DIR         Where sessions/ folder lives
+    IRIS_CONFIG_PATH             Path to ~/.iris/config.yaml
+    IRIS_WEBUI_DEFAULT_MODEL     Optional model override; unset means provider default
+    IRIS_WEBUI_PASSWORD          Optional: enable password auth (off by default)
+    IRIS_WEBUI_SKIP_ONBOARDING   Optional: bypass the first-run onboarding wizard
+    IRIS_PREFILL_MESSAGES_FILE   Optional JSON message list for browser-turn prefill context
+    IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT Optional command that prints JSON messages or plain-text user prefill context
+    IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT Optional script timeout in seconds (default 5, max 30)
+    IRIS_WEBUI_PREFILL_CONTEXT_MAX_CHARS Optional parsed prefill budget in characters (default 12000, 0 disables)
+    IRIS_HOME                    Base directory for Iris state (~/.iris by default)
 
 Test isolation environment variables (set by conftest.py):
 
-    HERMES_WEBUI_TEST_PORT=...                         Optional pinned test port
-    HERMES_WEBUI_TEST_STATE_DIR=/tmp/hermes-webui-tests/* Optional pinned test state (default: OS temp dir; must be outside ~/.hermes)
-    HERMES_WEBUI_DEFAULT_WORKSPACE=.../test-workspace  Isolated test workspace
+    IRIS_WEBUI_TEST_PORT=...                         Optional pinned test port
+    IRIS_WEBUI_TEST_STATE_DIR=/tmp/iris-webui-tests/* Optional pinned test state (default: OS temp dir; must be outside ~/.iris)
+    IRIS_WEBUI_DEFAULT_WORKSPACE=.../test-workspace  Isolated test workspace
 
 Tests NEVER talk to the production server (port 8787).
 The test state dir is wiped before each test session and deleted after.
@@ -158,10 +158,10 @@ Per-request environment variables (set by chat handler, restored after):
 
     TERMINAL_CWD         Set to session.workspace before running agent.
                          The terminal tool reads this to default cwd.
-    HERMES_EXEC_ASK      Set to "1" to enable approval gate for dangerous commands.
-    HERMES_SESSION_KEY   Set to session_id. The approval tool keys pending entries
+    IRIS_EXEC_ASK      Set to "1" to enable approval gate for dangerous commands.
+    IRIS_SESSION_KEY   Set to session_id. The approval tool keys pending entries
                          by this value, enabling per-session approval state.
-    HERMES_HOME          Set to the active profile's directory before running agent.
+    IRIS_HOME          Set to the active profile's directory before running agent.
                          Saved and restored around each agent run.
 
 WARNING: These env vars are process-global. Two concurrent chat requests will clobber
@@ -262,7 +262,7 @@ is ambiguous, while safely placeable recovery rows remain chronological.
 
 #### Imported `state.db` sidebar projection
 
-`api.models.get_cli_sessions()` projects conversations from the active Hermes
+`api.models.get_cli_sessions()` projects conversations from the active Iris
 profile's `state.db` into sidebar-shaped rows. The default projection keeps
 interactive sources (CLI, TUI, ACP, messaging, and similar user-facing sessions)
 in a bounded 20-row candidate window. Background sources use independent recovery
@@ -324,7 +324,7 @@ the agent finishes. The frontend never uses it but it can be useful for debuggin
     def _run_agent_streaming(session_id, msg_text, model, workspace, stream_id):
 
 1. Fetches session from SESSIONS (not from disk -- session was just updated by /api/chat/start)
-2. Sets TERMINAL_CWD, HERMES_EXEC_ASK, HERMES_SESSION_KEY env vars
+2. Sets TERMINAL_CWD, IRIS_EXEC_ASK, IRIS_SESSION_KEY env vars
 3. Creates AIAgent with:
    - model=model, platform='cli', quiet_mode=True
    - enabled_toolsets=CLI_TOOLSETS (from config.yaml or hardcoded default)
@@ -354,7 +354,7 @@ fires (within the same SSE stream), without waiting for the next poll cycle.
 
 ### 4.5 Approval System Integration
 
-The approval system uses the existing Hermes gateway module at tools/approval.py.
+The approval system uses the existing Iris gateway module at tools/approval.py.
 All state lives in module-level variables in that file:
 
     _pending = {}        dict: session_key -> pending_entry_dict
@@ -383,7 +383,7 @@ POST /api/approval/respond:
 ### 4.6 File Upload Parser
 
 parse_multipart(rfile, content_type, content_length):
-    - Reads all content_length bytes from rfile into memory (up to MAX_UPLOAD_BYTES, default 20MB, env-overridable via HERMES_WEBUI_MAX_UPLOAD_MB)
+    - Reads all content_length bytes from rfile into memory (up to MAX_UPLOAD_BYTES, default 20MB, env-overridable via IRIS_WEBUI_MAX_UPLOAD_MB)
     - Extracts boundary from Content-Type header
     - Splits raw bytes on b'--' + boundary
     - For each part: parses MIME headers via email.parser.HeaderParser
@@ -422,33 +422,33 @@ read_file_content(workspace, rel):
 ### 4.8 Persistent Goal Profile Boundary
 
 `api/goals.py` exposes the WebUI `/goal` command payloads and post-turn evaluation hook.
-Hermes Agent's native `GoalManager` is the authoritative owner of goal evaluation,
+Iris Agent's native `GoalManager` is the authoritative owner of goal evaluation,
 continuation decisions, wait barriers, failure counters, contracts, subgoals, and
 `state.db` persistence.
 
 For a profile-scoped WebUI session, the bridge delegates only when the Agent exposes
-both the context-local `set_hermes_home_override()` API and call-time default
+both the context-local `set_iris_home_override()` API and call-time default
 `SessionDB` path resolution. The bridge probes the resolved default path under the
 selected context before constructing the native manager, then binds that profile's
-Hermes home before every native call. The override is reset in a `finally` block after
+Iris home before every native call. The override is reset in a `finally` block after
 every operation, so concurrent sessions using the same session ID under different
 profiles cannot cross-read or cross-write goal state. Goal snapshot rollback uses the
 same scoped native persistence path.
 
-Older Hermes Agent versions that lack either capability continue through
+Older Iris Agent versions that lack either capability continue through
 `_LegacyProfileGoalManager`, which pins persistence to the selected profile's explicit
 `state.db` path. This includes intermediate versions whose context API is present but
 whose default `SessionDB()` path remains frozen at module import. Keep this fallback
-compatibility-only: new goal semantics belong in Hermes Agent's native manager rather
+compatibility-only: new goal semantics belong in Iris Agent's native manager rather
 than a second WebUI implementation.
 
-### 4.9 Hermes Agent Moved-Name Compatibility
+### 4.9 Iris Agent Moved-Name Compatibility
 
-Hermes Agent owns its module layout. Its September 2026 decomposition moved names the
+Iris Agent owns its module layout. Its September 2026 decomposition moved names the
 WebUI uses (for example `tools.approval.set_current_session_key` to
 `tools.approval_context`) into `<stem>_<topic>` sibling modules. The old paths resolve
 only through temporary PLUGIN-COMPAT `__getattr__` pointers that emit
-`HermesPluginCompatWarning` and are removed on schedule. The Agent's
+`IrisPluginCompatWarning` and are removed on schedule. The Agent's
 `compat_manifest.json` is the authoritative map of what moved where.
 
 WebUI code reaches a moved name only through
@@ -501,7 +501,7 @@ inherit `currentColor` for consistent theming.
 
 Three-panel layout (in static/index.html):
 
-    <aside class="sidebar">    Left panel: session list, nav tabs, sidebar-footer Hermes WebUI trigger
+    <aside class="sidebar">    Left panel: session list, nav tabs, sidebar-footer Iris WebUI trigger
     <main class="main">        Center: topbar, messages area, approval card, composer
     <aside class="rightpanel"> Right panel: workspace file tree and file preview
 
@@ -579,7 +579,7 @@ Transcript:
     transcript()          Builds markdown string from S.messages for download
 
 Boot IIFE:
-    localStorage key 'hermes-webui-session' stores last session_id
+    localStorage key 'iris-webui-session' stores last session_id
     On load: try to loadSession(saved), fall back to empty state if missing or fails
     NEVER auto-creates a session on boot
 
@@ -684,7 +684,7 @@ Step-by-step trace of what happens when you type a message and press Send:
 6.  Build msgText from text + file note
 7.  Build userMsg {role:'user', content: displayText, attachments?: filenames}
 8.  Push userMsg to S.messages, call renderMessages(), appendThinking()
-9.  setBusy(true), setStatus('Hermes is thinking...')
+9.  setBusy(true), setStatus('Iris is thinking...')
 10. INFLIGHT[activeSid] = {messages: [...S.messages], uploaded}
 11. startApprovalPolling(activeSid)
 12. POST /api/chat/start {session_id, message, model, workspace}
@@ -707,7 +707,7 @@ Step-by-step trace of what happens when you type a message and press Send:
 ## 7. Dependency Map
 
 server.py imports from api/ modules (config, helpers, models, workspace, upload, streaming).
-The api/ modules in turn import Hermes internals:
+The api/ modules in turn import Iris internals:
 
     api/streaming.py imports:
       run_agent.AIAgent              Main agent class. Wraps LLM + tool execution.
@@ -747,7 +747,7 @@ Return value:
 
 ## 8. Configuration Loading
 
-On startup, server.py reads ~/.hermes/config.yaml:
+On startup, server.py reads ~/.iris/config.yaml:
 
     cfg = yaml.safe_load(CONFIG_PATH.read_text())
     CLI_TOOLSETS = cfg.get('platform_toolsets', {}).get('cli', [...default...])
@@ -828,7 +828,7 @@ structured logging, dispatch to routes, TLS wrapping, and main().
 
 Replace process-global env vars with thread-local or explicit parameter passing.
 
-Root cause: TERMINAL_CWD, HERMES_EXEC_ASK, HERMES_SESSION_KEY are set via os.environ
+Root cause: TERMINAL_CWD, IRIS_EXEC_ASK, IRIS_SESSION_KEY are set via os.environ
 in _run_agent_streaming(). Two concurrent sessions clobber each other.
 
 Fix options (in order of preference):
@@ -901,7 +901,7 @@ Replacing with marked.js + DOMPurify is a future improvement (not blocking).
 
 ### Phase G: Observability -- MOSTLY COMPLETE
 
-1. Structured JSON logging: COMPLETE (Sprint 1). Per-request JSON is printed to the active launcher log (`~/.hermes/webui/bootstrap-8787.log` for `start.sh`, `~/.hermes/webui.log` for `ctl.sh`).
+1. Structured JSON logging: COMPLETE (Sprint 1). Per-request JSON is printed to the active launcher log (`~/.iris/webui/bootstrap-8787.log` for `start.sh`, `~/.iris/webui.log` for `ctl.sh`).
 2. Enhanced /health: COMPLETE (Sprint 7). Returns `active_streams`, `uptime_seconds`.
 3. GET /api/debug/stats: NOT YET IMPLEMENTED. Low priority.
 
@@ -909,17 +909,17 @@ Replacing with marked.js + DOMPurify is a future improvement (not blocking).
 
 Optional password gate for non-SSH-tunnel deployments.
 
-1. HERMES_WEBUI_PASSWORD env var enables auth
+1. IRIS_WEBUI_PASSWORD env var enables auth
 2. Login page: minimal dark form, POST /api/auth/login
 3. Server sets HttpOnly + SameSite=Strict cookie on successful login
-4. All API endpoints check cookie if HERMES_WEBUI_PASSWORD is set
+4. All API endpoints check cookie if IRIS_WEBUI_PASSWORD is set
 5. Cookie validity: 30 days from last activity
 
 ### Phase I: Test Infrastructure -- COMPLETE
 
 ~11,500 tests across ~1,150 test files + regression gates. The pytest fixture derives
 an isolated port and state directory from the repo path unless
-`HERMES_WEBUI_TEST_PORT` / `HERMES_WEBUI_TEST_STATE_DIR` pin them explicitly.
+`IRIS_WEBUI_TEST_PORT` / `IRIS_WEBUI_TEST_STATE_DIR` pin them explicitly.
 Production data never touched.
 
 Fixtures in `conftest.py`: auto-cleanup, profile/config isolation, cron
@@ -971,7 +971,7 @@ Endpoint requiring a valid session:
     except KeyError:
         return j(self, {'error': 'Session not found'}, status=404)
 
-Endpoint that calls Hermes Python modules:
+Endpoint that calls Iris Python modules:
 
     # Example: calling cron.jobs
     import sys
@@ -1011,8 +1011,8 @@ The api() helper:
     curl -s http://127.0.0.1:8787/health | python3 -m json.tool
 
     # Tail the server log live
-    tail -f ~/.hermes/webui/bootstrap-8787.log
-    tail -f ~/.hermes/webui.log  # when launched through ctl.sh
+    tail -f ~/.iris/webui/bootstrap-8787.log
+    tail -f ~/.iris/webui.log  # when launched through ctl.sh
 
     # List all sessions (metadata only)
     curl -s http://127.0.0.1:8787/api/sessions | python3 -m json.tool
@@ -1029,8 +1029,8 @@ The api() helper:
     ps aux | grep "server.py"
 
     # Inspect session files on disk
-    ls -lt ~/.hermes/webui/sessions/
-    cat ~/.hermes/webui/sessions/SESSION_ID.json | python3 -m json.tool
+    ls -lt ~/.iris/webui/sessions/
+    cat ~/.iris/webui/sessions/SESSION_ID.json | python3 -m json.tool
 
     # Count messages in a session
     python3 -c "import json; d=json.load(open('sessions/SID.json')); print(len(d['messages']))"
@@ -1043,9 +1043,9 @@ The api() helper:
     curl -s http://127.0.0.1:8787/health  # streams not exposed yet, add in Phase G
 
     # Find all sessions with messages (not Untitled empty)
-    ls ~/.hermes/webui/sessions/ | xargs -I{} python3 -c "
+    ls ~/.iris/webui/sessions/ | xargs -I{} python3 -c "
     import json, sys
-    d = json.load(open('~/.hermes/webui/sessions/{}'))
+    d = json.load(open('~/.iris/webui/sessions/{}'))
     if d['messages']: print('{}', d['title'][:50])
     " 2>/dev/null
 
@@ -1092,7 +1092,7 @@ Trade-off: Anyone on the VPS with localhost access can use the server.
 Resolution: Phase H adds optional password gate for direct-access deployments.
 
 ### ADR-007: Approval State via Environment Variables
-Decision: HERMES_EXEC_ASK and HERMES_SESSION_KEY passed via os.environ.
+Decision: IRIS_EXEC_ASK and IRIS_SESSION_KEY passed via os.environ.
 Rationale: tools/approval.py and terminal_tool.py already read these env vars.
 Trade-off: Process-global. Two concurrent chat requests clobber each other.
 Resolution: Phase B replaces with thread-local or explicit parameter passing.
@@ -1165,7 +1165,7 @@ Resolution: Phase B replaces with thread-local or explicit parameter passing.
             Features: background task cancel, cron run history, tool card UX polish
             Post-sprint fixes: SSE cancel event breaks loop, Cancel button always hidden on setBusy(false),
               S.activeStreamId initialized, tool-card show-more uses data attributes, version label v0.12,
-              Session.__init__ **kwargs forward-compat, test cron isolation via HERMES_HOME,
+              Session.__init__ **kwargs forward-compat, test cron isolation via IRIS_HOME,
               last_workspace reset in conftest between tests, tool cards grouped by assistant turn
             Tests: 18 new, 167/167 total
             Regressions fixed: uuid, AIAgent, has_pending, SSE cancel loop, Session.__init__ tool_calls
@@ -1312,7 +1312,7 @@ Recommended execution order:
 
 ## 17. Working Conventions for Agent Contributors
 
-This section is specifically for agents (Hermes instances, subagents, Codex, etc.) that
+This section is specifically for agents (Iris instances, subagents, Codex, etc.) that
 will be working on this codebase. Read this before touching any file.
 
 ### Before Making Any Change
@@ -1574,7 +1574,7 @@ fetches GET /api/skills/content and renders in the right panel using `showPrevie
 #### Memory Panel
 
 `loadMemory()` fetches GET /api/memory (reads MEMORY.md + USER.md from
-~/.hermes/memories/, and SOUL.md from ~/.hermes/), renders both as markdown via renderMd() with timestamps.
+~/.iris/memories/, and SOUL.md from ~/.iris/), renders both as markdown via renderMd() with timestamps.
 
 #### New API Endpoints (Section 18 update)
 
@@ -1618,10 +1618,10 @@ B14: `document.addEventListener('keydown', ...)` at global scope catches Cmd/Ctr
 
 Moved <agent-dir>/webui-mvp/ to <repo>/.
 Symlink: <agent-dir>/webui-mvp -> <repo>
-The symlink means all existing import paths (sys.path.insert for hermes-agent modules)
+The symlink means all existing import paths (sys.path.insert for iris-agent modules)
 continue working unchanged. start.sh updated to reference new canonical path.
 
-Safe from: git pull, git reset --hard, git stash on hermes-agent repo.
+Safe from: git pull, git reset --hard, git stash on iris-agent repo.
 NOT safe from: git clean -fd (would delete symlink but not the target).
 Disk failure: still a single-copy risk. Use git init + push when ready.
 
@@ -1688,8 +1688,8 @@ Index files starting with '_' are skipped during full scan to avoid recursion.
 
 #### New Workspace Infrastructure
 
-WORKSPACES_FILE = ~/.hermes/webui-mvp/workspaces.json
-LAST_WORKSPACE_FILE = ~/.hermes/webui-mvp/last_workspace.txt
+WORKSPACES_FILE = ~/.iris/webui-mvp/workspaces.json
+LAST_WORKSPACE_FILE = ~/.iris/webui-mvp/last_workspace.txt
 load_workspaces() / save_workspaces() / get_last_workspace() / set_last_workspace() helpers.
 new_session() now calls get_last_workspace() as default instead of DEFAULT_WORKSPACE.
 set_last_workspace() called in /api/session/update and /api/chat/start.

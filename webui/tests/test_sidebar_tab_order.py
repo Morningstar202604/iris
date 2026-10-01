@@ -45,7 +45,7 @@ def test_backend_round_trip_and_validation_for_tab_order(monkeypatch, tmp_path):
 def test_frontend_static_contracts_for_tab_order():
     """Frontend must expose order helpers, drag/drop chips, and apply order to both navs."""
     assert "_TAB_ORDER_LS_KEY" in PANELS_JS
-    assert "hermes-webui-tab-order" in PANELS_JS
+    assert "iris-webui-tab-order" in PANELS_JS
     for fn in (
         "_getTabOrder",
         "_setTabOrder",
@@ -83,11 +83,11 @@ def test_frontend_static_contracts_for_tab_order():
 def test_inline_boot_script_applies_hidden_tabs_and_order_without_head_flash():
     """The synchronous body script should apply both visibility and order before panels paint."""
     head_end = INDEX_HTML.find("</head>")
-    assert "hermes-webui-tab-order" not in INDEX_HTML[:head_end]
+    assert "iris-webui-tab-order" not in INDEX_HTML[:head_end]
 
     body_script_start = INDEX_HTML.find("Flash-prevention")
     assert body_script_start >= 0
     body_script = INDEX_HTML[body_script_start: INDEX_HTML.find("</script>", body_script_start)]
-    assert "hermes-webui-hidden-tabs" in body_script
-    assert "hermes-webui-tab-order" in body_script
+    assert "iris-webui-hidden-tabs" in body_script
+    assert "iris-webui-tab-order" in body_script
     assert "insertBefore" in body_script

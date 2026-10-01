@@ -1,4 +1,4 @@
-"""Regression tests for WebUI handling of Hermes CLI-only slash commands."""
+"""Regression tests for WebUI handling of Iris CLI-only slash commands."""
 
 import json
 from pathlib import Path
@@ -121,7 +121,7 @@ def test_browser_cli_only_response_explains_server_side_browser_tools():
     response = COMMANDS_JS[response_idx : response_idx + 900]
     assert "if(name==='browser')" in response
     assert "configured server-side" in response
-    assert "`/browser` itself only works in `hermes chat`" in response
+    assert "`/browser` itself only works in `iris chat`" in response
 
 
 def _run_commands_js(script_body: str) -> dict:
@@ -276,8 +276,8 @@ def _run_commands_js(script_body: str) -> dict:
                   description: 'Plugin collisions should stay hidden from slash autocomplete'
                 }},
                 {{
-                  name: 'hermes-upgrade',
-                  description: 'Safely upgrade and verify a Hermes installation'
+                  name: 'iris-upgrade',
+                  description: 'Safely upgrade and verify a Iris installation'
                 }},
                 {{
                   name: 'maintenance-guide',
@@ -439,7 +439,7 @@ def test_skill_autocomplete_matches_keyword_in_name_or_description():
         """
     )
 
-    assert result["upgrade_names"] == ["hermes-upgrade", "maintenance-guide"]
+    assert result["upgrade_names"] == ["iris-upgrade", "maintenance-guide"]
     assert result["upgrade_sources"] == ["skill", "skill"]
     assert result["reinstall_names"] == ["reinstall-helper"]
     assert result["reinstall_sources"] == ["skill"]
@@ -901,7 +901,7 @@ def test_busy_path_intercepts_stop_before_mode_routing():
 
 def _run_production_autocomplete_js(commands_payload: list[dict], script_body: str) -> dict:
     """Run the REAL getMatchingCommands/autocomplete pipeline from commands.js
-    against a /api/commands payload (defaults to the real hermes_cli registry
+    against a /api/commands payload (defaults to the real iris_cli registry
     serialized exactly as list_commands() produces it)."""
     script = textwrap.dedent(
         f"""
@@ -941,8 +941,8 @@ def _run_production_autocomplete_js(commands_payload: list[dict], script_body: s
 
 
 def _real_registry_payload() -> list[dict] | None:
-    """Serialize the real hermes_cli COMMAND_REGISTRY via the production
-    list_commands() path. Returns None when hermes_cli is unavailable."""
+    """Serialize the real iris_cli COMMAND_REGISTRY via the production
+    list_commands() path. Returns None when iris_cli is unavailable."""
     try:
         return list_commands()
     except Exception:
@@ -950,7 +950,7 @@ def _real_registry_payload() -> list[dict] | None:
 
 
 def test_real_registry_announced_commands_are_all_dispatchable():
-    """#6951 (re-gate): with the REAL hermes_cli registry as /api/commands
+    """#6951 (re-gate): with the REAL iris_cli registry as /api/commands
     payload, every command the production autocomplete announces must be
     dispatchable -- backend-exec via /api/commands/exec, a native WebUI
     behavior, or a plugin command. /agents (in the registry, NOT dispatched)
@@ -958,7 +958,7 @@ def test_real_registry_announced_commands_are_all_dispatchable():
     exercised against the real production data path."""
     payload = _real_registry_payload()
     if payload is None:
-        pytest.skip("hermes_cli registry unavailable")
+        pytest.skip("iris_cli registry unavailable")
     announced_by_prefix = {}
     for cmd in payload:
         name = str(cmd.get("name") or "")

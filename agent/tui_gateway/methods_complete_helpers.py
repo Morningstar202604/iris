@@ -24,7 +24,7 @@ _fuzzy_cache: dict[str, tuple[float, list[str]]] = {}
 def _git_repo_files(root: str):
     """Yield ``git ls-files`` paths (tracked + untracked) relative to ``root``; empty outside a
     repo or on git failure/timeout. Entries above ``root`` are skipped (Cmd-P workspace scope)."""
-    from hermes_cli._subprocess_compat import windows_hide_flags
+    from iris_cli._subprocess_compat import windows_hide_flags
     run_kw = dict(capture_output=True, timeout=2.0, check=False, stdin=subprocess.DEVNULL, creationflags=windows_hide_flags())
     try:
         top_result = subprocess.run(["git", "-C", root, "rev-parse", "--show-toplevel"], **run_kw)
@@ -168,12 +168,12 @@ def _details_completions(text: str) -> list[dict] | None:
 
 def _model_picker_context(agent):
     """Layer live session state onto config without losing custom identity."""
-    from hermes_cli.inventory import load_picker_context
+    from iris_cli.inventory import load_picker_context
     ctx = load_picker_context()
     provider, base_url, model = (getattr(agent, k, "") if agent else "" for k in ("provider", "base_url", "model"))
     if str(provider or "").strip().lower() == "custom":
         try:
-            from hermes_cli.runtime_provider import canonical_custom_identity
+            from iris_cli.runtime_provider import canonical_custom_identity
             provider = canonical_custom_identity(
                 base_url=base_url or None, config_provider=ctx.current_provider, model=model or None) or provider
         except Exception:

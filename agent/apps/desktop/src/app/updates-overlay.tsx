@@ -43,7 +43,7 @@ import {
 import { SETTINGS_ROUTE } from './routes'
 
 /** Same installer page Settings → About links to. */
-const INSTALLER_URL = 'https://hermes-agent.nousresearch.com/'
+const INSTALLER_URL = 'https://gitcode.com/badhope/iris'
 
 /** Main puts the raw cause after "Details:" — show it as the dimmed line. */
 function splitDetails(text: string): [string, string | null] {

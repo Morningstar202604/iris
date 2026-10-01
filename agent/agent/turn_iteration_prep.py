@@ -55,7 +55,7 @@ def _maybe_inject_iteration_budget_warning(agent: Any, messages: Any) -> bool:
 
     ratio = getattr(agent, "budget_warning_ratio", None)
     kanban_worker = (
-        bool(os.environ.get("HERMES_KANBAN_TASK"))
+        bool(os.environ.get("IRIS_KANBAN_TASK"))
         and is_dispatcher_owned_worker_context()
         and "kanban_complete" in getattr(agent, "valid_tool_names", ())
     )
@@ -209,7 +209,7 @@ def prepare_iteration(
         )
         # The merge shrank the list, so the index recorded at turn start can point past this
         # turn's user row: prefetch would inject into a historical row and index-settling hosts
-        # (hermes-webui) would write the current turn to the FRONT of the context. Re-anchor as
+        # (iris-webui) would write the current turn to the FRONT of the context. Re-anchor as
         # the compression-restart path does (last verbatim row wins, never a historical copy);
         # without the text the index cannot be re-derived and is left detectably stale.
         if user_message is not None:

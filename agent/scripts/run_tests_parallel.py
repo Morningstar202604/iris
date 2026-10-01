@@ -34,8 +34,8 @@ Usage:
     pytest failure. Tokens after ``--`` are never validated.
 
 Environment:
-    HERMES_TEST_WORKERS  Override worker count (default: os.cpu_count())
-    HERMES_TEST_PATHS    Override discovery roots (colon-sep; on Windows
+    IRIS_TEST_WORKERS  Override worker count (default: os.cpu_count())
+    IRIS_TEST_PATHS    Override discovery roots (colon-sep; on Windows
                          ';' also works and drive letters are handled;
                          default: 'tests')
 
@@ -64,7 +64,7 @@ def _sweep_killed_run_roots(root: str) -> None:
     there and leaks one root per in-flight worker; nothing else looks at this directory, so
     983 of them (3.4 GB) accumulated on one host in three days. Idle for a day = dead."""
     try:
-        from hermes_constants_scratch import prune_idle_entries
+        from iris_constants_scratch import prune_idle_entries
     except ImportError:  # runner invoked from outside the repo root
         return
     prune_idle_entries(Path(root), 24, frozenset())
@@ -85,13 +85,13 @@ def _runner_scratch_root() -> str:
     """Per-run temp roots live on DISK, never the system temp dir: a full-suite run writes
     gigabytes of tmp_path fixtures and /tmp is RAM-backed tmpfs on many Linux hosts. /var/tmp is
     the FHS disk-backed temp root and is used because the alternatives fail tests that assume
-    the root's shape: under the Hermes home conftest relocates the basetemp; under a dot-dir
+    the root's shape: under the Iris home conftest relocates the basetemp; under a dot-dir
     (~/.cache) the hidden-dir search tests see every fixture as hidden; anything longer than
     the old /tmp root pushes AF_UNIX test sockets past sun_path."""
     if os.name == "nt" or not os.path.isdir("/var/tmp"):  # no-tmp: ok — probing the disk-backed FHS root
-        root = os.path.join(tempfile.gettempdir(), "hermes-pytest")
+        root = os.path.join(tempfile.gettempdir(), "iris-pytest")
     else:
-        root = "/var/tmp/hermes-pytest"  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs
+        root = "/var/tmp/iris-pytest"  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs
     os.makedirs(root, exist_ok=True)
     return root
 
@@ -104,30 +104,27 @@ _DEFAULT_ROOTS = ["tests"]
 # external services (a model gateway, a docker daemon with a prebuilt
 # image, etc.) and are run in their own dedicated CI jobs:
 #
-#   tests/e2e/         — .github/workflows/tests.yml :: e2e job
+#   tests/e2e/         — e2e job (runs a real model gateway / browser)
 #   tests/integration/ — historical; legacy --ignore flags
-#   tests/docker/      — .github/workflows/docker.yml ::
-#                        build-amd64 job (runs against the freshly-loaded
-#                        nousresearch/hermes-agent:test image, via
-#                        ``HERMES_TEST_IMAGE`` so the fixture skips
-#                        rebuild). The full pytest-shard runner can't
-#                        host these because the session-scoped
-#                        ``built_image`` fixture would do a 3-7min
-#                        ``docker build``,
-#                        so the build is guaranteed to die in fixture
-#                        setup. The dedicated job sidesteps both costs.
+#   docker             — legacy skip-part retained defensively. The
+#                        docker-integration suite and its dedicated
+#                        ``docker.yml`` workflow (which built and loaded the
+#                        ``iris-agent:test`` image) have been removed from
+#                        this fork; the part stays in the skip set so any
+#                        stray ``tests/docker/`` tree cannot accidentally
+#                        get sharded across per-file workers.
 _SKIP_PARTS = {"integration", "e2e", "docker"}
 
 # Per-file wall-clock cap. Override
-# via --file-timeout or HERMES_TEST_FILE_TIMEOUT.
+# via --file-timeout or IRIS_TEST_FILE_TIMEOUT.
 #
 # Set to 300s (5 min) deliberately generous: the per-test subprocess
 # isolation plugin spawns a fresh Python process per test, so a
 # large-collection file pays N × (interpreter startup + import) of
 # overhead before any test logic runs — and that overhead dilates under
 # load on shared CI runners, producing false "no tests ran" timeouts on
-# files that finish in ~100s on a quiet box. The Docker build matrix jobs
-# take 7-10 min anyway, so this headroom costs nothing on total CI wall
+# files that finish in ~100s on a quiet box. Any out-of-band docker build
+# matrix takes minutes anyway, so this headroom costs nothing on total CI wall
 # time while keeping a genuinely hung file bounded.
 _DEFAULT_FILE_TIMEOUT_SECONDS = 300.0
 
@@ -137,7 +134,7 @@ _DEFAULT_FILE_TIMEOUT_SECONDS = 300.0
 # Deterministic failures fail both attempts — a real regression can never be
 # laundered into green by this (it would have to flake in our favor twice in
 # a row on the same runner, which is exactly the definition of a flake).
-# Set to 0 to disable (env: HERMES_TEST_FILE_RETRIES).
+# Set to 0 to disable (env: IRIS_TEST_FILE_RETRIES).
 _DEFAULT_FILE_RETRIES = 1
 
 # Duration cache: maps relative file paths to last-observed subprocess
@@ -148,7 +145,7 @@ _DURATIONS_FILE = "test_durations.json"
 
 def _split_pathspec(value: str) -> List[str]:
     """Split a separator-joined path list (``--paths``/``--files``/
-    ``HERMES_TEST_PATHS``) into individual paths.
+    ``IRIS_TEST_PATHS``) into individual paths.
 
     POSIX: ``:``-separated, as documented.
 
@@ -272,8 +269,8 @@ def _discover_files(roots: List[Path]) -> List[Path]:
     Exclude any file whose path contains a component in ``_SKIP_PARTS``,
     UNLESS the user explicitly named it as a root (in which case the
     user's intent overrides the skip filter). This makes
-    ``scripts/run_tests.sh tests/docker/`` work locally the same way
-    ``pytest tests/docker/`` does — the CI-level skip exists to keep
+    ``scripts/run_tests.sh tests/e2e/`` work locally the same way
+    ``pytest tests/e2e/`` does — the CI-level skip exists to keep
     the sharded matrix from blowing up, not to block targeted runs.
     """
     seen: set[Path] = set()
@@ -290,7 +287,7 @@ def _discover_files(roots: List[Path]) -> List[Path]:
                 out.append(root)
             continue
         # If the explicit root itself sits inside a skipped dir (e.g.
-        # the user said ``tests/docker``), the user has overridden the
+        # the user said ``tests/e2e``), the user has overridden the
         # skip for that subtree. Compute the set of skip-parts the user
         # opted into, and only filter files whose path crosses a
         # skip-part *outside* that opt-in.
@@ -377,7 +374,7 @@ def _effective_file_timeout(
     approaches the flat cap.
 
     The flat ``file_timeout`` (default 300s) is sized for the typical file,
-    but a handful of large-collection files (e.g. ``tests/test_hermes_state.py``,
+    but a handful of large-collection files (e.g. ``tests/test_iris_state.py``,
     239 tests × subprocess-per-test overhead) legitimately run 200s+ on a
     quiet runner. Under CI load that dilates past the cap, the file is
     SIGKILL'd mid-run, and the automatic retry then passes — a manufactured
@@ -666,7 +663,7 @@ def _describe_interpreter_crash(rc: int, output: str) -> Optional[str]:
 def _format_file(file: Path, repo_root: Path) -> str:
     """Render a test-file path for display: strip the repo-root prefix
     when possible so output reads ``tests/acp_adapter/test_auth.py`` instead of
-    ``/home/runner/work/hermes-agent/hermes-agent/tests/acp_adapter/test_auth.py``.
+    ``/home/runner/work/iris-agent/iris-agent/tests/acp_adapter/test_auth.py``.
 
     Falls back to the absolute path for anything outside the repo root.
     """
@@ -972,12 +969,12 @@ def main() -> int:
         "-j",
         "--jobs",
         type=int,
-        default=int(os.environ.get("HERMES_TEST_WORKERS") or (os.cpu_count() or 4) * 2),
-        help="Parallel worker count (default: $HERMES_TEST_WORKERS or cpu_count*2)",
+        default=int(os.environ.get("IRIS_TEST_WORKERS") or (os.cpu_count() or 4) * 2),
+        help="Parallel worker count (default: $IRIS_TEST_WORKERS or cpu_count*2)",
     )
     parser.add_argument(
         "--paths",
-        default=os.environ.get("HERMES_TEST_PATHS", ":".join(_DEFAULT_ROOTS)),
+        default=os.environ.get("IRIS_TEST_PATHS", ":".join(_DEFAULT_ROOTS)),
         help=(
             "Colon-separated discovery roots (default: 'tests'). On "
             "Windows, ';' also separates and drive letters (C:\\...) are "
@@ -993,25 +990,25 @@ def main() -> int:
         "--file-timeout",
         type=float,
         default=float(
-            os.environ.get("HERMES_TEST_FILE_TIMEOUT", _DEFAULT_FILE_TIMEOUT_SECONDS)
+            os.environ.get("IRIS_TEST_FILE_TIMEOUT", _DEFAULT_FILE_TIMEOUT_SECONDS)
         ),
         help=(
             "Per-file wall-clock cap in seconds. On timeout, the pytest "
             "subprocess and its full process tree are SIGKILL'd. "
-            f"Default: {_DEFAULT_FILE_TIMEOUT_SECONDS}s ({round(_DEFAULT_FILE_TIMEOUT_SECONDS/60)} min), env: HERMES_TEST_FILE_TIMEOUT."
+            f"Default: {_DEFAULT_FILE_TIMEOUT_SECONDS}s ({round(_DEFAULT_FILE_TIMEOUT_SECONDS/60)} min), env: IRIS_TEST_FILE_TIMEOUT."
         ),
     )
     parser.add_argument(
         "--file-retries",
         type=int,
         default=int(
-            os.environ.get("HERMES_TEST_FILE_RETRIES", _DEFAULT_FILE_RETRIES)
+            os.environ.get("IRIS_TEST_FILE_RETRIES", _DEFAULT_FILE_RETRIES)
         ),
         help=(
             "Re-run a failing test FILE this many times in a fresh subprocess "
             "before declaring it failed. A pass-on-retry counts as passed but "
             "is reported as FLAKY in the summary. 0 disables. "
-            f"Default: {_DEFAULT_FILE_RETRIES}, env: HERMES_TEST_FILE_RETRIES."
+            f"Default: {_DEFAULT_FILE_RETRIES}, env: IRIS_TEST_FILE_RETRIES."
         ),
     )
     parser.add_argument(
@@ -1022,7 +1019,7 @@ def main() -> int:
             "Files are distributed across slices using cached durations "
             "so each slice takes roughly equal wall time. "
             "Without a duration cache, files are distributed by count. "
-            "Env: HERMES_TEST_SLICE (format: I/N)."
+            "Env: IRIS_TEST_SLICE (format: I/N)."
         ),
     )
     parser.add_argument(
@@ -1190,9 +1187,9 @@ def main() -> int:
     # intuitive (``run_tests.sh tests/foo.py -q -- --tb=long`` → ``-q --tb=long``).
     pytest_passthrough = bare_passthrough + explicit_passthrough
 
-    # Parse --slice (or HERMES_TEST_SLICE) early so we can exit on bad input
+    # Parse --slice (or IRIS_TEST_SLICE) early so we can exit on bad input
     # before doing any expensive discovery.
-    slice_raw = args.slice or os.environ.get("HERMES_TEST_SLICE")
+    slice_raw = args.slice or os.environ.get("IRIS_TEST_SLICE")
     slice_index: int | None = None
     slice_count: int = 1
     if slice_raw:

@@ -4,7 +4,7 @@ Before the fix, when config had `fallback_providers: [{provider, model, ...}, ..
 streaming.py read it as if it were a dict and called `.get('model', '')` on a list,
 which would raise `AttributeError: 'list' object has no attribute 'get'`.
 
-WebUI must now also mirror Hermes CLI/gateway fallback-chain semantics:
+WebUI must now also mirror Iris CLI/gateway fallback-chain semantics:
 `fallback_providers` entries are tried first, then legacy `fallback_model`
 entries are appended when they do not duplicate an earlier route.
 """

@@ -67,7 +67,7 @@ class TestPluginsApi:
                     key="guard",
                     version="1.2.3",
                     description="Blocks unsafe tool calls",
-                    path="/home/michael/.hermes/plugins/guard",
+                    path="/home/michael/.iris/plugins/guard",
                 ),
                 enabled=True,
                 hooks_registered=["pre_tool_call", "post_tool_call"],
@@ -335,7 +335,7 @@ class TestDashboardPluginsEnforcement:
             manifest = {"name": "testplugin", "tab": {"path": "/testplugin"}, "label": "Test Plugin"}
             (plugin_dir / "manifest.json").write_text(json.dumps(manifest))
 
-            with patch.dict("os.environ", {"HERMES_WEBUI_PLUGINS_DIR": td}):
+            with patch.dict("os.environ", {"IRIS_WEBUI_PLUGINS_DIR": td}):
                 from api.plugins import load_plugins, PLUGIN_MANIFESTS
                 PLUGIN_MANIFESTS.clear()
                 load_plugins()
@@ -505,8 +505,8 @@ class TestPluginNameValidation:
         import api.plugins as plugins
 
         with tempfile.TemporaryDirectory() as td:
-            prev = os.environ.get("HERMES_WEBUI_PLUGINS_DIR")
-            os.environ["HERMES_WEBUI_PLUGINS_DIR"] = td
+            prev = os.environ.get("IRIS_WEBUI_PLUGINS_DIR")
+            os.environ["IRIS_WEBUI_PLUGINS_DIR"] = td
             try:
                 root = Path(td) / "tplug" / "dashboard"
                 (root / "dist").mkdir(parents=True)
@@ -529,9 +529,9 @@ class TestPluginNameValidation:
                 plugins.PLUGIN_MANIFESTS.clear()
                 plugins._PLUGIN_STATIC_ROOTS.clear()
                 if prev is None:
-                    os.environ.pop("HERMES_WEBUI_PLUGINS_DIR", None)
+                    os.environ.pop("IRIS_WEBUI_PLUGINS_DIR", None)
                 else:
-                    os.environ["HERMES_WEBUI_PLUGINS_DIR"] = prev
+                    os.environ["IRIS_WEBUI_PLUGINS_DIR"] = prev
 
 
 class TestPluginCollisionDetection:
@@ -547,7 +547,7 @@ class TestPluginCollisionDetection:
             manifest = {"name": "testplugin", "tab": {"path": "/testplugin-duplicate"}}
             (plugin_dir / "manifest.json").write_text(json.dumps(manifest))
 
-            with patch.dict("os.environ", {"HERMES_WEBUI_PLUGINS_DIR": td}):
+            with patch.dict("os.environ", {"IRIS_WEBUI_PLUGINS_DIR": td}):
                 PLUGIN_MANIFESTS.clear()
                 with patch.object(logging, "warning") as mock_warn:
                     load_plugins()
@@ -590,7 +590,7 @@ class TestAutoHidePluginsTab:
 
     def test_switchSettingsSection_fallback_when_hidden(self):
         js = read("static/panels.js")
-        segment = js[js.find("function switchSettingsSection"):js.find("function _syncHermesPanelSessionActions")]
+        segment = js[js.find("function switchSettingsSection"):js.find("function _syncIrisPanelSessionActions")]
 
         assert "section==='plugins'" in segment
         assert "display==='none'" in segment

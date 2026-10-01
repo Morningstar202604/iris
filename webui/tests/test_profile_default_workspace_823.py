@@ -144,7 +144,7 @@ class TestProfileActiveDefaultWorkspaceApi:
         expected_ws = "/tmp/my-profile-workspace"
 
         monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "work")
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: "/home/.hermes/profiles/work")
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: "/home/.iris/profiles/work")
         monkeypatch.setattr(profiles, "_is_root_profile", lambda _n: False)
         monkeypatch.setattr(routes, "get_profile_default_workspace", lambda: expected_ws)
         monkeypatch.setattr(

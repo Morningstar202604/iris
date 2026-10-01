@@ -1,9 +1,9 @@
-// Backend subcommand routing for the desktop-managed Hermes process.
+// Backend subcommand routing for the desktop-managed Iris process.
 //
-// The desktop app launches its own headless backend via `hermes serve` — it
+// The desktop app launches its own headless backend via `iris serve` — it
 // must NEVER depend on or launch the browser `dashboard`. But `serve` is a
 // newer subcommand: a runtime that predates it (an older managed install the
-// app hasn't updated yet, or an older `hermes` resolved from PATH) only knows
+// app hasn't updated yet, or an older `iris` resolved from PATH) only knows
 // `dashboard --no-open`. To avoid bricking those users mid-upgrade we detect
 // whether the resolved runtime understands `serve` and, only when it does not,
 // fall back to the legacy `dashboard --no-open` invocation. Both produce the
@@ -13,7 +13,7 @@
 
 /**
  * Build the canonical headless backend argv (always `serve`).
- * @param {string} [profile] optional Hermes profile to pin via `--profile`.
+ * @param {string} [profile] optional Iris profile to pin via `--profile`.
  */
 export function serveBackendArgs(profile?: string) {
   const head = profile ? ['--profile', profile] : []
@@ -24,7 +24,7 @@ export function serveBackendArgs(profile?: string) {
 /**
  * Rewrite a resolved backend argv from `serve` to the legacy
  * `dashboard --no-open` form, preserving every other argument (incl. a leading
- * `-m hermes_cli.main` and any `--profile <name>`). Returns a copy; if there is
+ * `-m iris_cli.main` and any `--profile <name>`). Returns a copy; if there is
  * no `serve` token the argv is returned unchanged.
  */
 export function dashboardFallbackArgs(args) {
@@ -38,7 +38,7 @@ export function dashboardFallbackArgs(args) {
 }
 
 /**
- * True when a runtime's `hermes_cli/subcommands/dashboard.py` source registers
+ * True when a runtime's `iris_cli/subcommands/dashboard.py` source registers
  * the `serve` subcommand. Matches `add_parser("serve"` / `add_parser('serve'`
  * specifically so the substring "server" (e.g. "start_server", "web server")
  * never produces a false positive.

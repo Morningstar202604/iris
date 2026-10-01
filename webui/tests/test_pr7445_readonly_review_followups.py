@@ -155,12 +155,12 @@ def test_indexed_projection_keeps_the_correlated_index_seek(tmp_path, monkeypatc
 @pytest.mark.parametrize(
     ("platform", "path", "expected"),
     [
-        ("linux", "/home/me/.hermes/state.db", "file:///home/me/.hermes/state.db?mode=ro"),
+        ("linux", "/home/me/.iris/state.db", "file:///home/me/.iris/state.db?mode=ro"),
         ("darwin", "/Users/me/state dir #1/state?.db",
          "file:///Users/me/state%20dir%20%231/state%3F.db?mode=ro"),
-        ("win32", r"C:\Users\me\.hermes\state.db", "file:///C:/Users/me/.hermes/state.db?mode=ro"),
+        ("win32", r"C:\Users\me\.iris\state.db", "file:///C:/Users/me/.iris/state.db?mode=ro"),
         ("win32", r"C:\a b\state#?.db", "file:///C:/a%20b/state%23%3F.db?mode=ro"),
-        ("win32", r"\\server\share\hermes\state.db", "file:////server/share/hermes/state.db?mode=ro"),
+        ("win32", r"\\server\share\iris\state.db", "file:////server/share/iris/state.db?mode=ro"),
         ("win32", r"\\server\share\a b\state#.db", "file:////server/share/a%20b/state%23.db?mode=ro"),
         ("win32", r"\\?\C:\x\state.db", "file:///C:/x/state.db?mode=ro"),
         ("win32", r"\\?\UNC\server\share\state.db", "file:////server/share/state.db?mode=ro"),
@@ -217,7 +217,7 @@ def test_non_utf8_posix_path_still_opens_readonly(tmp_path):
     shape) percent-encoded the fsencode() bytes, so the URI builder must too.
     """
     try:
-        odd_dir = tmp_path / os.fsdecode(b"hermes-\xff-home")
+        odd_dir = tmp_path / os.fsdecode(b"iris-\xff-home")
         odd_dir.mkdir()
     except (OSError, UnicodeError):
         pytest.skip("filesystem rejects non-UTF-8 names")

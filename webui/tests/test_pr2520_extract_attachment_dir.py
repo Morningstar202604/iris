@@ -1,7 +1,7 @@
-"""PR #2520: archive extraction respects HERMES_WEBUI_ATTACHMENT_DIR.
+"""PR #2520: archive extraction respects IRIS_WEBUI_ATTACHMENT_DIR.
 
 Verifies that extract_archive() lands files in the per-session attachment
-inbox when HERMES_WEBUI_ATTACHMENT_DIR is set, matching the single-file
+inbox when IRIS_WEBUI_ATTACHMENT_DIR is set, matching the single-file
 upload path and ensuring session cleanup covers extracted archives.
 """
 import io
@@ -26,7 +26,7 @@ class TestExtractArchiveAttachmentDir:
 
     def test_extraction_lands_in_session_dir(self, tmp_path, monkeypatch):
         inbox = tmp_path / "att-inbox"
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(inbox))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(inbox))
 
         session_id = "sess-42"
         session_dir = _session_attachment_dir(session_id)
@@ -48,7 +48,7 @@ class TestExtractArchiveAttachmentDir:
 
     def test_session_cleanup_covers_extracted_archives(self, tmp_path, monkeypatch):
         inbox = tmp_path / "att-inbox"
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(inbox))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(inbox))
 
         session_id = "sess-cleanup"
         session_dir = _session_attachment_dir(session_id)
@@ -65,7 +65,7 @@ class TestExtractArchiveAttachmentDir:
 
     def test_extraction_not_at_bare_attachment_root(self, tmp_path, monkeypatch):
         inbox = tmp_path / "att-inbox"
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(inbox))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(inbox))
 
         session_id = "sess-scoped"
         session_dir = _session_attachment_dir(session_id)
@@ -80,7 +80,7 @@ class TestExtractArchiveAttachmentDir:
 
     def test_relative_files_are_relative_to_session_dir(self, tmp_path, monkeypatch):
         inbox = tmp_path / "att-inbox"
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(inbox))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(inbox))
 
         session_dir = _session_attachment_dir("sess-rel")
         session_dir.mkdir(parents=True, exist_ok=True)

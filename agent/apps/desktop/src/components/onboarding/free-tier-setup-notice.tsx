@@ -15,7 +15,7 @@ import { type OnboardingContext, refreshOnboarding } from '@/store/onboarding'
 
 type SetupFailedCopy = Translations['freeTier']['setupFailed']
 
-// One sentence per backend code (`hermes_cli/anon_auth.py::ANON_*`).
+// One sentence per backend code (`iris_cli/anon_auth.py::ANON_*`).
 const COPY_KEY_BY_CODE: Record<string, keyof SetupFailedCopy> = {
   anon_account_locked: 'locked',
   anon_gate_closed: 'gateClosed',

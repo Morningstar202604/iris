@@ -35,7 +35,7 @@ export function ConnectElement({ operation, onStopWaiting }: ConnectElementProps
 
       <div className="flex flex-wrap items-center gap-2">
         {link ? (
-          <Button onClick={() => void window.hermesDesktop?.openExternal?.(link)} size="xs" variant="secondary">
+          <Button onClick={() => void window.irisDesktop?.openExternal?.(link)} size="xs" variant="secondary">
             {copy.dialog.connectOpenAgain}
           </Button>
         ) : null}

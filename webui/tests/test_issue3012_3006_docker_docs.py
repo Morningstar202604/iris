@@ -21,14 +21,14 @@ def test_readme_common_failures_mentions_host_localhost():
 
 
 def test_docker_docs_warn_sudo_changes_home_bind_mount():
-    """#3006: sudo can render ${HOME}/.hermes as /root/.hermes."""
+    """#3006: sudo can render ${HOME}/.iris as /root/.iris."""
     assert "`sudo docker compose up -d` can make `${HOME}` expand to the root user's home" in README
-    assert "Docker mounts the wrong `.hermes` directory instead of your real `~/.hermes`" in README
-    assert "HERMES_HOME=/home/you/.hermes" in README
+    assert "Docker mounts the wrong `.iris` directory instead of your real `~/.iris`" in README
+    assert "IRIS_HOME=/home/you/.iris" in README
 
     assert "sudo` often changes `$HOME` to `/root`" in DOCKER_MD
-    assert "`${HERMES_HOME:-${HOME}/.hermes}` becomes `/root/.hermes`" in DOCKER_MD
-    assert "HERMES_HOME=/home/youruser/.hermes" in DOCKER_MD
+    assert "`${IRIS_HOME:-${HOME}/.iris}` becomes `/root/.iris`" in DOCKER_MD
+    assert "IRIS_HOME=/home/youruser/.iris" in DOCKER_MD
     assert "docker compose config" in DOCKER_MD
 
 

@@ -7,16 +7,16 @@ chat_completions reasoning translations (GLM-5.2, Kimi K2, DeepSeek, Ox Alpha).
 from typing import Any
 
 from agent import reasoning_effort as re_
-from hermes_cli import __version__ as _HERMES_VERSION
+from iris_cli import __version__ as _IRIS_VERSION
 from providers import register_provider
 from providers.base import ProviderProfile
 
 # Attribution headers (same values as OpenRouter / Vercel / Fireworks); via
 # default_headers so they survive model switches and credential rotation.
 _ATTRIBUTION_HEADERS = {
-    "HTTP-Referer": "https://hermes-agent.nousresearch.com",
-    "X-Title": "Hermes Agent",
-    "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
+    "HTTP-Referer": "https://gitcode.com/badhope/iris",
+    "X-Title": "Iris Agent",
+    "User-Agent": f"IrisAgent/{_IRIS_VERSION}",
 }
 
 
@@ -65,7 +65,7 @@ class OpenCodeGoProfile(ProviderProfile):
         import httpx
 
         from agent.account_usage import AccountUsageSnapshot, AccountUsageWindow
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from iris_cli.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested=self.name, explicit_base_url=base_url, explicit_api_key=api_key)
         token = str(runtime.get("api_key", "") or "").strip()

@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- HTTP helper functions.
+Iris Web UI -- HTTP helper functions.
 """
 import base64 as _base64
 import binascii as _binascii
@@ -75,7 +75,7 @@ _CSP_CONNECT_BASE = (
 _CSP_EXTRA_CONNECT_RE = _re.compile(
     r"^(?:https?|wss?)://(?:\*\.)?[A-Za-z0-9._~-]+(?::(?P<port>\d{1,5}|\*))?$"
 )
-# Validator for an opt-in frame-src allowlist entry (HERMES_WEBUI_CSP_FRAME_EXTRA).
+# Validator for an opt-in frame-src allowlist entry (IRIS_WEBUI_CSP_FRAME_EXTRA).
 # Only http(s) origins (optional wildcard subdomain + optional port) are accepted —
 # the same shape as the connect-extra validator minus the ws/wss schemes, since an
 # iframe src is always http(s).
@@ -100,7 +100,7 @@ _CSP_SHARED_POLICY_TEMPLATE = (
 )
 # Base frame-src: same-origin only by default (so the existing same-origin
 # dashboard/extension iframes keep working). An operator can widen it, opt-in,
-# via HERMES_WEBUI_CSP_FRAME_EXTRA — e.g. to embed a self-hosted dashboard in an
+# via IRIS_WEBUI_CSP_FRAME_EXTRA — e.g. to embed a self-hosted dashboard in an
 # extension tab. This governs what THIS page may embed; it does NOT affect
 # frame-ancestors (who may embed the WebUI), which stays 'none'.
 _CSP_FRAME_BASE = "'self'"
@@ -120,12 +120,12 @@ def _valid_csp_extra_connect_source(source: str) -> bool:
 
 
 def _csp_extra_connect_src() -> str:
-    raw = os.getenv("HERMES_WEBUI_CSP_CONNECT_EXTRA", "").strip()
+    raw = os.getenv("IRIS_WEBUI_CSP_CONNECT_EXTRA", "").strip()
     if not raw:
         return ""
     sources = raw.split()
     if not sources or any(not _valid_csp_extra_connect_source(src) for src in sources):
-        logger.warning("Ignoring invalid HERMES_WEBUI_CSP_CONNECT_EXTRA value")
+        logger.warning("Ignoring invalid IRIS_WEBUI_CSP_CONNECT_EXTRA value")
         return ""
     return " " + " ".join(sources)
 
@@ -144,12 +144,12 @@ def _valid_csp_extra_frame_source(source: str) -> bool:
 
 
 def _csp_extra_frame_src() -> str:
-    raw = os.getenv("HERMES_WEBUI_CSP_FRAME_EXTRA", "").strip()
+    raw = os.getenv("IRIS_WEBUI_CSP_FRAME_EXTRA", "").strip()
     if not raw:
         return ""
     sources = raw.split()
     if not sources or any(not _valid_csp_extra_frame_source(src) for src in sources):
-        logger.warning("Ignoring invalid HERMES_WEBUI_CSP_FRAME_EXTRA value")
+        logger.warning("Ignoring invalid IRIS_WEBUI_CSP_FRAME_EXTRA value")
         return ""
     return " " + " ".join(sources)
 
@@ -474,7 +474,7 @@ def _safe_write(handler, body: bytes) -> None:
         handler.wfile.write(body)
     except _CLIENT_DISCONNECT_ERRORS as exc:
         import logging
-        logging.getLogger("hermes.webui").debug(
+        logging.getLogger("iris.webui").debug(
             "Client disconnected mid-response (%s): %s",
             type(exc).__name__,
             getattr(handler, "path", "?"),
@@ -549,10 +549,10 @@ MAX_BODY_BYTES = 20 * 1024 * 1024  # 20MB limit for non-upload POST bodies
 # ── Credential redaction ──────────────────────────────────────────────────────
 
 def _build_redact_fn():
-    """Return a redactor backed by hermes-agent plus local fallback patterns."""
+    """Return a redactor backed by iris-agent plus local fallback patterns."""
     # Fallback mirrors the agent's known credential prefixes so WebUI API
-    # responses remain a hard redaction boundary even without hermes-agent.
-    # Keep this active even when hermes-agent is importable so API responses do
+    # responses remain a hard redaction boundary even without iris-agent.
+    # Keep this active even when iris-agent is importable so API responses do
     # not regress if the agent redactor misses a token shape.
     _CRED_RE = _re.compile(
         r"(?<![A-Za-z0-9_-])("
@@ -602,7 +602,7 @@ def _build_redact_fn():
     # The general credential regex uses token boundaries to avoid rewriting
     # prose identifiers; this defense-in-depth pass ensures the fail-closed
     # image path still removes the maintainer's embedded-suffix attack even
-    # when hermes-agent is unavailable and the local fallback owns redaction.
+    # when iris-agent is unavailable and the local fallback owns redaction.
     _EMBEDDED_AWS_ACCESS_KEY_RE = _re.compile(r"AKIA[A-Z0-9]{16}")
     _ENV_RE = _re.compile(
         r"([A-Z0-9_]{0,50}(?:API_?KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH)[A-Z0-9_]{0,50})"
@@ -688,12 +688,12 @@ def _build_redact_fn():
         # WebUI API responses are a hard safety boundary — pass force=True so the
         # agent's broader patterns (Stripe sk_live_, Google AIza…, JWT eyJ…, DB
         # connection strings, Telegram bot tokens) run regardless of the user's
-        # HERMES_REDACT_SECRETS opt-in. The local fallback then handles the
+        # IRIS_REDACT_SECRETS opt-in. The local fallback then handles the
         # common short-prefix shapes the agent omits (ghp_, sk-, hf_, AKIA).
         try:
             agent_redacted = redact_sensitive_text(text, force=True)
         except TypeError:
-            # Older hermes-agent builds that predate the force kwarg.
+            # Older iris-agent builds that predate the force kwarg.
             agent_redacted = redact_sensitive_text(text)
         agent_redacted = _restore_code_env_key_literals(text, agent_redacted)
         return _fallback_redact(agent_redacted)
@@ -1690,8 +1690,8 @@ def read_body(handler) -> dict:
 
 # ── Profile cookie helpers (issue #798) ─────────────────────────────────────
 
-PROFILE_COOKIE_NAME = 'hermes_profile'
-_PROFILE_COOKIE_ENV = 'HERMES_WEBUI_PROFILE_COOKIE_NAME'
+PROFILE_COOKIE_NAME = 'iris_profile'
+_PROFILE_COOKIE_ENV = 'IRIS_WEBUI_PROFILE_COOKIE_NAME'
 _LEGACY_PROFILE_COOKIE_ENV = 'WEBUI_PROFILE_COOKIE_NAME'
 _legacy_profile_cookie_warned = False
 
@@ -1699,7 +1699,7 @@ _legacy_profile_cookie_warned = False
 def get_profile_cookie_name() -> str:
     """Return the cookie name used to persist the active WebUI profile.
 
-    Honours ``HERMES_WEBUI_PROFILE_COOKIE_NAME`` so multiple WebUI instances
+    Honours ``IRIS_WEBUI_PROFILE_COOKIE_NAME`` so multiple WebUI instances
     sharing a hostname (different ports) can use distinct profile-cookie names
     instead of trampling each other; browsers scope cookies by host, not
     host+port (RFC 6265). The original ``WEBUI_PROFILE_COOKIE_NAME`` is still
@@ -1728,7 +1728,7 @@ def get_profile_cookie(handler) -> str | None:
 
     When WebUI auth is enabled, the profile cookie is treated as an
     authorization input for profile-scoped routes. Require it to be signed for
-    the current auth session so clients cannot forge ``hermes_profile`` to
+    the current auth session so clients cannot forge ``iris_profile`` to
     impersonate another profile. In no-auth deployments, keep the historical
     plain profile-name cookie behavior.
     """

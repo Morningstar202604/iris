@@ -1,6 +1,6 @@
 # Plugin compatibility manifest (temporary)
 
-The September 2026 decomposition (PR #102117) split the large modules of Hermes Agent into focused
+The September 2026 decomposition (PR #102117) split the large modules of Iris Agent into focused
 files. **Internal import paths are not a stable API**, and after that PR the names below are no
 longer defined where they used to be. To give external plugin authors time to update, every name
 is still importable from its OLD module through a `PLUGIN-COMPAT` block appended to that module.
@@ -12,22 +12,22 @@ fails CI if it does).
 
 **What happens to an affected plugin.**
 
-| when | CLI banner / `hermes doctor` / `hermes update` | Desktop | the plugin |
+| when | CLI banner / `iris doctor` / `iris update` | Desktop | the plugin |
 |---|---|---|---|
-| before 2026-09-14 | yellow notice naming the plugin, the date, and `hermes plugins compat` | one-time modal (per set of affected plugins) | loads; each old-path resolution emits `HermesPluginCompatWarning` once |
-| from 2026-09-14 | red notice: plugin **DISABLED** | one-time modal | **not loaded**; `hermes plugins list` shows the reason |
+| before 2026-09-14 | yellow notice naming the plugin, the date, and `iris plugins compat` | one-time modal (per set of affected plugins) | loads; each old-path resolution emits `IrisPluginCompatWarning` once |
+| from 2026-09-14 | red notice: plugin **DISABLED** | one-time modal | **not loaded**; `iris plugins list` shows the reason |
 | after the revert lands | same | same | not loaded (the old paths no longer exist) |
 
 Escape hatch for users who cannot wait on an author: `plugins.allow_deprecated_imports: true` in
 `config.yaml` keeps affected plugins loading after the date, until the revert actually removes the paths.
 
-**For plugin authors:** run `hermes plugins compat <path-to-your-plugin>` — it prints every `file:line`,
+**For plugin authors:** run `iris plugins compat <path-to-your-plugin>` — it prints every `file:line`,
 old path → new path, and exits 1 while anything remains. Import from the `new location` column.
 
-**You will see a warning.** The first time a process resolves a name through one of these blocks, Hermes emits a
-`HermesPluginCompatWarning` (a `FutureWarning`) naming the old path, the new path, and the removal target — once per
+**You will see a warning.** The first time a process resolves a name through one of these blocks, Iris emits a
+`IrisPluginCompatWarning` (a `FutureWarning`) naming the old path, the new path, and the removal target — once per
 name per process. Fix the import and it goes away. To silence during migration:
-`python -W ignore::hermes_cli.plugin_compat.HermesPluginCompatWarning` or `warnings.filterwarnings("ignore", category=HermesPluginCompatWarning)`.
+`python -W ignore::iris_cli.plugin_compat.IrisPluginCompatWarning` or `warnings.filterwarnings("ignore", category=IrisPluginCompatWarning)`.
 
 **Scope.** Only PUBLIC names (no leading underscore) that were defined or imported at module top level
 before the decomposition are covered. Private names (`_foo`, `_TG_NAME_LIMIT`, `_clamp_telegram_names`,
@@ -125,7 +125,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `base_url_hostname` | moved-lazy | `utils` |
 | `claude_code_credentials_path` | moved-lazy | `agent.anthropic_credentials` |
 | `copy` | import | `copy` |
-| `get_hermes_home` | moved-lazy | `hermes_constants` |
+| `get_iris_home` | moved-lazy | `iris_constants` |
 | `is_claude_code_token_valid` | moved-lazy | `agent.anthropic_credentials` |
 | `is_rotation_consumed_uncommitted` | moved-lazy | `agent.anthropic_credentials` |
 | `json` | import | `json` |
@@ -133,10 +133,10 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `os` | import | `os` |
 | `platform` | import | `platform` |
 | `read_claude_code_credentials` | moved-lazy | `agent.anthropic_credentials` |
-| `read_hermes_oauth_credentials` | moved-lazy | `agent.anthropic_credentials` |
+| `read_iris_oauth_credentials` | moved-lazy | `agent.anthropic_credentials` |
 | `refresh_anthropic_oauth_pure` | moved-lazy | `agent.anthropic_credentials` |
 | `resolve_anthropic_token` | moved-lazy | `agent.anthropic_credentials` |
-| `run_hermes_oauth_login_pure` | moved-lazy | `agent.anthropic_credentials` |
+| `run_iris_oauth_login_pure` | moved-lazy | `agent.anthropic_credentials` |
 | `run_oauth_setup_token` | moved-lazy | `agent.anthropic_credentials` |
 | `secrets` | import | `secrets` |
 | `stat` | import | `stat` |
@@ -203,7 +203,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.codex_runtime`
@@ -242,7 +242,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `COMPRESSION_RETRY_TOO_LARGE_STATUS_TEMPLATE` | moved-lazy | `agent.conversation_compression` |
 | `FailoverReason` | moved-lazy | `agent.error_classifier` |
 | `KawaiiSpinner` | moved-lazy | `agent.display` |
-| `PARTIAL_STREAM_STUB_ID` | moved-lazy | `hermes_constants` |
+| `PARTIAL_STREAM_STUB_ID` | moved-lazy | `iris_constants` |
 | `PRE_API_COMPRESSION_STATUS_TEMPLATE` | moved-lazy | `agent.conversation_compression` |
 | `adaptive_rate_limit_backoff` | moved-lazy | `agent.retry_utils` |
 | `anchored_context_tokens` | moved-lazy | `agent.model_metadata` |
@@ -324,7 +324,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.learning_graph_render`
@@ -523,7 +523,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | name | kind | new location |
 |---|---|---|
 | `Dict` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.transcript_repair`
@@ -547,7 +547,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
 | `Optional` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.transports.chat_completions`
@@ -578,7 +578,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
 | `Optional` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.turn_context`
@@ -617,7 +617,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `agent.web_search_provider`
@@ -632,7 +632,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Dict` | import | `typing` |
 | `List` | import | `typing` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `threading` | import | `threading` |
 
 ### `cli`
@@ -645,12 +645,12 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Condition` | import | `prompt_toolkit.filters` |
 | `ConditionalContainer` | import | `prompt_toolkit.layout` |
 | `ConditionalProcessor` | import | `prompt_toolkit.layout.processors` |
-| `DEFAULT_BROWSER_CDP_URL` | moved-lazy | `hermes_cli.browser_connect` |
+| `DEFAULT_BROWSER_CDP_URL` | moved-lazy | `iris_cli.browser_connect` |
 | `Dimension` | import | `prompt_toolkit.layout.dimension` |
 | `FileHistory` | import | `prompt_toolkit.history` |
 | `FormattedTextControl` | import | `prompt_toolkit.layout` |
-| `HERMES_AGENT_LOGO` | moved-lazy | `hermes_cli.banner` |
-| `HERMES_CADUCEUS` | moved-lazy | `hermes_cli.banner` |
+| `IRIS_AGENT_LOGO` | moved-lazy | `iris_cli.banner` |
+| `IRIS_CADUCEUS` | moved-lazy | `iris_cli.banner` |
 | `HSplit` | import | `prompt_toolkit.layout` |
 | `KeyBindings` | import | `prompt_toolkit.key_binding` |
 | `Layout` | import | `prompt_toolkit.layout` |
@@ -658,33 +658,33 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Panel` | import | `rich.panel` |
 | `PasswordProcessor` | import | `prompt_toolkit.layout.processors` |
 | `Processor` | import | `prompt_toolkit.layout.processors` |
-| `SlashCommandAutoSuggest` | moved-lazy | `hermes_cli.commands_completion` |
-| `SlashCommandCompleter` | moved-lazy | `hermes_cli.commands_completion` |
+| `SlashCommandAutoSuggest` | moved-lazy | `iris_cli.commands_completion` |
+| `SlashCommandCompleter` | moved-lazy | `iris_cli.commands_completion` |
 | `TextArea` | import | `prompt_toolkit.widgets` |
 | `Transformation` | import | `prompt_toolkit.layout.processors` |
 | `Window` | import | `prompt_toolkit.layout` |
 | `WindowAlign` | import | `prompt_toolkit.layout` |
 | `base64` | import | `base64` |
-| `build_welcome_banner` | moved-lazy | `hermes_cli.banner` |
+| `build_welcome_banner` | moved-lazy | `iris_cli.banner` |
 | `concurrent` | import | `concurrent.futures` |
 | `copy` | import | `copy` |
-| `display_hermes_home` | moved-lazy | `hermes_constants` |
+| `display_iris_home` | moved-lazy | `iris_constants` |
 | `estimate_usage_cost` | moved-lazy | `agent.usage_pricing` |
 | `get_all_toolsets` | moved-lazy | `toolsets` |
 | `get_job` | moved-lazy | `cron.jobs` |
 | `get_toolset_for_tool` | moved-lazy | `model_tools` |
 | `get_toolset_info` | moved-lazy | `toolsets` |
-| `init_skin_from_config` | moved-lazy | `hermes_cli.skin_engine` |
-| `is_browser_debug_ready` | moved-lazy | `hermes_cli.browser_connect` |
+| `init_skin_from_config` | moved-lazy | `iris_cli.skin_engine` |
+| `is_browser_debug_ready` | moved-lazy | `iris_cli.browser_connect` |
 | `is_table_divider` | moved-lazy | `agent.markdown_tables` |
 | `looks_like_table_row` | moved-lazy | `agent.markdown_tables` |
-| `manual_chrome_debug_command` | moved-lazy | `hermes_cli.browser_connect` |
-| `print_config_warnings` | moved-lazy | `hermes_cli.config` |
-| `prompt_for_secret` | moved-lazy | `hermes_cli.callbacks` |
+| `manual_chrome_debug_command` | moved-lazy | `iris_cli.browser_connect` |
+| `print_config_warnings` | moved-lazy | `iris_cli.config` |
+| `prompt_for_secret` | moved-lazy | `iris_cli.callbacks` |
 | `rich_box` | import | `rich` |
 | `set_friendly_tool_labels` | moved-lazy | `agent.display` |
 | `set_tool_preview_max_len` | moved-lazy | `agent.display` |
-| `setup_logging` | moved-lazy | `hermes_logging` |
+| `setup_logging` | moved-lazy | `iris_logging` |
 | `tempfile` | import | `tempfile` |
 | `try_launch_chrome_debug` | unrestorable | `no top-level definition on BASE` |
 
@@ -1029,7 +1029,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `SessionSource` | moved-lazy | `gateway.session` |
 | `base_url_host_matches` | moved-lazy | `utils` |
 | `build_session_key` | moved-lazy | `gateway.session` |
-| `clear_model_endpoint_credentials` | moved-lazy | `hermes_cli.config` |
+| `clear_model_endpoint_credentials` | moved-lazy | `iris_cli.config` |
 | `extract_api_content_sidecar` | moved-lazy | `agent.turn_context` |
 | `fetch_account_usage` | moved-lazy | `agent.account_usage` |
 | `hashlib` | import | `hashlib` |
@@ -1075,72 +1075,72 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Optional` | import | `typing` |
 
-### `hermes_cli.agent_import`
+### `iris_cli.agent_import`
 
 | name | kind | new location |
 |---|---|---|
 | `backup_memory_file` | restored-def | `(deleted; BASE body restored)` |
 | `default_source_dir` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.auth`
+### `iris_cli.auth`
 
 | name | kind | new location |
 |---|---|---|
 | `BaseHTTPRequestHandler` | import | `http.server` |
-| `CODEX_OAUTH_USER_AGENT` | moved-lazy | `hermes_cli.auth_constants` |
-| `CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS` | moved-lazy | `hermes_cli.auth_codex` |
-| `DEFAULT_SPOTIFY_REDIRECT_URI` | moved-lazy | `hermes_cli.auth_constants` |
-| `DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS` | moved-lazy | `hermes_cli.auth_constants` |
+| `CODEX_OAUTH_USER_AGENT` | moved-lazy | `iris_cli.auth_constants` |
+| `CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS` | moved-lazy | `iris_cli.auth_codex` |
+| `DEFAULT_SPOTIFY_REDIRECT_URI` | moved-lazy | `iris_cli.auth_constants` |
+| `DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS` | moved-lazy | `iris_cli.auth_constants` |
 | `HTTPServer` | import | `http.server` |
-| `MINIMAX_OAUTH_GRANT_TYPE` | moved-lazy | `hermes_cli.auth_constants` |
-| `NOUS_INFERENCE_INVOKE_SCOPE` | moved-lazy | `hermes_cli.auth_constants` |
-| `NOUS_SHARED_STORE_FILENAME` | moved-lazy | `hermes_cli.auth_nous` |
-| `OAUTH_OVER_SSH_DOCS_URL` | moved-lazy | `hermes_cli.auth_constants` |
-| `QWEN_OAUTH_CLIENT_ID` | moved-lazy | `hermes_cli.auth_constants` |
-| `QWEN_OAUTH_TOKEN_URL` | moved-lazy | `hermes_cli.auth_constants` |
-| `SINGLE_USE_OAUTH_SINGLETON_FILES` | moved-lazy | `hermes_cli.auth_oauth_grants` |
-| `SPOTIFY_ACCESS_TOKEN_REFRESH_SKEW_SECONDS` | moved-lazy | `hermes_cli.auth_constants` |
-| `SPOTIFY_DASHBOARD_URL` | moved-lazy | `hermes_cli.auth_constants` |
+| `MINIMAX_OAUTH_GRANT_TYPE` | moved-lazy | `iris_cli.auth_constants` |
+| `NOUS_INFERENCE_INVOKE_SCOPE` | moved-lazy | `iris_cli.auth_constants` |
+| `NOUS_SHARED_STORE_FILENAME` | moved-lazy | `iris_cli.auth_nous` |
+| `OAUTH_OVER_SSH_DOCS_URL` | moved-lazy | `iris_cli.auth_constants` |
+| `QWEN_OAUTH_CLIENT_ID` | moved-lazy | `iris_cli.auth_constants` |
+| `QWEN_OAUTH_TOKEN_URL` | moved-lazy | `iris_cli.auth_constants` |
+| `SINGLE_USE_OAUTH_SINGLETON_FILES` | moved-lazy | `iris_cli.auth_oauth_grants` |
+| `SPOTIFY_ACCESS_TOKEN_REFRESH_SKEW_SECONDS` | moved-lazy | `iris_cli.auth_constants` |
+| `SPOTIFY_DASHBOARD_URL` | moved-lazy | `iris_cli.auth_constants` |
 | `TYPE_CHECKING` | import | `typing` |
-| `XAI_OAUTH_DEVICE_CODE_URL` | moved-lazy | `hermes_cli.auth_constants` |
-| `XAI_OAUTH_DISCOVERY_URL` | moved-lazy | `hermes_cli.auth_constants` |
-| `XAI_OAUTH_ISSUER` | moved-lazy | `hermes_cli.auth_constants` |
+| `XAI_OAUTH_DEVICE_CODE_URL` | moved-lazy | `iris_cli.auth_constants` |
+| `XAI_OAUTH_DISCOVERY_URL` | moved-lazy | `iris_cli.auth_constants` |
+| `XAI_OAUTH_ISSUER` | moved-lazy | `iris_cli.auth_constants` |
 | `base64` | import | `base64` |
 | `hashlib` | import | `hashlib` |
 | `parse_qs` | import | `urllib.parse` |
-| `refresh_nous_oauth_pure` | moved-lazy | `hermes_cli.auth_nous` |
+| `refresh_nous_oauth_pure` | moved-lazy | `iris_cli.auth_nous` |
 | `ssl` | import | `ssl` |
 | `subprocess` | import | `subprocess` |
 | `sys` | import | `sys` |
 | `urlencode` | import | `urllib.parse` |
 
-### `hermes_cli.backup`
+### `iris_cli.backup`
 
 | name | kind | new location |
 |---|---|---|
 | `copy_db_and_verify` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.browser_connect`
+### `iris_cli.browser_connect`
 
 | name | kind | new location |
 |---|---|---|
 | `try_launch_chrome_debug` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.callbacks`
+### `iris_cli.callbacks`
 
 | name | kind | new location |
 |---|---|---|
 | `approval_callback` | restored-def | `(deleted; BASE body restored)` |
 | `clarify_callback` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.checkpoints`
+### `iris_cli.checkpoints`
 
 | name | kind | new location |
 |---|---|---|
-| `cmd_list` | moved-lazy | `hermes_cli.plugins_cmd` |
+| `cmd_list` | moved-lazy | `iris_cli.plugins_cmd` |
 | `datetime` | import | `datetime` |
 
-### `hermes_cli.commands`
+### `iris_cli.commands`
 
 | name | kind | new location |
 |---|---|---|
@@ -1153,8 +1153,8 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Mapping` | import | `collections.abc` |
 | `Optional` | import | `typing` |
 | `Sequence` | import | `collections.abc` |
-| `SlashCommandAutoSuggest` | moved-lazy | `hermes_cli.commands_completion` |
-| `SlashCommandCompleter` | moved-lazy | `hermes_cli.commands_completion` |
+| `SlashCommandAutoSuggest` | moved-lazy | `iris_cli.commands_completion` |
+| `SlashCommandCompleter` | moved-lazy | `iris_cli.commands_completion` |
 | `Suggestion` | unrestorable | `no top-level definition on BASE` |
 | `Tuple` | import | `typing` |
 | `_CMD_NAME_LIMIT` | restored-helper | `(deleted; restored as a dependency of discord_skill_commands)` |
@@ -1162,91 +1162,91 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `_collect_gateway_skill_entries` | restored-helper | `(deleted; restored as a dependency of discord_skill_commands)` |
 | `_requires_argument` | restored-helper | `(deleted; restored as a dependency of discord_skill_commands)` |
 | `discord_skill_commands` | restored-def | `(deleted; BASE body restored)` |
-| `discord_skill_commands_by_category` | moved-lazy | `hermes_cli.commands_platforms` |
+| `discord_skill_commands_by_category` | moved-lazy | `iris_cli.commands_platforms` |
 | `field` | import | `dataclasses` |
 | `key` | unrestorable | `no top-level definition on BASE` |
 | `m` | unrestorable | `no top-level definition on BASE` |
 | `os` | import | `os` |
 | `shutil` | import | `shutil` |
-| `slack_app_manifest` | moved-lazy | `hermes_cli.commands_platforms` |
-| `slack_native_slashes` | moved-lazy | `hermes_cli.commands_platforms` |
-| `slack_subcommand_map` | moved-lazy | `hermes_cli.commands_platforms` |
+| `slack_app_manifest` | moved-lazy | `iris_cli.commands_platforms` |
+| `slack_native_slashes` | moved-lazy | `iris_cli.commands_platforms` |
+| `slack_subcommand_map` | moved-lazy | `iris_cli.commands_platforms` |
 | `subprocess` | import | `subprocess` |
-| `telegram_bot_commands` | moved-lazy | `hermes_cli.commands_platforms` |
-| `telegram_menu_commands` | moved-lazy | `hermes_cli.commands_platforms` |
-| `telegram_menu_max_commands` | moved-lazy | `hermes_cli.commands_platforms` |
+| `telegram_bot_commands` | moved-lazy | `iris_cli.commands_platforms` |
+| `telegram_menu_commands` | moved-lazy | `iris_cli.commands_platforms` |
+| `telegram_menu_max_commands` | moved-lazy | `iris_cli.commands_platforms` |
 | `time` | import | `time` |
 
-### `hermes_cli.config`
+### `iris_cli.config`
 
 | name | kind | new location |
 |---|---|---|
 | `_install_method_project_root` | restored-helper | `(deleted; restored as a dependency of stamp_install_method)` |
-| `normalize_route_base_url` | moved-lazy | `hermes_cli.route_identity` |
+| `normalize_route_base_url` | moved-lazy | `iris_cli.route_identity` |
 | `stamp_install_method` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.console_engine`
+### `iris_cli.console_engine`
 
 | name | kind | new location |
 |---|---|---|
 | `shlex` | import | `shlex` |
 
-### `hermes_cli.curses_ui`
+### `iris_cli.curses_ui`
 
 | name | kind | new location |
 |---|---|---|
 | `Protocol` | import | `typing` |
 
-### `hermes_cli.dashboard_auth.audit`
+### `iris_cli.dashboard_auth.audit`
 
 | name | kind | new location |
 |---|---|---|
 | `os` | import | `os` |
 
-### `hermes_cli.dashboard_auth.middleware`
+### `iris_cli.dashboard_auth.middleware`
 
 | name | kind | new location |
 |---|---|---|
-| `DashboardAuthProvider` | moved-lazy | `hermes_cli.dashboard_auth.base` |
+| `DashboardAuthProvider` | moved-lazy | `iris_cli.dashboard_auth.base` |
 
-### `hermes_cli.dingtalk_auth`
+### `iris_cli.dingtalk_auth`
 
 | name | kind | new location |
 |---|---|---|
-| `logger` | moved-lazy | `hermes_cli.auth` |
+| `logger` | moved-lazy | `iris_cli.auth` |
 | `logging` | import | `logging` |
 
-### `hermes_cli.doctor`
+### `iris_cli.doctor`
 
 | name | kind | new location |
 |---|---|---|
-| `FTS_STORAGE_VERSION` | moved-lazy | `hermes_state_common` |
-| `OPENROUTER_MODELS_URL` | moved-lazy | `hermes_constants` |
+| `FTS_STORAGE_VERSION` | moved-lazy | `iris_state_common` |
+| `OPENROUTER_MODELS_URL` | moved-lazy | `iris_constants` |
 | `Path` | import | `pathlib` |
-| `STATE_DB_SIZE_WARN_BYTES` | moved-lazy | `hermes_cli.doctor_state` |
-| `agent_browser_runnable` | moved-lazy | `hermes_constants` |
+| `STATE_DB_SIZE_WARN_BYTES` | moved-lazy | `iris_cli.doctor_state` |
+| `agent_browser_runnable` | moved-lazy | `iris_constants` |
 | `base_url_host_matches` | moved-lazy | `utils` |
-| `check_certificates` | moved-lazy | `hermes_cli.doctor_platform` |
+| `check_certificates` | moved-lazy | `iris_cli.doctor_platform` |
 | `check_fail` | restored-def | `(deleted; BASE body restored)` |
-| `check_macos_full_disk_access` | moved-lazy | `hermes_cli.doctor_platform` |
-| `check_macos_tcc_anchor` | moved-lazy | `hermes_cli.doctor_platform` |
-| `check_macos_tcc_grants` | moved-lazy | `hermes_cli.doctor_platform` |
+| `check_macos_full_disk_access` | moved-lazy | `iris_cli.doctor_platform` |
+| `check_macos_tcc_anchor` | moved-lazy | `iris_cli.doctor_platform` |
+| `check_macos_tcc_grants` | moved-lazy | `iris_cli.doctor_platform` |
 | `check_ok` | restored-def | `(deleted; BASE body restored)` |
 | `check_warn` | restored-def | `(deleted; BASE body restored)` |
-| `collect_deprecated_config_keys` | moved-lazy | `hermes_cli.doctor_config` |
-| `collect_deprecated_env_vars` | moved-lazy | `hermes_cli.doctor_config` |
-| `collect_relay_plugin_cutover_findings` | moved-lazy | `hermes_cli.doctor_config` |
-| `describe_vercel_auth` | moved-lazy | `hermes_cli.vercel_auth` |
-| `detect_install_method` | moved-lazy | `hermes_cli.config` |
+| `collect_deprecated_config_keys` | moved-lazy | `iris_cli.doctor_config` |
+| `collect_deprecated_env_vars` | moved-lazy | `iris_cli.doctor_config` |
+| `collect_relay_plugin_cutover_findings` | moved-lazy | `iris_cli.doctor_config` |
+| `describe_vercel_auth` | moved-lazy | `iris_cli.vercel_auth` |
+| `detect_install_method` | moved-lazy | `iris_cli.config` |
 | `importlib` | import | `importlib.util` |
-| `is_nix_install_method` | moved-lazy | `hermes_cli.config` |
-| `managed_scope_check` | moved-lazy | `hermes_cli.doctor_config` |
-| `recommended_update_command_for_method` | moved-lazy | `hermes_cli.config` |
-| `report_deprecated_config_and_env` | moved-lazy | `hermes_cli.doctor_config` |
+| `is_nix_install_method` | moved-lazy | `iris_cli.config` |
+| `managed_scope_check` | moved-lazy | `iris_cli.doctor_config` |
+| `recommended_update_command_for_method` | moved-lazy | `iris_cli.config` |
+| `report_deprecated_config_and_env` | moved-lazy | `iris_cli.doctor_config` |
 | `shutil` | import | `shutil` |
 | `subprocess` | import | `subprocess` |
 
-### `hermes_cli.doctor_live`
+### `iris_cli.doctor_live`
 
 | name | kind | new location |
 |---|---|---|
@@ -1256,139 +1256,139 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `GROQ_MODELS_URL` | restored-def | `(deleted; BASE body restored)` |
 | `OPENAI_MODELS_URL` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.focus_view`
+### `iris_cli.focus_view`
 
 | name | kind | new location |
 |---|---|---|
 | `FOCUS_USAGE` | restored-def | `(deleted; BASE body restored)` |
 | `effective_tool_progress_mode` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.foreign_sessions`
+### `iris_cli.foreign_sessions`
 
 | name | kind | new location |
 |---|---|---|
 | `list_claude_sessions` | restored-def | `(deleted; BASE body restored)` |
 | `list_codex_sessions` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.gateway`
+### `iris_cli.gateway`
 
 | name | kind | new location |
 |---|---|---|
 | `DEFAULT_GATEWAY_RESTART_AFTER_TURN_TIMEOUT` | moved-lazy | `gateway.restart` |
 | `print_systemd_linger_guidance` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.gitlock`
+### `iris_cli.gitlock`
 
 | name | kind | new location |
 |---|---|---|
 | `is_ancestor_of_head` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.heartbeat`
+### `iris_cli.heartbeat`
 
 | name | kind | new location |
 |---|---|---|
 | `Dict` | import | `typing` |
 
-### `hermes_cli.journey`
+### `iris_cli.journey`
 
 | name | kind | new location |
 |---|---|---|
 | `cmd_journey` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.kanban`
+### `iris_cli.kanban`
 
 | name | kind | new location |
 |---|---|---|
 | `Any` | import | `typing` |
 
-### `hermes_cli.kanban_db`
+### `iris_cli.kanban_db`
 
 | name | kind | new location |
 |---|---|---|
-| `DEFAULT_BUSY_TIMEOUT_MS` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `DEFAULT_LOG_BACKUP_COUNT` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `DEFAULT_LOG_ROTATE_BYTES` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
+| `DEFAULT_BUSY_TIMEOUT_MS` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `DEFAULT_LOG_BACKUP_COUNT` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `DEFAULT_LOG_ROTATE_BYTES` | moved-lazy | `iris_cli.kanban_db_dispatch` |
 | `DEFAULT_SPAWN_FAILURE_LIMIT` | restored-def | `(deleted; BASE body restored)` |
-| `DERIVED_MAX_IN_PROGRESS_CEILING` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `DERIVED_MAX_IN_PROGRESS_FLOOR` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `KANBAN_TERMINAL_TIMEOUT_GRACE_SECONDS` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `KanbanDbCorruptError` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `MEMORY_GUARD_MB_PER_WORKER` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
+| `DERIVED_MAX_IN_PROGRESS_CEILING` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `DERIVED_MAX_IN_PROGRESS_FLOOR` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `KANBAN_TERMINAL_TIMEOUT_GRACE_SECONDS` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `KanbanDbCorruptError` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `MEMORY_GUARD_MB_PER_WORKER` | moved-lazy | `iris_cli.kanban_db_dispatch` |
 | `Mapping` | import | `typing` |
-| `RepairResult` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `add_notify_sub` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `advance_notify_cursor` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `check_respawn_guard` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `claim_unseen_events_for_sub` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `configured_max_in_progress` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `connect` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `connect_closing` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `count_notify_subs` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `count_running_tasks` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `count_running_tasks_other_boards` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `derive_default_max_in_progress` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `detect_crashed_workers` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `detect_stale_running` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `dispatch_once` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `enforce_max_runtime` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
+| `RepairResult` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `add_notify_sub` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `advance_notify_cursor` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `check_respawn_guard` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `claim_unseen_events_for_sub` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `configured_max_in_progress` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `connect` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `connect_closing` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `count_notify_subs` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `count_running_tasks` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `count_running_tasks_other_boards` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `derive_default_max_in_progress` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `detect_crashed_workers` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `detect_stale_running` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `dispatch_once` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `enforce_max_runtime` | moved-lazy | `iris_cli.kanban_db_dispatch` |
 | `field` | import | `dataclasses` |
-| `has_spawnable_ready` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `has_spawnable_review` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
+| `has_spawnable_ready` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `has_spawnable_review` | moved-lazy | `iris_cli.kanban_db_dispatch` |
 | `hashlib` | import | `hashlib` |
-| `heartbeat_worker` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `list_notify_subs` | moved-lazy | `hermes_cli.kanban_db_notify` |
+| `heartbeat_worker` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `list_notify_subs` | moved-lazy | `iris_cli.kanban_db_notify` |
 | `parent_results` | restored-def | `(deleted; BASE body restored)` |
-| `purge_stale_done_notify_subs` | moved-lazy | `hermes_cli.kanban_db_notify` |
+| `purge_stale_done_notify_subs` | moved-lazy | `iris_cli.kanban_db_notify` |
 | `random` | import | `random` |
-| `reap_worker_zombies` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `reconcile_orphaned_running` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `remove_notify_sub` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `repair_db` | moved-lazy | `hermes_cli.kanban_db_connect` |
-| `resolve_max_in_progress` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `resolve_workspace` | moved-lazy | `hermes_cli.kanban_db_workspace` |
-| `review_dispatch_enabled` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `rewind_notify_cursor` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `run_daemon` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
-| `set_branch_name` | moved-lazy | `hermes_cli.kanban_db_workspace` |
-| `set_workspace_path` | moved-lazy | `hermes_cli.kanban_db_workspace` |
+| `reap_worker_zombies` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `reconcile_orphaned_running` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `remove_notify_sub` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `repair_db` | moved-lazy | `iris_cli.kanban_db_connect` |
+| `resolve_max_in_progress` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `resolve_workspace` | moved-lazy | `iris_cli.kanban_db_workspace` |
+| `review_dispatch_enabled` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `rewind_notify_cursor` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `run_daemon` | moved-lazy | `iris_cli.kanban_db_dispatch` |
+| `set_branch_name` | moved-lazy | `iris_cli.kanban_db_workspace` |
+| `set_workspace_path` | moved-lazy | `iris_cli.kanban_db_workspace` |
 | `shutil` | import | `shutil` |
 | `threading` | import | `threading` |
-| `unseen_events_for_sub` | moved-lazy | `hermes_cli.kanban_db_notify` |
-| `worker_log_rotation_config` | moved-lazy | `hermes_cli.kanban_db_dispatch` |
+| `unseen_events_for_sub` | moved-lazy | `iris_cli.kanban_db_notify` |
+| `worker_log_rotation_config` | moved-lazy | `iris_cli.kanban_db_dispatch` |
 
-### `hermes_cli.kanban_decompose`
+### `iris_cli.kanban_decompose`
 
 | name | kind | new location |
 |---|---|---|
 | `json` | import | `json` |
 | `os` | import | `os` |
 
-### `hermes_cli.kanban_diagnostics`
+### `iris_cli.kanban_diagnostics`
 
 | name | kind | new location |
 |---|---|---|
 | `DIAGNOSTIC_KINDS` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.local_runtime.binaries`
+### `iris_cli.local_runtime.binaries`
 
 | name | kind | new location |
 |---|---|---|
-| `get_hermes_home` | moved-lazy | `hermes_constants` |
+| `get_iris_home` | moved-lazy | `iris_constants` |
 
-### `hermes_cli.local_runtime.bootstrap`
+### `iris_cli.local_runtime.bootstrap`
 
 | name | kind | new location |
 |---|---|---|
-| `get_hermes_home` | moved-lazy | `hermes_constants` |
+| `get_iris_home` | moved-lazy | `iris_constants` |
 
-### `hermes_cli.local_runtime.capabilities`
+### `iris_cli.local_runtime.capabilities`
 
 | name | kind | new location |
 |---|---|---|
 | `json` | import | `json` |
 | `urllib` | import | `urllib.request` |
 
-### `hermes_cli.local_runtime.catalog`
+### `iris_cli.local_runtime.catalog`
 
 | name | kind | new location |
 |---|---|---|
@@ -1396,35 +1396,35 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `re` | import | `re` |
 | `recommended_id` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.local_runtime.hf_browse`
+### `iris_cli.local_runtime.hf_browse`
 
 | name | kind | new location |
 |---|---|---|
 | `field` | import | `dataclasses` |
 
-### `hermes_cli.main`
+### `iris_cli.main`
 
 | name | kind | new location |
 |---|---|---|
 | `hashlib` | import | `hashlib` |
-| `line_input` | moved-lazy | `hermes_cli.cli_output` |
+| `line_input` | moved-lazy | `iris_cli.cli_output` |
 | `shlex` | import | `shlex` |
 | `stat` | import | `stat` |
 | `tempfile` | import | `tempfile` |
 
-### `hermes_cli.mcp_picker`
+### `iris_cli.mcp_picker`
 
 | name | kind | new location |
 |---|---|---|
-| `color` | moved-lazy | `hermes_cli.colors` |
+| `color` | moved-lazy | `iris_cli.colors` |
 
-### `hermes_cli.mcp_security`
+### `iris_cli.mcp_security`
 
 | name | kind | new location |
 |---|---|---|
 | `is_mcp_server_entry_suspicious` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.middleware`
+### `iris_cli.middleware`
 
 | name | kind | new location |
 |---|---|---|
@@ -1433,7 +1433,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `apply_api_request_middleware` | restored-def | `(deleted; BASE body restored)` |
 | `run_api_execution_middleware` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.moa_config`
+### `iris_cli.moa_config`
 
 | name | kind | new location |
 |---|---|---|
@@ -1443,229 +1443,229 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `list_moa_presets` | restored-def | `(deleted; BASE body restored)` |
 | `set_active_moa_preset` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.model_setup_flows`
+### `iris_cli.model_setup_flows`
 
 | name | kind | new location |
 |---|---|---|
-| `BEDROCK_GEO_PREFIXES` | moved-lazy | `hermes_cli.model_setup_flows_bedrock` |
-| `bedrock_model_routable_from_region` | moved-lazy | `hermes_cli.model_setup_flows_bedrock` |
-| `bedrock_region_geo_prefix` | moved-lazy | `hermes_cli.model_setup_flows_bedrock` |
-| `custom_provider_slug` | moved-lazy | `hermes_cli.providers` |
-| `line_input` | moved-lazy | `hermes_cli.cli_output` |
+| `BEDROCK_GEO_PREFIXES` | moved-lazy | `iris_cli.model_setup_flows_bedrock` |
+| `bedrock_model_routable_from_region` | moved-lazy | `iris_cli.model_setup_flows_bedrock` |
+| `bedrock_region_geo_prefix` | moved-lazy | `iris_cli.model_setup_flows_bedrock` |
+| `custom_provider_slug` | moved-lazy | `iris_cli.providers` |
+| `line_input` | moved-lazy | `iris_cli.cli_output` |
 | `subprocess` | import | `subprocess` |
 | `urllib` | import | `urllib.parse` |
 
-### `hermes_cli.model_switch`
+### `iris_cli.model_switch`
 
 | name | kind | new location |
 |---|---|---|
 | `List` | import | `typing` |
 | `base_url_host_matches` | moved-lazy | `utils` |
-| `custom_provider_slug` | moved-lazy | `hermes_cli.providers` |
+| `custom_provider_slug` | moved-lazy | `iris_cli.providers` |
 | `http` | import | `http.client` |
-| `list_picker_providers` | moved-lazy | `hermes_cli.model_switch_providers` |
-| `prewarm_picker_cache_async` | moved-lazy | `hermes_cli.model_switch_providers` |
+| `list_picker_providers` | moved-lazy | `iris_cli.model_switch_providers` |
+| `prewarm_picker_cache_async` | moved-lazy | `iris_cli.model_switch_providers` |
 | `time` | import | `time` |
 
-### `hermes_cli.models`
+### `iris_cli.models`
 
 | name | kind | new location |
 |---|---|---|
-| `LMStudioLoadResult` | moved-lazy | `hermes_cli.models_local` |
+| `LMStudioLoadResult` | moved-lazy | `iris_cli.models_local` |
 | `NamedTuple` | import | `typing` |
-| `PROVIDER_GROUPS` | moved-lazy | `hermes_cli.models_catalog_static` |
-| `ProviderEntry` | moved-lazy | `hermes_cli.models_catalog_static` |
+| `PROVIDER_GROUPS` | moved-lazy | `iris_cli.models_catalog_static` |
+| `ProviderEntry` | moved-lazy | `iris_cli.models_catalog_static` |
 | `atomic_json_write` | moved-lazy | `utils` |
 | `base_url_host_matches` | moved-lazy | `utils` |
-| `compute_sale_discount` | moved-lazy | `hermes_cli.models_pricing` |
-| `ensure_lmstudio_model_loaded` | moved-lazy | `hermes_cli.models_local` |
-| `fetch_ai_gateway_pricing` | moved-lazy | `hermes_cli.models_pricing` |
-| `fetch_lmstudio_models` | moved-lazy | `hermes_cli.models_local` |
-| `fetch_models_with_pricing` | moved-lazy | `hermes_cli.models_pricing` |
-| `fetch_ollama_local_models` | moved-lazy | `hermes_cli.models_local` |
-| `get_cached_nous_inference_base_url` | moved-lazy | `hermes_cli.models_pricing` |
+| `compute_sale_discount` | moved-lazy | `iris_cli.models_pricing` |
+| `ensure_lmstudio_model_loaded` | moved-lazy | `iris_cli.models_local` |
+| `fetch_ai_gateway_pricing` | moved-lazy | `iris_cli.models_pricing` |
+| `fetch_lmstudio_models` | moved-lazy | `iris_cli.models_local` |
+| `fetch_models_with_pricing` | moved-lazy | `iris_cli.models_pricing` |
+| `fetch_ollama_local_models` | moved-lazy | `iris_cli.models_local` |
+| `get_cached_nous_inference_base_url` | moved-lazy | `iris_cli.models_pricing` |
 | `get_close_matches` | import | `difflib` |
-| `get_pricing_for_provider` | moved-lazy | `hermes_cli.models_pricing` |
-| `group_providers` | moved-lazy | `hermes_cli.models_catalog_static` |
+| `get_pricing_for_provider` | moved-lazy | `iris_cli.models_pricing` |
+| `group_providers` | moved-lazy | `iris_cli.models_catalog_static` |
 | `http` | import | `http.client` |
 | `is_nous_free_tier` | restored-def | `(deleted; BASE body restored)` |
-| `lmstudio_model_reasoning_options` | moved-lazy | `hermes_cli.models_local` |
-| `nous_catalog_url` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `nous_model_reasoning_capabilities` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `nous_policy_allowed_ids` | moved-lazy | `hermes_cli.models_pricing` |
-| `ollama_model_supports_thinking` | moved-lazy | `hermes_cli.models_local` |
-| `openrouter_model_reasoning_capabilities` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `parse_openrouter_reasoning_capabilities` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `peek_cached_pricing` | moved-lazy | `hermes_cli.models_pricing` |
-| `pricing_cache_scope` | moved-lazy | `hermes_cli.models_pricing` |
-| `probe_lmstudio_models` | moved-lazy | `hermes_cli.models_local` |
-| `probe_ollama_local_models` | moved-lazy | `hermes_cli.models_local` |
-| `provider_group_for_slug` | moved-lazy | `hermes_cli.models_catalog_static` |
-| `refresh_reasoning_caps_async` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `restrict_to_nous_policy` | moved-lazy | `hermes_cli.models_pricing` |
-| `should_use_ollama_native_catalog` | moved-lazy | `hermes_cli.models_local` |
-| `url_origin` | moved-lazy | `hermes_cli.urllib_security` |
-| `validate_requested_model` | moved-lazy | `hermes_cli.models_validate` |
-| `warm_nous_reasoning_caps_async` | moved-lazy | `hermes_cli.models_reasoning_caps` |
-| `warm_openrouter_reasoning_caps_async` | moved-lazy | `hermes_cli.models_reasoning_caps` |
+| `lmstudio_model_reasoning_options` | moved-lazy | `iris_cli.models_local` |
+| `nous_catalog_url` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `nous_model_reasoning_capabilities` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `nous_policy_allowed_ids` | moved-lazy | `iris_cli.models_pricing` |
+| `ollama_model_supports_thinking` | moved-lazy | `iris_cli.models_local` |
+| `openrouter_model_reasoning_capabilities` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `parse_openrouter_reasoning_capabilities` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `peek_cached_pricing` | moved-lazy | `iris_cli.models_pricing` |
+| `pricing_cache_scope` | moved-lazy | `iris_cli.models_pricing` |
+| `probe_lmstudio_models` | moved-lazy | `iris_cli.models_local` |
+| `probe_ollama_local_models` | moved-lazy | `iris_cli.models_local` |
+| `provider_group_for_slug` | moved-lazy | `iris_cli.models_catalog_static` |
+| `refresh_reasoning_caps_async` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `restrict_to_nous_policy` | moved-lazy | `iris_cli.models_pricing` |
+| `should_use_ollama_native_catalog` | moved-lazy | `iris_cli.models_local` |
+| `url_origin` | moved-lazy | `iris_cli.urllib_security` |
+| `validate_requested_model` | moved-lazy | `iris_cli.models_validate` |
+| `warm_nous_reasoning_caps_async` | moved-lazy | `iris_cli.models_reasoning_caps` |
+| `warm_openrouter_reasoning_caps_async` | moved-lazy | `iris_cli.models_reasoning_caps` |
 
-### `hermes_cli.nous_billing`
+### `iris_cli.nous_billing`
 
 | name | kind | new location |
 |---|---|---|
 | `BILLING_MANAGE_SCOPE` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.nous_subscription`
+### `iris_cli.nous_subscription`
 
 | name | kind | new location |
 |---|---|---|
 | `managed_nous_tools_enabled` | moved-lazy | `tools.tool_backend_helpers` |
 
-### `hermes_cli.observability.relay_runtime`
+### `iris_cli.observability.relay_runtime`
 
 | name | kind | new location |
 |---|---|---|
 | `*` | module-stub | `agent.relay_runtime` |
 
-### `hermes_cli.observability.relay_shared_metrics`
+### `iris_cli.observability.relay_shared_metrics`
 
 | name | kind | new location |
 |---|---|---|
-| `CLIENT_ACTIVE_MARK` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `MODEL_CALL_PROFILE_MODEL` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `SCHEMA_KEY` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `SCHEMA_VERSION` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `SKILL_LIFECYCLE_MARK` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `SKILL_LOAD_MARK` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `TOOL_APPROVAL_MARK` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `TOOL_CALL_SCOPE` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `model_call_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
+| `CLIENT_ACTIVE_MARK` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `MODEL_CALL_PROFILE_MODEL` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `SCHEMA_KEY` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `SCHEMA_VERSION` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `SKILL_LIFECYCLE_MARK` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `SKILL_LOAD_MARK` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `TOOL_APPROVAL_MARK` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `TOOL_CALL_SCOPE` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `model_call_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
 | `prepare_session_start` | restored-def | `(deleted; BASE body restored)` |
-| `skill_lifecycle_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `skill_load_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `task_start_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `task_terminal_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `task_terminal_state` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `tool_approval_outcome` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `tool_category` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
-| `tool_terminal_fields` | moved-lazy | `hermes_cli.observability.shared_metrics_contract` |
+| `skill_lifecycle_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `skill_load_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `task_start_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `task_terminal_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `task_terminal_state` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `tool_approval_outcome` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `tool_category` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
+| `tool_terminal_fields` | moved-lazy | `iris_cli.observability.shared_metrics_contract` |
 
-### `hermes_cli.onepassword_secrets_cli`
+### `iris_cli.onepassword_secrets_cli`
 
 | name | kind | new location |
 |---|---|---|
 | `Table` | import | `rich.table` |
-| `masked_secret_prompt` | moved-lazy | `hermes_cli.secret_prompt` |
+| `masked_secret_prompt` | moved-lazy | `iris_cli.secret_prompt` |
 | `sys` | import | `sys` |
 
-### `hermes_cli.platform_actions`
+### `iris_cli.platform_actions`
 
 | name | kind | new location |
 |---|---|---|
 | `Optional` | import | `typing` |
 
-### `hermes_cli.plugins`
+### `iris_cli.plugins`
 
 | name | kind | new location |
 |---|---|---|
-| `CAPABILITY_REGISTRY` | moved-lazy | `hermes_cli.plugin_capabilities` |
-| `ENTRY_POINT_CAPABILITIES_GROUP` | moved-lazy | `hermes_cli.plugins_discovery` |
+| `CAPABILITY_REGISTRY` | moved-lazy | `iris_cli.plugin_capabilities` |
+| `ENTRY_POINT_CAPABILITIES_GROUP` | moved-lazy | `iris_cli.plugins_discovery` |
 | `Iterable` | import | `typing` |
-| `LEGACY_RELAY_PLUGIN_KEYS` | moved-lazy | `hermes_cli.relay_plugin_cutover` |
-| `MAX_SYSTEM_PROMPT_SECTIONS` | moved-lazy | `hermes_cli.plugins_dispatch` |
-| `OBSERVER_SCHEMA_VERSION` | moved-lazy | `hermes_cli.middleware` |
+| `LEGACY_RELAY_PLUGIN_KEYS` | moved-lazy | `iris_cli.relay_plugin_cutover` |
+| `MAX_SYSTEM_PROMPT_SECTIONS` | moved-lazy | `iris_cli.plugins_dispatch` |
+| `OBSERVER_SCHEMA_VERSION` | moved-lazy | `iris_cli.middleware` |
 | `Type` | import | `typing` |
-| `VALID_CAPABILITY_IDS` | moved-lazy | `hermes_cli.plugin_capabilities` |
-| `cfg_get` | moved-lazy | `hermes_cli.config` |
+| `VALID_CAPABILITY_IDS` | moved-lazy | `iris_cli.plugin_capabilities` |
+| `cfg_get` | moved-lazy | `iris_cli.config` |
 | `contextmanager` | import | `contextlib` |
 | `contextvars` | import | `contextvars` |
 | `copy` | import | `copy` |
 | `fast_safe_load` | moved-lazy | `utils` |
-| `format_system_prompt_section` | moved-lazy | `hermes_cli.plugins_dispatch` |
+| `format_system_prompt_section` | moved-lazy | `iris_cli.plugins_dispatch` |
 | `get_plugin_subscriptions` | restored-def | `(deleted; BASE body restored)` |
 | `hashlib` | import | `hashlib` |
-| `reset_hermes_home_override` | moved-lazy | `hermes_constants` |
-| `set_hermes_home_override` | moved-lazy | `hermes_constants` |
+| `reset_iris_home_override` | moved-lazy | `iris_constants` |
+| `set_iris_home_override` | moved-lazy | `iris_constants` |
 | `time` | import | `time` |
 | `unload_plugins` | restored-def | `(deleted; BASE body restored)` |
 | `wraps` | import | `functools` |
 | `yaml` | unrestorable | `no top-level definition on BASE` |
 
-### `hermes_cli.plugins_cmd`
+### `iris_cli.plugins_cmd`
 
 | name | kind | new location |
 |---|---|---|
 | `importlib` | import | `importlib.metadata` |
 
-### `hermes_cli.profile_describer`
+### `iris_cli.profile_describer`
 
 | name | kind | new location |
 |---|---|---|
 | `json` | import | `json` |
 
-### `hermes_cli.profile_distribution`
+### `iris_cli.profile_distribution`
 
 | name | kind | new location |
 |---|---|---|
 | `is_excluded_skill_path` | moved-lazy | `agent.skill_utils` |
 
-### `hermes_cli.profiles`
+### `iris_cli.profiles`
 
 | name | kind | new location |
 |---|---|---|
 | `has_bundled_skills_opt_out` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.runtime_provider`
+### `iris_cli.runtime_provider`
 
 | name | kind | new location |
 |---|---|---|
-| `custom_provider_aliases` | moved-lazy | `hermes_cli.providers` |
-| `custom_provider_slug` | moved-lazy | `hermes_cli.providers` |
+| `custom_provider_aliases` | moved-lazy | `iris_cli.providers` |
+| `custom_provider_slug` | moved-lazy | `iris_cli.providers` |
 | `os` | import | `os` |
 
-### `hermes_cli.security_advisories`
+### `iris_cli.security_advisories`
 
 | name | kind | new location |
 |---|---|---|
 | `render_doctor_section` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.setup`
+### `iris_cli.setup`
 
 | name | kind | new location |
 |---|---|---|
 | `Any` | import | `typing` |
 | `Dict` | import | `typing` |
 | `Optional` | import | `typing` |
-| `get_nous_subscription_features` | moved-lazy | `hermes_cli.nous_subscription` |
-| `get_optional_skills_dir` | moved-lazy | `hermes_constants` |
+| `get_nous_subscription_features` | moved-lazy | `iris_cli.nous_subscription` |
+| `get_optional_skills_dir` | moved-lazy | `iris_constants` |
 | `json` | import | `json` |
 | `managed_nous_tools_enabled` | moved-lazy | `tools.tool_backend_helpers` |
 | `shutil` | import | `shutil` |
 
-### `hermes_cli.slack_cli`
+### `iris_cli.slack_cli`
 
 | name | kind | new location |
 |---|---|---|
 | `os` | import | `os` |
 
-### `hermes_cli.sqlite_safe_read`
+### `iris_cli.sqlite_safe_read`
 
 | name | kind | new location |
 |---|---|---|
 | `SQLITE_HEADER_MAGIC` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.status`
+### `iris_cli.status`
 
 | name | kind | new location |
 |---|---|---|
-| `format_nous_portal_entitlement_message` | moved-lazy | `hermes_cli.nous_account` |
-| `get_nous_portal_account_info` | moved-lazy | `hermes_cli.nous_account` |
-| `get_nous_subscription_features` | moved-lazy | `hermes_cli.nous_subscription` |
+| `format_nous_portal_entitlement_message` | moved-lazy | `iris_cli.nous_account` |
+| `get_nous_portal_account_info` | moved-lazy | `iris_cli.nous_account` |
+| `get_nous_subscription_features` | moved-lazy | `iris_cli.nous_subscription` |
 | `managed_nous_tools_enabled` | moved-lazy | `tools.tool_backend_helpers` |
-| `redact_key` | moved-lazy | `hermes_cli.config` |
+| `redact_key` | moved-lazy | `iris_cli.config` |
 | `subprocess` | import | `subprocess` |
 
-### `hermes_cli.telegram_managed_bot`
+### `iris_cli.telegram_managed_bot`
 
 | name | kind | new location |
 |---|---|---|
@@ -1684,28 +1684,28 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `urllib` | restored-import | `urllib.parse` |
 | `urllib` | import | `urllib.parse` |
 
-### `hermes_cli.tools_config`
+### `iris_cli.tools_config`
 
 | name | kind | new location |
 |---|---|---|
-| `MANAGED_FEATURE_COVERAGE_CATEGORY` | moved-lazy | `hermes_cli.nous_subscription` |
+| `MANAGED_FEATURE_COVERAGE_CATEGORY` | moved-lazy | `iris_cli.nous_subscription` |
 | `NOUS_MANAGED_PROVIDER` | moved-lazy | `tools.tool_backend_helpers` |
 | `base_url_hostname` | moved-lazy | `utils` |
 | `fal_key_is_configured` | moved-lazy | `tools.tool_backend_helpers` |
-| `format_nous_portal_entitlement_message` | moved-lazy | `hermes_cli.nous_account` |
+| `format_nous_portal_entitlement_message` | moved-lazy | `iris_cli.nous_account` |
 | `is_truthy_value` | moved-lazy | `utils` |
-| `save_env_value` | moved-lazy | `hermes_cli.config` |
+| `save_env_value` | moved-lazy | `iris_cli.config` |
 | `shutil` | import | `shutil` |
 | `subprocess` | import | `subprocess` |
 | `sys` | import | `sys` |
 
-### `hermes_cli.uninstall`
+### `iris_cli.uninstall`
 
 | name | kind | new location |
 |---|---|---|
 | `find_shell_configs` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.update_cmd`
+### `iris_cli.update_cmd`
 
 | name | kind | new location |
 |---|---|---|
@@ -1714,14 +1714,14 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `hashlib` | import | `hashlib` |
 | `json` | import | `json` |
 
-### `hermes_cli.update_inventory`
+### `iris_cli.update_inventory`
 
 | name | kind | new location |
 |---|---|---|
 | `Path` | import | `pathlib` |
 | `os` | import | `os` |
 
-### `hermes_cli.web_deps`
+### `iris_cli.web_deps`
 
 | name | kind | new location |
 |---|---|---|
@@ -1730,19 +1730,19 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `has_valid_session_token` | restored-def | `(deleted; BASE body restored)` |
 | `late_attr` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_cli.web_routers.cron`
+### `iris_cli.web_routers.cron`
 
 | name | kind | new location |
 |---|---|---|
 | `logging` | import | `logging` |
 
-### `hermes_cli.web_routers.mcp`
+### `iris_cli.web_routers.mcp`
 
 | name | kind | new location |
 |---|---|---|
 | `logging` | import | `logging` |
 
-### `hermes_cli.web_routers.sessions`
+### `iris_cli.web_routers.sessions`
 
 | name | kind | new location |
 |---|---|---|
@@ -1750,426 +1750,426 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `Dict` | import | `typing` |
 | `logging` | import | `logging` |
 
-### `hermes_cli.web_routers.skills`
+### `iris_cli.web_routers.skills`
 
 | name | kind | new location |
 |---|---|---|
-| `LateState` | moved-lazy | `hermes_cli.web_deps` |
+| `LateState` | moved-lazy | `iris_cli.web_deps` |
 | `logging` | import | `logging` |
 
-### `hermes_cli.web_routers.tools`
+### `iris_cli.web_routers.tools`
 
 | name | kind | new location |
 |---|---|---|
-| `LateState` | moved-lazy | `hermes_cli.web_deps` |
+| `LateState` | moved-lazy | `iris_cli.web_deps` |
 | `logging` | import | `logging` |
 
-### `hermes_cli.web_server`
+### `iris_cli.web_server`
 
 | name | kind | new location |
 |---|---|---|
-| `AudioTranscriptionRequest` | moved-lazy | `hermes_cli.web_models` |
-| `AutomationBlueprintInstantiate` | moved-lazy | `hermes_cli.web_models` |
-| `BackupRequest` | moved-lazy | `hermes_cli.web_models` |
+| `AudioTranscriptionRequest` | moved-lazy | `iris_cli.web_models` |
+| `AutomationBlueprintInstantiate` | moved-lazy | `iris_cli.web_models` |
+| `BackupRequest` | moved-lazy | `iris_cli.web_models` |
 | `BaseModel` | unrestorable | `no top-level definition on BASE` |
-| `BulkDeleteSessions` | moved-lazy | `hermes_cli.web_models` |
-| `CONFIG_SCHEMA` | moved-lazy | `hermes_cli.web_server_config` |
-| `ChatImageUpload` | moved-lazy | `hermes_cli.web_models` |
-| `ConfigUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `CredentialPoolAdd` | moved-lazy | `hermes_cli.web_models` |
-| `CronJobCreate` | moved-lazy | `hermes_cli.web_models` |
-| `CronJobUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `CuratorPause` | moved-lazy | `hermes_cli.web_models` |
-| `CustomEndpointUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `DEFAULT_CONFIG` | moved-lazy | `hermes_cli.config` |
-| `DebugShareRequest` | moved-lazy | `hermes_cli.web_models` |
-| `EnvVarDelete` | moved-lazy | `hermes_cli.web_models` |
-| `EnvVarReveal` | moved-lazy | `hermes_cli.web_models` |
-| `EnvVarUpdate` | moved-lazy | `hermes_cli.web_models` |
+| `BulkDeleteSessions` | moved-lazy | `iris_cli.web_models` |
+| `CONFIG_SCHEMA` | moved-lazy | `iris_cli.web_server_config` |
+| `ChatImageUpload` | moved-lazy | `iris_cli.web_models` |
+| `ConfigUpdate` | moved-lazy | `iris_cli.web_models` |
+| `CredentialPoolAdd` | moved-lazy | `iris_cli.web_models` |
+| `CronJobCreate` | moved-lazy | `iris_cli.web_models` |
+| `CronJobUpdate` | moved-lazy | `iris_cli.web_models` |
+| `CuratorPause` | moved-lazy | `iris_cli.web_models` |
+| `CustomEndpointUpdate` | moved-lazy | `iris_cli.web_models` |
+| `DEFAULT_CONFIG` | moved-lazy | `iris_cli.config` |
+| `DebugShareRequest` | moved-lazy | `iris_cli.web_models` |
+| `EnvVarDelete` | moved-lazy | `iris_cli.web_models` |
+| `EnvVarReveal` | moved-lazy | `iris_cli.web_models` |
+| `EnvVarUpdate` | moved-lazy | `iris_cli.web_models` |
 | `File` | unrestorable | `no top-level definition on BASE` |
 | `FileResponse` | unrestorable | `no top-level definition on BASE` |
-| `FontSetBody` | moved-lazy | `hermes_cli.web_models` |
+| `FontSetBody` | moved-lazy | `iris_cli.web_models` |
 | `Form` | unrestorable | `no top-level definition on BASE` |
-| `FsWriteText` | moved-lazy | `hermes_cli.web_models` |
-| `GitBranchSwitchBody` | moved-lazy | `hermes_cli.web_models` |
-| `GitCommitBody` | moved-lazy | `hermes_cli.web_models` |
-| `GitFileBody` | moved-lazy | `hermes_cli.web_models` |
-| `GitPathBody` | moved-lazy | `hermes_cli.web_models` |
-| `GitWorktreeAddBody` | moved-lazy | `hermes_cli.web_models` |
-| `GitWorktreeRemoveBody` | moved-lazy | `hermes_cli.web_models` |
+| `FsWriteText` | moved-lazy | `iris_cli.web_models` |
+| `GitBranchSwitchBody` | moved-lazy | `iris_cli.web_models` |
+| `GitCommitBody` | moved-lazy | `iris_cli.web_models` |
+| `GitFileBody` | moved-lazy | `iris_cli.web_models` |
+| `GitPathBody` | moved-lazy | `iris_cli.web_models` |
+| `GitWorktreeAddBody` | moved-lazy | `iris_cli.web_models` |
+| `GitWorktreeRemoveBody` | moved-lazy | `iris_cli.web_models` |
 | `HTMLResponse` | unrestorable | `no top-level definition on BASE` |
-| `HookCreate` | moved-lazy | `hermes_cli.web_models` |
-| `HookDelete` | moved-lazy | `hermes_cli.web_models` |
-| `ImportRequest` | moved-lazy | `hermes_cli.web_models` |
-| `LearningNodeEdit` | moved-lazy | `hermes_cli.web_models` |
-| `LearningNodeRef` | moved-lazy | `hermes_cli.web_models` |
+| `HookCreate` | moved-lazy | `iris_cli.web_models` |
+| `HookDelete` | moved-lazy | `iris_cli.web_models` |
+| `ImportRequest` | moved-lazy | `iris_cli.web_models` |
+| `LearningNodeEdit` | moved-lazy | `iris_cli.web_models` |
+| `LearningNodeRef` | moved-lazy | `iris_cli.web_models` |
 | `List` | import | `typing` |
 | `Literal` | import | `typing` |
-| `MCPCatalogInstall` | moved-lazy | `hermes_cli.web_models` |
-| `MCPEnabledToggle` | moved-lazy | `hermes_cli.web_models` |
-| `MCPServerCreate` | moved-lazy | `hermes_cli.web_models` |
-| `MCPServersReplace` | moved-lazy | `hermes_cli.web_models` |
-| `ManagedDirectoryCreate` | moved-lazy | `hermes_cli.web_models` |
-| `ManagedFileDelete` | moved-lazy | `hermes_cli.web_models` |
-| `ManagedFileUpload` | moved-lazy | `hermes_cli.web_models` |
-| `ManagedFilesPolicy` | moved-lazy | `hermes_cli.web_server_files` |
-| `MemoryProviderConfigUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `MemoryProviderSelect` | moved-lazy | `hermes_cli.web_models` |
-| `MemoryProviderSetupRequest` | moved-lazy | `hermes_cli.web_models` |
-| `MemoryReset` | moved-lazy | `hermes_cli.web_models` |
-| `MessagingPlatformUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `MoaConfigPayload` | moved-lazy | `hermes_cli.web_models` |
-| `MoaModelSlot` | moved-lazy | `hermes_cli.web_models` |
-| `MoaPresetPayload` | moved-lazy | `hermes_cli.web_models` |
-| `ModelAssignment` | moved-lazy | `hermes_cli.web_models` |
-| `OAuthSubmitBody` | moved-lazy | `hermes_cli.web_models` |
-| `OPTIONAL_ENV_VARS` | moved-lazy | `hermes_cli.config` |
-| `PairingApprove` | moved-lazy | `hermes_cli.web_models` |
-| `PairingRevoke` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileActiveUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileCreate` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileDescribeAuto` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileDescriptionUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileModelUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileRename` | moved-lazy | `hermes_cli.web_models` |
-| `ProfileSoulUpdate` | moved-lazy | `hermes_cli.web_models` |
+| `MCPCatalogInstall` | moved-lazy | `iris_cli.web_models` |
+| `MCPEnabledToggle` | moved-lazy | `iris_cli.web_models` |
+| `MCPServerCreate` | moved-lazy | `iris_cli.web_models` |
+| `MCPServersReplace` | moved-lazy | `iris_cli.web_models` |
+| `ManagedDirectoryCreate` | moved-lazy | `iris_cli.web_models` |
+| `ManagedFileDelete` | moved-lazy | `iris_cli.web_models` |
+| `ManagedFileUpload` | moved-lazy | `iris_cli.web_models` |
+| `ManagedFilesPolicy` | moved-lazy | `iris_cli.web_server_files` |
+| `MemoryProviderConfigUpdate` | moved-lazy | `iris_cli.web_models` |
+| `MemoryProviderSelect` | moved-lazy | `iris_cli.web_models` |
+| `MemoryProviderSetupRequest` | moved-lazy | `iris_cli.web_models` |
+| `MemoryReset` | moved-lazy | `iris_cli.web_models` |
+| `MessagingPlatformUpdate` | moved-lazy | `iris_cli.web_models` |
+| `MoaConfigPayload` | moved-lazy | `iris_cli.web_models` |
+| `MoaModelSlot` | moved-lazy | `iris_cli.web_models` |
+| `MoaPresetPayload` | moved-lazy | `iris_cli.web_models` |
+| `ModelAssignment` | moved-lazy | `iris_cli.web_models` |
+| `OAuthSubmitBody` | moved-lazy | `iris_cli.web_models` |
+| `OPTIONAL_ENV_VARS` | moved-lazy | `iris_cli.config` |
+| `PairingApprove` | moved-lazy | `iris_cli.web_models` |
+| `PairingRevoke` | moved-lazy | `iris_cli.web_models` |
+| `ProfileActiveUpdate` | moved-lazy | `iris_cli.web_models` |
+| `ProfileCreate` | moved-lazy | `iris_cli.web_models` |
+| `ProfileDescribeAuto` | moved-lazy | `iris_cli.web_models` |
+| `ProfileDescriptionUpdate` | moved-lazy | `iris_cli.web_models` |
+| `ProfileModelUpdate` | moved-lazy | `iris_cli.web_models` |
+| `ProfileRename` | moved-lazy | `iris_cli.web_models` |
+| `ProfileSoulUpdate` | moved-lazy | `iris_cli.web_models` |
 | `ProviderConfigSchema` | moved-lazy | `plugins.memory.config_schema` |
 | `ProviderField` | moved-lazy | `plugins.memory.config_schema` |
-| `PtyBridge` | moved-lazy | `hermes_cli.pty_bridge` |
-| `PtySessionRegistry` | moved-lazy | `hermes_cli.pty_session` |
-| `PtyUnavailableError` | moved-lazy | `hermes_cli.pty_bridge` |
+| `PtyBridge` | moved-lazy | `iris_cli.pty_bridge` |
+| `PtySessionRegistry` | moved-lazy | `iris_cli.pty_session` |
+| `PtyUnavailableError` | moved-lazy | `iris_cli.pty_bridge` |
 | `Query` | unrestorable | `no top-level definition on BASE` |
-| `RawConfigUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `RegistryFull` | moved-lazy | `hermes_cli.pty_session` |
+| `RawConfigUpdate` | moved-lazy | `iris_cli.web_models` |
+| `RegistryFull` | moved-lazy | `iris_cli.pty_session` |
 | `Response` | unrestorable | `no top-level definition on BASE` |
 | `STORAGE_HONCHO_HOST_BLOCK` | moved-lazy | `plugins.memory.config_schema` |
 | `SecretStr` | unrestorable | `no top-level definition on BASE` |
-| `SessionImport` | moved-lazy | `hermes_cli.web_models` |
-| `SessionPrune` | moved-lazy | `hermes_cli.web_models` |
-| `SessionRename` | moved-lazy | `hermes_cli.web_models` |
-| `SkillContentUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `SkillCreate` | moved-lazy | `hermes_cli.web_models` |
-| `SkillInstallRequest` | moved-lazy | `hermes_cli.web_models` |
-| `SkillToggle` | moved-lazy | `hermes_cli.web_models` |
-| `SkillUninstallRequest` | moved-lazy | `hermes_cli.web_models` |
-| `SkillsUpdateRequest` | moved-lazy | `hermes_cli.web_models` |
+| `SessionImport` | moved-lazy | `iris_cli.web_models` |
+| `SessionPrune` | moved-lazy | `iris_cli.web_models` |
+| `SessionRename` | moved-lazy | `iris_cli.web_models` |
+| `SkillContentUpdate` | moved-lazy | `iris_cli.web_models` |
+| `SkillCreate` | moved-lazy | `iris_cli.web_models` |
+| `SkillInstallRequest` | moved-lazy | `iris_cli.web_models` |
+| `SkillToggle` | moved-lazy | `iris_cli.web_models` |
+| `SkillUninstallRequest` | moved-lazy | `iris_cli.web_models` |
+| `SkillsUpdateRequest` | moved-lazy | `iris_cli.web_models` |
 | `StaticFiles` | unrestorable | `no top-level definition on BASE` |
-| `TTSLeaseRequest` | moved-lazy | `hermes_cli.web_models` |
-| `TTSSpeakRequest` | moved-lazy | `hermes_cli.web_models` |
-| `TelegramOnboardingApply` | moved-lazy | `hermes_cli.web_models` |
-| `TelegramOnboardingStart` | moved-lazy | `hermes_cli.web_models` |
-| `TerminalBackendSelect` | moved-lazy | `hermes_cli.web_models` |
-| `ThemeSetBody` | moved-lazy | `hermes_cli.web_models` |
-| `ToolsetEnvUpdate` | moved-lazy | `hermes_cli.web_models` |
-| `ToolsetModelSelect` | moved-lazy | `hermes_cli.web_models` |
-| `ToolsetPostSetup` | moved-lazy | `hermes_cli.web_models` |
-| `ToolsetProviderSelect` | moved-lazy | `hermes_cli.web_models` |
-| `ToolsetToggle` | moved-lazy | `hermes_cli.web_models` |
+| `TTSLeaseRequest` | moved-lazy | `iris_cli.web_models` |
+| `TTSSpeakRequest` | moved-lazy | `iris_cli.web_models` |
+| `TelegramOnboardingApply` | moved-lazy | `iris_cli.web_models` |
+| `TelegramOnboardingStart` | moved-lazy | `iris_cli.web_models` |
+| `TerminalBackendSelect` | moved-lazy | `iris_cli.web_models` |
+| `ThemeSetBody` | moved-lazy | `iris_cli.web_models` |
+| `ToolsetEnvUpdate` | moved-lazy | `iris_cli.web_models` |
+| `ToolsetModelSelect` | moved-lazy | `iris_cli.web_models` |
+| `ToolsetPostSetup` | moved-lazy | `iris_cli.web_models` |
+| `ToolsetProviderSelect` | moved-lazy | `iris_cli.web_models` |
+| `ToolsetToggle` | moved-lazy | `iris_cli.web_models` |
 | `UploadFile` | unrestorable | `no top-level definition on BASE` |
 | `WebSocket` | unrestorable | `no top-level definition on BASE` |
 | `WebSocketDisconnect` | unrestorable | `no top-level definition on BASE` |
-| `WebhookCreate` | moved-lazy | `hermes_cli.web_models` |
-| `WebhookEnabledToggle` | moved-lazy | `hermes_cli.web_models` |
-| `WhatsAppOnboardingApply` | moved-lazy | `hermes_cli.web_models` |
-| `WhatsAppOnboardingStart` | moved-lazy | `hermes_cli.web_models` |
-| `activate_custom_endpoint` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `add_credential_pool_entry` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `add_mcp_server` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `apply_telegram_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `apply_whatsapp_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `approve_pairing` | moved-lazy | `hermes_cli.web_routers.ops` |
+| `WebhookCreate` | moved-lazy | `iris_cli.web_models` |
+| `WebhookEnabledToggle` | moved-lazy | `iris_cli.web_models` |
+| `WhatsAppOnboardingApply` | moved-lazy | `iris_cli.web_models` |
+| `WhatsAppOnboardingStart` | moved-lazy | `iris_cli.web_models` |
+| `activate_custom_endpoint` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `add_credential_pool_entry` | moved-lazy | `iris_cli.web_routers.ops` |
+| `add_mcp_server` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `apply_telegram_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `apply_whatsapp_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `approve_pairing` | moved-lazy | `iris_cli.web_routers.ops` |
 | `atexit` | import | `atexit` |
-| `auth_mcp_server` | moved-lazy | `hermes_cli.web_routers.mcp` |
+| `auth_mcp_server` | moved-lazy | `iris_cli.web_routers.mcp` |
 | `base64` | import | `base64` |
 | `binascii` | import | `binascii` |
-| `bulk_delete_sessions_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `cancel_oauth_session` | moved-lazy | `hermes_cli.web_routers.oauth` |
-| `cancel_telegram_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `cancel_whatsapp_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `cfg_get` | moved-lazy | `hermes_cli.config` |
-| `check_config_version` | moved-lazy | `hermes_cli.config` |
-| `check_hermes_update` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `clear_model_endpoint_credentials` | moved-lazy | `hermes_cli.config` |
-| `clear_pending_pairing` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `coerce_provider_id` | moved-lazy | `hermes_cli.config` |
+| `bulk_delete_sessions_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `cancel_oauth_session` | moved-lazy | `iris_cli.web_routers.oauth` |
+| `cancel_telegram_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `cancel_whatsapp_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `cfg_get` | moved-lazy | `iris_cli.config` |
+| `check_config_version` | moved-lazy | `iris_cli.config` |
+| `check_iris_update` | moved-lazy | `iris_cli.web_routers.actions` |
+| `clear_model_endpoint_credentials` | moved-lazy | `iris_cli.config` |
+| `clear_pending_pairing` | moved-lazy | `iris_cli.web_routers.ops` |
+| `coerce_provider_id` | moved-lazy | `iris_cli.config` |
 | `concurrent` | import | `concurrent.futures` |
-| `console_ws` | moved-lazy | `hermes_cli.web_routers.chat_ws` |
+| `console_ws` | moved-lazy | `iris_cli.web_routers.chat_ws` |
 | `contextlib` | import | `contextlib` |
 | `contextmanager` | import | `contextlib` |
-| `count_empty_sessions_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `create_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `create_hook` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `create_managed_directory` | moved-lazy | `hermes_cli.web_routers.files` |
-| `create_profile_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `create_skill` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `create_webhook` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `cron_fire_webhook` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `custom_endpoint_key_env` | moved-lazy | `hermes_cli.config` |
+| `count_empty_sessions_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `create_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `create_hook` | moved-lazy | `iris_cli.web_routers.ops` |
+| `create_managed_directory` | moved-lazy | `iris_cli.web_routers.files` |
+| `create_profile_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `create_skill` | moved-lazy | `iris_cli.web_routers.skills` |
+| `create_webhook` | moved-lazy | `iris_cli.web_routers.ops` |
+| `cron_fire_webhook` | moved-lazy | `iris_cli.web_routers.cron` |
+| `custom_endpoint_key_env` | moved-lazy | `iris_cli.config` |
 | `dataclass` | import | `dataclasses` |
 | `datetime` | import | `datetime` |
-| `delete_agent_plugin` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `delete_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `delete_custom_endpoint` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `delete_empty_sessions_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `delete_hook` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `delete_learning_node` | moved-lazy | `hermes_cli.web_routers.status` |
-| `delete_managed_file` | moved-lazy | `hermes_cli.web_routers.files` |
-| `delete_profile_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `delete_session_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `delete_webhook` | moved-lazy | `hermes_cli.web_routers.ops` |
+| `delete_agent_plugin` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `delete_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `delete_custom_endpoint` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `delete_empty_sessions_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `delete_hook` | moved-lazy | `iris_cli.web_routers.ops` |
+| `delete_learning_node` | moved-lazy | `iris_cli.web_routers.status` |
+| `delete_managed_file` | moved-lazy | `iris_cli.web_routers.files` |
+| `delete_profile_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `delete_session_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `delete_webhook` | moved-lazy | `iris_cli.web_routers.ops` |
 | `derive_gateway_busy` | moved-lazy | `gateway.status` |
 | `derive_gateway_drainable` | moved-lazy | `gateway.status` |
-| `describe_profile_auto_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `detect_install_method` | moved-lazy | `hermes_cli.config` |
-| `disconnect_oauth_provider` | moved-lazy | `hermes_cli.web_routers.oauth` |
-| `download_dashboard_backup` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `download_managed_file` | moved-lazy | `hermes_cli.web_routers.files` |
-| `enable_webhooks` | moved-lazy | `hermes_cli.web_routers.ops` |
+| `describe_profile_auto_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `detect_install_method` | moved-lazy | `iris_cli.config` |
+| `disconnect_oauth_provider` | moved-lazy | `iris_cli.web_routers.oauth` |
+| `download_dashboard_backup` | moved-lazy | `iris_cli.web_routers.ops` |
+| `download_managed_file` | moved-lazy | `iris_cli.web_routers.files` |
+| `enable_webhooks` | moved-lazy | `iris_cli.web_routers.ops` |
 | `env_var_enabled` | moved-lazy | `utils` |
-| `events_ws` | moved-lazy | `hermes_cli.web_routers.chat_ws` |
-| `export_session_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
+| `events_ws` | moved-lazy | `iris_cli.web_routers.chat_ws` |
+| `export_session_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
 | `field_validator` | unrestorable | `no top-level definition on BASE` |
-| `find_provider_entry` | moved-lazy | `hermes_cli.config` |
-| `format_docker_update_message` | moved-lazy | `hermes_cli.config` |
-| `fs_default_cwd` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_download` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_git_root` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_list` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_read_data_url` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_read_text` | moved-lazy | `hermes_cli.web_routers.files` |
-| `fs_write_text` | moved-lazy | `hermes_cli.web_routers.files` |
+| `find_provider_entry` | moved-lazy | `iris_cli.config` |
+| `format_docker_update_message` | moved-lazy | `iris_cli.config` |
+| `fs_default_cwd` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_download` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_git_root` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_list` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_read_data_url` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_read_text` | moved-lazy | `iris_cli.web_routers.files` |
+| `fs_write_text` | moved-lazy | `iris_cli.web_routers.files` |
 | `functools` | import | `functools` |
-| `gateway_drain` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `gateway_ws` | moved-lazy | `hermes_cli.web_routers.chat_ws` |
-| `get_action_status` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `get_active_profile_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `get_auxiliary_models` | moved-lazy | `hermes_cli.web_routers.models` |
-| `get_client_voice_config` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `get_computer_use_status` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `get_config` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `get_config_path` | moved-lazy | `hermes_cli.config` |
-| `get_config_raw` | moved-lazy | `hermes_cli.web_routers.analytics` |
-| `get_cron_delivery_targets` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `get_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `get_curator_status` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_dashboard_font` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `get_dashboard_plugins` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `get_dashboard_themes` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `get_defaults` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `get_egress_status` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `get_elevenlabs_voices` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `get_env_path` | moved-lazy | `hermes_cli.config` |
-| `get_env_vars` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `get_health` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_hermes_home` | moved-lazy | `hermes_cli.config` |
-| `get_learning_graph` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_learning_node` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_logs` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_media` | moved-lazy | `hermes_cli.web_routers.files` |
-| `get_memory_provider_config` | moved-lazy | `hermes_cli.web_routers.memory_providers` |
-| `get_memory_status` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `get_messaging_platforms` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `get_moa_models` | moved-lazy | `hermes_cli.web_routers.models` |
-| `get_model_info` | moved-lazy | `hermes_cli.web_routers.models` |
-| `get_model_options` | moved-lazy | `hermes_cli.web_routers.models` |
-| `get_models_analytics` | moved-lazy | `hermes_cli.web_routers.analytics` |
-| `get_plugins_hub` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `get_portal_status` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_process_hermes_home` | moved-lazy | `hermes_cli.config` |
-| `get_profile_setup_command` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `get_profile_soul` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `get_profiles_sessions` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `get_profiles_sessions_sidebar` | moved-lazy | `hermes_cli.web_routers.profiles` |
+| `gateway_drain` | moved-lazy | `iris_cli.web_routers.actions` |
+| `gateway_ws` | moved-lazy | `iris_cli.web_routers.chat_ws` |
+| `get_action_status` | moved-lazy | `iris_cli.web_routers.actions` |
+| `get_active_profile_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `get_auxiliary_models` | moved-lazy | `iris_cli.web_routers.models` |
+| `get_client_voice_config` | moved-lazy | `iris_cli.web_routers.audio` |
+| `get_computer_use_status` | moved-lazy | `iris_cli.web_routers.tools` |
+| `get_config` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `get_config_path` | moved-lazy | `iris_cli.config` |
+| `get_config_raw` | moved-lazy | `iris_cli.web_routers.analytics` |
+| `get_cron_delivery_targets` | moved-lazy | `iris_cli.web_routers.cron` |
+| `get_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `get_curator_status` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_dashboard_font` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `get_dashboard_plugins` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `get_dashboard_themes` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `get_defaults` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `get_egress_status` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `get_elevenlabs_voices` | moved-lazy | `iris_cli.web_routers.audio` |
+| `get_env_path` | moved-lazy | `iris_cli.config` |
+| `get_env_vars` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `get_health` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_iris_home` | moved-lazy | `iris_cli.config` |
+| `get_learning_graph` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_learning_node` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_logs` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_media` | moved-lazy | `iris_cli.web_routers.files` |
+| `get_memory_provider_config` | moved-lazy | `iris_cli.web_routers.memory_providers` |
+| `get_memory_status` | moved-lazy | `iris_cli.web_routers.ops` |
+| `get_messaging_platforms` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `get_moa_models` | moved-lazy | `iris_cli.web_routers.models` |
+| `get_model_info` | moved-lazy | `iris_cli.web_routers.models` |
+| `get_model_options` | moved-lazy | `iris_cli.web_routers.models` |
+| `get_models_analytics` | moved-lazy | `iris_cli.web_routers.analytics` |
+| `get_plugins_hub` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `get_portal_status` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_process_iris_home` | moved-lazy | `iris_cli.config` |
+| `get_profile_setup_command` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `get_profile_soul` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `get_profiles_sessions` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `get_profiles_sessions_sidebar` | moved-lazy | `iris_cli.web_routers.profiles` |
 | `get_provider_config_schema` | moved-lazy | `plugins.memory.config_schema` |
-| `get_recommended_default_model` | moved-lazy | `hermes_cli.web_routers.models` |
+| `get_recommended_default_model` | moved-lazy | `iris_cli.web_routers.models` |
 | `get_running_pid` | moved-lazy | `gateway.status` |
 | `get_running_pid_cached` | moved-lazy | `gateway.status` |
 | `get_runtime_status_running_pid` | moved-lazy | `gateway.status` |
-| `get_schema` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `get_session_detail` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `get_session_latest_descendant` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `get_session_messages` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `get_session_stats` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `get_sessions` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `get_skill_content` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `get_skills` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `get_ssh_ownership` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_status` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_system_stats` | moved-lazy | `hermes_cli.web_routers.status` |
-| `get_telegram_onboarding_status` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `get_terminal_backends` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `get_toolset_config` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `get_toolset_models` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `get_toolsets` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `get_update_receipt` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `get_usage_analytics` | moved-lazy | `hermes_cli.web_routers.analytics` |
-| `get_whatsapp_onboarding_status` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `git_base_branches_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_branch_switch_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_branches_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_commit_context_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_commit_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_create_pr_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_file_diff_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_push_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_rev_parse_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_revert_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_review_diff_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_review_list_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_ship_info_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_stage_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_status_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_unstage_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_worktree_add_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_worktree_remove_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `git_worktrees_route` | moved-lazy | `hermes_cli.web_routers.git` |
-| `grant_computer_use_permissions` | moved-lazy | `hermes_cli.web_routers.tools` |
+| `get_schema` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `get_session_detail` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `get_session_latest_descendant` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `get_session_messages` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `get_session_stats` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `get_sessions` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `get_skill_content` | moved-lazy | `iris_cli.web_routers.skills` |
+| `get_skills` | moved-lazy | `iris_cli.web_routers.skills` |
+| `get_ssh_ownership` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_status` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_system_stats` | moved-lazy | `iris_cli.web_routers.status` |
+| `get_telegram_onboarding_status` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `get_terminal_backends` | moved-lazy | `iris_cli.web_routers.tools` |
+| `get_toolset_config` | moved-lazy | `iris_cli.web_routers.tools` |
+| `get_toolset_models` | moved-lazy | `iris_cli.web_routers.tools` |
+| `get_toolsets` | moved-lazy | `iris_cli.web_routers.tools` |
+| `get_update_receipt` | moved-lazy | `iris_cli.web_routers.actions` |
+| `get_usage_analytics` | moved-lazy | `iris_cli.web_routers.analytics` |
+| `get_whatsapp_onboarding_status` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `git_base_branches_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_branch_switch_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_branches_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_commit_context_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_commit_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_create_pr_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_file_diff_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_push_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_rev_parse_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_revert_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_review_diff_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_review_list_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_ship_info_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_stage_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_status_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_unstage_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_worktree_add_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_worktree_remove_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `git_worktrees_route` | moved-lazy | `iris_cli.web_routers.git` |
+| `grant_computer_use_permissions` | moved-lazy | `iris_cli.web_routers.tools` |
 | `hashlib` | import | `hashlib` |
-| `import_sessions_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
+| `import_sessions_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
 | `importlib` | import | `importlib.util` |
 | `inspect` | import | `inspect` |
-| `install_mcp_catalog_entry` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `install_skill_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `instantiate_blueprint` | moved-lazy | `hermes_cli.web_routers.cron` |
+| `install_mcp_catalog_entry` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `install_skill_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `instantiate_blueprint` | moved-lazy | `iris_cli.web_routers.cron` |
 | `ipaddress` | import | `ipaddress` |
-| `is_nix_install_method` | moved-lazy | `hermes_cli.config` |
+| `is_nix_install_method` | moved-lazy | `iris_cli.config` |
 | `json` | import | `json` |
-| `list_checkpoints` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `list_credential_pool` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `list_cron_blueprints` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `list_cron_job_runs` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `list_cron_jobs` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `list_custom_endpoints` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `list_hooks` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `list_managed_files` | moved-lazy | `hermes_cli.web_routers.files` |
-| `list_mcp_catalog` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `list_mcp_servers` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `list_oauth_providers` | moved-lazy | `hermes_cli.web_routers.oauth` |
-| `list_pairing` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `list_profiles_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `list_skills_hub_sources` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `list_webhooks` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `load_env` | moved-lazy | `hermes_cli.config` |
+| `list_checkpoints` | moved-lazy | `iris_cli.web_routers.ops` |
+| `list_credential_pool` | moved-lazy | `iris_cli.web_routers.ops` |
+| `list_cron_blueprints` | moved-lazy | `iris_cli.web_routers.cron` |
+| `list_cron_job_runs` | moved-lazy | `iris_cli.web_routers.cron` |
+| `list_cron_jobs` | moved-lazy | `iris_cli.web_routers.cron` |
+| `list_custom_endpoints` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `list_hooks` | moved-lazy | `iris_cli.web_routers.ops` |
+| `list_managed_files` | moved-lazy | `iris_cli.web_routers.files` |
+| `list_mcp_catalog` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `list_mcp_servers` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `list_oauth_providers` | moved-lazy | `iris_cli.web_routers.oauth` |
+| `list_pairing` | moved-lazy | `iris_cli.web_routers.ops` |
+| `list_profiles_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `list_skills_hub_sources` | moved-lazy | `iris_cli.web_routers.skills` |
+| `list_webhooks` | moved-lazy | `iris_cli.web_routers.ops` |
+| `load_env` | moved-lazy | `iris_cli.config` |
 | `math` | import | `math` |
-| `mcp_oauth_callback` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `mcp_oauth_flow_status` | moved-lazy | `hermes_cli.web_routers.mcp` |
+| `mcp_oauth_callback` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `mcp_oauth_flow_status` | moved-lazy | `iris_cli.web_routers.mcp` |
 | `mimetypes` | import | `mimetypes` |
 | `normalize_updated_at` | moved-lazy | `gateway.status` |
-| `open_profile_terminal_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
+| `open_profile_terminal_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
 | `parse_active_agents` | moved-lazy | `gateway.status` |
-| `pause_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `poll_oauth_session` | moved-lazy | `hermes_cli.web_routers.oauth` |
-| `post_agent_plugin_disable` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `post_agent_plugin_enable` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `post_agent_plugin_install` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `post_agent_plugin_update` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `post_plugin_visibility` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `preview_skill_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `prune_checkpoints` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `prune_sessions_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `pty_ws` | moved-lazy | `hermes_cli.web_routers.chat_ws` |
-| `pub_ws` | moved-lazy | `hermes_cli.web_routers.chat_ws` |
-| `put_plugin_providers` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
+| `pause_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `poll_oauth_session` | moved-lazy | `iris_cli.web_routers.oauth` |
+| `post_agent_plugin_disable` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `post_agent_plugin_enable` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `post_agent_plugin_install` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `post_agent_plugin_update` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `post_plugin_visibility` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `preview_skill_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `prune_checkpoints` | moved-lazy | `iris_cli.web_routers.ops` |
+| `prune_sessions_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `pty_ws` | moved-lazy | `iris_cli.web_routers.chat_ws` |
+| `pub_ws` | moved-lazy | `iris_cli.web_routers.chat_ws` |
+| `put_plugin_providers` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
 | `queue` | import | `queue` |
-| `read_managed_file` | moved-lazy | `hermes_cli.web_routers.files` |
-| `read_raw_config` | moved-lazy | `hermes_cli.config` |
+| `read_managed_file` | moved-lazy | `iris_cli.web_routers.files` |
+| `read_raw_config` | moved-lazy | `iris_cli.config` |
 | `read_runtime_status` | moved-lazy | `gateway.status` |
-| `recommended_update_command_for_method` | moved-lazy | `hermes_cli.config` |
-| `redact_key` | moved-lazy | `hermes_cli.config` |
-| `remove_credential_pool_entry` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `remove_env_value` | moved-lazy | `hermes_cli.config` |
-| `remove_env_var` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `remove_mcp_server` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `rename_profile_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `rename_session_endpoint` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `replace_mcp_servers` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `rescan_dashboard_plugins` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `reset_memory` | moved-lazy | `hermes_cli.web_routers.ops` |
+| `recommended_update_command_for_method` | moved-lazy | `iris_cli.config` |
+| `redact_key` | moved-lazy | `iris_cli.config` |
+| `remove_credential_pool_entry` | moved-lazy | `iris_cli.web_routers.ops` |
+| `remove_env_value` | moved-lazy | `iris_cli.config` |
+| `remove_env_var` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `remove_mcp_server` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `rename_profile_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `rename_session_endpoint` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `replace_mcp_servers` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `rescan_dashboard_plugins` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `reset_memory` | moved-lazy | `iris_cli.web_routers.ops` |
 | `resolve_gateway_liveness` | moved-lazy | `gateway.status` |
-| `restart_gateway` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `resume_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `reveal_env_var` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `revoke_pairing` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `run_backup` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `run_config_migrate` | moved-lazy | `hermes_cli.web_routers.status` |
-| `run_curator` | moved-lazy | `hermes_cli.web_routers.status` |
-| `run_debug_share_endpoint` | moved-lazy | `hermes_cli.web_routers.status` |
-| `run_doctor` | moved-lazy | `hermes_cli.doctor` |
-| `run_dump` | moved-lazy | `hermes_cli.dump` |
-| `run_import` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `run_import_upload` | moved-lazy | `hermes_cli.web_routers.ops` |
+| `restart_gateway` | moved-lazy | `iris_cli.web_routers.actions` |
+| `resume_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `reveal_env_var` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `revoke_pairing` | moved-lazy | `iris_cli.web_routers.ops` |
+| `run_backup` | moved-lazy | `iris_cli.web_routers.ops` |
+| `run_config_migrate` | moved-lazy | `iris_cli.web_routers.status` |
+| `run_curator` | moved-lazy | `iris_cli.web_routers.status` |
+| `run_debug_share_endpoint` | moved-lazy | `iris_cli.web_routers.status` |
+| `run_doctor` | moved-lazy | `iris_cli.doctor` |
+| `run_dump` | moved-lazy | `iris_cli.dump` |
+| `run_import` | moved-lazy | `iris_cli.web_routers.ops` |
+| `run_import_upload` | moved-lazy | `iris_cli.web_routers.ops` |
 | `run_in_threadpool` | unrestorable | `no top-level definition on BASE` |
-| `run_prompt_size` | moved-lazy | `hermes_cli.web_routers.status` |
-| `run_security_audit` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `run_toolset_post_setup` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `save_config` | moved-lazy | `hermes_cli.config` |
-| `save_env_value` | moved-lazy | `hermes_cli.config` |
-| `save_toolset_env` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `scan_skill_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `search_sessions` | moved-lazy | `hermes_cli.web_routers.sessions` |
-| `search_skills_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `select_terminal_backend` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `select_toolset_model` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `select_toolset_provider` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `serve_plugin_asset` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `set_active_profile_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `set_curator_paused` | moved-lazy | `hermes_cli.web_routers.status` |
-| `set_dashboard_font` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `set_dashboard_theme` | moved-lazy | `hermes_cli.web_routers.dashboard_ui` |
-| `set_env_var` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `set_mcp_server_enabled` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `set_memory_provider` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `set_moa_models` | moved-lazy | `hermes_cli.web_routers.models` |
-| `set_model_assignment` | moved-lazy | `hermes_cli.web_routers.models` |
-| `set_webhook_enabled` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `setup_memory_provider` | moved-lazy | `hermes_cli.web_routers.memory_providers` |
+| `run_prompt_size` | moved-lazy | `iris_cli.web_routers.status` |
+| `run_security_audit` | moved-lazy | `iris_cli.web_routers.ops` |
+| `run_toolset_post_setup` | moved-lazy | `iris_cli.web_routers.tools` |
+| `save_config` | moved-lazy | `iris_cli.config` |
+| `save_env_value` | moved-lazy | `iris_cli.config` |
+| `save_toolset_env` | moved-lazy | `iris_cli.web_routers.tools` |
+| `scan_skill_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `search_sessions` | moved-lazy | `iris_cli.web_routers.sessions` |
+| `search_skills_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `select_terminal_backend` | moved-lazy | `iris_cli.web_routers.tools` |
+| `select_toolset_model` | moved-lazy | `iris_cli.web_routers.tools` |
+| `select_toolset_provider` | moved-lazy | `iris_cli.web_routers.tools` |
+| `serve_plugin_asset` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `set_active_profile_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `set_curator_paused` | moved-lazy | `iris_cli.web_routers.status` |
+| `set_dashboard_font` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `set_dashboard_theme` | moved-lazy | `iris_cli.web_routers.dashboard_ui` |
+| `set_env_var` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `set_mcp_server_enabled` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `set_memory_provider` | moved-lazy | `iris_cli.web_routers.ops` |
+| `set_moa_models` | moved-lazy | `iris_cli.web_routers.models` |
+| `set_model_assignment` | moved-lazy | `iris_cli.web_routers.models` |
+| `set_webhook_enabled` | moved-lazy | `iris_cli.web_routers.ops` |
+| `setup_memory_provider` | moved-lazy | `iris_cli.web_routers.memory_providers` |
 | `shlex` | import | `shlex` |
 | `shutil` | import | `shutil` |
-| `speak_stream_ws` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `speak_text` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `start_gateway` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `start_oauth_login` | moved-lazy | `hermes_cli.web_routers.oauth` |
-| `start_telegram_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `start_whatsapp_onboarding` | moved-lazy | `hermes_cli.web_routers.messaging` |
+| `speak_stream_ws` | moved-lazy | `iris_cli.web_routers.audio` |
+| `speak_text` | moved-lazy | `iris_cli.web_routers.audio` |
+| `start_gateway` | moved-lazy | `iris_cli.web_routers.ops` |
+| `start_oauth_login` | moved-lazy | `iris_cli.web_routers.oauth` |
+| `start_telegram_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `start_whatsapp_onboarding` | moved-lazy | `iris_cli.web_routers.messaging` |
 | `stat` | import | `stat` |
-| `stop_gateway` | moved-lazy | `hermes_cli.web_routers.ops` |
-| `stream_managed_file` | moved-lazy | `hermes_cli.web_routers.files` |
-| `submit_oauth_code` | moved-lazy | `hermes_cli.web_routers.oauth` |
+| `stop_gateway` | moved-lazy | `iris_cli.web_routers.ops` |
+| `stream_managed_file` | moved-lazy | `iris_cli.web_routers.files` |
+| `submit_oauth_code` | moved-lazy | `iris_cli.web_routers.oauth` |
 | `tempfile` | import | `tempfile` |
-| `test_mcp_server` | moved-lazy | `hermes_cli.web_routers.mcp` |
-| `test_messaging_platform` | moved-lazy | `hermes_cli.web_routers.messaging` |
+| `test_mcp_server` | moved-lazy | `iris_cli.web_routers.mcp` |
+| `test_messaging_platform` | moved-lazy | `iris_cli.web_routers.messaging` |
 | `timezone` | import | `datetime` |
-| `toggle_skill` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `toggle_toolset` | moved-lazy | `hermes_cli.web_routers.tools` |
-| `transcribe_audio_upload` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `trigger_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `tts_lease` | moved-lazy | `hermes_cli.web_routers.audio` |
-| `uninstall_skill_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `update_config` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `update_config_raw` | moved-lazy | `hermes_cli.web_routers.analytics` |
-| `update_cron_job` | moved-lazy | `hermes_cli.web_routers.cron` |
-| `update_hermes` | moved-lazy | `hermes_cli.web_routers.actions` |
-| `update_learning_node` | moved-lazy | `hermes_cli.web_routers.status` |
-| `update_memory_provider_config` | moved-lazy | `hermes_cli.web_routers.memory_providers` |
-| `update_messaging_platform` | moved-lazy | `hermes_cli.web_routers.messaging` |
-| `update_profile_description_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `update_profile_model_endpoint` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `update_profile_soul` | moved-lazy | `hermes_cli.web_routers.profiles` |
-| `update_skill_content` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `update_skills_hub` | moved-lazy | `hermes_cli.web_routers.skills` |
-| `upload_chat_image` | moved-lazy | `hermes_cli.web_routers.files` |
-| `upload_managed_file` | moved-lazy | `hermes_cli.web_routers.files` |
-| `upload_managed_file_stream` | moved-lazy | `hermes_cli.web_routers.files` |
-| `upsert_custom_endpoint` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `validate_custom_endpoint` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `validate_provider_credential` | moved-lazy | `hermes_cli.web_routers.config_env` |
-| `windows_detach_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
-| `write_platform_config_field` | moved-lazy | `hermes_cli.config` |
+| `toggle_skill` | moved-lazy | `iris_cli.web_routers.skills` |
+| `toggle_toolset` | moved-lazy | `iris_cli.web_routers.tools` |
+| `transcribe_audio_upload` | moved-lazy | `iris_cli.web_routers.audio` |
+| `trigger_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `tts_lease` | moved-lazy | `iris_cli.web_routers.audio` |
+| `uninstall_skill_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `update_config` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `update_config_raw` | moved-lazy | `iris_cli.web_routers.analytics` |
+| `update_cron_job` | moved-lazy | `iris_cli.web_routers.cron` |
+| `update_iris` | moved-lazy | `iris_cli.web_routers.actions` |
+| `update_learning_node` | moved-lazy | `iris_cli.web_routers.status` |
+| `update_memory_provider_config` | moved-lazy | `iris_cli.web_routers.memory_providers` |
+| `update_messaging_platform` | moved-lazy | `iris_cli.web_routers.messaging` |
+| `update_profile_description_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `update_profile_model_endpoint` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `update_profile_soul` | moved-lazy | `iris_cli.web_routers.profiles` |
+| `update_skill_content` | moved-lazy | `iris_cli.web_routers.skills` |
+| `update_skills_hub` | moved-lazy | `iris_cli.web_routers.skills` |
+| `upload_chat_image` | moved-lazy | `iris_cli.web_routers.files` |
+| `upload_managed_file` | moved-lazy | `iris_cli.web_routers.files` |
+| `upload_managed_file_stream` | moved-lazy | `iris_cli.web_routers.files` |
+| `upsert_custom_endpoint` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `validate_custom_endpoint` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `validate_provider_credential` | moved-lazy | `iris_cli.web_routers.config_env` |
+| `windows_detach_flags` | moved-lazy | `iris_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
+| `write_platform_config_field` | moved-lazy | `iris_cli.config` |
 | `yaml` | import | `yaml` |
 | `zipfile` | import | `zipfile` |
 
-### `hermes_cli.webhook`
+### `iris_cli.webhook`
 
 | name | kind | new location |
 |---|---|---|
@@ -2177,80 +2177,80 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `os` | import | `os` |
 | `tempfile` | import | `tempfile` |
 
-### `hermes_cli.win_pty_bridge`
+### `iris_cli.win_pty_bridge`
 
 | name | kind | new location |
 |---|---|---|
 | `os` | import | `os` |
 
-### `hermes_logging`
+### `iris_logging`
 
 | name | kind | new location |
 |---|---|---|
 | `rotating_file_handlers` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_state`
+### `iris_state`
 
 | name | kind | new location |
 |---|---|---|
-| `AUTO_VACUUM_MIN_FREELIST_RATIO` | moved-lazy | `hermes_state_common` |
+| `AUTO_VACUUM_MIN_FREELIST_RATIO` | moved-lazy | `iris_state_common` |
 | `ActivityProvenance` | moved-lazy | `agent.session_activity` |
-| `CompressionSessionBusyError` | moved-lazy | `hermes_state_errors` |
-| `CompressionSessionClosedError` | moved-lazy | `hermes_state_errors` |
-| `DEFERRED_INDEX_SQL` | moved-lazy | `hermes_state_common` |
-| `FTS_CJK_STALE_KEY` | moved-lazy | `hermes_state_common` |
-| `FTS_CJK_TABLE_SQL` | moved-lazy | `hermes_state_fts` |
-| `FTS_CJK_TRIGGER_SQL` | moved-lazy | `hermes_state_fts` |
-| `FTS_REBUILD_DEFERRAL_KEY` | moved-lazy | `hermes_state_common` |
-| `FTS_SQL` | moved-lazy | `hermes_state_common` |
-| `FTS_STALE_KEY` | moved-lazy | `hermes_state_common` |
-| `FTS_STORAGE_VERSION` | moved-lazy | `hermes_state_common` |
-| `FTS_TRIGRAM_SQL` | moved-lazy | `hermes_state_common` |
-| `LEGACY_FTS_SQL` | moved-lazy | `hermes_state_common` |
-| `LEGACY_FTS_TRIGRAM_SQL` | moved-lazy | `hermes_state_common` |
-| `MAX_FTS5_QUERY_CHARS` | moved-lazy | `hermes_state_common` |
+| `CompressionSessionBusyError` | moved-lazy | `iris_state_errors` |
+| `CompressionSessionClosedError` | moved-lazy | `iris_state_errors` |
+| `DEFERRED_INDEX_SQL` | moved-lazy | `iris_state_common` |
+| `FTS_CJK_STALE_KEY` | moved-lazy | `iris_state_common` |
+| `FTS_CJK_TABLE_SQL` | moved-lazy | `iris_state_fts` |
+| `FTS_CJK_TRIGGER_SQL` | moved-lazy | `iris_state_fts` |
+| `FTS_REBUILD_DEFERRAL_KEY` | moved-lazy | `iris_state_common` |
+| `FTS_SQL` | moved-lazy | `iris_state_common` |
+| `FTS_STALE_KEY` | moved-lazy | `iris_state_common` |
+| `FTS_STORAGE_VERSION` | moved-lazy | `iris_state_common` |
+| `FTS_TRIGRAM_SQL` | moved-lazy | `iris_state_common` |
+| `LEGACY_FTS_SQL` | moved-lazy | `iris_state_common` |
+| `LEGACY_FTS_TRIGRAM_SQL` | moved-lazy | `iris_state_common` |
+| `MAX_FTS5_QUERY_CHARS` | moved-lazy | `iris_state_common` |
 | `MAX_SAFE_EXPORT_MESSAGES` | restored-def | `(deleted; BASE body restored)` |
 | `MAX_SAFE_RESUME_MESSAGES` | restored-def | `(deleted; BASE body restored)` |
-| `PERSISTENCE_ERROR_CAUSES` | moved-lazy | `hermes_state_errors` |
-| `SCHEMA_SQL` | moved-lazy | `hermes_state_common` |
-| `SCHEMA_VERSION` | moved-lazy | `hermes_state_common` |
-| `SESSION_STATUS_COMPLETE` | moved-lazy | `hermes_state_sessions` |
-| `SESSION_STATUS_EMPTY` | moved-lazy | `hermes_state_sessions` |
-| `SESSION_STATUS_ERROR` | moved-lazy | `hermes_state_sessions` |
-| `SESSION_STATUS_INTERRUPTED` | moved-lazy | `hermes_state_sessions` |
+| `PERSISTENCE_ERROR_CAUSES` | moved-lazy | `iris_state_errors` |
+| `SCHEMA_SQL` | moved-lazy | `iris_state_common` |
+| `SCHEMA_VERSION` | moved-lazy | `iris_state_common` |
+| `SESSION_STATUS_COMPLETE` | moved-lazy | `iris_state_sessions` |
+| `SESSION_STATUS_EMPTY` | moved-lazy | `iris_state_sessions` |
+| `SESSION_STATUS_ERROR` | moved-lazy | `iris_state_sessions` |
+| `SESSION_STATUS_INTERRUPTED` | moved-lazy | `iris_state_sessions` |
 | `SKILL_EXCERPT_JOINT` | moved-lazy | `agent.skill_commands` |
 | `SKILL_SCAFFOLD_SQL_LIKE` | moved-lazy | `agent.skill_commands` |
-| `SessionTurnLeaseLostError` | moved-lazy | `hermes_state_errors` |
+| `SessionTurnLeaseLostError` | moved-lazy | `iris_state_errors` |
 | `Set` | import | `typing` |
-| `WalUnsupportedError` | moved-lazy | `hermes_state_wal` |
-| `apply_durability_barriers` | moved-lazy | `hermes_state_repair` |
-| `classify_session_status` | moved-lazy | `hermes_state_sessions` |
+| `WalUnsupportedError` | moved-lazy | `iris_state_wal` |
+| `apply_durability_barriers` | moved-lazy | `iris_state_repair` |
+| `classify_session_status` | moved-lazy | `iris_state_sessions` |
 | `close_shared_session_dbs` | unrestorable | `no top-level definition on BASE` |
-| `collect_state_db_stats` | moved-lazy | `hermes_state_dbfile` |
+| `collect_state_db_stats` | moved-lazy | `iris_state_dbfile` |
 | `contextlib` | import | `contextlib` |
-| `count_db_holders` | moved-lazy | `hermes_state_dbfile` |
+| `count_db_holders` | moved-lazy | `iris_state_dbfile` |
 | `describe_skill_invocation` | moved-lazy | `agent.skill_commands` |
 | `errno` | import | `errno` |
-| `fts5_cjk_so_path` | moved-lazy | `hermes_state_fts` |
+| `fts5_cjk_so_path` | moved-lazy | `iris_state_fts` |
 | `get_shared_session_db` | unrestorable | `no top-level definition on BASE` |
-| `is_advisory_lock_contention` | moved-lazy | `hermes_state_common` |
-| `is_automatic_end_reason` | moved-lazy | `hermes_state_common` |
-| `is_disk_full_error` | moved-lazy | `hermes_state_errors` |
-| `is_sqlite_wal_reset_vulnerable` | moved-lazy | `hermes_state_wal` |
-| `is_transient_sqlite_error` | moved-lazy | `hermes_state_errors` |
-| `iter_deleted_sqlite_sidecar_holders` | moved-lazy | `hermes_state_dbfile` |
-| `release_or_close` | moved-lazy | `hermes_state_registry` |
+| `is_advisory_lock_contention` | moved-lazy | `iris_state_common` |
+| `is_automatic_end_reason` | moved-lazy | `iris_state_common` |
+| `is_disk_full_error` | moved-lazy | `iris_state_errors` |
+| `is_sqlite_wal_reset_vulnerable` | moved-lazy | `iris_state_wal` |
+| `is_transient_sqlite_error` | moved-lazy | `iris_state_errors` |
+| `iter_deleted_sqlite_sidecar_holders` | moved-lazy | `iris_state_dbfile` |
+| `release_or_close` | moved-lazy | `iris_state_registry` |
 | `release_shared_session_db` | unrestorable | `no top-level definition on BASE` |
-| `report_startup_progress` | moved-lazy | `hermes_startup_watchdog` |
-| `resolve_journal_mode` | moved-lazy | `hermes_state_wal` |
-| `resolve_synchronous_level` | moved-lazy | `hermes_state_wal` |
+| `report_startup_progress` | moved-lazy | `iris_startup_watchdog` |
+| `resolve_journal_mode` | moved-lazy | `iris_state_wal` |
+| `resolve_synchronous_level` | moved-lazy | `iris_state_wal` |
 | `sanitize_context` | moved-lazy | `agent.memory_manager` |
-| `sqlite_source_id` | moved-lazy | `hermes_state_wal` |
+| `sqlite_source_id` | moved-lazy | `iris_state_wal` |
 | `struct` | import | `struct` |
 | `weakref` | import | `weakref` |
-| `workspace_key` | moved-lazy | `hermes_state_sessions` |
+| `workspace_key` | moved-lazy | `iris_state_sessions` |
 
-### `hermes_state_registry`
+### `iris_state_registry`
 
 | name | kind | new location |
 |---|---|---|
@@ -2258,7 +2258,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `get_shared_session_db` | restored-def | `(deleted; BASE body restored)` |
 | `release_shared_session_db` | restored-def | `(deleted; BASE body restored)` |
 
-### `hermes_state_search`
+### `iris_state_search`
 
 | name | kind | new location |
 |---|---|---|
@@ -2319,23 +2319,23 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | name | kind | new location |
 |---|---|---|
 | `Any` | import | `typing` |
-| `LoginStart` | moved-lazy | `hermes_cli.dashboard_auth` |
+| `LoginStart` | moved-lazy | `iris_cli.dashboard_auth` |
 
 ### `plugins.dashboard_auth.drain`
 
 | name | kind | new location |
 |---|---|---|
-| `LoginStart` | moved-lazy | `hermes_cli.dashboard_auth` |
+| `LoginStart` | moved-lazy | `iris_cli.dashboard_auth` |
 
 ### `plugins.dashboard_auth.nous`
 
 | name | kind | new location |
 |---|---|---|
-| `DashboardAuthProvider` | moved-lazy | `hermes_cli.dashboard_auth` |
-| `InvalidCodeError` | moved-lazy | `hermes_cli.dashboard_auth` |
-| `RefreshExpiredError` | moved-lazy | `hermes_cli.dashboard_auth` |
+| `DashboardAuthProvider` | moved-lazy | `iris_cli.dashboard_auth` |
+| `InvalidCodeError` | moved-lazy | `iris_cli.dashboard_auth` |
+| `RefreshExpiredError` | moved-lazy | `iris_cli.dashboard_auth` |
 | `base64` | import | `base64` |
-| `classify_jwks_lookup_error` | moved-lazy | `hermes_cli.dashboard_auth` |
+| `classify_jwks_lookup_error` | moved-lazy | `iris_cli.dashboard_auth` |
 | `hashlib` | import | `hashlib` |
 | `httpx` | import | `httpx` |
 | `os` | import | `os` |
@@ -2346,10 +2346,10 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 
 | name | kind | new location |
 |---|---|---|
-| `DashboardAuthProvider` | moved-lazy | `hermes_cli.dashboard_auth` |
-| `InvalidCodeError` | moved-lazy | `hermes_cli.dashboard_auth` |
-| `RefreshExpiredError` | moved-lazy | `hermes_cli.dashboard_auth` |
-| `classify_jwks_lookup_error` | moved-lazy | `hermes_cli.dashboard_auth` |
+| `DashboardAuthProvider` | moved-lazy | `iris_cli.dashboard_auth` |
+| `InvalidCodeError` | moved-lazy | `iris_cli.dashboard_auth` |
+| `RefreshExpiredError` | moved-lazy | `iris_cli.dashboard_auth` |
+| `classify_jwks_lookup_error` | moved-lazy | `iris_cli.dashboard_auth` |
 | `hashlib` | import | `hashlib` |
 | `os` | import | `os` |
 | `secrets` | import | `secrets` |
@@ -2863,7 +2863,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `HARDLINE_PATTERNS` | moved-lazy | `tools.approval_detection` |
 | `HARDLINE_PATTERNS_COMPILED` | moved-lazy | `tools.approval_detection` |
 | `HUMAN_WAIT_MARGIN_S` | moved-lazy | `tools.approval_human_wait` |
-| `cfg_get` | moved-lazy | `hermes_cli.config` |
+| `cfg_get` | moved-lazy | `iris_cli.config` |
 | `contextlib` | import | `contextlib` |
 | `contextvars` | import | `contextvars` |
 | `fnmatch` | import | `fnmatch` |
@@ -2877,10 +2877,10 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `request_elicitation_consent` | moved-lazy | `tools.approval_prompt` |
 | `reset_current_observability_context` | moved-lazy | `tools.approval_context` |
 | `reset_current_session_key` | moved-lazy | `tools.approval_context` |
-| `reset_hermes_interactive_context` | moved-lazy | `tools.approval_context` |
+| `reset_iris_interactive_context` | moved-lazy | `tools.approval_context` |
 | `set_current_observability_context` | moved-lazy | `tools.approval_context` |
 | `set_current_session_key` | moved-lazy | `tools.approval_context` |
-| `set_hermes_interactive_context` | moved-lazy | `tools.approval_context` |
+| `set_iris_interactive_context` | moved-lazy | `tools.approval_context` |
 | `shlex` | import | `shlex` |
 | `sys` | import | `sys` |
 | `tempfile` | import | `tempfile` |
@@ -2933,7 +2933,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `List` | import | `typing` |
 | `SNAPSHOT_SUMMARIZE_THRESHOLD` | restored-def | `(deleted; BASE body restored)` |
 | `Tuple` | import | `typing` |
-| `agent_browser_runnable` | moved-lazy | `hermes_constants` |
+| `agent_browser_runnable` | moved-lazy | `iris_constants` |
 | `check_browser_requirements` | moved-lazy | `tools.browser_tool_install` |
 | `check_browser_vision_requirements` | moved-lazy | `tools.browser_tool_install` |
 | `cleanup_all_browsers` | moved-lazy | `tools.browser_tool_lifecycle` |
@@ -2941,20 +2941,20 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `contextlib` | import | `contextlib` |
 | `datetime` | import | `datetime` |
 | `functools` | import | `functools` |
-| `get_hermes_home_override` | moved-lazy | `hermes_constants` |
-| `hermes_home_key` | moved-lazy | `hermes_constants` |
+| `get_iris_home_override` | moved-lazy | `iris_constants` |
+| `iris_home_key` | moved-lazy | `iris_constants` |
 | `is_truthy_value` | moved-lazy | `utils` |
 | `lightpanda_engine_status` | moved-lazy | `tools.browser_tool_lightpanda_fallback` |
-| `node_tool_runnable` | moved-lazy | `hermes_constants` |
+| `node_tool_runnable` | moved-lazy | `iris_constants` |
 | `normalize_browser_cloud_provider` | moved-lazy | `tools.tool_backend_helpers` |
 | `re` | import | `re` |
-| `reset_hermes_home_override` | moved-lazy | `hermes_constants` |
-| `set_hermes_home_override` | moved-lazy | `hermes_constants` |
+| `reset_iris_home_override` | moved-lazy | `iris_constants` |
+| `set_iris_home_override` | moved-lazy | `iris_constants` |
 | `shutil` | import | `shutil` |
 | `signal` | import | `signal` |
 | `timezone` | import | `datetime` |
 | `warm_agent_browser_npx_cache` | moved-lazy | `tools.browser_tool_install` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
 
 ### `tools.clarify_gateway`
 
@@ -3113,7 +3113,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `sanitize_task_id_for_path` | moved-lazy | `tools.environments.path_utils` |
 | `select` | import | `select` |
 | `subprocess` | import | `subprocess` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
 
 ### `tools.environments.managed_modal`
 
@@ -3450,9 +3450,9 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `GITHUB_TAP_PROVIDERS` | moved-lazy | `tools.skills_hub_github` |
 | `GitHubAuth` | moved-lazy | `tools.skills_hub_github` |
 | `GitHubSource` | moved-lazy | `tools.skills_hub_github` |
-| `HERMES_INDEX_TTL` | moved-lazy | `tools.skills_hub_search` |
-| `HERMES_INDEX_URL` | moved-lazy | `tools.skills_hub_search` |
-| `HermesIndexSource` | moved-lazy | `tools.skills_hub_official` |
+| `IRIS_INDEX_TTL` | moved-lazy | `tools.skills_hub_search` |
+| `IRIS_INDEX_URL` | moved-lazy | `tools.skills_hub_search` |
+| `IrisIndexSource` | moved-lazy | `tools.skills_hub_official` |
 | `LobeHubSource` | moved-lazy | `tools.skills_hub_sources` |
 | `OptionalSkillSource` | moved-lazy | `tools.skills_hub_official` |
 | `PurePosixPath` | import | `pathlib` |
@@ -3491,7 +3491,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `urlparse` | import | `urllib.parse` |
 | `urlsplit` | import | `urllib.parse` |
 | `urlunparse` | import | `urllib.parse` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
 | `yaml` | import | `yaml` |
 
 ### `tools.skills_sync`
@@ -3547,7 +3547,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 |---|---|---|
 | `Enum` | import | `enum` |
 | `Set` | import | `typing` |
-| `display_hermes_home` | moved-lazy | `hermes_constants` |
+| `display_iris_home` | moved-lazy | `iris_constants` |
 | `env_var_enabled` | moved-lazy | `utils` |
 | `re` | import | `re` |
 | `threading` | import | `threading` |
@@ -3639,7 +3639,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `subprocess` | import | `subprocess` |
 | `tempfile` | import | `tempfile` |
 | `urljoin` | import | `urllib.parse` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
 
 ### `tools.tts_tool`
 
@@ -3702,7 +3702,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `base64` | import | `base64` |
 | `dataclass` | import | `dataclasses` |
 | `field` | import | `dataclasses` |
-| `hermes_xai_user_agent` | moved-lazy | `tools.xai_http` |
+| `iris_xai_user_agent` | moved-lazy | `tools.xai_http` |
 | `managed_nous_tools_enabled` | moved-lazy | `tools.tool_backend_helpers` |
 | `nous_tool_gateway_unavailable_message` | moved-lazy | `tools.tool_backend_helpers` |
 | `platform` | import | `platform` |
@@ -3725,7 +3725,7 @@ to the public equivalent or the new module. Test monkeypatch seams are likewise 
 | `urlparse` | import | `urllib.parse` |
 | `uuid` | import | `uuid` |
 | `warm_tts_provider` | moved-lazy | `tools.tts_tool_lifecycle` |
-| `windows_hide_flags` | moved-lazy | `hermes_cli._subprocess_compat` |
+| `windows_hide_flags` | moved-lazy | `iris_cli._subprocess_compat` |
 
 ### `tools.url_safety`
 

@@ -16,7 +16,7 @@ import {
 // leave this shape byte-identical when no token is configured.
 const UPDATE_CHECK_HEADERS = {
   Accept: 'application/vnd.github.sha',
-  'User-Agent': 'hermes-desktop-update-check'
+  'User-Agent': 'iris-desktop-update-check'
 }
 
 beforeEach(() => {
@@ -60,7 +60,7 @@ test('anonymous sends no Authorization key at all; a token adds the `token` sche
   const authed = githubApiHeaders(UPDATE_CHECK_HEADERS, 'pat-a')
 
   assert.equal(authed.Authorization, 'token pat-a')
-  assert.equal(authed['User-Agent'], 'hermes-desktop-update-check')
+  assert.equal(authed['User-Agent'], 'iris-desktop-update-check')
   // The caller's base object is a constant; mutating it would leak the token
   // into every later request that builds from it.
   assert.equal('Authorization' in UPDATE_CHECK_HEADERS, false)

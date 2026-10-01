@@ -13,7 +13,7 @@ import { test } from 'vitest'
 test.skipIf(process.platform === 'win32')(
   'native modifier gesture state machine only summons on a clean, bounded two-modifier tap',
   () => {
-    const dir = mkdtempSync(resolve(tmpdir(), 'hermes-hud-gesture-'))
+    const dir = mkdtempSync(resolve(tmpdir(), 'iris-hud-gesture-'))
 
     try {
       const binary = resolve(dir, 'gesture')

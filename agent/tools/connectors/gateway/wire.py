@@ -20,10 +20,10 @@ CONNECTOR_ACCOUNTS_PATH = f"{CONNECTORS_PATH}/accounts"
 # INITIALIZING and INITIATED both arrive as `pending`). Present only once the session binds an
 # account; a value outside this set is a contract break and fails validation.
 ConnectionStatus = Literal["pending", "active", "failed", "expired", "revoked", "inactive"]
-# Where the vendor's done page sends the browser after consent; the dev desktop registers hermes-dev://.
-ConnectorReturnTarget = Literal["hermes-desktop", "hermes-desktop-dev", "portal"]
+# Where the vendor's done page sends the browser after consent; the dev desktop registers iris-dev://.
+ConnectorReturnTarget = Literal["iris-desktop", "iris-desktop-dev", "portal"]
 
-# Hermes dispatch caps batches lower, so client-side chunking is deliberately absent.
+# Iris dispatch caps batches lower, so client-side chunking is deliberately absent.
 WIRE_BATCH_MAX = 25
 
 # A 200 execute envelope carries per-tool failures as results, not HTTP errors.
@@ -106,7 +106,7 @@ class ConnectorExecuteCall(_Wire):
     connector: str
     tool: str
     arguments: dict[str, Any] = Field(default_factory=dict)
-    # On the wire for the multi-account switch; never sent by hermes today, because the vendor answers
+    # On the wire for the multi-account switch; never sent by iris today, because the vendor answers
     # 400 to any value while multi-account is off (contract probe F2).
     account: Optional[str] = None
 
@@ -139,7 +139,7 @@ class ConnectorConnectionsRequest(_Wire):
     reinitiate: bool = False
     alias: Optional[str] = None
     return_to: Optional[ConnectorReturnTarget] = Field(default=None, alias="returnTo")
-    # The caller's operation id, echoed on the hermes://connections/done link.
+    # The caller's operation id, echoed on the iris://connections/done link.
     op: Optional[str] = Field(default=None, min_length=1, max_length=128)
 
 

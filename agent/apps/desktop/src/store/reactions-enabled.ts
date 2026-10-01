@@ -15,7 +15,7 @@ import { atom } from 'nanostores'
 import { persistString, storedString } from '@/lib/storage'
 import { mirrorDisplayToggle } from '@/store/display-toggles'
 
-const KEY = 'hermes.desktop.reactions.v1'
+const KEY = 'iris.desktop.reactions.v1'
 
 export const $reactionsEnabled = atom<boolean>(typeof window === 'undefined' ? false : storedString(KEY) === 'on')
 

@@ -3,7 +3,7 @@
  * animation frames in the hidden main window are throttled. Native skip and close events come back here, so
  * every exit records the seen key and restores the main window.
  *
- * This store is the only writer of hermes-intro-reveal-seen-v1. First-run eligibility is guest onboarding
+ * This store is the only writer of iris-intro-reveal-seen-v1. First-run eligibility is guest onboarding
  * enabled, not explicitly skipped, and not seen. The gate observes completion to queue the guided chat, so
  * this store does not depend on the gate.
  */
@@ -13,7 +13,7 @@ import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 import { readKey, writeKey } from '@/lib/storage'
 import { setOnboardingSurfaceActive } from '@/store/onboarding-presence'
 
-const SEEN_KEY = 'hermes-intro-reveal-seen-v1'
+const SEEN_KEY = 'iris-intro-reveal-seen-v1'
 
 export type IntroRevealPhase = 'hidden' | 'playing' | 'leaving'
 
@@ -31,7 +31,7 @@ export function hasSeenIntroReveal(): boolean {
   return readKey(SEEN_KEY) === '1'
 }
 
-/** The film will never play for this identity (HERMES_SKIP_INTRO). Record it
+/** The film will never play for this identity (IRIS_SKIP_INTRO). Record it
  * as seen so a later launch without the flag cannot replay it over the
  * guided flow that ran in its place. */
 export function markIntroRevealSeen(): void {
@@ -39,14 +39,14 @@ export function markIntroRevealSeen(): void {
 }
 
 export function isIntroRevealEnabled(): boolean {
-  return isOnboardingEnabled() && window.hermesDesktop?.skipIntro !== true
+  return isOnboardingEnabled() && window.irisDesktop?.skipIntro !== true
 }
 
 /** The guided flow is on but its intro film was turned off at launch
- * (HERMES_SKIP_INTRO). Distinct from isIntroRevealEnabled(): false there also
+ * (IRIS_SKIP_INTRO). Distinct from isIntroRevealEnabled(): false there also
  * covers onboarding being off entirely, where nothing may queue. */
 export function isIntroRevealSkipped(): boolean {
-  return isOnboardingEnabled() && window.hermesDesktop?.skipIntro === true
+  return isOnboardingEnabled() && window.irisDesktop?.skipIntro === true
 }
 
 export function shouldPlayFirstRunIntro(firstRunSkipped: boolean): boolean {
@@ -60,7 +60,7 @@ export function startIntroReveal(): void {
 
   $introReveal.set({ phase: 'playing' })
   // The overlay covers the desktop, so every exit path has to restore the main window.
-  void window.hermesDesktop?.introReveal?.open({ hideMain: true }).catch(finishIntroReveal)
+  void window.irisDesktop?.introReveal?.open({ hideMain: true }).catch(finishIntroReveal)
 }
 
 export function leaveIntroReveal(): void {
@@ -80,11 +80,11 @@ export function finishIntroReveal(): void {
   // shape (small window, greeting layout) synchronously, so the main window
   // is already the guide when it is shown. Showing first and shrinking after
   // is what flashed the full app between the film and the greeting.
-  void window.hermesDesktop?.introReveal?.close({ showMain: true }).catch(() => undefined)
+  void window.irisDesktop?.introReveal?.close({ showMain: true }).catch(() => undefined)
 }
 
 export function installIntroRevealBridgeListeners(): () => void {
-  const bridge = window.hermesDesktop?.introReveal
+  const bridge = window.irisDesktop?.introReveal
   const offSkip = bridge?.onSkip(leaveIntroReveal)
   const offClosed = bridge?.onClosed(finishIntroReveal)
 

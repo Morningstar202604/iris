@@ -1,5 +1,5 @@
 /**
- * Shared ESLint flat config for all Hermes TS workspaces.
+ * Shared ESLint flat config for all Iris TS workspaces.
  *
  * Usage in a workspace's eslint.config.mjs:
  *

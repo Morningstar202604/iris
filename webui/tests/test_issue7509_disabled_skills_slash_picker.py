@@ -1,7 +1,7 @@
 """Issue #7509: disabled skills must not be offered by the slash-command picker.
 
 ``skills.disabled`` entries are already excluded from the backend skill-command
-map (``scan_skill_commands`` in the hermes-agent runtime), so the WebUI picker is
+map (``scan_skill_commands`` in the iris-agent runtime), so the WebUI picker is
 the surface that leaks them. This suite runs the real ``static/commands.js``
 inside a ``vm`` context with a mocked ``api()`` and asserts on
 ``getSlashAutocompleteMatches()`` -- the entry point the composer calls -- for

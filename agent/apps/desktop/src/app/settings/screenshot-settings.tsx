@@ -14,7 +14,7 @@ type SettingsError = 'loadFailed' | 'saveFailed' | 'permissionFailed'
 export function ScreenshotSettings() {
   const { t } = useI18n()
   const s = t.settings.screenshot
-  const api = window.hermesDesktop?.screenshot
+  const api = window.irisDesktop?.screenshot
   const [status, setStatus] = useState<ScreenshotStatus | null>(null)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<SettingsError | null>(null)

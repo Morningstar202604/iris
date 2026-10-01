@@ -2,7 +2,7 @@
 
 Cross-session user modeling with dialectic Q&A, semantic search, peer cards and
 persistent conclusions; five tools (profile, search, reasoning, context, conclude).
-Config chain: $HERMES_HOME/honcho.json -> ~/.honcho/config.json -> env vars.
+Config chain: $IRIS_HOME/honcho.json -> ~/.honcho/config.json -> env vars.
 """
 
 from __future__ import annotations
@@ -192,13 +192,13 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
         except Exception:
             return False
 
-    def save_config(self, values, hermes_home):
-        """Merge ``values`` into $HERMES_HOME/honcho.json (Honcho SDK native format); a file that does not parse raises.
+    def save_config(self, values, iris_home):
+        """Merge ``values`` into $IRIS_HOME/honcho.json (Honcho SDK native format); a file that does not parse raises.
         Holds the token refresh locks so a rotation cannot land between the read and the write."""
         from pathlib import Path
         from utils import atomic_json_write
         from plugins.memory.honcho.oauth import _config_refresh_lock, _read_config_strict, _refresh_lock
-        config_path = Path(hermes_home) / "honcho.json"
+        config_path = Path(iris_home) / "honcho.json"
         with _refresh_lock, _config_refresh_lock(config_path):
             existing = _read_config_strict(config_path)
             atomic_json_write(config_path, {**existing, **values}, mode=0o600)
@@ -209,7 +209,7 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
             {"key": "baseUrl", "description": "Honcho base URL (for self-hosted)"},
         ]
 
-    def post_setup(self, hermes_home: str, config: dict) -> None:
+    def post_setup(self, iris_home: str, config: dict) -> None:
         """Run the full Honcho setup wizard after provider selection."""
         import types
         from plugins.memory.honcho.cli import cmd_setup
@@ -283,7 +283,7 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
             session_title=kwargs.get("session_title"), session_id=session_id,
             session_title_source=kwargs.get("session_title_source"),
             gateway_session_key=kwargs.get("gateway_session_key"),
-        ) or session_id or "hermes-default"
+        ) or session_id or "iris-default"
 
     def _can_start_init(self) -> bool:
         return not (self._cron_skipped or self._session_initialized) and bool(self._config) and self._lazy_init_kwargs is not None
@@ -298,7 +298,7 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
         if init_kwargs is None:  # another init path already consumed the deferred kwargs
             return self._manager is not None
         try:
-            self._do_session_init(self._config, self._lazy_init_session_id or "hermes-default", **dict(init_kwargs))
+            self._do_session_init(self._config, self._lazy_init_session_id or "iris-default", **dict(init_kwargs))
         except Exception as e:
             self._manager = None
             self._session_initialized = False
@@ -374,8 +374,8 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
                          self._session_key)
         elif not session.messages:
             try:
-                from hermes_constants import get_hermes_home
-                self._manager.migrate_memory_files(self._session_key, str(get_hermes_home() / "memories"))
+                from iris_constants import get_iris_home
+                self._manager.migrate_memory_files(self._session_key, str(get_iris_home() / "memories"))
                 logger.debug("Honcho memory file migration attempted for new session: %s", self._session_key)
             except Exception as e:
                 logger.debug("Honcho memory file migration skipped: %s", e)
@@ -612,7 +612,7 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
             msg = self._init_auth_failure
         return ("[Honcho memory status] Authentication with the Honcho memory backend has expired and automatic "
                 f"token refresh failed, so memory sync and recall are paused. Reason: {msg}\n"
-                "Tell the user (once) that Honcho memory is paused and that running 'hermes honcho setup' "
+                "Tell the user (once) that Honcho memory is paused and that running 'iris honcho setup' "
                 "to re-authenticate will restore it.")
 
     def _peer_failure_text(self) -> str:
@@ -620,7 +620,7 @@ class HonchoMemoryProvider(DialecticMixin, MemoryProvider):
         user id from the transport, never peerName: a shared peerName would merge every user onto one peer."""
         text = self._init_peer_failure or ""
         if self._init_peer_platform in _LOCAL_PLATFORMS:
-            return f"{text} Set one with 'hermes honcho peer --user <name>'."
+            return f"{text} Set one with 'iris honcho peer --user <name>'."
         return f"{text} This platform supplied no user id for the chat, so memory stays off here."
 
     def _pop_peer_notice(self) -> str:
@@ -1279,7 +1279,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

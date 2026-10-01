@@ -183,7 +183,7 @@ class TestLiveModelFetching:
         The old 'not_supported' return for Anthropic/Google is superseded: those
         providers now return live or static model lists via the agent delegate."""
         assert "provider_model_ids" in ROUTES_PY, (
-            "_handle_live_models must delegate to hermes_cli.models.provider_model_ids() "
+            "_handle_live_models must delegate to iris_cli.models.provider_model_ids() "
             "so all providers are handled uniformly (#375 upgrade)"
         )
 

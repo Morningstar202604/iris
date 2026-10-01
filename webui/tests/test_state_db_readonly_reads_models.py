@@ -229,12 +229,12 @@ def test_get_state_db_session_summary_opens_read_only(tmp_path, monkeypatch):
 def test_count_conversation_rounds_opens_read_only(tmp_path, monkeypatch):
     db = tmp_path / "state.db"
     _make_state_db(db)
-    # count_conversation_rounds resolves its DB via get_active_hermes_home()
-    # (falling back to $HERMES_HOME only on error), so patch that.
+    # count_conversation_rounds resolves its DB via get_active_iris_home()
+    # (falling back to $IRIS_HOME only on error), so patch that.
     import api.profiles as profiles
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
     calls = _record_connects(monkeypatch)
 
     rounds = models.count_conversation_rounds("sess-1")

@@ -227,7 +227,7 @@ def _connector_rpc(rid, params, action):
     runtime_token = _current_runtime_session_record.set(session)
     try:
         profile_home = session.get("profile_home")
-        with _session_profile_runtime_scope({"profile_home": profile_home or str(_hermes_home)}):
+        with _session_profile_runtime_scope({"profile_home": profile_home or str(_iris_home)}):
             tokens = _set_session_context(session["session_key"], cwd=_session_cwd(session), ui_session_id=request.owner.session_id)
             try:
                 result = _session_connector_rpc(rid, request, session, action)
@@ -365,7 +365,7 @@ def _(rid, params):
     if request.owner.type == "account":
         with _account_scope(request):
             return _apply_connection_answer(rid, answer, operation)
-    with _session_profile_runtime_scope({"profile_home": session.get("profile_home") or str(_hermes_home)}):
+    with _session_profile_runtime_scope({"profile_home": session.get("profile_home") or str(_iris_home)}):
         return _apply_connection_answer(rid, answer, operation)
 
 
@@ -396,7 +396,7 @@ def _operation_view(operation):
 
 
 def _connection_update(operation, change, snapshot):
-    from hermes_constants import get_process_hermes_home, hermes_home_key
+    from iris_constants import get_process_iris_home, iris_home_key
     from tui_gateway import server
     from tui_gateway.connector_payload import connector_ui_payload
 
@@ -417,7 +417,7 @@ def _connection_update(operation, change, snapshot):
                 sid
                 for sid, session in server._sessions.items()
                 if session.get("session_key") == operation.session_key
-                and hermes_home_key(session.get("profile_home") or get_process_hermes_home()) == operation.profile_key
+                and iris_home_key(session.get("profile_home") or get_process_iris_home()) == operation.profile_key
             ),
             None,
         )

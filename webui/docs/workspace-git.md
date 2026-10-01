@@ -3,7 +3,7 @@
 Workspace Git controls let the browser inspect Git state for the active session workspace. By default,
 WebUI can read status, list branches, show diffs, fetch remote refs, and generate commit-message
 suggestions. Actions that modify the repository, index, or worktree are disabled unless the WebUI
-process is started with `HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1`.
+process is started with `IRIS_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1`.
 
 > **Trust model - read this first.** Once mutating Git actions are enabled, a browser action can run
 > Git commands inside a mounted workspace. Some Git commands can also run repository hook code from
@@ -13,7 +13,7 @@ process is started with `HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1`.
 
 ## What works by default
 
-Without `HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1`, WebUI can:
+Without `IRIS_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1`, WebUI can:
 
 - show repository status
 - list branches
@@ -32,7 +32,7 @@ return metadata instead of inline diff text.
 
 ## What requires explicit enablement
 
-These actions are blocked unless `HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1` is set:
+These actions are blocked unless `IRIS_WEBUI_WORKSPACE_GIT_DESTRUCTIVE=1` is set:
 
 - stage and unstage
 - discard changes

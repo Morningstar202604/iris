@@ -10,7 +10,7 @@ maintenance is therefore an operator action run while the agent is idle.
 
 Usage::
 
-    python scripts/ensure_state_db_read_indexes.py --db ~/.hermes/state.db \\
+    python scripts/ensure_state_db_read_indexes.py --db ~/.iris/state.db \\
         --confirm-drained [--lock-file /path/to/agent-activity.lock]
 
 ``--confirm-drained`` is mandatory. When ``--lock-file`` is given, the tool

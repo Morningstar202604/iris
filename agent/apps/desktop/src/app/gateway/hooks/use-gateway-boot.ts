@@ -6,13 +6,13 @@ import {
   JSON_RPC_METHOD_NOT_FOUND,
   JsonRpcGatewayError,
   reconnectBackoffDelayMs
-} from '@hermes/shared'
+} from '@iris/shared'
 import { useEffect, useRef } from 'react'
 
 import { createGatewayEventDedupe } from '@/app/gateway/gateway-event-dedupe'
 import { shouldApplyPostBootProgressError } from '@/components/boot-failure-reauth'
-import type { DesktopBootProgress, HermesConnection, HermesWindowState } from '@/global'
-import { HermesGateway } from '@/hermes'
+import type { DesktopBootProgress, IrisConnection, IrisWindowState } from '@/global'
+import { IrisGateway } from '@/iris'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd } from '@/lib/desktop-fs'
 import {
@@ -154,7 +154,7 @@ const BOOT_RETRY_BASE_DELAY_MS = 2_000
 // own connect timeout.
 
 /** Registry identity whose runtimes died with the primary connection. */
-export function primaryRuntimeConnectionId(connection: Pick<HermesConnection, 'connectionId' | 'mode'>): null | string {
+export function primaryRuntimeConnectionId(connection: Pick<IrisConnection, 'connectionId' | 'mode'>): null | string {
   const connectionId = connection.connectionId?.trim()
 
   if (connectionId) {
@@ -170,10 +170,10 @@ interface GatewayBootOptions {
   /** Server→client request from any registry socket; false = no handler (the channel answers -32601). */
   handleServerRequest: (request: ScopedServerRequest) => boolean
   onConnectionReady: (
-    connection: Awaited<ReturnType<NonNullable<typeof window.hermesDesktop>['getConnection']>> | null
+    connection: Awaited<ReturnType<NonNullable<typeof window.irisDesktop>['getConnection']>> | null
   ) => void
-  onGatewayReady: (gateway: HermesGateway | null) => void
-  refreshHermesConfig: (force?: boolean, shouldPublish?: () => boolean) => Promise<void>
+  onGatewayReady: (gateway: IrisGateway | null) => void
+  refreshIrisConfig: (force?: boolean, shouldPublish?: () => boolean) => Promise<void>
   refreshSessions: (shouldPublish?: () => boolean) => Promise<void>
 }
 
@@ -183,7 +183,7 @@ export function useGatewayBoot({
   handleServerRequest,
   onConnectionReady,
   onGatewayReady,
-  refreshHermesConfig,
+  refreshIrisConfig,
   refreshSessions
 }: GatewayBootOptions) {
   useDefaultProfilePreference()
@@ -195,7 +195,7 @@ export function useGatewayBoot({
     handleServerRequest,
     onConnectionReady,
     onGatewayReady,
-    refreshHermesConfig,
+    refreshIrisConfig,
     refreshSessions
   })
 
@@ -205,13 +205,13 @@ export function useGatewayBoot({
     handleServerRequest,
     onConnectionReady,
     onGatewayReady,
-    refreshHermesConfig,
+    refreshIrisConfig,
     refreshSessions
   }
 
   useEffect(() => {
     let cancelled = false
-    const desktop = window.hermesDesktop
+    const desktop = window.irisDesktop
 
     // Window-state IPC (fullscreen / traffic-light position) that lands while
     // no connection is published — mid-boot, or between a dropped primary and
@@ -219,9 +219,9 @@ export function useGatewayBoot({
     // chrome state into each descriptor at mint time, so a toggle that happens
     // AFTER the mint but BEFORE the renderer publishes it is newer than the
     // snapshot and would otherwise be lost until the next toggle (#108641).
-    let pendingWindowState: HermesWindowState | null = null
+    let pendingWindowState: IrisWindowState | null = null
 
-    const publish = (next: HermesConnection | null) => {
+    const publish = (next: IrisConnection | null) => {
       if (next && pendingWindowState) {
         next = { ...next, ...pendingWindowState }
         pendingWindowState = null
@@ -259,13 +259,13 @@ export function useGatewayBoot({
     // --- Reconnect-after-sleep machinery -------------------------------------
     // macOS sleep silently drops the renderer's WebSocket. The backend Python
     // process keeps running, but nothing re-opened the socket on wake, so the
-    // composer stayed disabled forever on "Starting Hermes...". Once the
+    // composer stayed disabled forever on "Starting Iris...". Once the
     // initial boot succeeds we treat any non-open state as recoverable and
     // reconnect with backoff, and we nudge a reconnect on the OS/browser
     // signals that fire around wake (power resume, network online, the window
     // becoming visible).
     let bootCompleted = false
-    // The other way a cold boot concludes. Main keeps startHermes() available
+    // The other way a cold boot concludes. Main keeps startIris() available
     // after the renderer gave up, and every later getConnection() caller
     // re-enters it, replaying `backend.resolve` (running:true) then
     // `backend.remote` (error:null) onto a renderer whose boot is over. Without
@@ -394,7 +394,7 @@ export function useGatewayBoot({
         // remote backend can become unreachable, but it has no child process
         // whose 'exit' would clear the main process's cached descriptor — without
         // this the renderer re-dials the same dead endpoint forever and stays on
-        // "Starting Hermes…". The probe is a no-op for a healthy or local backend.
+        // "Starting Iris…". The probe is a no-op for a healthy or local backend.
         // Bounded like the two awaits below: a wedged revalidation (#93454) is
         // the specific hang this loop must survive, not just a rejection.
         await withTimeout(
@@ -410,7 +410,7 @@ export function useGatewayBoot({
         const conn = await withTimeout(
           desktop.getConnection(),
           RECONNECT_ATTEMPT_TIMEOUT_MS,
-          'Timed out reconnecting to Hermes backend'
+          'Timed out reconnecting to Iris backend'
         )
 
         setPrimaryGatewayConnection(conn)
@@ -429,7 +429,7 @@ export function useGatewayBoot({
         // Re-mint the WS URL before reconnecting. OAuth tickets are single-use
         // with a short TTL, so the ticket baked into the cached conn.wsUrl is
         // dead on every reconnect after the initial boot — reusing it surfaces
-        // as an opaque "Could not connect to Hermes gateway". resolveGatewayWsUrl
+        // as an opaque "Could not connect to Iris gateway". resolveGatewayWsUrl
         // mints a fresh ticket rather than connecting with a stale one. An
         // explicit auth rejection asks for sign-in; transport failures stay in
         // this reconnect loop. For local/token gateways the URL carries a
@@ -471,7 +471,7 @@ export function useGatewayBoot({
         // A manual retry may finish after the user has moved to another route.
         if (!manual || (isActivePrimary() && gatewayActivationEpoch() === manual.activationEpoch)) {
           reconcileBusyStatesOnReconnect()
-          await callbacksRef.current.refreshHermesConfig().catch(() => undefined)
+          await callbacksRef.current.refreshIrisConfig().catch(() => undefined)
           await callbacksRef.current.refreshSessions().catch(() => undefined)
         }
       } catch (err) {
@@ -637,7 +637,7 @@ export function useGatewayBoot({
     // session id against the wrong backend — the HUD then falls back to the
     // default profile's last session (#82285). The override wins over the
     // stored preference; absent, behavior is unchanged.
-    async function getWindowBackend(startup = false): Promise<HermesConnection> {
+    async function getWindowBackend(startup = false): Promise<IrisConnection> {
       const profile = windowProfileOverride()
       const peer = isPeerInstanceWindow()
 
@@ -657,7 +657,7 @@ export function useGatewayBoot({
     }
 
     async function adoptPrimaryProfile(
-      connection: HermesConnection,
+      connection: IrisConnection,
       shouldPublish: () => boolean = () => true
     ): Promise<boolean> {
       // The resolved descriptor reflects the explicit startup default. The
@@ -746,7 +746,7 @@ export function useGatewayBoot({
         const conn = await withTimeout(
           getWindowBackend(),
           BACKEND_BOOT_WAIT_TIMEOUT_MS,
-          'Timed out reconnecting to Hermes backend'
+          'Timed out reconnecting to Iris backend'
         )
 
         if (!ownsSwitch()) {
@@ -792,7 +792,7 @@ export function useGatewayBoot({
 
         await Promise.all([
           seedDefaultCwd(ownsSwitch),
-          callbacksRef.current.refreshHermesConfig(false, ownsSwitch).catch(() => undefined),
+          callbacksRef.current.refreshIrisConfig(false, ownsSwitch).catch(() => undefined),
           callbacksRef.current.refreshSessions(ownsSwitch).catch(() => undefined)
         ])
 
@@ -840,7 +840,7 @@ export function useGatewayBoot({
         return
       }
 
-      // Soft switch / post-boot startHermes re-emits progress — ignore so the
+      // Soft switch / post-boot startIris re-emits progress — ignore so the
       // cold-boot CONNECTING overlay stays down. A boot that ended in failure
       // is concluded too: replaying its steps would take the recovery overlay
       // back down. Post-boot errors are gated:
@@ -904,7 +904,7 @@ export function useGatewayBoot({
       }
     }
 
-    const gateway = adoptedFromHmr ? survivor!.gateway : new HermesGateway()
+    const gateway = adoptedFromHmr ? survivor!.gateway : new IrisGateway()
 
     // Every socket this window owns (the primary below, every registry
     // secondary via onEvent) funnels through this one gate before any store
@@ -931,7 +931,7 @@ export function useGatewayBoot({
     configureGatewayRegistry({
       onServerRequest: request => {
         if (!callbacksRef.current.handleServerRequest(request)) {
-          request.fail(JSON_RPC_METHOD_NOT_FOUND, `Hermes Desktop cannot answer ${request.method}`)
+          request.fail(JSON_RPC_METHOD_NOT_FOUND, `Iris Desktop cannot answer ${request.method}`)
         }
       },
       // The primary socket has no secondary entry to carry registry identity.
@@ -1114,7 +1114,7 @@ export function useGatewayBoot({
         activeGateway()?.close()
 
         if (!(await ensureActiveGatewayOpen({ explicit: true }))) {
-          throw new Error('Hermes gateway is not connected')
+          throw new Error('Iris gateway is not connected')
         }
 
         return
@@ -1288,7 +1288,7 @@ export function useGatewayBoot({
         message: translateNow('boot.errors.backgroundExited'),
         durationMs: 0,
         action: {
-          label: translateNow('boot.errors.restartHermes'),
+          label: translateNow('boot.errors.restartIris'),
           onClick: requestBackendRestart
         },
         secondaryAction: {
@@ -1309,13 +1309,13 @@ export function useGatewayBoot({
         // backend directly — ensureBackend spawns/reuses it from the pool.
         // Full peers use the source/profile Electron pinned before loading.
         // Bounded like the reconnect path (#93454): a wedged main-process
-        // round-trip must not hang "Starting Hermes…" forever. Initial boot
+        // round-trip must not hang "Starting Iris…" forever. Initial boot
         // rides out a full backend cold spawn, so it gets the shared 45s
         // backend-boot budget, not the 20s reconnect budget.
         const conn = await withTimeout(
           getWindowBackend(true),
           BACKEND_BOOT_WAIT_TIMEOUT_MS,
-          'Timed out connecting to Hermes backend'
+          'Timed out connecting to Iris backend'
         )
 
         if (cancelled) {
@@ -1350,7 +1350,7 @@ export function useGatewayBoot({
         // conn.wsUrl is stale; resolveGatewayWsUrl() re-mints it rather than
         // connecting with a dead ticket. Auth rejection asks for sign-in. This
         // await is bounded like the reconnect path (#93454) so a wedged mint
-        // reaches the recovery affordance instead of hanging "Starting Hermes…".
+        // reaches the recovery affordance instead of hanging "Starting Iris…".
         const wsUrl = await withTimeout(
           resolveDesktopGatewayWsUrl(desktop, conn),
           RECONNECT_ATTEMPT_TIMEOUT_MS,
@@ -1389,12 +1389,12 @@ export function useGatewayBoot({
           // post-connect pass covers the remote backend default. Non-fatal: a
           // failed sync must not abort boot (the remembered cwd remains).
           seedDefaultCwd().catch(err => console.warn('Failed to sync default workspace cwd post-connect', err)),
-          callbacksRef.current.refreshHermesConfig(),
+          callbacksRef.current.refreshIrisConfig(),
           // Session-list population is never boot-fatal. The gateway WS is
           // already open by this point — a failed sidebar fetch (transient
           // blip, or an endpoint the fallback couldn't cover) must leave the
           // app usable with an empty sidebar (the reconnect/turn refreshes
-          // retry it), not brick boot behind the "Hermes couldn't start"
+          // retry it), not brick boot behind the "Iris couldn't start"
           // overlay. Matches the reconnect + softSwitch call sites.
           callbacksRef.current.refreshSessions().catch(() => {
             setSessionsLoading(false)
@@ -1470,7 +1470,7 @@ export function useGatewayBoot({
       // input doesn't sit disabled after the swap.
       reportPrimaryGatewayState(gateway.connectionState)
 
-      await callbacksRef.current.refreshHermesConfig().catch(() => undefined)
+      await callbacksRef.current.refreshIrisConfig().catch(() => undefined)
 
       if (cancelled) {
         return

@@ -81,12 +81,12 @@ def mouse_up(x, y):
     send_mouse(x, y, MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTUP)
 
 
-async def find_hermes_tab():
+async def find_iris_tab():
     tabs = json.loads(urllib.request.urlopen("http://localhost:9222/json").read())
-    hermes = [t for t in tabs if "8787" in t.get("url", "") and t["type"] == "page" and "/session/" in t.get("url", "")]
-    if not hermes:
-        raise RuntimeError("No Hermes session tab found on :8787")
-    for t in hermes:
+    iris = [t for t in tabs if "8787" in t.get("url", "") and t["type"] == "page" and "/session/" in t.get("url", "")]
+    if not iris:
+        raise RuntimeError("No Iris session tab found on :8787")
+    for t in iris:
         ws_url = t["webSocketDebuggerUrl"]
         try:
             async with websockets.connect(ws_url, max_size=1*1024*1024) as ws:
@@ -103,7 +103,7 @@ async def find_hermes_tab():
                         break
         except Exception:
             continue
-    raise RuntimeError("No tab with scrollbar fix deployed. Hard-refresh a Hermes session tab.")
+    raise RuntimeError("No tab with scrollbar fix deployed. Hard-refresh a Iris session tab.")
 
 MSG_ID = 0
 def next_id():
@@ -133,7 +133,7 @@ async def ev(ws, expr):
     return result
 
 async def run():
-    ws_url = await find_hermes_tab()
+    ws_url = await find_iris_tab()
     print(f"Connected to {ws_url}")
 
     async with websockets.connect(ws_url, max_size=5*1024*1024) as ws:

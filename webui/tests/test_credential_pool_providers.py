@@ -10,32 +10,32 @@ import api.profiles as profiles
 _AMBIENT_SOURCES = {"gh_cli", "gh auth token"}
 
 
-def _install_fake_hermes_cli(monkeypatch, *, with_load_pool: bool = False, pool_data: dict | None = None):
-    """Stub hermes_cli modules so tests are deterministic and offline.
+def _install_fake_iris_cli(monkeypatch, *, with_load_pool: bool = False, pool_data: dict | None = None):
+    """Stub iris_cli modules so tests are deterministic and offline.
 
-    When *with_load_pool* is True, also stubs hermes_cli.credential_pool with a
+    When *with_load_pool* is True, also stubs iris_cli.credential_pool with a
     suppression-aware load_pool() implementation that mirrors upstream behaviour:
     entries whose source/label/key_source signals ambient gh-cli auth are filtered out.
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda pid: (
         ["gpt-oss:20b", "qwen3:30b-a3b"] if pid == "ollama-cloud" else []
     )
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
     # Always remove the real agent.credential_pool so get_available_models() takes
     # the ImportError fallback path and reads from the monkeypatched auth store,
-    # not the live ~/.hermes/auth.json via the real venv module.
+    # not the live ~/.iris/auth.json via the real venv module.
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
 
@@ -76,15 +76,15 @@ def _install_fake_hermes_cli(monkeypatch, *, with_load_pool: bool = False, pool_
 
 
 def _call_get_available_models(monkeypatch, tmp_path, auth_payload, *, with_load_pool: bool = False):
-    """Call get_available_models() with auth.json pinned to a temp Hermes home."""
-    _install_fake_hermes_cli(
+    """Call get_available_models() with auth.json pinned to a temp Iris home."""
+    _install_fake_iris_cli(
         monkeypatch,
         with_load_pool=with_load_pool,
         pool_data=auth_payload.get("credential_pool", {}),
     )
 
     (tmp_path / "auth.json").write_text(json.dumps(auth_payload), encoding="utf-8")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
@@ -455,17 +455,17 @@ def test_auth_store_active_provider_alias_is_resolved(monkeypatch, tmp_path):
 
 
 def test_ollama_cloud_empty_catalog_skips_group(monkeypatch, tmp_path):
-    """When hermes_cli returns no models for ollama-cloud, the group is omitted.
+    """When iris_cli returns no models for ollama-cloud, the group is omitted.
 
     Matches the named-custom and unknown-provider branches: we don't invent a
     catalog we can't enumerate. The logger.warning in the except branch keeps
     diagnostics available for operators.
     """
-    _install_fake_hermes_cli(monkeypatch)
+    _install_fake_iris_cli(monkeypatch)
 
     # Override the stub to return empty for ollama-cloud.
     import sys as _sys
-    _sys.modules["hermes_cli.models"].provider_model_ids = lambda pid: []
+    _sys.modules["iris_cli.models"].provider_model_ids = lambda pid: []
 
     auth_payload = {
         "version": 1,
@@ -484,7 +484,7 @@ def test_ollama_cloud_empty_catalog_skips_group(monkeypatch, tmp_path):
     }
 
     (tmp_path / "auth.json").write_text(json.dumps(auth_payload), encoding="utf-8")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
@@ -554,7 +554,7 @@ def test_fallback_path_resolves_alias_when_load_pool_unavailable(monkeypatch, tm
     """When agent.credential_pool can't be imported, the manual-inspection
     branch must still canonicalize pool keys so aliased names (e.g. 'google')
     end up under their canonical provider id ('gemini')."""
-    _install_fake_hermes_cli(monkeypatch)
+    _install_fake_iris_cli(monkeypatch)
     # Ensure agent.credential_pool is not importable so the fallback branch runs.
     monkeypatch.setitem(sys.modules, "agent.credential_pool", None)
 
@@ -575,7 +575,7 @@ def test_fallback_path_resolves_alias_when_load_pool_unavailable(monkeypatch, tm
     }
 
     (tmp_path / "auth.json").write_text(json.dumps(auth_payload), encoding="utf-8")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
@@ -611,12 +611,12 @@ def test_fallback_path_resolves_alias_when_load_pool_unavailable(monkeypatch, tm
 def test_ambient_gh_cli_not_detectable_by_provider_has_key(monkeypatch, tmp_path):
     """Regression: _provider_has_key('copilot') must return False when only
     ambient gh auth token (gh_cli) is in the pool."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "copilot": [
             {"id": "ambient-1", "label": "gh auth token", "source": "gh_cli", "auth_type": "api_key"},
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _provider_has_key
 
@@ -628,12 +628,12 @@ def test_ambient_gh_cli_not_detectable_by_provider_has_key(monkeypatch, tmp_path
 def test_ambient_gh_env_not_detectable_by_provider_has_key(monkeypatch, tmp_path):
     """Regression: _provider_has_key('copilot') must return False when only
     GITHUB_TOKEN env-variable entry is in the pool."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "copilot": [
             {"id": "env-1", "label": "env-token", "source": "env:github_token", "auth_type": "api_key"},
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _provider_has_key
 
@@ -645,7 +645,7 @@ def test_ambient_gh_env_not_detectable_by_provider_has_key(monkeypatch, tmp_path
 def test_ambient_key_source_not_detectable_by_provider_has_key(monkeypatch, tmp_path):
     """Regression: _provider_has_key('copilot') must return False when only
     key_source='gh auth token' entries exist."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "copilot": [
             {
                 "id": "key-src-1", "label": "copilot-pat",
@@ -654,7 +654,7 @@ def test_ambient_key_source_not_detectable_by_provider_has_key(monkeypatch, tmp_
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _provider_has_key
 
@@ -668,7 +668,7 @@ def test_ambient_key_source_not_detectable_by_provider_has_key(monkeypatch, tmp_
 
 def test_custom_provider_explicit_credential_detected_by_provider_has_key(monkeypatch, tmp_path):
     """Positive: custom:bothub with explicit manual entry must show _provider_has_key=True."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "bothub-1",
@@ -680,7 +680,7 @@ def test_custom_provider_explicit_credential_detected_by_provider_has_key(monkey
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _provider_has_key
 
@@ -693,7 +693,7 @@ def test_custom_provider_detected_by_get_providers(monkeypatch, tmp_path):
     """Positive: custom:bothub must appear in get_providers() with has_key=True."""
     config._CREDENTIAL_POOL_CACHE.clear()
 
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "bothub-prov-1",
@@ -705,7 +705,7 @@ def test_custom_provider_detected_by_get_providers(monkeypatch, tmp_path):
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     # Custom providers need to be in config.yaml for get_providers() to list them
     old_cfg = dict(config.cfg)
@@ -751,7 +751,7 @@ def test_custom_provider_detected_by_get_available_models(monkeypatch, tmp_path)
     """Positive: custom provider with explicit pool credentials must appear as a group."""
     config._CREDENTIAL_POOL_CACHE.clear()
 
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "bothub-mod-1",
@@ -763,7 +763,7 @@ def test_custom_provider_detected_by_get_available_models(monkeypatch, tmp_path)
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     # Need both auth.json (for pool) and custom_providers config (for model enumeration)
     (tmp_path / "auth.json").write_text(json.dumps({
@@ -812,7 +812,7 @@ def test_custom_provider_detected_by_get_available_models(monkeypatch, tmp_path)
 def test_get_provider_api_key_prefers_runtime_api_key_over_access_token(monkeypatch, tmp_path):
     """_get_provider_api_key must return runtime_api_key when both access_token
     and runtime_api_key are present (runtime_api_key has priority)."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "tok-order-1",
@@ -825,7 +825,7 @@ def test_get_provider_api_key_prefers_runtime_api_key_over_access_token(monkeypa
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _get_provider_api_key
 
@@ -837,7 +837,7 @@ def test_get_provider_api_key_prefers_runtime_api_key_over_access_token(monkeypa
 
 def test_get_provider_api_key_falls_back_to_access_token(monkeypatch, tmp_path):
     """_get_provider_api_key must fall back to access_token when runtime_api_key is absent."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "tok-fallback-1",
@@ -849,7 +849,7 @@ def test_get_provider_api_key_falls_back_to_access_token(monkeypatch, tmp_path):
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     from api.providers import _get_provider_api_key
 
@@ -864,12 +864,12 @@ def test_get_provider_api_key_falls_back_to_access_token(monkeypatch, tmp_path):
 
 def test_has_explicit_pool_credentials_ambient_only_is_false(monkeypatch, tmp_path):
     """_has_explicit_pool_credentials must return False when only ambient entries exist."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "copilot": [
             {"id": "u-amb-1", "label": "gh auth token", "source": "gh_cli", "auth_type": "api_key"},
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     config._CREDENTIAL_POOL_CACHE.clear()
 
     from api.config import _has_explicit_pool_credentials
@@ -879,7 +879,7 @@ def test_has_explicit_pool_credentials_ambient_only_is_false(monkeypatch, tmp_pa
 
 def test_has_explicit_pool_credentials_explicit_is_true(monkeypatch, tmp_path):
     """_has_explicit_pool_credentials must return True when at least one explicit entry exists."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "custom:bothub": [
             {
                 "id": "u-exp-1", "label": "bothub-key", "source": "manual",
@@ -888,7 +888,7 @@ def test_has_explicit_pool_credentials_explicit_is_true(monkeypatch, tmp_path):
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     config._CREDENTIAL_POOL_CACHE.clear()
 
     from api.config import _has_explicit_pool_credentials
@@ -898,7 +898,7 @@ def test_has_explicit_pool_credentials_explicit_is_true(monkeypatch, tmp_path):
 
 def test_has_explicit_pool_credentials_mixed_is_true(monkeypatch, tmp_path):
     """_has_explicit_pool_credentials must return True when both ambient and explicit entries exist."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         "copilot": [
             {"id": "u-mix-amb", "label": "gh auth token", "source": "gh_cli", "auth_type": "api_key"},
             {
@@ -908,7 +908,7 @@ def test_has_explicit_pool_credentials_mixed_is_true(monkeypatch, tmp_path):
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     config._CREDENTIAL_POOL_CACHE.clear()
 
     from api.config import _has_explicit_pool_credentials
@@ -918,7 +918,7 @@ def test_has_explicit_pool_credentials_mixed_is_true(monkeypatch, tmp_path):
 
 def test_has_explicit_pool_credentials_resolves_alias(monkeypatch, tmp_path):
     """_has_explicit_pool_credentials must resolve provider aliases (google -> gemini)."""
-    _install_fake_hermes_cli(monkeypatch, with_load_pool=True, pool_data={
+    _install_fake_iris_cli(monkeypatch, with_load_pool=True, pool_data={
         # Pool data is stored under canonical ID 'gemini' after alias resolution
         "gemini": [
             {
@@ -928,7 +928,7 @@ def test_has_explicit_pool_credentials_resolves_alias(monkeypatch, tmp_path):
             },
         ],
     })
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     config._CREDENTIAL_POOL_CACHE.clear()
 
     # Should work with both alias 'google' and canonical 'gemini'
@@ -944,8 +944,8 @@ def test_has_explicit_pool_credentials_resolves_alias(monkeypatch, tmp_path):
 
 def test_has_explicit_pool_credentials_import_error_is_false(monkeypatch, tmp_path):
     """_has_explicit_pool_credentials must return False when load_pool not available."""
-    _install_fake_hermes_cli(monkeypatch)  # no with_load_pool — agent.credential_pool is removed
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    _install_fake_iris_cli(monkeypatch)  # no with_load_pool — agent.credential_pool is removed
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     config._CREDENTIAL_POOL_CACHE.clear()
 
     from api.config import _has_explicit_pool_credentials

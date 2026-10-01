@@ -1,7 +1,7 @@
 """Host-wide singleton rendezvous: one lock + one record per ROLE per OS user.
 
-Multiplex-only (Teknium ruling): exactly ONE ``hermes serve`` and ONE ``hermes gateway run``
-per host, each multiplexing every profile. The per-``HERMES_HOME`` gateway lock/PID files
+Multiplex-only (Teknium ruling): exactly ONE ``iris serve`` and ONE ``iris gateway run``
+per host, each multiplexing every profile. The per-``IRIS_HOME`` gateway lock/PID files
 (``gateway.status``) cannot express that — N profiles are N homes, so N processes each take
 their own flock and none of them ever sees the others. This module adds the missing layer:
 
@@ -10,17 +10,17 @@ their own flock and none of them ever sees the others. This module adds the miss
   is the same live process, and ATTACH instead of binding a second port.
 
 Both live in :func:`gateway.status._get_lock_dir` — the only cross-profile lock root already
-in the tree (``$HERMES_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks``),
+in the tree (``$IRIS_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/iris/gateway-locks``),
 which scopes to the **OS user**. That is the correct granularity: separate OS users have
-separate ``$HOME``s, separate ``~/.hermes`` profile roots, separate ports-by-convention and
+separate ``$HOME``s, separate ``~/.iris`` profile roots, separate ports-by-convention and
 separate credentials, so "one per host" means "one per host per OS user".
 
 **Staleness is proved, never assumed.** A record carries ``(pid, createTime)``; a record whose
 PID is dead, or whose PID is alive with a different process creation time (PID reuse), is
 STALE and is ignored — an attaching client must never dial a recycled PID's port.
 
-**Relationship to ``spawn-ledger.json``** (``hermes_cli/process_identity.py``): the ledger stays
-the append-only machine roster of every long-lived Hermes process (Desktop's attach ladder reads
+**Relationship to ``spawn-ledger.json``** (``iris_cli/process_identity.py``): the ledger stays
+the append-only machine roster of every long-lived Iris process (Desktop's attach ladder reads
 it) and is still written unchanged. It cannot be the host record: it has no lock, no
 single-writer semantics, no removal on exit, and no place to publish a protocol version or
 an authentication handle. The record here is authoritative for "who owns this host role"; the
@@ -63,7 +63,7 @@ ROLE_GATEWAY = "gateway"
 ROLE_SERVE = "serve"
 #: A Desktop-owned pool child (loopback, random port, per-profile lifecycle). It is NOT a host
 #: owner — the attach/refuse ladder reads ``ROLE_SERVE`` only, so a supervised public dashboard
-#: never stands down behind it (#119824) — but ``hermes plugins install`` from a terminal still
+#: never stands down behind it (#119824) — but ``iris plugins install`` from a terminal still
 #: has to reach the backend hosting the open chats (#119644), and this record + 0600 token is
 #: how it dials one on a Desktop-only box.
 ROLE_DESKTOP_SERVE = "desktop-serve"
@@ -71,7 +71,7 @@ _ROLES = (ROLE_GATEWAY, ROLE_SERVE, ROLE_DESKTOP_SERVE)
 
 # Open lock handles, keyed by (role, resolved lock path): the OS releases the flock when this
 # process dies, which is what makes a crashed owner's host lock re-acquirable without a reaper.
-# The PATH is part of the key because the lock dir is env-derived (HERMES_GATEWAY_LOCK_DIR):
+# The PATH is part of the key because the lock dir is env-derived (IRIS_GATEWAY_LOCK_DIR):
 # keyed by role alone, a second call after the dir changed returned "already held" without ever
 # creating the new lock file, so owns_host_lock() lied and one pytest process leaked the handle
 # across tests.
@@ -91,7 +91,7 @@ class HostRecord:
     token_fingerprint: str
     profiles: tuple[str, ...]
     updated_at: str
-    #: HERMES_HOME the owner was launched from. The attach channel (``gateway.control_socket``) is
+    #: IRIS_HOME the owner was launched from. The attach channel (``gateway.control_socket``) is
     #: keyed by home, so without it a client can only guess the default root — wrong as soon as a
     #: named profile launches the host process. Absent in records written before this field; added
     #: WITHOUT a protocol bump on purpose, because a bump would make every live owner's record read
@@ -211,14 +211,14 @@ def token_fingerprint(token: str) -> str:
 
 def process_create_time(pid: Optional[int] = None) -> Optional[float]:
     """Creation time of ``pid`` (default: this process); ``None`` when unknowable."""
-    from hermes_cli.process_identity import _process_create_time
+    from iris_cli.process_identity import _process_create_time
 
     return _process_create_time(pid)
 
 
 def _pid_incarnation_matches(pid: int, create_time: Optional[float]) -> Optional[bool]:
     """Reuse the spawn ledger's proof: True/False when provable, ``None`` when it cannot say."""
-    from hermes_cli.process_identity import _pid_alive_matches
+    from iris_cli.process_identity import _pid_alive_matches
 
     return _pid_alive_matches(pid, create_time)
 
@@ -276,7 +276,7 @@ def probe_owner(record: HostRecord, *, timeout: float = PROBE_TIMEOUT_S) -> Opti
     import urllib.request
 
     token = read_token(record.role)
-    headers = {"X-Hermes-Token": token, "Authorization": f"Bearer {token}"} if token else {}
+    headers = {"X-Iris-Token": token, "Authorization": f"Bearer {token}"} if token else {}
     request = urllib.request.Request(
         f"http://{host}:{record.port}{HOST_IDENTITY_PATH}", headers=headers)
     try:
@@ -349,7 +349,7 @@ def _write_private_text(path: Path, text: str) -> None:
     token file another process still holds open fails on Windows.
     """
     if sys.platform == "win32":
-        from hermes_cli.windows_ssh_runtime import write_private_file
+        from iris_cli.windows_ssh_runtime import write_private_file
 
         write_private_file(path, text.encode("utf-8"))
         return
@@ -443,7 +443,7 @@ def publish_record(
     """Publish this process as the host owner of ``role``. ``None`` when the write failed.
 
     ``token`` (serve) is persisted 0600 next to the record and only its fingerprint is published.
-    ``home`` is the launch HERMES_HOME — the key an attaching client needs to reach this owner's
+    ``home`` is the launch IRIS_HOME — the key an attaching client needs to reach this owner's
     control socket.
     """
     role = _validated_role(role)
@@ -578,7 +578,7 @@ def cleanup_on_exit(role: str) -> None:
 
 def _multiplex_profiles_enabled() -> bool:
     """Will THIS process multiplex? An explicit ``true`` and an unset key both say yes, and an
-    explicit ``false`` is RETIRED (``hermes_cli.gateway_multiplex_mode``) — it is warned about and
+    explicit ``false`` is RETIRED (``iris_cli.gateway_multiplex_mode``) — it is warned about and
     ignored at boot, so it must not make the claim-time record advertise a narrower roster than
     the process actually serves. Reading it here was the last place the retired flag still decided
     topology, and it made CLI/dashboard report "standalone, serving default" while the runtime
@@ -596,7 +596,7 @@ def served_profiles(*, multiplex: Optional[bool] = None) -> tuple[str, ...]:
     and a second profile's supervised unit then stood down against a set nobody serves.
     """
     try:
-        from hermes_cli.profiles import profiles_to_serve
+        from iris_cli.profiles import profiles_to_serve
 
         enabled = _multiplex_profiles_enabled() if multiplex is None else bool(multiplex)
         return tuple(name for name, _ in profiles_to_serve(multiplex=enabled))

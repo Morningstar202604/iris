@@ -1,6 +1,6 @@
 """Regression tests for issue #5307 — delegated subagent child transcript load.
 
-A delegated ``delegate_task`` child is recorded in Hermes ``state.db`` with
+A delegated ``delegate_task`` child is recorded in Iris ``state.db`` with
 ``source='subagent'`` and usually has **no WebUI JSON sidecar** (it ran
 server-side; its transcript lives only in state.db). But its ``session_id`` is
 registered in the WebUI ``_index.json`` sharing the parent's lineage, often as
@@ -40,7 +40,7 @@ def _make_state_db(path: Path, sid: str, *, message_count: int = 2,
                    source: str = "tui", cwd: str = "/root") -> None:
     """Create a minimal state.db with one session and a few messages.
 
-    Schema mirrors hermes_state.SessionDB closely enough for
+    Schema mirrors iris_state.SessionDB closely enough for
     get_state_db_session_messages to return rows.
     """
     conn = sqlite3.connect(str(path))

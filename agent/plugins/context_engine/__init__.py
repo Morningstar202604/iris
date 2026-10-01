@@ -1,5 +1,5 @@
 """Context engine plugin discovery: bundled ``plugins/context_engine/<name>/`` then user
-``$HERMES_HOME/plugins/<name>/`` (bundled wins on collision) → ``ContextEngine``. Separate from the
+``$IRIS_HOME/plugins/<name>/`` (bundled wins on collision) → ``ContextEngine``. Separate from the
 general plugin system: ``context.engine`` in config.yaml names the active engine (default
 ``"compressor"``, the built-in ContextCompressor), so a user-installed engine needs no
 ``plugins.enabled`` entry to be selectable."""
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 _CONTEXT_ENGINE_PLUGINS_DIR = Path(__file__).parent
 # Synthetic parent package for user-installed engines (keeps them out of the bundled namespace).
-_USER_NAMESPACE = "_hermes_user_context_engine"
+_USER_NAMESPACE = "_iris_user_context_engine"
 
 
 def _is_context_engine_dir(path: Path) -> bool:
@@ -101,14 +101,14 @@ class _EngineCollector(_loader.NoopPluginContext):
             return
         conflict = "Context engine '%s' tried to register command '/%s' which %s Skipping."
         try:
-            from hermes_cli.commands import resolve_command
+            from iris_cli.commands import resolve_command
             if resolve_command(clean) is not None:
                 logger.warning(conflict, self._engine_name, clean, "conflicts with a built-in command.")
                 return
         except Exception:
             pass
         try:
-            from hermes_cli.plugins import get_plugin_manager
+            from iris_cli.plugins import get_plugin_manager
             manager = get_plugin_manager()
             if clean in manager._plugin_commands:
                 logger.warning(conflict, self._engine_name, clean, "is already registered by a plugin.")

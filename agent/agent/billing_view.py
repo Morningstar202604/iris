@@ -256,7 +256,7 @@ def fetch_portal_state(
     ``portal_fallback(portal_base_url)``.
     """
     try:
-        import hermes_cli.nous_billing as nb
+        import iris_cli.nous_billing as nb
     except Exception:
         return failed(error="billing client unavailable")
     try:
@@ -280,7 +280,7 @@ def fetch_portal_state(
 
 
 def build_billing_state(*, timeout: float = 15.0) -> BillingState:
-    """Fetch + parse ``/api/billing/state``; fail-open. ``HERMES_DEV_BILLING_FIXTURE`` short-circuits to a fixture."""
+    """Fetch + parse ``/api/billing/state``; fail-open. ``IRIS_DEV_BILLING_FIXTURE`` short-circuits to a fixture."""
     fixture = _dev_fixture_billing_state()
     if fixture is not None:
         return fixture
@@ -301,12 +301,12 @@ _FIXTURE_ALIASES = {
 
 
 def _dev_fixture_billing_state() -> Optional[BillingState]:
-    """``HERMES_DEV_BILLING_FIXTURE`` -> :class:`BillingState` for offline UX; None when unset.
+    """``IRIS_DEV_BILLING_FIXTURE`` -> :class:`BillingState` for offline UX; None when unset.
 
     Names: nocard · card · card-sub · card-autoreload · notadmin · billing-off · logged-out; an
     unknown name yields logged-out with ``error`` so the misconfiguration is visible.
     """
-    name = (os.getenv("HERMES_DEV_BILLING_FIXTURE") or "").strip().lower()
+    name = (os.getenv("IRIS_DEV_BILLING_FIXTURE") or "").strip().lower()
     if not name:
         return None
     name = _FIXTURE_ALIASES.get(name, name)
@@ -329,7 +329,7 @@ def _dev_fixture_billing_state() -> Optional[BillingState]:
         "billing-off": dict(card=None, cli_billing_enabled=False),
     }
     if name not in overrides:
-        return BillingState(logged_in=False, error=f"unknown HERMES_DEV_BILLING_FIXTURE: {name}")
+        return BillingState(logged_in=False, error=f"unknown IRIS_DEV_BILLING_FIXTURE: {name}")
     return BillingState(**{**common, **overrides[name]})
 
 

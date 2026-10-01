@@ -33,7 +33,7 @@ export function mountIntroReveal(): void {
   // Native ready-to-show can precede the first React paint.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
-      window.hermesDesktop?.introReveal?.ready()
+      window.irisDesktop?.introReveal?.ready()
     })
   )
 }

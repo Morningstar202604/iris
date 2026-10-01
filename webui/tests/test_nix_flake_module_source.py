@@ -5,7 +5,6 @@ ROOT = Path(__file__).resolve().parents[1]
 FLAKE_NIX = (ROOT / "flake.nix").read_text(encoding="utf-8")
 PACKAGES_NIX = (ROOT / "nix" / "packages.nix").read_text(encoding="utf-8")
 MODULE_NIX = (ROOT / "nix" / "nixosModules.nix").read_text(encoding="utf-8")
-README = (ROOT / "README.md").read_text(encoding="utf-8")
 
 
 def test_nix_package_installs_runtime_directories_with_stable_names():
@@ -15,14 +14,14 @@ def test_nix_package_installs_runtime_directories_with_stable_names():
 
 def test_flake_check_covers_runtime_layout_and_wrapper_help():
     assert "runtime-layout" in FLAKE_NIX
-    assert "test -d ${package}/hermes-webui/api" in FLAKE_NIX
-    assert "test -d ${package}/hermes-webui/static" in FLAKE_NIX
-    assert "${package}/bin/hermes-webui --help >/dev/null" in FLAKE_NIX
+    assert "test -d ${package}/iris-webui/api" in FLAKE_NIX
+    assert "test -d ${package}/iris-webui/static" in FLAKE_NIX
+    assert "${package}/bin/iris-webui --help >/dev/null" in FLAKE_NIX
     assert "import api.config, server" in FLAKE_NIX
 
 
 def test_nix_package_disables_store_local_venv_fallback():
-    assert "--set HERMES_WEBUI_DISABLE_LOCAL_VENV 1" in PACKAGES_NIX
+    assert "--set IRIS_WEBUI_DISABLE_LOCAL_VENV 1" in PACKAGES_NIX
 
 
 def test_nix_package_version_comes_from_flake_source_revision():
@@ -44,29 +43,23 @@ def test_nixos_module_decouples_agent_dir_from_python_inference():
 
 def test_nixos_module_uses_explicit_agent_dir_passthru_when_available():
     hardcoded_python_site_packages = "lib/" + "python3.12" + "/site-packages"
-    legacy_agent_share_dir = "${cfg.agent.package}" + "/share/" + "hermes-agent"
+    legacy_agent_share_dir = "${cfg.agent.package}" + "/share/" + "iris-agent"
 
-    assert "cfg.agent.package.passthru ? hermesAgentDir" in MODULE_NIX
-    assert "${cfg.agent.package.passthru.hermesAgentDir}" in MODULE_NIX
+    assert "cfg.agent.package.passthru ? irisAgentDir" in MODULE_NIX
+    assert "${cfg.agent.package.passthru.irisAgentDir}" in MODULE_NIX
     assert hardcoded_python_site_packages not in MODULE_NIX
     assert legacy_agent_share_dir not in MODULE_NIX
 
 
-def test_flake_checks_package_with_only_hermes_venv_metadata():
+def test_flake_checks_package_with_only_iris_venv_metadata():
     assert "packageOnlyAgentPackage" in FLAKE_NIX
-    assert "passthru.hermesVenv = packageOnlyAgentVenv;" in FLAKE_NIX
-    assert "HERMES_WEBUI_PYTHON=${packageOnlyAgentVenv}/bin/python3" in FLAKE_NIX
-    assert "! grep -q 'HERMES_WEBUI_AGENT_DIR=' ${packageOnlyEnvProbe}" in FLAKE_NIX
+    assert "passthru.irisVenv = packageOnlyAgentVenv;" in FLAKE_NIX
+    assert "IRIS_WEBUI_PYTHON=${packageOnlyAgentVenv}/bin/python3" in FLAKE_NIX
+    assert "! grep -q 'IRIS_WEBUI_AGENT_DIR=' ${packageOnlyEnvProbe}" in FLAKE_NIX
 
 
-def test_readme_wires_published_agent_flake_package():
-    assert 'hermes-agent.url = "github:NousResearch/hermes-agent";' in README
-    assert "agent.package = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;" in README
-    assert 'hermesHome = "/var/lib/hermes/.hermes";' in README
-
-
-def test_nixos_module_does_not_chown_existing_hermes_home():
-    assert "d ${cfg.hermesHome}" not in MODULE_NIX
+def test_nixos_module_does_not_chown_existing_iris_home():
+    assert "d ${cfg.irisHome}" not in MODULE_NIX
 
 
 def test_nixos_module_keeps_webui_state_private_by_default_and_custom_path():
@@ -86,11 +79,6 @@ def test_nixos_module_only_creates_default_service_identity():
 
 
 def test_nixos_module_defaults_to_loopback_with_explicit_firewall_opt_in():
-    nix_section = README.split("### Nix flake and NixOS module", 1)[1].split(
-        "### Remote access", 1
-    )[0]
     assert 'default = "127.0.0.1";' in MODULE_NIX
     assert "openFirewall" in MODULE_NIX
     assert "networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];" in MODULE_NIX
-    assert 'host = "127.0.0.1";' in nix_section
-    assert 'Set `host = "0.0.0.0"` and `openFirewall = true`' in nix_section

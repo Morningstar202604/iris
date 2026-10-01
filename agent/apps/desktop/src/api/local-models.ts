@@ -1,33 +1,33 @@
-import type { LocalCatalogModel, LocalHardware, LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalCatalogModel, LocalHardware, LocalModelsStatus, LocalRuntimeJob } from '@/types/iris'
 
-import { hermesApi, profileScoped } from './client'
+import { irisApi, profileScoped } from './client'
 
 // The desktop surface of the managed llama.cpp runtime: status/catalog
 // reads, download/install/activate jobs, and server control.
 
 export function getLocalModelsStatus(): Promise<LocalModelsStatus> {
-  return hermesApi<LocalModelsStatus>({
+  return irisApi<LocalModelsStatus>({
     ...profileScoped(),
     path: '/api/local-models/status'
   })
 }
 
 export function getLocalHardware(): Promise<LocalHardware> {
-  return hermesApi<LocalHardware>({
+  return irisApi<LocalHardware>({
     ...profileScoped(),
     path: '/api/local-models/hardware'
   })
 }
 
 export function getLocalCatalog(): Promise<{ models: LocalCatalogModel[] }> {
-  return hermesApi<{ models: LocalCatalogModel[] }>({
+  return irisApi<{ models: LocalCatalogModel[] }>({
     ...profileScoped(),
     path: '/api/local-models/catalog'
   })
 }
 
 export function installLocalRuntime(backend?: string): Promise<{ backend: string; job_id: string; tag: string }> {
-  return hermesApi<{ backend: string; job_id: string; tag: string }>({
+  return irisApi<{ backend: string; job_id: string; tag: string }>({
     ...profileScoped(),
     body: { backend: backend ?? null },
     method: 'POST',
@@ -45,7 +45,7 @@ export interface QuickstartResponse {
 }
 
 export function quickstartLocalModels(modelId?: string): Promise<QuickstartResponse> {
-  return hermesApi<QuickstartResponse>({
+  return irisApi<QuickstartResponse>({
     ...profileScoped(),
     body: { model_id: modelId ?? null },
     method: 'POST',
@@ -54,7 +54,7 @@ export function quickstartLocalModels(modelId?: string): Promise<QuickstartRespo
 }
 
 export function downloadLocalModel(modelId: string): Promise<{ already_downloaded?: boolean; job_id: null | string }> {
-  return hermesApi<{ already_downloaded?: boolean; job_id: null | string }>({
+  return irisApi<{ already_downloaded?: boolean; job_id: null | string }>({
     ...profileScoped(),
     body: { model_id: modelId },
     method: 'POST',
@@ -63,7 +63,7 @@ export function downloadLocalModel(modelId: string): Promise<{ already_downloade
 }
 
 export function deleteLocalModel(modelId: string): Promise<{ ok: boolean }> {
-  return hermesApi<{ ok: boolean }>({
+  return irisApi<{ ok: boolean }>({
     ...profileScoped(),
     method: 'DELETE',
     path: `/api/local-models/models/${encodeURIComponent(modelId)}`
@@ -71,21 +71,21 @@ export function deleteLocalModel(modelId: string): Promise<{ ok: boolean }> {
 }
 
 export function getLocalRuntimeJob(jobId: string): Promise<LocalRuntimeJob> {
-  return hermesApi<LocalRuntimeJob>({
+  return irisApi<LocalRuntimeJob>({
     ...profileScoped(),
     path: `/api/local-models/jobs/${encodeURIComponent(jobId)}`
   })
 }
 
 export function getLocalModelsJobs(): Promise<{ jobs: LocalRuntimeJob[] }> {
-  return hermesApi<{ jobs: LocalRuntimeJob[] }>({
+  return irisApi<{ jobs: LocalRuntimeJob[] }>({
     ...profileScoped(),
     path: '/api/local-models/jobs'
   })
 }
 
 export function activateLocalModel(modelId: string): Promise<{ job_id: string }> {
-  return hermesApi<{ job_id: string }>({
+  return irisApi<{ job_id: string }>({
     ...profileScoped(),
     body: { model_id: modelId },
     method: 'POST',
@@ -94,7 +94,7 @@ export function activateLocalModel(modelId: string): Promise<{ job_id: string }>
 }
 
 export function ejectLocalModel(modelId: string): Promise<{ ok: boolean }> {
-  return hermesApi<{ ok: boolean }>({
+  return irisApi<{ ok: boolean }>({
     ...profileScoped(),
     body: { model_id: modelId },
     method: 'POST',
@@ -103,7 +103,7 @@ export function ejectLocalModel(modelId: string): Promise<{ ok: boolean }> {
 }
 
 export function setLocalServer(action: 'start' | 'stop'): Promise<{ ok: boolean }> {
-  return hermesApi<{ ok: boolean }>({
+  return irisApi<{ ok: boolean }>({
     ...profileScoped(),
     body: { action },
     method: 'POST',
@@ -129,14 +129,14 @@ export interface HFFileGroup {
 }
 
 export function searchHFModels(q: string, limit = 20): Promise<{ hits: HFSearchHit[] }> {
-  return hermesApi<{ hits: HFSearchHit[] }>({
+  return irisApi<{ hits: HFSearchHit[] }>({
     ...profileScoped(),
     path: `/api/local-models/search?q=${encodeURIComponent(q)}&limit=${limit}`
   })
 }
 
 export function listHFRepoFiles(repo: string): Promise<{ files: HFFileGroup[] }> {
-  return hermesApi<{ files: HFFileGroup[] }>({
+  return irisApi<{ files: HFFileGroup[] }>({
     ...profileScoped(),
     path: `/api/local-models/search/files?repo=${encodeURIComponent(repo)}`
   })
@@ -146,7 +146,7 @@ export function downloadBrowsedModel(
   repo: string,
   paths: string[]
 ): Promise<{ already_downloaded?: boolean; job_id: null | string; model_id: string }> {
-  return hermesApi<{ already_downloaded?: boolean; job_id: null | string; model_id: string }>({
+  return irisApi<{ already_downloaded?: boolean; job_id: null | string; model_id: string }>({
     ...profileScoped(),
     body: { paths, repo },
     method: 'POST',
@@ -157,7 +157,7 @@ export function downloadBrowsedModel(
 export function sideloadLocalModel(
   path: string
 ): Promise<{ already_present?: boolean; model_id: string; ok: boolean }> {
-  return hermesApi<{ already_present?: boolean; model_id: string; ok: boolean }>({
+  return irisApi<{ already_present?: boolean; model_id: string; ok: boolean }>({
     ...profileScoped(),
     body: { path },
     method: 'POST',

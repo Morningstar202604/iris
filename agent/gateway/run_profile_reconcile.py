@@ -8,7 +8,7 @@ handoff/kanban watchers, shared ingress) already reads ``profiles_to_serve()`` /
 live, so reconciling those three is enough for a profile created after boot to be served.
 
 ``reconcile_served_profiles`` runs on the loop under one lock, triggered by the ``rescan-profiles`` control
-verb (``hermes_cli/profiles.py`` create/delete fire it through the control socket) and by the supervised
+verb (``iris_cli/profiles.py`` create/delete fire it through the control socket) and by the supervised
 ``_profile_reconcile_watcher`` every ``_PROFILE_RESCAN_INTERVAL_SECS`` as the safety net. A served profile whose ``config.yaml``/``.env``
 changed since its adapters were last built is re-scanned too: creators make the profile first and add the
 bot token afterwards, and without this an adapter-less profile would stay adapter-less forever.
@@ -251,7 +251,7 @@ class GatewayProfileReconcileMixin:
                 with _log_suppressed(logging.DEBUG, "agent eviction failed for %s", key, exc_info=True):
                     self._evict_cached_agent(key)
             with _log_suppressed(logging.DEBUG, "profile handle release failed", exc_info=True):
-                from hermes_state_registry import close_all_under
+                from iris_state_registry import close_all_under
                 close_all_under(home)
             with _log_suppressed(logging.DEBUG, "memory-store release failed", exc_info=True):
                 from plugins.memory.holographic.store import MemoryStore
@@ -264,7 +264,7 @@ def _profile_lifecycle_verb(runner, *, serve: bool):
     loop = asyncio.get_running_loop()
 
     async def apply(name):
-        from hermes_cli.profiles import profiles_to_serve, profile_is_parked
+        from iris_cli.profiles import profiles_to_serve, profile_is_parked
         if not runner._multiplex_on() or not runner._running or runner._served_profile_homes is None:
             return {"error": "host multiplexer is not ready"}
         async with runner._reconcile_lock():
@@ -345,7 +345,7 @@ def _for_each_served_profile(runner, body) -> None:
     """Run ``body(profile_label)`` once per served profile, inside that profile's runtime scope.
 
     Housekeeping runs on a bare thread with no turn on the stack, so nothing binds a profile for it:
-    ``get_hermes_home()`` and ``get_secret()`` see the LAUNCH profile's values, and under
+    ``get_iris_home()`` and ``get_secret()`` see the LAUNCH profile's values, and under
     ``gateway.multiplex_profiles`` a fail-closed credential read logs ``no profile secret scope on a
     multiplexed call`` on every tick (the skills-sync pulls resolved Nous credentials this way, four
     WARNINGs per hourly tick per chore). A single-profile gateway runs ``body`` once, unscoped:
@@ -378,7 +378,7 @@ def profile_scoped_chore(runner, chore):
 
 
 def migrate_profile_identity_verb(runner):
-    """Build the ``migrate-profile-identity`` control-verb handler for ``hermes profile rename``
+    """Build the ``migrate-profile-identity`` control-verb handler for ``iris profile rename``
     (#111926). The live multiplexer owns the routing index in memory and writes it back
     periodically, so a CLI-side rewrite of ``agent:<old>:*`` would be clobbered on the next save;
     the CLI therefore asks this process to rekey both durable stores AND ``SessionStore._entries``.
@@ -393,7 +393,7 @@ def migrate_profile_identity_verb(runner):
             return {"ok": False, "error": "live gateway has no session store"}
         acquired = []
         try:
-            from hermes_state_registry import acquire, release_or_close
+            from iris_state_registry import acquire, release_or_close
             db_counts: Dict[str, Dict[str, int]] = {}
             routing_db = getattr(store, "_routing_db", None)
             if routing_db is not None and hasattr(routing_db, "rekey_profile_state"):
@@ -420,7 +420,7 @@ def migrate_profile_identity_verb(runner):
 
 
 def purge_profile_identity_verb(runner):
-    """Build the ``purge-profile-identity`` control-verb handler for ``hermes profile delete``
+    """Build the ``purge-profile-identity`` control-verb handler for ``iris profile delete``
     (#111926, delete side). The live multiplexer owns the routing index in memory and writes it back
     periodically, so a CLI-side DELETE of ``agent:<name>:*`` rows would be undone by its next save;
     the CLI therefore asks this process to drop the durable rows AND ``SessionStore._entries``.

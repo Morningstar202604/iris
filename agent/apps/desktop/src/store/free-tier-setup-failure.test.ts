@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { $freeTierStatus, type FreeTierRequester, freeTierSetupFailure, provisionFreeTier } from '@/store/free-tier'
-import type { FreeTierStatus } from '@/types/hermes'
+import type { FreeTierStatus } from '@/types/iris'
 
 const NO_IDENTITY: FreeTierStatus = {
   available: false,

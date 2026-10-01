@@ -35,7 +35,7 @@ from unittest.mock import patch
 
 import pytest
 
-# Importing an api module first injects the hermes-agent dir onto sys.path
+# Importing an api module first injects the iris-agent dir onto sys.path
 # (api.config._AGENT_DIR), which is what makes `tools.approval` importable.
 # Import order matters: tools.* will not resolve until api.config has run.
 from api import routes

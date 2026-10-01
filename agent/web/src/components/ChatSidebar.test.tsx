@@ -43,7 +43,7 @@ vi.mock('react-router', () => ({
 }))
 
 vi.mock('@/lib/api', () => ({
-  HERMES_BASE_PATH: '',
+  IRIS_BASE_PATH: '',
   api: { getModelInfo: apiMocks.getModelInfo },
   buildWsUrl: apiMocks.buildWsUrl
 }))

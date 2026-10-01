@@ -5,7 +5,7 @@ import { __resetBackendSkinSync, ingestBackendSkin } from './backend-sync'
 import { skinPref, ThemeProvider, useTheme } from './context'
 import { everforestTheme } from './presets'
 
-// The live-authoring loop: Hermes writes/edits one skin file and every surface
+// The live-authoring loop: Iris writes/edits one skin file and every surface
 // repaints. An in-place edit keeps the NAME — only the palette moves.
 const bloomberg = (foreground: string) => ({
   name: 'bloomberg',
@@ -74,7 +74,7 @@ describe('ThemeProvider ← backend skin sync', () => {
   // name, flattened it to the default, and the connect-time seed (apply: false,
   // by design) never repainted — so the theme "didn't stick" until `/skin`.
   it('paints a persisted backend skin once the connect-time seed makes it resolvable', () => {
-    window.localStorage.setItem('hermes-desktop-theme-v2', 'bloomberg')
+    window.localStorage.setItem('iris-desktop-theme-v2', 'bloomberg')
 
     render(
       <ThemeProvider>

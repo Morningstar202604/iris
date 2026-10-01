@@ -13,7 +13,7 @@ if (args) {
   const child = spawnWslgLaunch(args)
 
   child.once('error', error => {
-    console.error('[hermes] WSLg launch failed:', error)
+    console.error('[iris] WSLg launch failed:', error)
     app.exit(1)
   })
   child.once('exit', code => app.exit(code ?? 1))

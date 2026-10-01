@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream'
 
-import { Box, renderSync, ScrollBox, type ScrollBoxHandle, Text } from '@hermes/ink'
+import { Box, renderSync, ScrollBox, type ScrollBoxHandle, Text } from '@iris/ink'
 import React, { useLayoutEffect, useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 

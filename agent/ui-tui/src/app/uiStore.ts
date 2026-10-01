@@ -31,14 +31,14 @@ const buildUiState = (): UiState => ({
   sessionTitle: '',
   showReasoning: false,
   sid: null,
-  status: 'summoning hermes…',
+  status: 'summoning iris…',
   statusBar: 'top',
   storedSid: null,
   statusBarFields: null,
   streaming: true,
   timestamps: false,
   // Last session's resolved theme paints frame one (flash-free boot, like
-  // the desktop's hermes-boot-* keys); DEFAULT_THEME only on first launch.
+  // the desktop's iris-boot-* keys); DEFAULT_THEME only on first launch.
   theme: bootTheme ?? DEFAULT_THEME,
   usage: ZERO
 })

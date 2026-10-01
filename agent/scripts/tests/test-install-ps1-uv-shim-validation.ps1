@@ -1,7 +1,7 @@
 # Behavioral tests for install.ps1 managed-uv acceptance (issue #110350).
 #
 # `& uv.exe --version` never throws on a nonzero exit, so Install-Uv used to
-# trust any file at $HermesHome\bin\uv.exe -- including the Chocolatey ShimGen
+# trust any file at $IrisHome\bin\uv.exe -- including the Chocolatey ShimGen
 # launcher it had itself copied there, which resolves the real uv RELATIVE to
 # its own location and is therefore dead after the copy.  The installer is
 # dot-sourced without running its entry point; the uv installer rungs and PATH
@@ -10,11 +10,11 @@
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 $installScript = Join-Path $repoRoot 'scripts\install.ps1'
-$testRoot = Join-Path $env:TEMP ("hermes-uv-shim-test-" + [Guid]::NewGuid().ToString('N'))
-$HermesHome = Join-Path $testRoot 'home'
+$testRoot = Join-Path $env:TEMP ("iris-uv-shim-test-" + [Guid]::NewGuid().ToString('N'))
+$IrisHome = Join-Path $testRoot 'home'
 $InstallDir = Join-Path $testRoot 'missing-checkout'
 New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
-. $installScript -HermesHome $HermesHome -InstallDir $InstallDir
+. $installScript -IrisHome $IrisHome -InstallDir $InstallDir
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -110,7 +110,7 @@ Assert-Equal $scoopReal (Resolve-UvShimTarget $scoopShim) 'Scoop shim resolves t
 Assert-Equal $okExe (Resolve-UvShimTarget $okExe) 'plain executable resolves to itself'
 
 # -- Install-Uv flow with stubbed installer rungs and PATH lookup ------------
-$managedUv = Join-Path $HermesHome 'bin\uv.exe'
+$managedUv = Join-Path $IrisHome 'bin\uv.exe'
 $script:InstallerCalls = 0
 $script:FakePathUv = $null
 $script:InfoLog = @()
@@ -132,8 +132,8 @@ function Write-Err { param([string]$Message) }
 
 function Invoke-InstallUvScenario {
     param([string]$PreplacedManaged, [string]$PathUv)
-    if (Test-Path $HermesHome) { Remove-Item -LiteralPath $HermesHome -Recurse -Force }
-    New-Item -ItemType Directory -Force -Path (Join-Path $HermesHome 'bin') | Out-Null
+    if (Test-Path $IrisHome) { Remove-Item -LiteralPath $IrisHome -Recurse -Force }
+    New-Item -ItemType Directory -Force -Path (Join-Path $IrisHome 'bin') | Out-Null
     if ($PreplacedManaged) { Copy-Item $PreplacedManaged $managedUv }
     $script:FakePathUv = $PathUv
     $script:InstallerCalls = 0

@@ -1,6 +1,6 @@
-"""Safe server-side probe for the official Hermes Agent dashboard.
+"""Safe server-side probe for the official Iris Agent dashboard.
 
-The official `hermes dashboard` binds to 127.0.0.1:9119 by default and exposes
+The official `iris dashboard` binds to 127.0.0.1:9119 by default and exposes
 GET /api/status as a public, read-only identity/status endpoint.  Keep all
 probing server-side to avoid browser CORS/mixed-content failures, and only allow
 loopback targets so a user-controlled setting cannot become an SSRF primitive.
@@ -105,11 +105,11 @@ def _looks_like_official_dashboard(payload: object) -> bool:
     version = payload.get("version")
     if not isinstance(version, str) or not version.strip():
         return False
-    # Verified against current Hermes Agent `hermes_cli.web_server.get_status()`:
-    # /api/status returns version plus these Hermes-specific fields. Requiring at
+    # Verified against current Iris Agent `iris_cli.web_server.get_status()`:
+    # /api/status returns version plus these Iris-specific fields. Requiring at
     # least one avoids treating any generic {version: ...} local service as the
     # official dashboard.
-    return any(key in payload for key in ("release_date", "hermes_home", "config_path", "gateway_running"))
+    return any(key in payload for key in ("release_date", "iris_home", "config_path", "gateway_running"))
 
 
 def probe_official_dashboard(
@@ -118,7 +118,7 @@ def probe_official_dashboard(
     timeout: float = DEFAULT_DASHBOARD_TIMEOUT,
     scheme: str = "http",
 ) -> dict:
-    """Best-effort check that `hermes dashboard` is running on host:port."""
+    """Best-effort check that `iris dashboard` is running on host:port."""
     try:
         normalized_host = str(host or "").strip().lower()
         if normalized_host not in _LOOPBACK_HOSTS:
@@ -131,7 +131,7 @@ def probe_official_dashboard(
         base = _base_url(normalized_host, port, scheme)
         request = urllib.request.Request(
             f"{base}/api/status",
-            headers={"Accept": "application/json", "User-Agent": "hermes-webui-dashboard-probe"},
+            headers={"Accept": "application/json", "User-Agent": "iris-webui-dashboard-probe"},
         )
         with urllib.request.urlopen(request, timeout=timeout) as response:
             if getattr(response, "status", None) != 200:
@@ -145,7 +145,7 @@ def probe_official_dashboard(
             result["version"] = version.strip()
         return result
     except Exception:
-        logger.debug("official Hermes dashboard probe failed", exc_info=True)
+        logger.debug("official Iris dashboard probe failed", exc_info=True)
         return {"running": False}
 
 
@@ -205,7 +205,7 @@ def save_dashboard_config(payload: dict) -> dict:
 
 
 def _webui_bind_host_allows_auto_probe() -> bool:
-    raw_host = str(os.environ.get("HERMES_WEBUI_HOST") or "127.0.0.1").strip().lower()
+    raw_host = str(os.environ.get("IRIS_WEBUI_HOST") or "127.0.0.1").strip().lower()
     host = raw_host.replace("[", "").replace("]", "")
     return host in _LOOPBACK_HOSTS
 

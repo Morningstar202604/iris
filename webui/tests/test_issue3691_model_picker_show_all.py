@@ -95,15 +95,15 @@ def test_openrouter_overflow_preserves_hidden_tail(monkeypatch):
         },
         raising=False,
     )
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.fetch_openrouter_models = lambda: [
         ("anthropic/claude-sonnet-4.6", ""),
         ("openai/gpt-4o", ""),
     ]
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
 
     payload = {
         "data": [

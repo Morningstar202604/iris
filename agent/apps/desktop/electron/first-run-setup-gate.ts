@@ -103,7 +103,7 @@ export function createFirstRunSetupGate({
   }
 
   const resetForRetry = () => {
-    // Reset paths are followed by a renderer reload / fresh startHermes() call.
+    // Reset paths are followed by a renderer reload / fresh startIris() call.
     // Settle the old boot explicitly so it cannot fall through into local
     // bootstrap and cannot leak a forever-pending connection promise.
     settleWaiter('reset')
@@ -115,7 +115,7 @@ export function createFirstRunSetupGate({
   }
 
   const abandonForRemoteApply = () => {
-    // Resume the gated startHermes() with an explicit remote decision. The
+    // Resume the gated startIris() with an explicit remote decision. The
     // caller re-resolves the newly-persisted remote config instead of falling
     // through into local bootstrap or leaking the original connection promise.
     const resumedWaiter = settleWaiter('remote-applied')

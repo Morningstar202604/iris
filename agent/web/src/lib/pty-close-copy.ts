@@ -16,7 +16,7 @@ export interface PtyBanner {
 
 /** Chat tab opened without the injected login token (loopback mode only). */
 export const PTY_TOKEN_MISSING_BANNER: PtyBanner = {
-  text: "Chat can't connect because this page was opened without a login token. Reload the page, or start it again with `hermes dashboard` in a terminal.",
+  text: "Chat can't connect because this page was opened without a login token. Reload the page, or start it again with `iris dashboard` in a terminal.",
   action: 'reload'
 }
 
@@ -27,15 +27,15 @@ const REJECTION_BANNERS: Record<number, PtyBanner> = {
     action: 'reload'
   },
   4403: {
-    text: 'The dashboard refused this chat connection because the page address does not match the server it was opened from. Open the dashboard from the address `hermes dashboard` printed.',
+    text: 'The dashboard refused this chat connection because the page address does not match the server it was opened from. Open the dashboard from the address `iris dashboard` printed.',
     action: null
   },
   4404: {
-    text: 'This Hermes server does not offer the terminal chat. Update Hermes (`hermes update`) and reload the page.',
+    text: 'This Iris server does not offer the terminal chat. Update Iris (`iris update`) and reload the page.',
     action: 'reload'
   },
   4408: {
-    text: 'This Hermes server only accepts chat from the machine it runs on. Open the dashboard on that machine, or start it with a public bind.',
+    text: 'This Iris server only accepts chat from the machine it runs on. Open the dashboard on that machine, or start it with a public bind.',
     action: null
   }
 }
@@ -49,11 +49,11 @@ export const PTY_RECONNECTING_BANNER = 'Chat connection interrupted. Reconnectin
 
 /** Shown after the last automatic attempt failed (overlay + banner). */
 export const PTY_GAVE_UP_BANNER: PtyBanner = {
-  text: 'Lost connection to the Hermes dashboard server. If you stopped `hermes dashboard`, start it again; otherwise click Reconnect now.',
+  text: 'Lost connection to the Iris dashboard server. If you stopped `iris dashboard`, start it again; otherwise click Reconnect now.',
   action: 'check-server'
 }
 
-/** Overlay copy: the hermes --tui child exited; a crash looks identical to `/exit`. */
+/** Overlay copy: the iris --tui child exited; a crash looks identical to `/exit`. */
 export const PTY_SESSION_ENDED_MESSAGE =
   'Chat session ended. If you did not end it yourself, the agent may have crashed — open Logs to see why, or start a new session.'
 

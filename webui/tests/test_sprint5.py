@@ -226,7 +226,7 @@ def test_file_save_path_traversal_blocked(cleanup_test_sessions):
 
 def test_session_index_created_after_save(cleanup_test_sessions):
     # Index is created in the TEST state dir, not the production dir.
-    # Use the shared isolated TEST_STATE_DIR (temp-rooted, never ~/.hermes).
+    # Use the shared isolated TEST_STATE_DIR (temp-rooted, never ~/.iris).
     from tests._pytest_port import TEST_STATE_DIR as test_state_dir
     index_path = test_state_dir / "sessions" / "_index.json"
     make_session_tracked(cleanup_test_sessions)

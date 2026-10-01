@@ -151,7 +151,7 @@ def test_recovery_is_fail_soft_without_agent(monkeypatch):
 
     def fake_import(name, *args, **kwargs):
         if name == "tools.process_registry":
-            raise ImportError("Hermes Agent not installed")
+            raise ImportError("Iris Agent not installed")
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(bp, "_PROCESS_CHECKPOINT_RECOVERED", False)

@@ -1,13 +1,13 @@
 import ignore from 'ignore'
 
-import type { HermesReadDirEntry, HermesReadDirResult } from '@/global'
+import type { IrisReadDirEntry, IrisReadDirResult } from '@/global'
 import { desktopFsCacheKey, desktopGitRoot, readDesktopDir, readDesktopFileDataUrl } from '@/lib/desktop-fs'
 import { ALWAYS_EXCLUDED } from '@/lib/excluded-paths'
 import { cleanPath, comparisonPath } from '@/lib/path-compare'
 
 import { showsIgnoredFiles } from './prefs'
 
-export type ProjectTreeEntry = HermesReadDirEntry
+export type ProjectTreeEntry = IrisReadDirEntry
 
 interface GitignoreRule {
   base: string
@@ -106,7 +106,7 @@ async function gitignoreFor(dir: string) {
   return cached
 }
 
-function ignoredBy(rules: GitignoreRule[], entry: HermesReadDirEntry) {
+function ignoredBy(rules: GitignoreRule[], entry: IrisReadDirEntry) {
   return rules.some(rule => {
     const rel = relativeTo(rule.base, entry.path)
 
@@ -118,7 +118,7 @@ function ignoredBy(rules: GitignoreRule[], entry: HermesReadDirEntry) {
   })
 }
 
-async function filterIgnored(entries: HermesReadDirEntry[], rootPath: string, dirPath: string) {
+async function filterIgnored(entries: IrisReadDirEntry[], rootPath: string, dirPath: string) {
   // Opting a project into its ignored files skips the gitignore pass entirely —
   // no git-root probe, no .gitignore reads. ALWAYS_EXCLUDED still applies: `.git`
   // internals and dependency/build dirs are never worth browsing, in any repo.
@@ -139,8 +139,8 @@ async function filterIgnored(entries: HermesReadDirEntry[], rootPath: string, di
   return rules.length > 0 ? entries.filter(entry => !ignoredBy(rules, entry)) : entries
 }
 
-export async function readProjectDir(dirPath: string, rootPath = dirPath): Promise<HermesReadDirResult> {
-  if (!window.hermesDesktop) {
+export async function readProjectDir(dirPath: string, rootPath = dirPath): Promise<IrisReadDirResult> {
+  if (!window.irisDesktop) {
     return { entries: [], error: 'no-bridge' }
   }
 

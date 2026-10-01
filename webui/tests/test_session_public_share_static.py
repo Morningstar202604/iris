@@ -55,7 +55,7 @@ def test_share_i18n_keys_exist_in_english_locale():
 
 
 def test_public_share_page_assets_exist():
-    assert "Hermes Shared Conversation" in SHARE_HTML
+    assert "Iris Shared Conversation" in SHARE_HTML
     assert "/static/style.css" in SHARE_HTML
     assert "/static/share.js" in SHARE_HTML
     assert "function _shareLoad()" in SHARE_JS
@@ -88,7 +88,7 @@ def test_share_snapshot_redaction_is_always_on_regardless_of_setting():
     # The public-share boundary must redact credentials + local paths and drop
     # non-text/tool/system content EVEN IF the operator disabled api_redact_enabled.
     import os, tempfile
-    os.environ.setdefault("HERMES_WEBUI_STATE_DIR", tempfile.mkdtemp())
+    os.environ.setdefault("IRIS_WEBUI_STATE_DIR", tempfile.mkdtemp())
     import api.config as config
     import api.shares as shares
     # Force the user-toggleable API redaction OFF (redact_session_data reads
@@ -135,7 +135,7 @@ def test_share_snapshot_rejects_dict_valued_title():
     # A dict-valued title (possible via /api/session/import) must not be
     # stringified into the public snapshot — fall back to "Untitled".
     import os, tempfile
-    os.environ.setdefault("HERMES_WEBUI_STATE_DIR", tempfile.mkdtemp())
+    os.environ.setdefault("IRIS_WEBUI_STATE_DIR", tempfile.mkdtemp())
     import api.shares as shares
 
     class _S:

@@ -32,7 +32,7 @@ full text, and a shrink is the one time it is needed.
 The count is read from the FILE, not cached in the object, and that is the
 point. An earlier revision of this PR trusted an in-memory (inode, size,
 mtime_ns) signature: "this object wrote the file and stat says nothing changed,
-so its length is already known". Review (nesquena-hermes, 2026-09-21) showed
+so its length is already known". Review (nesquena-iris, 2026-09-21) showed
 that is not a content identity -- a same-length in-place rewrite inside one
 mtime tick keeps all three fields, because ext4 stamps mtime from a coarse
 clock, so a stale cached count reads a real shrink as a growth and skips the
@@ -236,7 +236,7 @@ def test_file_changed_on_disk_without_a_count_still_backs_up_on_shrink(session_s
 def test_unmarked_stale_count_from_a_foreign_writer_still_backs_up_on_shrink(session_store):
     """A persisted count with no `_mc_v` marker is not trusted.
 
-    The exact shape review (nesquena-hermes, 2026-09-22) pinned: a sidecar
+    The exact shape review (nesquena-iris, 2026-09-22) pinned: a sidecar
     materialized by an OLDER writer can carry a count stale against the
     messages array beside it (the recovery writer used to copy a denormalized
     state.db count over real rows). Here the foreign file says 2 but really

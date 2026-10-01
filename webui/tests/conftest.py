@@ -8,9 +8,9 @@ TEST ISOLATION:
 
 PATH DISCOVERY:
   No hardcoded paths. Discovery order:
-    1. Environment variables (HERMES_WEBUI_AGENT_DIR, HERMES_WEBUI_PYTHON, etc.)
+    1. Environment variables (IRIS_WEBUI_AGENT_DIR, IRIS_WEBUI_PYTHON, etc.)
     2. Sibling checkout heuristics relative to this repo
-    3. Common install paths (~/.hermes/hermes-agent)
+    3. Common install paths (~/.iris/iris-agent)
     4. System python3 as a last resort
 """
 import json
@@ -29,7 +29,7 @@ import pytest
 
 if not (3, 11) <= sys.version_info[:2] <= (3, 13):
     pytest.exit(
-        "Hermes WebUI tests require Python 3.11, 3.12, or 3.13. "
+        "Iris WebUI tests require Python 3.11, 3.12, or 3.13. "
         "Run ./scripts/test.sh so the repo-local supported .venv is used "
         "instead of an unsupported system python.",
         returncode=3,
@@ -50,17 +50,17 @@ requires_fork = pytest.mark.skipif(
 TESTS_DIR  = pathlib.Path(__file__).parent.resolve()
 REPO_ROOT  = TESTS_DIR.parent.resolve()
 HOME       = pathlib.Path.home()
-HERMES_HOME = pathlib.Path(os.getenv('HERMES_HOME', str(HOME / '.hermes')))
+IRIS_HOME = pathlib.Path(os.getenv('IRIS_HOME', str(HOME / '.iris')))
 
 # ── Test server config ────────────────────────────────────────────────────
 # Port and state dir auto-derive from the repo path when no env var is set,
 # giving every worktree its own isolated port (20000-29999) and state directory.
-# Override with HERMES_WEBUI_TEST_PORT / HERMES_WEBUI_TEST_STATE_DIR to pin.
+# Override with IRIS_WEBUI_TEST_PORT / IRIS_WEBUI_TEST_STATE_DIR to pin.
 
 def _auto_test_port(repo_root) -> int:
     """Pick a port for the session test server.
 
-    PARALLEL-SAFE: when ``HERMES_WEBUI_TEST_PORT`` is not pinned, grab a free
+    PARALLEL-SAFE: when ``IRIS_WEBUI_TEST_PORT`` is not pinned, grab a free
     OS-assigned ephemeral port (bind to :0, read it back, release) so that
     MULTIPLE concurrent pytest runs from the SAME worktree never collide on one
     port. The old behaviour hashed the repo path to a fixed port in 20000-29999,
@@ -70,7 +70,7 @@ def _auto_test_port(repo_root) -> int:
     at setup then reaped the other run's server mid-suite, cascading every
     HTTP-dependent test with ConnectionRefused. A per-process free port removes
     the shared resource entirely, so gates + local suite + CI shards can all run
-    at once. Pin with ``HERMES_WEBUI_TEST_PORT`` for a reproducible/fixed port.
+    at once. Pin with ``IRIS_WEBUI_TEST_PORT`` for a reproducible/fixed port.
     """
     import socket
     for _ in range(10):
@@ -112,54 +112,54 @@ def _auto_state_dir_name(repo_root, port=None) -> str:
 # on an ephemeral-range port can match a *client* socket (or the other concurrent
 # run's pytest) that merely has that local port, killing the wrong process. Only
 # pinned ports (which may have a genuinely stale prior server) get the reap.
-TEST_PORT_PINNED = bool(os.getenv('HERMES_WEBUI_TEST_PORT'))
-TEST_PORT      = int(os.getenv('HERMES_WEBUI_TEST_PORT',
+TEST_PORT_PINNED = bool(os.getenv('IRIS_WEBUI_TEST_PORT'))
+TEST_PORT      = int(os.getenv('IRIS_WEBUI_TEST_PORT',
                                str(_auto_test_port(REPO_ROOT))))
 TEST_BASE      = f"http://127.0.0.1:{TEST_PORT}"
 
 # ── Test state dir: HARD-ISOLATED from production ──────────────────────────
-# Test state must NEVER live inside the real Hermes home (~/.hermes or any
-# HERMES_HOME), or anywhere near production profiles/files/server. Earlier this
-# defaulted to ``HERMES_HOME / webui-test-<hash>`` which wrote test state INTO
-# ~/.hermes/profiles/<...>/ (observed: 144 leaked webui-test-* dirs in the real
+# Test state must NEVER live inside the real Iris home (~/.iris or any
+# IRIS_HOME), or anywhere near production profiles/files/server. Earlier this
+# defaulted to ``IRIS_HOME / webui-test-<hash>`` which wrote test state INTO
+# ~/.iris/profiles/<...>/ (observed: 144 leaked webui-test-* dirs in the real
 # profile home). We now anchor the default under the OS temp dir, in a dedicated
-# `hermes-webui-tests/` namespace, fully outside any production tree.
+# `iris-webui-tests/` namespace, fully outside any production tree.
 import tempfile as _tempfile
 _TEST_STATE_ROOT = pathlib.Path(
-    os.getenv('HERMES_WEBUI_TEST_STATE_ROOT', _tempfile.gettempdir())
-) / 'hermes-webui-tests'
+    os.getenv('IRIS_WEBUI_TEST_STATE_ROOT', _tempfile.gettempdir())
+) / 'iris-webui-tests'
 TEST_STATE_DIR = pathlib.Path(os.getenv(
-    'HERMES_WEBUI_TEST_STATE_DIR',
+    'IRIS_WEBUI_TEST_STATE_DIR',
     str(_TEST_STATE_ROOT / _auto_state_dir_name(REPO_ROOT, TEST_PORT))
 )).resolve()
 
 # Production-proximity guard: refuse to run if the resolved test state dir lands
-# inside the REAL Hermes home tree — a misconfigured HERMES_WEBUI_TEST_STATE_DIR
-# pointing at ~/.hermes would let tests wipe/clobber production profiles,
+# inside the REAL Iris home tree — a misconfigured IRIS_WEBUI_TEST_STATE_DIR
+# pointing at ~/.iris would let tests wipe/clobber production profiles,
 # sessions, and credentials on teardown. We anchor on the literal user-home
-# `~/.hermes` (NOT $HERMES_HOME): HERMES_HOME is frequently overridden to a
+# `~/.iris` (NOT $IRIS_HOME): IRIS_HOME is frequently overridden to a
 # profile dir or, during a test run, to TEST_STATE_DIR itself — comparing
 # against it would either miss a real production path or false-trip when the
 # test dir legitimately lives in /tmp. A test dir under the OS temp dir is always
-# allowed even if it nominally sits below a temp-rooted HERMES_HOME.
-_PROD_HERMES_HOME = (HOME / '.hermes').resolve()
+# allowed even if it nominally sits below a temp-rooted IRIS_HOME.
+_PROD_IRIS_HOME = (HOME / '.iris').resolve()
 _TEMP_ROOT = pathlib.Path(_tempfile.gettempdir()).resolve()
 # The temp-root exception only holds when the temp root is itself OUTSIDE the
-# production home. If TMPDIR is (mis)configured under ~/.hermes, a "temp" path is
+# production home. If TMPDIR is (mis)configured under ~/.iris, a "temp" path is
 # still a production path — don't let it suppress the guard.
 _temp_root_is_safe = not (
-    _TEMP_ROOT == _PROD_HERMES_HOME or _PROD_HERMES_HOME in _TEMP_ROOT.parents
+    _TEMP_ROOT == _PROD_IRIS_HOME or _PROD_IRIS_HOME in _TEMP_ROOT.parents
 )
 _under_temp = _temp_root_is_safe and (
     TEST_STATE_DIR == _TEMP_ROOT or _TEMP_ROOT in TEST_STATE_DIR.parents
 )
-_under_prod = TEST_STATE_DIR == _PROD_HERMES_HOME or _PROD_HERMES_HOME in TEST_STATE_DIR.parents
+_under_prod = TEST_STATE_DIR == _PROD_IRIS_HOME or _PROD_IRIS_HOME in TEST_STATE_DIR.parents
 if _under_prod and not _under_temp:
     raise RuntimeError(
         f"REFUSING TO RUN: test state dir {TEST_STATE_DIR} is inside the production "
-        f"Hermes home {_PROD_HERMES_HOME}. Tests must never touch production files. "
-        f"Unset HERMES_WEBUI_TEST_STATE_DIR (defaults to a temp dir) or point it "
-        f"outside ~/.hermes."
+        f"Iris home {_PROD_IRIS_HOME}. Tests must never touch production files. "
+        f"Unset IRIS_WEBUI_TEST_STATE_DIR (defaults to a temp dir) or point it "
+        f"outside ~/.iris."
     )
 
 TEST_WORKSPACE = TEST_STATE_DIR / 'test-workspace'
@@ -169,40 +169,40 @@ TEST_WORKSPACE = TEST_STATE_DIR / 'test-workspace'
 #
 # Direct assignment is intentional for production-risk paths: tests that import
 # api.config/api.models in the pytest process must never inherit the real
-# ~/.hermes state tree before the server subprocess fixture starts.
-os.environ['HERMES_WEBUI_TEST_PORT'] = str(TEST_PORT)
-os.environ['HERMES_WEBUI_TEST_STATE_DIR'] = str(TEST_STATE_DIR)
-os.environ['HERMES_WEBUI_STATE_DIR'] = str(TEST_STATE_DIR)
-os.environ['HERMES_WEBUI_DEFAULT_WORKSPACE'] = str(TEST_WORKSPACE)
-os.environ['HERMES_HOME'] = str(TEST_STATE_DIR)
-os.environ['HERMES_BASE_HOME'] = str(TEST_STATE_DIR)
-# Hermes Agent sessions may inherit HERMES_CONFIG_PATH pointing at the live
-# ~/.hermes/config.yaml.  Override it before any product modules are imported so
+# ~/.iris state tree before the server subprocess fixture starts.
+os.environ['IRIS_WEBUI_TEST_PORT'] = str(TEST_PORT)
+os.environ['IRIS_WEBUI_TEST_STATE_DIR'] = str(TEST_STATE_DIR)
+os.environ['IRIS_WEBUI_STATE_DIR'] = str(TEST_STATE_DIR)
+os.environ['IRIS_WEBUI_DEFAULT_WORKSPACE'] = str(TEST_WORKSPACE)
+os.environ['IRIS_HOME'] = str(TEST_STATE_DIR)
+os.environ['IRIS_BASE_HOME'] = str(TEST_STATE_DIR)
+# Iris Agent sessions may inherit IRIS_CONFIG_PATH pointing at the live
+# ~/.iris/config.yaml.  Override it before any product modules are imported so
 # tests that read/write config.yaml stay inside the isolated test home.
-os.environ['HERMES_CONFIG_PATH'] = str(TEST_STATE_DIR / 'config.yaml')
+os.environ['IRIS_CONFIG_PATH'] = str(TEST_STATE_DIR / 'config.yaml')
 
 # Model-selection env overrides must NOT leak from the runner into tests.
-# get_effective_default_model() (api/config.py) treats HERMES_MODEL / OPENAI_MODEL
+# get_effective_default_model() (api/config.py) treats IRIS_MODEL / OPENAI_MODEL
 # / LLM_MODEL as the highest-priority default-model source — above the isolated
-# test config. When the pytest process runs inside a live Hermes agent session,
-# HERMES_MODEL is exported to the agent's runtime model (e.g. "opus-4.8"), which
+# test config. When the pytest process runs inside a live Iris agent session,
+# IRIS_MODEL is exported to the agent's runtime model (e.g. "opus-4.8"), which
 # then overrides the sandbox config and pollutes the model picker/catalog. That
 # broke test_sprint12 (default-model readback), test_issue1538 (Nous @nous:
 # prefix invariant) and test_issue1567 (picker capacity/symmetry) whenever the
-# suite ran on a box with HERMES_MODEL set. Strip them at module level so the
+# suite ran on a box with IRIS_MODEL set. Strip them at module level so the
 # isolated config is authoritative for the pytest process; the out-of-process
 # test server env is scrubbed identically in the test_server fixture below.
-for _model_env in ('HERMES_MODEL', 'OPENAI_MODEL', 'LLM_MODEL'):
+for _model_env in ('IRIS_MODEL', 'OPENAI_MODEL', 'LLM_MODEL'):
     os.environ.pop(_model_env, None)
 
 
 @pytest.fixture(autouse=True)
-def _isolate_hermes_config_path():
+def _isolate_iris_config_path():
     """Keep profile/.env side effects from leaking the live config path across tests."""
     isolated_config_path = str(TEST_STATE_DIR / 'config.yaml')
-    os.environ['HERMES_CONFIG_PATH'] = isolated_config_path
+    os.environ['IRIS_CONFIG_PATH'] = isolated_config_path
     yield
-    os.environ['HERMES_CONFIG_PATH'] = isolated_config_path
+    os.environ['IRIS_CONFIG_PATH'] = isolated_config_path
 
 
 @pytest.fixture(autouse=True)
@@ -211,7 +211,7 @@ def _reset_password_hash_cache():
 
     api.auth.get_password_hash() caches the resolved hash process-wide
     (_AUTH_HASH_CACHE / _AUTH_HASH_COMPUTED) for perf — it is NOT keyed on the
-    HERMES_WEBUI_PASSWORD env var. A test that sets that env var (e.g.
+    IRIS_WEBUI_PASSWORD env var. A test that sets that env var (e.g.
     test_session_static_assets.test_session_static_auth_exemption) populates the
     cache with a real hash; monkeypatch pops the env var on teardown but the
     cache stays populated, so is_auth_enabled() reads stale True and later tests
@@ -232,13 +232,13 @@ def _reset_password_hash_cache():
 
 
 def _strip_leaked_webui_password_env() -> None:
-    """Remove a leaked HERMES_WEBUI_PASSWORD between tests (#7168 review).
+    """Remove a leaked IRIS_WEBUI_PASSWORD between tests (#7168 review).
 
     bootstrap.py runs _load_repo_dotenv() at import time, which copies values
     from the developer's real repo .env straight into os.environ. When any
     test imports bootstrap mid-session (e.g. tests/test_bootstrap_foreground.py
     via its import_bootstrap fixture), a local .env containing
-    HERMES_WEBUI_PASSWORD leaks into the process environment OUTSIDE
+    IRIS_WEBUI_PASSWORD leaks into the process environment OUTSIDE
     monkeypatch's undo scope. Every later test then sees is_auth_enabled()
     True and no-handler cookie helpers raise spurious
     "build_profile_cookie requires a request handler" errors — exactly the
@@ -247,19 +247,19 @@ def _strip_leaked_webui_password_env() -> None:
     this strip; an intentionally-empty value ("") is preserved so
     ctl.sh-style override semantics keep working.
 
-    HERMES_COMMAND gets the same treatment (#7168 re-gate round 7): a local
-    .env carrying HERMES_COMMAND leaks past bootstrap imports and redirects
-    gateway_restart._resolve_hermes_command() away from its mocked
+    IRIS_COMMAND gets the same treatment (#7168 re-gate round 7): a local
+    .env carrying IRIS_COMMAND leaks past bootstrap imports and redirects
+    gateway_restart._resolve_iris_command() away from its mocked
     shutil.which result, failing every later active-profile-restart test
     with a machine-specific CLI path. Upstream code has no
-    HERMES_COMMAND override, so stripping a leaked value restores exact
+    IRIS_COMMAND override, so stripping a leaked value restores exact
     upstream semantics.
     """
-    if os.environ.get("HERMES_WEBUI_PASSWORD") == "":
+    if os.environ.get("IRIS_WEBUI_PASSWORD") == "":
         pass  # intentional empty override preserved for the password var
     else:
-        os.environ.pop("HERMES_WEBUI_PASSWORD", None)
-    os.environ.pop("HERMES_COMMAND", None)
+        os.environ.pop("IRIS_WEBUI_PASSWORD", None)
+    os.environ.pop("IRIS_COMMAND", None)
 
 
 @pytest.fixture(autouse=True)
@@ -296,21 +296,21 @@ _MISSING = object()  # sentinel: api.profiles module not loaded pre-test
 
 @pytest.fixture(autouse=True)
 def _restore_profile_home_globals():
-    """Restore HERMES_HOME / HERMES_BASE_HOME after every test.
+    """Restore IRIS_HOME / IRIS_BASE_HOME after every test.
 
-    Several tests call ``api.profiles.switch_profile()`` (or set HERMES_HOME
-    directly) which mutates ``os.environ['HERMES_HOME']`` IN PLACE — not via
+    Several tests call ``api.profiles.switch_profile()`` (or set IRIS_HOME
+    directly) which mutates ``os.environ['IRIS_HOME']`` IN PLACE — not via
     monkeypatch — so the change is not auto-reverted at test teardown. In the
     normal sequential run the next test usually re-establishes its own profile so
     the leak is masked, but under pytest-shard (or pytest-randomly) the leaked
-    HERMES_HOME points at a deleted tmpdir and breaks any later test whose
+    IRIS_HOME points at a deleted tmpdir and breaks any later test whose
     config/profile resolution reads it (e.g. test_title_aux_routing's
     background-worker profile routing, which then falls back to DEFAULT_CONFIG
     where ``model`` is an empty string). Snapshotting at the conftest level fixes
     the whole class at once, regardless of which test does the leaking.
     """
-    saved_home = os.environ.get('HERMES_HOME')
-    saved_base = os.environ.get('HERMES_BASE_HOME')
+    saved_home = os.environ.get('IRIS_HOME')
+    saved_base = os.environ.get('IRIS_BASE_HOME')
     # Snapshot the process-global active-profile name too. Several tests call
     # switch_profile() (process_wide=True), which mutates api.profiles._active_profile
     # in place and never restores it. In a sequential run the next test usually
@@ -327,11 +327,11 @@ def _restore_profile_home_globals():
     # Re-derive the cached base-home global BEFORE the test runs too: a prior
     # test's teardown ordering (monkeypatch restoring sys.modules['api.profiles']
     # after this fixture's teardown) can leave the live module's
-    # _DEFAULT_HERMES_HOME stale. Fixing it at setup time guarantees each test
+    # _DEFAULT_IRIS_HOME stale. Fixing it at setup time guarantees each test
     # starts from a base root that matches the current (restored) env.
-    _rederive_default_hermes_home()
+    _rederive_default_iris_home()
     yield
-    for key, val in (('HERMES_HOME', saved_home), ('HERMES_BASE_HOME', saved_base)):
+    for key, val in (('IRIS_HOME', saved_home), ('IRIS_BASE_HOME', saved_base)):
         if val is None:
             os.environ.pop(key, None)
         else:
@@ -344,21 +344,21 @@ def _restore_profile_home_globals():
             prof_mod_post.clear_request_profile()
         except Exception:
             pass
-    _rederive_default_hermes_home()
+    _rederive_default_iris_home()
 
 
-def _rederive_default_hermes_home():
-    """Recompute api.profiles._DEFAULT_HERMES_HOME from the current env.
+def _rederive_default_iris_home():
+    """Recompute api.profiles._DEFAULT_IRIS_HOME from the current env.
 
     api.profiles caches the base home at import time. A test that re-imports
-    api.profiles under a temporary HERMES_BASE_HOME (e.g. test_profile_env_isolation)
-    corrupts that global to a now-deleted tmpdir, making get_hermes_home_for_profile
+    api.profiles under a temporary IRIS_BASE_HOME (e.g. test_profile_env_isolation)
+    corrupts that global to a now-deleted tmpdir, making get_iris_home_for_profile
     resolve later tests' profiles under the dead path. Re-deriving keeps it honest.
     """
     prof_mod = sys.modules.get('api.profiles')
-    if prof_mod is not None and hasattr(prof_mod, '_resolve_base_hermes_home'):
+    if prof_mod is not None and hasattr(prof_mod, '_resolve_base_iris_home'):
         try:
-            prof_mod._DEFAULT_HERMES_HOME = prof_mod._resolve_base_hermes_home()
+            prof_mod._DEFAULT_IRIS_HOME = prof_mod._resolve_base_iris_home()
         except Exception:
             pass
 
@@ -370,14 +370,14 @@ if not SERVER_SCRIPT.exists():
         "Is conftest.py in the tests/ subdirectory of the repo?"
     )
 
-# ── Hermes agent discovery (mirrors api/config._discover_agent_dir) ───────
+# ── Iris agent discovery (mirrors api/config._discover_agent_dir) ───────
 def _discover_agent_dir() -> pathlib.Path:
     candidates = [
-        os.getenv('HERMES_WEBUI_AGENT_DIR', ''),
-        str(HERMES_HOME / 'hermes-agent'),
-        str(REPO_ROOT.parent / 'hermes-agent'),
-        str(HOME / '.hermes' / 'hermes-agent'),
-        str(HOME / 'hermes-agent'),
+        os.getenv('IRIS_WEBUI_AGENT_DIR', ''),
+        str(IRIS_HOME / 'iris-agent'),
+        str(REPO_ROOT.parent / 'iris-agent'),
+        str(HOME / '.iris' / 'iris-agent'),
+        str(HOME / 'iris-agent'),
     ]
     for c in candidates:
         if not c:
@@ -389,8 +389,8 @@ def _discover_agent_dir() -> pathlib.Path:
 
 # ── Python discovery (mirrors api/config._discover_python) ────────────────
 def _discover_python(agent_dir) -> str:
-    if os.getenv('HERMES_WEBUI_PYTHON'):
-        return os.getenv('HERMES_WEBUI_PYTHON')
+    if os.getenv('IRIS_WEBUI_PYTHON'):
+        return os.getenv('IRIS_WEBUI_PYTHON')
     if agent_dir:
         for venv_dir in ('venv', '.venv'):
             for subdir, binary in (('bin', 'python'), ('Scripts', 'python.exe')):
@@ -403,20 +403,20 @@ def _discover_python(agent_dir) -> str:
             return str(local_venv)
     return shutil.which('python3') or shutil.which('python') or 'python3'
 
-HERMES_AGENT = _discover_agent_dir()
-VENV_PYTHON  = _discover_python(HERMES_AGENT)
+IRIS_AGENT = _discover_agent_dir()
+VENV_PYTHON  = _discover_python(IRIS_AGENT)
 
 # Work dir: agent dir if found, else repo root
-WORKDIR = str(HERMES_AGENT) if HERMES_AGENT else str(REPO_ROOT)
+WORKDIR = str(IRIS_AGENT) if IRIS_AGENT else str(REPO_ROOT)
 
 # ── Agent availability detection ─────────────────────────────────────────────
-# Tests that require hermes-agent modules (cron, skills, approval, chat/stream)
+# Tests that require iris-agent modules (cron, skills, approval, chat/stream)
 # are skipped when the agent isn't installed, instead of failing with 500 errors.
-AGENT_AVAILABLE = HERMES_AGENT is not None
+AGENT_AVAILABLE = IRIS_AGENT is not None
 
 def _check_agent_modules():
-    """Verify hermes-agent Python modules are actually importable."""
-    if not HERMES_AGENT:
+    """Verify iris-agent Python modules are actually importable."""
+    if not IRIS_AGENT:
         return False
     try:
         import importlib
@@ -429,19 +429,19 @@ def _check_agent_modules():
 
 AGENT_MODULES_AVAILABLE = _check_agent_modules()
 
-# pytest marker: skip tests that need hermes-agent when it's not present
+# pytest marker: skip tests that need iris-agent when it's not present
 requires_agent = pytest.mark.skipif(
     not AGENT_AVAILABLE,
-    reason="hermes-agent not found (skipping agent-dependent test)"
+    reason="iris-agent not found (skipping agent-dependent test)"
 )
 requires_agent_modules = pytest.mark.skipif(
     not AGENT_MODULES_AVAILABLE,
-    reason="hermes-agent Python modules not importable (cron, skills_tool)"
+    reason="iris-agent Python modules not importable (cron, skills_tool)"
 )
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "requires_agent: skip when hermes-agent dir is not found")
-    config.addinivalue_line("markers", "requires_agent_modules: skip when hermes-agent Python modules are not importable")
+    config.addinivalue_line("markers", "requires_agent: skip when iris-agent dir is not found")
+    config.addinivalue_line("markers", "requires_agent_modules: skip when iris-agent Python modules are not importable")
     config.addinivalue_line("markers", "requires_fcntl: skip when fcntl-backed file-descriptor operations are unavailable")
     config.addinivalue_line("markers", "requires_fork: skip when the platform lacks multiprocessing fork support")
 
@@ -460,7 +460,7 @@ def pytest_report_collectionfinish(config, items):
 
 
 # ── Disable AWS IMDS probing for the pytest session ────────────────────────
-# Background: when hermes-agent's bedrock_adapter / botocore credential chain
+# Background: when iris-agent's bedrock_adapter / botocore credential chain
 # runs during test execution (e.g. provider catalog enumeration triggered by
 # api/config.py imports), botocore probes the EC2 Instance Metadata Service at
 # 169.254.169.254 looking for an instance role. On VPS hosts where IMDS is
@@ -470,7 +470,7 @@ def pytest_report_collectionfinish(config, items):
 # Tests have no legitimate reason to call IMDS — the bedrock-related tests use
 # explicit mocks or env-var creds. Setting AWS_EC2_METADATA_DISABLED before
 # anything imports botocore is the supported way to silence the probe (matches
-# the guard the hermes_cli/doctor.py command already uses in its parallel-probe
+# the guard the iris_cli/doctor.py command already uses in its parallel-probe
 # block).
 #
 # Setting this here instead of in a fixture so it lands BEFORE any test-file
@@ -518,7 +518,7 @@ os.execv = _pytest_session_safe_execv
 #
 # This module-level monkey-patch wraps socket.create_connection so any
 # non-loopback / non-RFC1918 / non-link-local / non-TEST-NET destination
-# raises OSError("hermes test network isolation").  Tests that deliberately
+# raises OSError("iris test network isolation").  Tests that deliberately
 # attempt outbound (only test_dns_resolution_failure today) opt back in
 # explicitly via the `allow_outbound_network` fixture below.
 #
@@ -537,12 +537,12 @@ os.execv = _pytest_session_safe_execv
 #
 # A test that opts in via the `allow_outbound_network` fixture sees the real
 # socket.create_connection.
-import socket as _hermes_test_socket
-_REAL_CREATE_CONNECTION = _hermes_test_socket.create_connection
-_REAL_SOCKET_CONNECT = _hermes_test_socket.socket.connect
+import socket as _iris_test_socket
+_REAL_CREATE_CONNECTION = _iris_test_socket.create_connection
+_REAL_SOCKET_CONNECT = _iris_test_socket.socket.connect
 
 
-def _hermes_addr_is_local(host: str) -> bool:
+def _iris_addr_is_local(host: str) -> bool:
     """Return True for loopback / RFC1918 / link-local / reserved-TLD hosts."""
     if not isinstance(host, str):
         return False
@@ -591,34 +591,34 @@ def _hermes_addr_is_local(host: str) -> bool:
     return False
 
 
-def _hermes_blocked_create_connection(address, *a, **kw):
+def _iris_blocked_create_connection(address, *a, **kw):
     try:
         host = address[0]
     except (TypeError, IndexError):
         host = ""
-    if _hermes_addr_is_local(host):
+    if _iris_addr_is_local(host):
         return _REAL_CREATE_CONNECTION(address, *a, **kw)
     raise OSError(
-        f"hermes test network isolation: outbound socket to {address!r} is blocked. "
+        f"iris test network isolation: outbound socket to {address!r} is blocked. "
         f"Tests should mock urllib.request.urlopen / requests / socket.create_connection. "
         f"If a test genuinely needs real outbound, request the allow_outbound_network fixture."
     )
 
 
-def _hermes_blocked_socket_connect(self, address):
+def _iris_blocked_socket_connect(self, address):
     try:
         host = address[0]
     except (TypeError, IndexError):
         host = ""
-    if _hermes_addr_is_local(host):
+    if _iris_addr_is_local(host):
         return _REAL_SOCKET_CONNECT(self, address)
     raise OSError(
-        f"hermes test network isolation: socket.connect to {address!r} is blocked."
+        f"iris test network isolation: socket.connect to {address!r} is blocked."
     )
 
 
-_hermes_test_socket.create_connection = _hermes_blocked_create_connection
-_hermes_test_socket.socket.connect = _hermes_blocked_socket_connect
+_iris_test_socket.create_connection = _iris_blocked_create_connection
+_iris_test_socket.socket.connect = _iris_blocked_socket_connect
 
 
 @pytest.fixture
@@ -635,15 +635,15 @@ def allow_outbound_network(monkeypatch):
     test_dns_resolution_failure case was rewritten to mock socket.getaddrinfo
     instead, which is fully hermetic.
     """
-    monkeypatch.setattr(_hermes_test_socket, "create_connection", _REAL_CREATE_CONNECTION)
-    monkeypatch.setattr(_hermes_test_socket.socket, "connect", _REAL_SOCKET_CONNECT)
+    monkeypatch.setattr(_iris_test_socket, "create_connection", _REAL_CREATE_CONNECTION)
+    monkeypatch.setattr(_iris_test_socket.socket, "connect", _REAL_SOCKET_CONNECT)
     yield
 
 
 
 
 # ── Environment isolation for tests ────────────────────────────────────────
-# HERMES_WEBUI_SKIP_ONBOARDING is set by hosting providers (e.g. Agent37) and
+# IRIS_WEBUI_SKIP_ONBOARDING is set by hosting providers (e.g. Agent37) and
 # by some isolated test harnesses to short-circuit the onboarding wizard.
 # When it leaks into the pytest environment, tests that exercise the wizard
 # code paths (apply_onboarding_setup, etc.) fail because the function returns
@@ -651,26 +651,26 @@ def allow_outbound_network(monkeypatch):
 #
 # This autouse fixture removes the variable for the test session. Tests that
 # specifically need to validate the SKIP_ONBOARDING short-circuit can opt back
-# in with `monkeypatch.setenv("HERMES_WEBUI_SKIP_ONBOARDING", "1")`.
+# in with `monkeypatch.setenv("IRIS_WEBUI_SKIP_ONBOARDING", "1")`.
 @pytest.fixture(autouse=True, scope="session")
 def _strip_skip_onboarding_env():
-    prior = os.environ.pop("HERMES_WEBUI_SKIP_ONBOARDING", None)
+    prior = os.environ.pop("IRIS_WEBUI_SKIP_ONBOARDING", None)
     yield
     if prior is not None:
-        os.environ["HERMES_WEBUI_SKIP_ONBOARDING"] = prior
+        os.environ["IRIS_WEBUI_SKIP_ONBOARDING"] = prior
 
 def pytest_collection_modifyitems(config, items):
-    """Auto-skip agent-dependent tests when hermes-agent is not available.
+    """Auto-skip agent-dependent tests when iris-agent is not available.
 
     Instead of requiring markers on every test function, we pattern-match
-    test names to known categories that depend on hermes-agent modules.
+    test names to known categories that depend on iris-agent modules.
     This keeps the test files clean and ensures new cron/skills tests
     get auto-skipped without manual annotation.
     """
     if AGENT_MODULES_AVAILABLE:
         return  # everything available, run all tests
 
-    # Exact list of tests known to fail without hermes-agent.
+    # Exact list of tests known to fail without iris-agent.
     # These hit server endpoints that import cron.jobs, tools.skills_tool,
     # or require a running agent backend — returning 500 without the agent.
     _AGENT_DEPENDENT_TESTS = {
@@ -711,7 +711,7 @@ def pytest_collection_modifyitems(config, items):
         'test_new_session_inherits_last_workspace',
     }
 
-    skip_marker = pytest.mark.skip(reason="requires hermes-agent (not installed)")
+    skip_marker = pytest.mark.skip(reason="requires iris-agent (not installed)")
     skipped = 0
 
     for item in items:
@@ -720,7 +720,7 @@ def pytest_collection_modifyitems(config, items):
             skipped += 1
 
     if skipped:
-        print(f"\nWARNING: hermes-agent not found; {skipped} agent-dependent tests will be skipped\n")
+        print(f"\nWARNING: iris-agent not found; {skipped} agent-dependent tests will be skipped\n")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -917,7 +917,7 @@ def _rmtree_retry(path):
 
     # Final fallback: a concurrent-writer race (Errno 39) shouldn't fail teardown.
     # Best-effort ignore_errors sweep; if anything remains it's abandoned test
-    # state under HERMES_HOME, not something a test asserts on.
+    # state under IRIS_HOME, not something a test asserts on.
     shutil.rmtree(target, ignore_errors=True)
     if not target.exists():
         return
@@ -984,7 +984,7 @@ def test_server():
 
     # Symlink real skills into test home so skill-related tests work,
     # but all write-heavy state stays isolated.
-    real_skills  = HERMES_HOME / 'skills'
+    real_skills  = IRIS_HOME / 'skills'
     test_skills  = TEST_STATE_DIR / 'skills'
     _seed_test_skills(real_skills, test_skills)
 
@@ -994,11 +994,11 @@ def test_server():
     # Expose TEST_STATE_DIR to the test process itself so that tests which write
     # directly to state.db (e.g. test_gateway_sync.py) always use the same path
     # as the server.  Other test files (test_auth_sessions.py) may override
-    # HERMES_WEBUI_STATE_DIR for their own purposes, but HERMES_WEBUI_TEST_STATE_DIR
+    # IRIS_WEBUI_STATE_DIR for their own purposes, but IRIS_WEBUI_TEST_STATE_DIR
     # is reserved for this mapping and is never overridden by individual test files.
     # Export both port and state-dir as env vars so individual test files
     # can read them without importing conftest (avoids circular imports).
-    os.environ.setdefault('HERMES_WEBUI_TEST_PORT', str(TEST_PORT))
+    os.environ.setdefault('IRIS_WEBUI_TEST_PORT', str(TEST_PORT))
     # os.environ already set at module level above; no-op here.
 
     env = os.environ.copy()
@@ -1043,9 +1043,9 @@ def test_server():
     # Model-selection overrides must not reach the test server either. They are
     # already popped from the pytest process env at module level, but strip them
     # explicitly here so the subprocess default model comes only from the isolated
-    # config / HERMES_WEBUI_DEFAULT_MODEL below — never a runner-exported
-    # HERMES_MODEL (get_effective_default_model gives these env vars top priority).
-    for _model_env in ('HERMES_MODEL', 'OPENAI_MODEL', 'LLM_MODEL'):
+    # config / IRIS_WEBUI_DEFAULT_MODEL below — never a runner-exported
+    # IRIS_MODEL (get_effective_default_model gives these env vars top priority).
+    for _model_env in ('IRIS_MODEL', 'OPENAI_MODEL', 'LLM_MODEL'):
         env.pop(_model_env, None)
     # Belt-and-suspenders: keep IMDS disabled in the spawn env too (we set it
     # at module level above for the pytest process, but make it explicit here
@@ -1056,35 +1056,35 @@ def test_server():
     # env var at import time and installs an identical socket-block guard.
     # Without this, the subprocess can make outbound requests that the
     # pytest-side block can't see.
-    env["HERMES_WEBUI_TEST_NETWORK_BLOCK"] = "1"
+    env["IRIS_WEBUI_TEST_NETWORK_BLOCK"] = "1"
     env.update({
-        "HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE": "1",
+        "IRIS_WEBUI_WORKSPACE_GIT_DESTRUCTIVE": "1",
         # Small archive-extraction cap so the zip-bomb guard is exercisable
         # against the out-of-process test server (the real 10x-upload default is
         # ~200MB — impractical to exceed in a test). 5MB is far above any other
         # test's archive payload, so only the bomb test trips it.
-        "HERMES_WEBUI_MAX_EXTRACTED_MB":  "5",
-        "HERMES_WEBUI_PORT":              str(TEST_PORT),
-        "HERMES_WEBUI_HOST":              "127.0.0.1",
-        "HERMES_WEBUI_STATE_DIR":         str(TEST_STATE_DIR),
-        "HERMES_WEBUI_DEFAULT_WORKSPACE": str(TEST_WORKSPACE),
-        "HERMES_WEBUI_DEFAULT_MODEL":     "openai/gpt-5.4-mini",
-        "HERMES_HOME":                    str(TEST_STATE_DIR),
-        "HERMES_CONFIG_PATH":             str(TEST_STATE_DIR / 'config.yaml'),
-        # Belt-and-suspenders: HERMES_BASE_HOME hard-locks _DEFAULT_HERMES_HOME
+        "IRIS_WEBUI_MAX_EXTRACTED_MB":  "5",
+        "IRIS_WEBUI_PORT":              str(TEST_PORT),
+        "IRIS_WEBUI_HOST":              "127.0.0.1",
+        "IRIS_WEBUI_STATE_DIR":         str(TEST_STATE_DIR),
+        "IRIS_WEBUI_DEFAULT_WORKSPACE": str(TEST_WORKSPACE),
+        "IRIS_WEBUI_DEFAULT_MODEL":     "openai/gpt-5.4-mini",
+        "IRIS_HOME":                    str(TEST_STATE_DIR),
+        "IRIS_CONFIG_PATH":             str(TEST_STATE_DIR / 'config.yaml'),
+        # Belt-and-suspenders: IRIS_BASE_HOME hard-locks _DEFAULT_IRIS_HOME
         # in api/profiles.py to the test state dir regardless of profile switching
         # or any os.environ mutation that happens inside the server process.
         # Without this, a profile switch or active_profile file in the real
-        # ~/.hermes can redirect _get_active_hermes_home() out of the sandbox,
+        # ~/.iris can redirect _get_active_iris_home() out of the sandbox,
         # causing onboarding writes (config.yaml, .env) to land in the production
-        # ~/.hermes/profiles/webui/ and overwrite real API keys.
-        "HERMES_BASE_HOME":               str(TEST_STATE_DIR),
-        "HERMES_WEBUI_PASSWORD":          "",
+        # ~/.iris/profiles/webui/ and overwrite real API keys.
+        "IRIS_BASE_HOME":               str(TEST_STATE_DIR),
+        "IRIS_WEBUI_PASSWORD":          "",
     })
 
     # Pass agent dir if discovered so server.py doesn't have to re-discover
-    if HERMES_AGENT:
-        env["HERMES_WEBUI_AGENT_DIR"] = str(HERMES_AGENT)
+    if IRIS_AGENT:
+        env["IRIS_WEBUI_AGENT_DIR"] = str(IRIS_AGENT)
 
     # Capture server stdout/stderr to a temp log instead of DEVNULL so a boot
     # failure (import error, port-bind race, traceback) is diagnosable. Without
@@ -1092,7 +1092,7 @@ def test_server():
     # and every HTTP-dependent test then cascaded with ConnectionRefused —
     # hundreds of opaque failures from a single root cause.
     import tempfile as _tempfile
-    _server_log = pathlib.Path(_tempfile.gettempdir()) / f"hermes-webui-test-server-{TEST_PORT}.log"
+    _server_log = pathlib.Path(_tempfile.gettempdir()) / f"iris-webui-test-server-{TEST_PORT}.log"
 
     # Boot the server, retrying once if it dies early or fails to bind. Boot
     # failures here are most often transient (a port not yet released by a prior
@@ -1111,7 +1111,7 @@ def test_server():
                 stderr=subprocess.STDOUT,
                 **({"creationflags": subprocess.CREATE_NO_WINDOW} if sys.platform == "win32" else {}),
             )
-        # 45s (up from 20s): server.py imports the full hermes-agent, which is
+        # 45s (up from 20s): server.py imports the full iris-agent, which is
         # import-heavy and can exceed 20s on a loaded runner — the old timeout
         # turned a slow-but-fine boot into a whole-suite failure.
         ok, reason = _wait_for_server(TEST_BASE, timeout=45, proc=proc, log_path=_server_log)
@@ -1134,7 +1134,7 @@ def test_server():
             f"  reason    : {last_reason}\n"
             f"  server.py : {SERVER_SCRIPT}\n"
             f"  python    : {VENV_PYTHON}\n"
-            f"  agent dir : {HERMES_AGENT}\n"
+            f"  agent dir : {IRIS_AGENT}\n"
             f"  workdir   : {WORKDIR}\n"
             f"  log       : {_server_log}\n"
         )
@@ -1184,50 +1184,50 @@ def _invalidate_models_cache_after_test():
         pass
 
 
-# ── Per-test hermes_cli module integrity guard ───────────────────────────────
-# Several tests simulate "hermes_cli unavailable / CI without the package" by
-# swapping sys.modules['hermes_cli'] for a stub whose __path__ is [] (e.g.
+# ── Per-test iris_cli module integrity guard ───────────────────────────────
+# Several tests simulate "iris_cli unavailable / CI without the package" by
+# swapping sys.modules['iris_cli'] for a stub whose __path__ is [] (e.g.
 # test_byok_model_dropdown's _install_provider_model_ids sets
-# `hermes_cli.__path__ = []`), by monkeypatch.delitem-ing it, or by installing a
-# meta-path finder that raises ImportError for hermes_cli.* imports. monkeypatch
-# usually restores these, BUT once the REAL hermes_cli module object has its
+# `iris_cli.__path__ = []`), by monkeypatch.delitem-ing it, or by installing a
+# meta-path finder that raises ImportError for iris_cli.* imports. monkeypatch
+# usually restores these, BUT once the REAL iris_cli module object has its
 # __path__ emptied in place — or a submodule import is attempted while the stub /
 # blocking finder is installed — Python caches the broken state: a later
-# `import hermes_cli.profiles` can no longer find the subpackage (empty __path__)
+# `import iris_cli.profiles` can no longer find the subpackage (empty __path__)
 # even after the module object itself is restored. That is the exact chronic
 # full-suite poison behind the profile-resolution failures
 # (test_profile_skills_stats, test_scheduled_jobs_profile_isolation,
 # test_sprint10 crons) and the "Failed to load OpenAI Codex models from
-# hermes_cli" TLS-test failure — all pass in isolation, all fail only after one
+# iris_cli" TLS-test failure — all pass in isolation, all fail only after one
 # of the poisoners has run earlier in the suite.
 #
-# This autouse guard captures the genuine on-disk hermes_cli package once, and
+# This autouse guard captures the genuine on-disk iris_cli package once, and
 # after every test restores it if sys.modules has been left with a stub, a
-# missing entry, or an emptied __path__ — and purges any poisoned hermes_cli.*
+# missing entry, or an emptied __path__ — and purges any poisoned iris_cli.*
 # submodule entries so the next importer re-imports them cleanly from disk.
-_REAL_HERMES_CLI = sys.modules.get("hermes_cli")
-_REAL_HERMES_CLI_PATH = (
-    list(getattr(_REAL_HERMES_CLI, "__path__", []) or [])
-    if _REAL_HERMES_CLI is not None
+_REAL_IRIS_CLI = sys.modules.get("iris_cli")
+_REAL_IRIS_CLI_PATH = (
+    list(getattr(_REAL_IRIS_CLI, "__path__", []) or [])
+    if _REAL_IRIS_CLI is not None
     else []
 )
-# hermes_state is a sibling top-level module in the SAME agent dir as hermes_cli
-# (…/hermes-agent/hermes_state.py). The same "simulate agent-package
-# unavailable" tests that poison hermes_cli also leave hermes_state unimportable
-# (test_v050259_sessiondb_fd_leak's `from hermes_state import SessionDB` fails
+# iris_state is a sibling top-level module in the SAME agent dir as iris_cli
+# (…/iris-agent/iris_state.py). The same "simulate agent-package
+# unavailable" tests that poison iris_cli also leave iris_state unimportable
+# (test_v050259_sessiondb_fd_leak's `from iris_state import SessionDB` fails
 # only in the full suite, never alone), so it needs the same restore guard.
-_REAL_HERMES_STATE = sys.modules.get("hermes_state")
+_REAL_IRIS_STATE = sys.modules.get("iris_state")
 
 # Some tests (e.g. test_issue1574_cron_profile_lock._activate_spawn_fake_agent)
 # repoint the agent at a FAKE dir by mutating os.environ + sys.path DIRECTLY
 # (not via monkeypatch) and never restore them. A later test that spawns
-# server.py as a subprocess inherits the poisoned HERMES_WEBUI_AGENT_DIR /
-# PYTHONPATH and the child can't import hermes_cli — the chronic
+# server.py as a subprocess inherits the poisoned IRIS_WEBUI_AGENT_DIR /
+# PYTHONPATH and the child can't import iris_cli — the chronic
 # test_tls_support::test_tls_startup_failure_fallback_to_http full-suite failure
 # (subprocess ModuleNotFoundError at cron/scheduler.py's `from
-# hermes_cli._subprocess_compat import ...`). Snapshot the agent-path env + the
+# iris_cli._subprocess_compat import ...`). Snapshot the agent-path env + the
 # real sys.path entries once so the guard below can restore them.
-_AGENT_PATH_ENV_KEYS = ("HERMES_WEBUI_AGENT_DIR", "PYTHONPATH", "HERMES_WEBUI_PYTHON")
+_AGENT_PATH_ENV_KEYS = ("IRIS_WEBUI_AGENT_DIR", "PYTHONPATH", "IRIS_WEBUI_PYTHON")
 _REAL_AGENT_ENV = {k: os.environ.get(k) for k in _AGENT_PATH_ENV_KEYS}
 _REAL_SYS_PATH = list(sys.path)
 
@@ -1250,46 +1250,46 @@ _updates._windows_restart_spawn = _pytest_session_safe_windows_restart_spawn
 _updates._windows_restart_exit = _pytest_session_safe_windows_restart_exit
 
 
-def _hermes_cli_is_healthy() -> bool:
-    mod = sys.modules.get("hermes_cli")
-    if mod is None or mod is not _REAL_HERMES_CLI:
+def _iris_cli_is_healthy() -> bool:
+    mod = sys.modules.get("iris_cli")
+    if mod is None or mod is not _REAL_IRIS_CLI:
         return False
     path = getattr(mod, "__path__", None)
     return bool(isinstance(path, list) and len(path) > 0)
 
 
 @pytest.fixture(autouse=True)
-def _restore_hermes_cli_module():
-    """Restore the real hermes_cli / hermes_state packages + agent-path env after
+def _restore_iris_cli_module():
+    """Restore the real iris_cli / iris_state packages + agent-path env after
     any test that stubbed/blocked/repointed them.
 
     Fixes the chronic full-suite test-isolation poison where a test that
     simulates "agent package unavailable" (or repoints the agent at a fake dir)
     leaves the real package unimportable — via a stub swap, delitem, blocking
-    meta-path finder, an emptied __path__, or a leaked HERMES_WEBUI_AGENT_DIR /
+    meta-path finder, an emptied __path__, or a leaked IRIS_WEBUI_AGENT_DIR /
     PYTHONPATH / sys.path mutation. Later tests then fail to `import
-    hermes_cli.profiles`, `import hermes_state`, or spawn a server subprocess
+    iris_cli.profiles`, `import iris_state`, or spawn a server subprocess
     that can't import the agent at all.
     """
     yield
-    if _REAL_HERMES_CLI is not None and not _hermes_cli_is_healthy():
+    if _REAL_IRIS_CLI is not None and not _iris_cli_is_healthy():
         # Restore the genuine package object + its real __path__.
         try:
-            _REAL_HERMES_CLI.__path__ = list(_REAL_HERMES_CLI_PATH)
+            _REAL_IRIS_CLI.__path__ = list(_REAL_IRIS_CLI_PATH)
         except Exception:
             pass
-        sys.modules["hermes_cli"] = _REAL_HERMES_CLI
+        sys.modules["iris_cli"] = _REAL_IRIS_CLI
         # Drop poisoned submodule entries (stubs / partially-imported) so the
-        # next `import hermes_cli.<sub>` re-imports the real module from disk.
-        for _name in [n for n in list(sys.modules) if n.startswith("hermes_cli.")]:
+        # next `import iris_cli.<sub>` re-imports the real module from disk.
+        for _name in [n for n in list(sys.modules) if n.startswith("iris_cli.")]:
             _sub = sys.modules.get(_name)
             _subfile = getattr(_sub, "__file__", None)
-            if not _subfile or "hermes_cli" not in str(_subfile):
+            if not _subfile or "iris_cli" not in str(_subfile):
                 sys.modules.pop(_name, None)
-    # Restore hermes_state if a test swapped/removed it for a stub.
-    if _REAL_HERMES_STATE is not None:
-        if sys.modules.get("hermes_state") is not _REAL_HERMES_STATE:
-            sys.modules["hermes_state"] = _REAL_HERMES_STATE
+    # Restore iris_state if a test swapped/removed it for a stub.
+    if _REAL_IRIS_STATE is not None:
+        if sys.modules.get("iris_state") is not _REAL_IRIS_STATE:
+            sys.modules["iris_state"] = _REAL_IRIS_STATE
     # Restore leaked agent-path env vars (so a later server-subprocess spawn
     # inherits the real agent dir, not a prior test's fake one).
     for _k, _v in _REAL_AGENT_ENV.items():
@@ -1303,7 +1303,7 @@ def _restore_hermes_cli_module():
         sys.path[:] = _REAL_SYS_PATH
 
 
-# ── hermes-agent API-drift compat: tools.approval._ApprovalEntry ─────────────
+# ── iris-agent API-drift compat: tools.approval._ApprovalEntry ─────────────
 # The core agent (commit 14791b4d4e, released in v2026.9.7) split tools/approval.py
 # into smart/human-wait/gateway-wait modules and dropped 43 back-compat facade
 # re-exports — including the module-level ``tools.approval._ApprovalEntry`` alias.

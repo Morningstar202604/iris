@@ -33,7 +33,7 @@ def _load_auxiliary_client() -> None:
         extract_content_or_reasoning = extract_content_or_reasoning or _aux.extract_content_or_reasoning
 
 
-from hermes_constants import get_hermes_dir
+from iris_constants import get_iris_dir
 from tools.debug_helpers import DebugSession
 from tools.website_policy import check_website_access
 from tools.vision_tools_history_budget import (
@@ -61,7 +61,7 @@ _debug = DebugSession("vision_tools", env_var="VISION_TOOLS_DEBUG")
 def _cfg_auxiliary(*keys: str, default=None):
     """``auxiliary.<keys...>`` from config.yaml; ``default`` when config is unavailable."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from iris_cli.config import cfg_get, load_config
         return cfg_get(load_config(), "auxiliary", *keys, default=default)
     except Exception:
         return default
@@ -81,7 +81,7 @@ def _read_vision_setting(env_var: str, key: str, cast, minimum=None):
 
 
 # HTTP download timeout (separate from ``auxiliary.vision.timeout``, which governs the LLM call).
-_VISION_DOWNLOAD_TIMEOUT = _read_vision_setting("HERMES_VISION_DOWNLOAD_TIMEOUT", "download_timeout", float)
+_VISION_DOWNLOAD_TIMEOUT = _read_vision_setting("IRIS_VISION_DOWNLOAD_TIMEOUT", "download_timeout", float)
 if _VISION_DOWNLOAD_TIMEOUT is None:
     _VISION_DOWNLOAD_TIMEOUT = 30.0
 
@@ -104,8 +104,8 @@ def _detect_host_cpus() -> int:
 
 
 def _resolve_vision_cpu_workers() -> int:
-    """HERMES_VISION_MAX_CONCURRENCY → ``auxiliary.vision.max_concurrency`` → host cores (< 1 ignored)."""
-    val = _read_vision_setting("HERMES_VISION_MAX_CONCURRENCY", "max_concurrency", int, minimum=1)
+    """IRIS_VISION_MAX_CONCURRENCY → ``auxiliary.vision.max_concurrency`` → host cores (< 1 ignored)."""
+    val = _read_vision_setting("IRIS_VISION_MAX_CONCURRENCY", "max_concurrency", int, minimum=1)
     return val or _detect_host_cpus()
 
 
@@ -477,7 +477,7 @@ def _should_use_native_vision_fast_path() -> bool:
     try:
         from agent.auxiliary_client import _read_main_provider, _read_main_model
         from agent.image_routing import decide_image_input_mode
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         provider = _read_main_provider()
         model = _read_main_model()
         cfg = load_config()
@@ -545,7 +545,7 @@ async def _prepare_image(
         resolved = await resolve_image_source(image_url, ResolveContext(task_id=task_id))
     except ImageResolutionError as exc:
         raise _ImagePrepError(str(exc)) from exc
-    temp_dir = get_hermes_dir("cache/vision", "temp_vision_images")
+    temp_dir = get_iris_dir("cache/vision", "temp_vision_images")
     temp_dir.mkdir(parents=True, exist_ok=True)
     path = temp_dir / f"temp_image_{uuid.uuid4()}.img"
     await asyncio.to_thread(path.write_bytes, resolved.data)
@@ -788,7 +788,7 @@ async def vision_analyze_tool(
     image_url: str, user_prompt: str, model: str = None,
     task_id: Optional[str] = None, region: Optional[list] = None) -> str:
     """Describe an image (URL, local path, data: URL) with the auxiliary vision LLM. ``user_prompt``
-    is pre-formatted by the caller. Temp images live under $HERMES_HOME/cache/vision/."""
+    is pre-formatted by the caller. Temp images live under $IRIS_HOME/cache/vision/."""
     async def stage(prompt: str, debug_call_data: dict, temp_paths: list) -> tuple:
         prepared = await _prepare_image(image_url, task_id, region, validate_decode=False)
         temp_paths.append(prepared.path)
@@ -988,7 +988,7 @@ async def _materialize_video(video_url: str, task_id: Optional[str], temp_paths:
                 video_url, ResolveContext(task_id=task_id), permitted=("video",))
         except ImageResolutionError as exc:
             raise ValueError(f"Could not read video from terminal backend: {exc}") from exc
-        temp_dir = get_hermes_dir("cache/video", "temp_video_files")
+        temp_dir = get_iris_dir("cache/video", "temp_video_files")
         temp_dir.mkdir(parents=True, exist_ok=True)
         path = temp_dir / f"terminal_video_{uuid.uuid4()}{suffix}"
         path.write_bytes(resolved.data)
@@ -1003,7 +1003,7 @@ async def _materialize_video(video_url: str, task_id: Optional[str], temp_paths:
         blocked = check_website_access(video_url)
         if blocked:
             raise PermissionError(blocked["message"])
-        path = get_hermes_dir("cache/video", "temp_video_files") / f"temp_video_{uuid.uuid4()}.mp4"
+        path = get_iris_dir("cache/video", "temp_video_files") / f"temp_video_{uuid.uuid4()}.mp4"
         temp_paths.append(path)
         # Video downloads retry every failure class (legacy behavior).
         await _download_media(

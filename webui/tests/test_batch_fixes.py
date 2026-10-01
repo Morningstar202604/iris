@@ -26,7 +26,7 @@ class TestRootWorkspaceUnblocked:
         src = read("api/workspace.py")
         assert "Path('/root')" not in src, (
             "/root must not be in _BLOCKED_SYSTEM_ROOTS — "
-            "breaks deployments where Hermes runs as root"
+            "breaks deployments where Iris runs as root"
         )
 
     def test_etc_still_blocked(self):
@@ -208,7 +208,7 @@ class TestSystemTheme:
 
     def test_panels_saves_system_string_not_resolved(self):
         src = read("static/panels.js")
-        assert "localStorage.getItem('hermes-theme')" in src, (
+        assert "localStorage.getItem('iris-theme')" in src, (
             "_settingsThemeOnOpen must read from localStorage to preserve "
             "the 'system' string, not the resolved 'dark'/'light'"
         )
@@ -247,7 +247,7 @@ class TestSystemTheme:
         src = read("static/panels.js")
         # PR #2799 (v0.51.119): skin precedence now prefers localStorage over settings.skin
         # so the inline-gate-resolved DOM skin survives the picker hydration.
-        skin_idx = src.index("const skinVal=(localStorage.getItem('hermes-skin')||settings.skin||'default').toLowerCase();")
+        skin_idx = src.index("const skinVal=(localStorage.getItem('iris-skin')||settings.skin||'default').toLowerCase();")
         # models is now declared as let models=null before the try block
         models_idx = src.index("models=await api('/api/models');")
         assert skin_idx < models_idx, (

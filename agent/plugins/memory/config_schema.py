@@ -101,7 +101,7 @@ def get_provider_config_schema(name: str) -> ProviderConfigSchema | None:
         return _SCHEMA_CACHE[key]
 
     try:
-        spec = importlib.util.spec_from_file_location(f"_hermes_memory_config_schema.{name}", path)
+        spec = importlib.util.spec_from_file_location(f"_iris_memory_config_schema.{name}", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         schema = getattr(module, "CONFIG_SCHEMA", None)

@@ -7,7 +7,7 @@ description: 'Press Tab in the Desktop composer to grill a draft before it becom
   planning, ops, design, and code; never auto-sends.'
 maintainer: thanhan-a17
 tier: community
-requires_hermes: ">=0.20.0"
+requires_iris: ">=0.20.0"
 docs_url: https://github.com/thanhan-a17/grill-tab
 platforms: []
 capabilities:

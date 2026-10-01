@@ -1,14 +1,14 @@
 """Cron: import path of the restart-safe external worker.
 
 The worker is spawned as ``sys.executable -m cron.scheduler``. Its entry module is
-``cron.scheduler``, not ``hermes_cli.main``, so nothing bootstraps the gateway's checkout
+``cron.scheduler``, not ``iris_cli.main``, so nothing bootstraps the gateway's checkout
 onto its ``sys.path``; historically it imported ``cron`` only through the implicit ``-m``
 cwd entry. That entry is gone under ``PYTHONSAFEPATH`` and useless when the venv's
 editable install maps a moved/deleted checkout -- the worker then dies with
 "No module named 'cron'" before its ownership ack (#112729, hypothesised cause).
 
-The shared subprocess sanitizer strips Hermes-owned PYTHONPATH entries because user
-children must not see our tree. This child IS Hermes, so the pin is applied *after* the
+The shared subprocess sanitizer strips Iris-owned PYTHONPATH entries because user
+children must not see our tree. This child IS Iris, so the pin is applied *after* the
 env is built, on the sanitized env -- the sanitizer's other decisions (dropped runtime
 site-packages, dropped venv markers) stand.
 """
@@ -27,7 +27,7 @@ def _installed_purelib() -> Path | None:
         return None
 
 
-def pin_hermes_tree_on_pythonpath(worker_env: dict, repo_root: Path) -> dict:
+def pin_iris_tree_on_pythonpath(worker_env: dict, repo_root: Path) -> dict:
     """Prepend ``repo_root`` to the worker env's own PYTHONPATH (never ``os.environ``'s).
 
     Skipped when ``repo_root`` is the interpreter's ``purelib``: under a wheel / pipx /

@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
 import { LogTail } from '@/components/chat/log-tail'
-import { getLogs } from '@/hermes'
+import { getLogs } from '@/iris'
 import { startCompletionPoll } from '@/lib/completion-poll'
 import { $activeGatewayProfile } from '@/store/profile'
 

@@ -13,7 +13,7 @@ provider configured as ``web.extract_backend`` falls through):
    the historic ``tools.web_tools._get_backend()`` order, so installs that never
    set a config key keep landing on the same provider.
 4. Keyless free-tier walk (``_KEYLESS_PREFERENCE``), last resort.
-5. ``None`` — the tool points the user at ``hermes tools``.
+5. ``None`` — the tool points the user at ``iris tools``.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ _registry.export(globals())
 def _read_config_key(*path: str) -> Optional[str]:
     """Resolve a dotted config key from ``config.yaml``. Returns None on miss."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from iris_cli.config import load_config_readonly
 
         cur = load_config_readonly()
         for segment in path:
@@ -61,7 +61,7 @@ _LEGACY_PREFERENCE = ("firecrawl", "parallel", "tavily", "perplexity", "exa", "s
 
 # Anonymous public free tiers (see plugins/web/keyless_mcp.py); strictly last
 # resort, i.e. zero web credentials and no importable ddgs. Unpinned keyless
-# traffic round-robins across the ring per request; an explicit `hermes tools`
+# traffic round-robins across the ring per request; an explicit `iris tools`
 # pick bypasses this walk. Disable with ``web.keyless_fallback: false``.
 _KEYLESS_PREFERENCE = ("exa", "parallel", "firecrawl", "keenable")
 
@@ -142,7 +142,7 @@ def _resolve(configured: Optional[str], *, capability: str) -> Optional[WebSearc
 def _keyless_tier_enabled() -> bool:
     """Read ``web.keyless_fallback`` from config.yaml (default: enabled)."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
 
         web_cfg = load_config().get("web") or {}
         return bool(web_cfg.get("keyless_fallback", True))
@@ -177,7 +177,7 @@ def _disabled_web_plugin_for(configured: Optional[str] = None, *, capability: Op
 
     want = _norm(configured)
     try:
-        from hermes_cli.plugins import get_plugin_manager
+        from iris_cli.plugins import get_plugin_manager
 
         pm = get_plugin_manager()
         for key, loaded in pm._plugins.items():
@@ -211,7 +211,7 @@ import threading  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'hermes_home_key': ('hermes_constants', 'hermes_home_key'),
+    'iris_home_key': ('iris_constants', 'iris_home_key'),
 }
 
 
@@ -220,7 +220,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

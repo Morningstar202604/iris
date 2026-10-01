@@ -1,5 +1,5 @@
 import { requestComposerFocus, requestComposerInsert } from '@/app/chat/composer/focus'
-import { getSkills } from '@/hermes'
+import { getSkills } from '@/iris'
 import { translateNow } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { type ComposerSuggestion, registerDraftProvider } from '@/store/composer-suggestions'
@@ -66,10 +66,10 @@ export function skillHit(pattern: RegExp, haystack: string): boolean {
 
 /** Workspace homonym guard, exported for tests: a skill named like the
  *  working directory is the project's name, not a request for the skill.
- *  Working in `~/www/hermes-agent`, the draft says "hermes-agent" constantly
- *  — a "Use skill: hermes-agent" pill on every mention is noise (the reported
+ *  Working in `~/www/iris-agent`, the draft says "iris-agent" constantly
+ *  — a "Use skill: iris-agent" pill on every mention is noise (the reported
  *  annoyance that prompted this guard). Boundary containment, not exact
- *  segment equality, so worktree dirs (`hermes-agent-suggest`) suppress too. */
+ *  segment equality, so worktree dirs (`iris-agent-suggest`) suppress too. */
 export function collidesWithWorkspace(name: string, cwd: string): boolean {
   return new RegExp(`(?<![\\p{L}\\p{N}])${escape(name.toLowerCase())}(?![\\p{L}\\p{N}])`, 'u').test(cwd.toLowerCase())
 }
@@ -128,7 +128,7 @@ function skillArgName(part: { args?: unknown; argsText?: unknown }): string {
 }
 
 /** True when the tool-call arg names this skill — exactly, or as the final
- *  segment of a qualified form (`github/hermes-agent-dev`, `plugin:skill`). */
+ *  segment of a qualified form (`github/iris-agent-dev`, `plugin:skill`). */
 function argNamesSkill(arg: string, skillName: string): boolean {
   const value = arg.trim().toLowerCase()
 

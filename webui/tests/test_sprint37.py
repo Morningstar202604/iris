@@ -12,9 +12,9 @@ HTML      = (REPO_ROOT / "static" / "index.html").read_text()
 # ── Persistence: save on change ───────────────────────────────────────────────
 
 def test_workspace_panel_saves_to_localstorage():
-    """_setWorkspacePanelMode must call localStorage.setItem with hermes-webui-workspace-panel."""
-    assert "hermes-webui-workspace-panel" in BOOT_JS, \
-        "boot.js must use localStorage key 'hermes-webui-workspace-panel' to persist panel state"
+    """_setWorkspacePanelMode must call localStorage.setItem with iris-webui-workspace-panel."""
+    assert "iris-webui-workspace-panel" in BOOT_JS, \
+        "boot.js must use localStorage key 'iris-webui-workspace-panel' to persist panel state"
 
 
 def test_workspace_panel_save_inside_set_mode():
@@ -22,7 +22,7 @@ def test_workspace_panel_save_inside_set_mode():
     fn_idx = BOOT_JS.find("function _setWorkspacePanelMode(")
     fn_end = BOOT_JS.find("\n}", fn_idx) + 2
     fn_body = BOOT_JS[fn_idx:fn_end]
-    assert "hermes-webui-workspace-panel" in fn_body, \
+    assert "iris-webui-workspace-panel" in fn_body, \
         "localStorage save must be inside _setWorkspacePanelMode so every state change is captured"
 
 
@@ -47,14 +47,14 @@ def test_workspace_panel_saves_closed_value():
 # ── Persistence: restore on boot ─────────────────────────────────────────────
 
 def test_workspace_panel_restored_on_boot():
-    """Boot IIFE must read hermes-webui-workspace-panel from localStorage and restore the mode."""
+    """Boot IIFE must read iris-webui-workspace-panel from localStorage and restore the mode."""
     # Find the boot IIFE (the async IIFE at the bottom of boot.js)
     iife_idx = BOOT_JS.rfind("(async function")
     if iife_idx < 0:
         iife_idx = BOOT_JS.rfind("(async()=>{")
     iife_body = BOOT_JS[iife_idx:]
-    assert "hermes-webui-workspace-panel" in iife_body, \
-        "Boot IIFE must read 'hermes-webui-workspace-panel' from localStorage to restore panel state on load"
+    assert "iris-webui-workspace-panel" in iife_body, \
+        "Boot IIFE must read 'iris-webui-workspace-panel' from localStorage to restore panel state on load"
 
 
 def test_workspace_panel_restore_sets_browse_mode():
@@ -82,7 +82,7 @@ def test_workspace_panel_restore_before_sync():
         iife_idx = BOOT_JS.rfind("(async()=>{")
     iife_body = BOOT_JS[iife_idx:]
     # workspace-panel-pref is only read in the normal (has-messages) restore path
-    restore_pos = iife_body.find("hermes-webui-workspace-panel-pref")
+    restore_pos = iife_body.find("iris-webui-workspace-panel-pref")
     # Use the LAST syncWorkspacePanelState() — this is the one in the normal restore path
     sync_pos    = iife_body.rfind("syncWorkspacePanelState()")
     assert restore_pos >= 0, "restore read must be present in boot IIFE"

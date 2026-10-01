@@ -14,7 +14,7 @@ import {
   profileColorSoft,
   relativeTime,
   useQuery
-} from '@hermes/plugin-sdk'
+} from '@iris/plugin-sdk'
 import { type ReactNode, useEffect, useState } from 'react'
 
 import { fetchOrchestration, orchestrationKey, useKanbanScope } from './api'

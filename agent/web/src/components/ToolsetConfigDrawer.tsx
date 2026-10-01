@@ -30,7 +30,7 @@ interface Props {
 
 /**
  * Full configuration surface for a single toolset's backends — the dashboard
- * equivalent of selecting a toolset in the `hermes tools` curses UI: toggle
+ * equivalent of selecting a toolset in the `iris tools` curses UI: toggle
  * the toolset on/off, pick a provider, enter API keys, and run a provider's
  * post-setup install hook (npm/pip/binary) with a live log tail.
  */

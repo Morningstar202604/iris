@@ -4,7 +4,7 @@ The bug: Python's sqlite3 connection context manager (`with sqlite3.connect(...)
 conn:`) commits or rolls back on exit. It does NOT close the connection. In a
 long-running server with sidebar polling (`/api/sessions` calls
 `read_importable_agent_session_rows` and `read_session_lineage_metadata` on every
-poll), every poll leaked one or more open file descriptors against `~/.hermes/state.db`.
+poll), every poll leaked one or more open file descriptors against `~/.iris/state.db`.
 
 In production this drove the WebUI process past macOS's 256-FD soft limit, after
 which new requests reset before producing a response (see #1458, #1494) — the
@@ -187,10 +187,10 @@ def test_get_cli_session_messages_closes_connection(tmp_path, tracking_sqlite, m
     db = tmp_path / "state.db"
     _make_state_db(db)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    # Stub get_active_hermes_home so the tmp_path is used regardless of profile state.
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
+    # Stub get_active_iris_home so the tmp_path is used regardless of profile state.
     import api.profiles
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import get_cli_session_messages
 
@@ -208,9 +208,9 @@ def test_delete_cli_session_closes_connection(tmp_path, tracking_sqlite, monkeyp
     db = tmp_path / "state.db"
     _make_state_db(db)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
     import api.profiles
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     from api.models import delete_cli_session
 

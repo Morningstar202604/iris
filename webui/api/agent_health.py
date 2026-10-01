@@ -1,18 +1,18 @@
-"""Hermes agent/gateway heartbeat payload helpers (#716, #1879).
+"""Iris agent/gateway heartbeat payload helpers (#716, #1879).
 
-The WebUI process is not always paired with a long-running Hermes gateway. Some
+The WebUI process is not always paired with a long-running Iris gateway. Some
 setups use WebUI only, while self-hosted messaging deployments run a separate
-Hermes gateway daemon that records runtime metadata in the Hermes Agent home.
+Iris gateway daemon that records runtime metadata in the Iris Agent home.
 This module turns those existing safe runtime signals into a small UI-facing
 heartbeat without shelling out or adding psutil as a hard dependency.
 
 Cross-container note (#1879): ``gateway.status.get_running_pid()`` uses
 ``fcntl.flock`` and ``os.kill(pid, 0)``, both of which require the caller to
 share a PID namespace with the gateway process. In multi-container deployments
-where the WebUI runs separately from ``hermes-agent`` and only a Hermes data
+where the WebUI runs separately from ``iris-agent`` and only a Iris data
 volume is shared, those checks always return ``None`` and the dashboard
 incorrectly shows "Gateway not running". To stay accurate without forcing a
-``pid: "service:hermes-agent"`` compose workaround, we accept a recent
+``pid: "service:iris-agent"`` compose workaround, we accept a recent
 ``updated_at`` timestamp on ``gateway_state.json`` (combined with
 ``gateway_state == "running"``) as an equivalent live-process signal.  Older
 gateway builds do not refresh that file periodically, so a stale
@@ -175,10 +175,10 @@ def _gateway_status_module():
 
 
 def _gateway_root_pid_path() -> Path | None:
-    """Return the root Hermes gateway PID path.
+    """Return the root Iris gateway PID path.
 
     Gateway runtime files are root-level singletons.  A profile-scoped WebUI
-    process may have HERMES_HOME=<root>/profiles/<name>, but gateway.pid,
+    process may have IRIS_HOME=<root>/profiles/<name>, but gateway.pid,
     gateway.lock, and gateway_state.json still live under <root>.
 
     When the root-level gateway.pid is absent (profile-scoped gateway
@@ -186,13 +186,13 @@ def _gateway_root_pid_path() -> Path | None:
     active profile's directory so the gateway is detected correctly.
     """
     try:
-        from hermes_constants import get_default_hermes_root
-        root_pid = get_default_hermes_root() / _GATEWAY_PID_FILE
+        from iris_constants import get_default_iris_root
+        root_pid = get_default_iris_root() / _GATEWAY_PID_FILE
         if root_pid.exists():
             return root_pid
         try:
-            from api.profiles import get_active_hermes_home
-            profile_pid = Path(get_active_hermes_home()) / _GATEWAY_PID_FILE
+            from api.profiles import get_active_iris_home
+            profile_pid = Path(get_active_iris_home()) / _GATEWAY_PID_FILE
             if profile_pid.exists():
                 return profile_pid
         except Exception:
@@ -388,13 +388,13 @@ def get_active_profile_gateway_running_pid(profile: str | None = None) -> int | 
     the default-root health path. Keep this fail-closed when status is unavailable.
     """
     try:
-        from api.profiles import get_active_hermes_home, get_hermes_home_for_profile
+        from api.profiles import get_active_iris_home, get_iris_home_for_profile
 
         gateway_status = _gateway_status_module()
         if profile is None:
-            gateway_home = get_active_hermes_home()
+            gateway_home = get_active_iris_home()
         else:
-            gateway_home = get_hermes_home_for_profile(profile)
+            gateway_home = get_iris_home_for_profile(profile)
         gateway_pid_path = Path(gateway_home) / _GATEWAY_PID_FILE
         return _gateway_running_pid_strict_path(gateway_status, gateway_pid_path)
     except Exception:
@@ -446,7 +446,7 @@ def _runtime_detail_subset(runtime_status: dict[str, Any] | None) -> dict[str, A
 # In multi-container Docker deployments the WebUI container does not ship the
 # ``gateway`` Python package. The lazy ``importlib.import_module("gateway.status")``
 # therefore raises ``ModuleNotFoundError`` and the payload falls through to
-# ``gateway_not_configured`` even though ``HERMES_API_URL`` points at a perfectly
+# ``gateway_not_configured`` even though ``IRIS_API_URL`` points at a perfectly
 # reachable remote gateway. The Tasks/Cron banner then shows a spurious amber
 # "Gateway not configured" warning.
 #
@@ -487,8 +487,8 @@ def _remote_probe_wait_budget_s() -> float:
 def _remote_gateway_base_url() -> str | None:
     """Return an explicit remote gateway base URL, or None for local-only setups.
 
-    Priority: GATEWAY_HEALTH_URL > HERMES_GATEWAY_HEALTH_URL > HERMES_API_URL
-    > HERMES_WEBUI_GATEWAY_BASE_URL.
+    Priority: GATEWAY_HEALTH_URL > IRIS_GATEWAY_HEALTH_URL > IRIS_API_URL
+    > IRIS_WEBUI_GATEWAY_BASE_URL.
     Returns ``None`` when no env var is set so the caller falls through to
     local PID/state checks.
 
@@ -500,9 +500,9 @@ def _remote_gateway_base_url() -> str | None:
     """
     for var in (
         "GATEWAY_HEALTH_URL",
-        "HERMES_GATEWAY_HEALTH_URL",
-        "HERMES_API_URL",
-        "HERMES_WEBUI_GATEWAY_BASE_URL",
+        "IRIS_GATEWAY_HEALTH_URL",
+        "IRIS_API_URL",
+        "IRIS_WEBUI_GATEWAY_BASE_URL",
     ):
         val = os.environ.get(var, "").strip()
         if val:
@@ -523,7 +523,7 @@ def _remote_gateway_api_key() -> str:
     expects on ``/health/detailed`` (#5418).
     """
     return str(
-        os.environ.get("HERMES_WEBUI_GATEWAY_API_KEY")
+        os.environ.get("IRIS_WEBUI_GATEWAY_API_KEY")
         or os.environ.get("API_SERVER_KEY")
         or ""
     ).strip()
@@ -715,7 +715,7 @@ def _reset_remote_probe_cache_for_tests() -> None:
 
 
 def build_agent_health_payload() -> dict[str, Any]:
-    """Return `{alive, checked_at, details}` for the Hermes gateway/agent.
+    """Return `{alive, checked_at, details}` for the Iris gateway/agent.
 
     `alive` is intentionally tri-state:
       * True: a gateway runtime signal says the process is alive.
@@ -725,7 +725,7 @@ def build_agent_health_payload() -> dict[str, Any]:
     """
     checked_at = _checked_at()
 
-    # Multi-container deployments (#3281): when HERMES_API_URL is set the
+    # Multi-container deployments (#3281): when IRIS_API_URL is set the
     # gateway lives in another container/host. Probe it over HTTP before
     # touching local module/pid/state-file signals, otherwise a missing
     # ``gateway`` Python package in this image masquerades as

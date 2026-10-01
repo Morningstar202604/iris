@@ -1,8 +1,8 @@
-import { skillInvocationText } from '@hermes/shared'
+import { skillInvocationText } from '@iris/shared'
 
 import { extractImageRefs } from '@/lib/embedded-images'
 import { dedupeGeneratedImageEchoesInParts } from '@/lib/generated-images'
-import type { MessageReaction, SessionMessage } from '@/types/hermes'
+import type { MessageReaction, SessionMessage } from '@/types/iris'
 
 import { assistantTextPart, chatMessageText, dedupeRepeatedTextInParts, reasoningPart, textPart } from './parts'
 import {
@@ -347,7 +347,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       message.display_kind === 'process_complete' ||
       message.display_kind === 'auto_continue' ||
       message.display_kind === 'personality_switch' ||
-      // Hermes closing a failed turn, not the model speaking.
+      // Iris closing a failed turn, not the model speaking.
       message.display_kind === 'failed_turn'
         ? 'system'
         : message.role

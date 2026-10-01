@@ -2,7 +2,7 @@
 Regression tests for GitHub issue #570 follow-up:
 PermissionError from SETTINGS_FILE.exists() in Docker UID-mismatch scenarios.
 
-When ~/.hermes is owned by a different UID than the container user (common in
+When ~/.iris is owned by a different UID than the container user (common in
 Docker setups), Path.exists() raises PermissionError instead of returning False.
 load_settings() must treat that as "file not accessible = use defaults" rather
 than propagating the exception up to crash the request handler.

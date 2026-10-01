@@ -1,9 +1,9 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@iris/shared'
 import { useMemo } from 'react'
 
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
-import type { ContextBreakdown, ContextUsageCategory, UsageStats } from '@/types/hermes'
+import type { ContextBreakdown, ContextUsageCategory, UsageStats } from '@/types/iris'
 
 interface ContextUsagePanelProps {
   breakdown: ContextBreakdown | null

@@ -1,5 +1,5 @@
 /**
- * Exponential reconnect backoff shared by every Hermes front-end socket
+ * Exponential reconnect backoff shared by every Iris front-end socket
  * (desktop gateway/plugins, web events feed, web PTY, Ink TUI attach mode).
  *
  * Default is full jitter: a bare exponential backoff still lets every client

@@ -3,7 +3,7 @@ Tests for GitHub issue #609 — Docker workspace path trust and env-var priority
 
 Two independent bugs were fixed:
 
-  1. HERMES_WEBUI_DEFAULT_WORKSPACE env var was silently overridden by
+  1. IRIS_WEBUI_DEFAULT_WORKSPACE env var was silently overridden by
      settings.json at server startup.  The env var must always win.
 
   2. resolve_trusted_workspace() rejected paths that are children of

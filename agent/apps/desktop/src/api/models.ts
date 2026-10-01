@@ -1,4 +1,4 @@
-import type { ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionsResult } from '@iris/shared'
 
 import type {
   AnalyticsResponse,
@@ -7,12 +7,12 @@ import type {
   ModelAssignmentRequest,
   ModelAssignmentResponse,
   ModelInfoResponse
-} from '@/types/hermes'
+} from '@/types/iris'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
+import { capabilityScoped, irisApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
 
 export function getGlobalModelInfo(profile?: null | string): Promise<ModelInfoResponse> {
-  return hermesApi<ModelInfoResponse>({
+  return irisApi<ModelInfoResponse>({
     ...profileScoped(profile),
     path: '/api/model/info',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
@@ -20,7 +20,7 @@ export function getGlobalModelInfo(profile?: null | string): Promise<ModelInfoRe
 }
 
 export function getUsageAnalytics(days = 30, profile?: ProfileScope): Promise<AnalyticsResponse> {
-  return window.hermesDesktop.api<AnalyticsResponse>({
+  return window.irisDesktop.api<AnalyticsResponse>({
     ...capabilityScoped(profile),
     path: `/api/analytics/usage?days=${Math.max(1, Math.floor(days))}`
   })
@@ -48,7 +48,7 @@ export function getGlobalModelOptions(
     params.set('explicit_only', '1')
   }
 
-  return hermesApi<ModelOptionsResult>({
+  return irisApi<ModelOptionsResult>({
     ...profileScoped(profile),
     path: params.size > 0 ? `/api/model/options?${params.toString()}` : '/api/model/options',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
@@ -63,13 +63,13 @@ export interface RecommendedDefaultModel {
 }
 
 // Recommended default model for a freshly-authenticated provider. Mirrors the
-// curation `hermes model` does — for Nous it honors the free/paid tier so a
+// curation `iris model` does — for Nous it honors the free/paid tier so a
 // free user gets a free model instead of a paid default.
 export function getRecommendedDefaultModel(
   provider: string,
   profile?: null | string
 ): Promise<RecommendedDefaultModel> {
-  return hermesApi<RecommendedDefaultModel>({
+  return irisApi<RecommendedDefaultModel>({
     ...profileScoped(profile),
     path: `/api/model/recommended-default?provider=${encodeURIComponent(provider)}`
   })
@@ -79,7 +79,7 @@ export function setGlobalModel(
   provider: string,
   model: string
 ): Promise<{ ok: boolean; provider: string; model: string }> {
-  return hermesApi<{ ok: boolean; provider: string; model: string }>({
+  return irisApi<{ ok: boolean; provider: string; model: string }>({
     ...profileScoped(),
     path: '/api/model/set',
     method: 'POST',
@@ -92,14 +92,14 @@ export function setGlobalModel(
 }
 
 export function getAuxiliaryModels(profile?: null | string): Promise<AuxiliaryModelsResponse> {
-  return hermesApi<AuxiliaryModelsResponse>({
+  return irisApi<AuxiliaryModelsResponse>({
     ...profileScoped(profile),
     path: '/api/model/auxiliary'
   })
 }
 
 export function getMoaModels(profile?: null | string): Promise<MoaConfigResponse> {
-  return hermesApi<MoaConfigResponse>({
+  return irisApi<MoaConfigResponse>({
     ...profileScoped(profile),
     path: '/api/model/moa'
   })
@@ -109,7 +109,7 @@ export function saveMoaModels(
   body: MoaConfigResponse,
   profile?: null | string
 ): Promise<MoaConfigResponse & { ok: boolean }> {
-  return hermesApi<MoaConfigResponse & { ok: boolean }>({
+  return irisApi<MoaConfigResponse & { ok: boolean }>({
     ...profileScoped(profile),
     path: '/api/model/moa',
     method: 'PUT',
@@ -121,7 +121,7 @@ export function setModelAssignment(
   body: ModelAssignmentRequest,
   profile?: null | string
 ): Promise<ModelAssignmentResponse> {
-  return hermesApi<ModelAssignmentResponse>({
+  return irisApi<ModelAssignmentResponse>({
     ...profileScoped(profile),
     path: '/api/model/set',
     method: 'POST',

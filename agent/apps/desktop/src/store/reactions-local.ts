@@ -1,7 +1,7 @@
 import { atom } from 'nanostores'
 
 import { applyReaction } from '@/store/reactions'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/iris'
 
 /**
  * Reactions the user has set in THIS window, keyed by renderer message id.

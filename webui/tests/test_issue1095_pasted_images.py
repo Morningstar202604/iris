@@ -89,7 +89,7 @@ class TestChatHistoryImageRendering:
     def test_attachment_render_uses_file_raw_not_media(self):
         """Image attachments in chat history must use api/file/raw, not api/media.
 
-        api/media expects a full absolute filesystem path (e.g. /home/hermes/.hermes/...).
+        api/media expects a full absolute filesystem path (e.g. /home/iris/.iris/...).
         We only store the filename in m.attachments — feeding just a filename to api/media
         results in a broken image (path not in allowed roots → 404).
 

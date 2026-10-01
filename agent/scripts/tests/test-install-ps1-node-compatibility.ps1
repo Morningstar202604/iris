@@ -3,14 +3,14 @@
 # The installer is dot-sourced without running its entry point, then external
 # commands and downloads are replaced with deterministic in-process stubs.
 # This exercises the shipped range parser and Test-Node acceptance gate without
-# changing PATH, installing software, or touching the user's Hermes home.
+# changing PATH, installing software, or touching the user's Iris home.
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 $installScript = Join-Path $repoRoot 'scripts\install.ps1'
-$testRoot = Join-Path $env:TEMP ("hermes-node-compatibility-test-" + [Guid]::NewGuid().ToString('N'))
-$HermesHome = Join-Path $testRoot 'home'
+$testRoot = Join-Path $env:TEMP ("iris-node-compatibility-test-" + [Guid]::NewGuid().ToString('N'))
+$IrisHome = Join-Path $testRoot 'home'
 $InstallDir = Join-Path $testRoot 'missing-checkout'
-. $installScript -HermesHome $HermesHome -InstallDir $InstallDir
+. $installScript -IrisHome $IrisHome -InstallDir $InstallDir
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

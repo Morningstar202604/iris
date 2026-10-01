@@ -6,7 +6,7 @@ chip label in syncTopbar()'s session-present branch to read
 ``(S.session&&S.session.profile)||S.activeProfile`` so the label would track the
 profile of whatever session was being browsed. But the chip is the profile
 *switcher* trigger (it fronts the profile dropdown), and message routing /
-new-chat creation both follow the client active profile (the ``hermes_profile``
+new-chat creation both follow the client active profile (the ``iris_profile``
 cookie, set only by ``/api/profile/switch``). ``loadSession()`` sets
 ``S.session`` but never updates ``S.activeProfile``, so opening a session that
 belongs to a different profile than the active one made the chip diverge from

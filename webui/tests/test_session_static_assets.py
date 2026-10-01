@@ -114,7 +114,7 @@ def test_session_static_auth_exemption(monkeypatch):
     302-redirect every stylesheet/script to /login, breaking the page even when
     the HTML index itself loaded correctly.
     """
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
 
     from api.auth import check_auth, _invalidate_password_hash_cache
 

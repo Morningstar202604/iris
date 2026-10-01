@@ -289,7 +289,7 @@ def test_stale_card_run_owner_cannot_rebind_to_current_run(monkeypatch, enable_y
     monkeypatch.setattr(routes, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     gateway_chat._STREAM_RUN_IDS[stream_id] = current_run_id
 
     try:
@@ -678,7 +678,7 @@ def test_card_yolo_uses_plain_runs_approval_and_rolls_back_on_failure(monkeypatc
     monkeypatch.setattr(routes, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     gateway_chat._STREAM_RUN_IDS[stream_id] = run_id
 
     approval = {
@@ -740,7 +740,7 @@ def test_failed_relay_does_not_undo_concurrent_explicit_yolo_enable(monkeypatch)
     monkeypatch.setattr(routes, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     gateway_chat._STREAM_RUN_IDS[stream_id] = run_id
     route_approvals.submit_gateway_pending_mirror(sid, {
         "command": "touch /tmp/webui-yolo-test",
@@ -811,7 +811,7 @@ def test_successful_relay_reports_concurrent_explicit_yolo_disable(monkeypatch):
     monkeypatch.setattr(routes, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     gateway_chat._STREAM_RUN_IDS[stream_id] = run_id
     route_approvals.submit_gateway_pending_mirror(sid, {
         "command": "touch /tmp/webui-yolo-test",
@@ -878,7 +878,7 @@ def test_yolo_post_without_local_card_relays_run_backed_approval(monkeypatch):
     monkeypatch.setattr(routes, "_handle_extension_sidecar_proxy", lambda *_a, **_k: False)
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     route_approvals.submit_gateway_pending_mirror(sid, {
         "command": "touch /tmp/webui-yolo-test",
         "description": "test",
@@ -945,7 +945,7 @@ def test_yolo_post_preserves_mirror_while_owned_relay_fails(monkeypatch):
     )
     monkeypatch.setattr("api.runner_client.HttpRunnerClient.respond_approval", fake_respond)
     monkeypatch.setattr(config, "gateway_supports_approval_identity_v1", lambda *_a, **_k: True)
-    monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+    monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
     route_approvals.submit_gateway_pending_mirror(sid, {
         "command": "touch /tmp/webui-yolo-test",
         "description": "test",

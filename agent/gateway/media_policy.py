@@ -1,9 +1,9 @@
 """Shared config→env bridge for media-delivery policy.
 
-``validate_media_delivery_path`` reads ``HERMES_MEDIA_DELIVERY_STRICT`` (gateway.strict),
-``HERMES_MEDIA_ALLOW_DIRS`` (gateway.media_delivery_allow_dirs) and
-``HERMES_MEDIA_TRUST_RECENT_FILES`` (gateway.trust_recent_files).  Every delivery
-entrypoint (gateway startup, ``hermes cron run``, ``hermes send``) calls
+``validate_media_delivery_path`` reads ``IRIS_MEDIA_DELIVERY_STRICT`` (gateway.strict),
+``IRIS_MEDIA_ALLOW_DIRS`` (gateway.media_delivery_allow_dirs) and
+``IRIS_MEDIA_TRUST_RECENT_FILES`` (gateway.trust_recent_files).  Every delivery
+entrypoint (gateway startup, ``iris cron run``, ``iris send``) calls
 :func:`apply_media_policy_env` first so standalone paths filter under the gateway's
 policy instead of silently dropping attachments in strict/allowlisted deployments.
 An explicitly-set env var WINS over config.yaml, so shell overrides survive.
@@ -17,21 +17,21 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-_FLAG_ENVS = (("strict", "HERMES_MEDIA_DELIVERY_STRICT"), ("trust_recent_files", "HERMES_MEDIA_TRUST_RECENT_FILES"))
-_ALLOW_DIRS_ENV = "HERMES_MEDIA_ALLOW_DIRS"
-_TRUST_RECENT_SECONDS_ENV = "HERMES_MEDIA_TRUST_RECENT_SECONDS"
+_FLAG_ENVS = (("strict", "IRIS_MEDIA_DELIVERY_STRICT"), ("trust_recent_files", "IRIS_MEDIA_TRUST_RECENT_FILES"))
+_ALLOW_DIRS_ENV = "IRIS_MEDIA_ALLOW_DIRS"
+_TRUST_RECENT_SECONDS_ENV = "IRIS_MEDIA_TRUST_RECENT_SECONDS"
 _TRUTHY = frozenset({"1", "true", "yes", "on"})
 
 
 def _routed_gateway_cfg() -> Optional[Dict[str, Any]]:
-    """``gateway`` section of the ROUTED profile's config when a HERMES_HOME override is active
+    """``gateway`` section of the ROUTED profile's config when a IRIS_HOME override is active
     (multiplexed turn), else None. The env bridge is one process-wide copy of the launch profile's
     policy, so a secondary's deliveries must read their own config instead of ``os.environ``."""
-    from hermes_constants import get_hermes_home_override
-    if not get_hermes_home_override():
+    from iris_constants import get_iris_home_override
+    if not get_iris_home_override():
         return None
     try:
-        from hermes_cli.config import load_config_readonly
+        from iris_cli.config import load_config_readonly
         gateway_cfg = load_config_readonly().get("gateway")
     except Exception:
         return {}
@@ -73,7 +73,7 @@ def media_delivery_trust_recent_seconds() -> str:
 def _load_gateway_cfg(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     if config is None:
         try:
-            from hermes_cli.config import load_config
+            from iris_cli.config import load_config
 
             config = load_config() or {}
         except Exception:

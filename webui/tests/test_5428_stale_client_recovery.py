@@ -23,9 +23,9 @@ BOOT_JS = ROOT / "static" / "boot.js"
 # ---------------------------------------------------------------------------
 
 def test_index_html_stamps_bundle_version():
-    """index.html stamps window.__HERMES_WEBUI_BUNDLE_VERSION__ before deferred scripts."""
+    """index.html stamps window.__IRIS_WEBUI_BUNDLE_VERSION__ before deferred scripts."""
     html = INDEX_HTML.read_text(encoding="utf-8")
-    assert "window.__HERMES_WEBUI_BUNDLE_VERSION__='__WEBUI_VERSION__';" in html
+    assert "window.__IRIS_WEBUI_BUNDLE_VERSION__='__WEBUI_VERSION__';" in html
 
 
 def test_index_html_has_stale_client_banner():
@@ -93,7 +93,7 @@ def _make_stub(bundle_version: str, extra_globals: str = "") -> str:
             hidden: false,
         }};
         global.window = {{
-            __HERMES_WEBUI_BUNDLE_VERSION__: {json.dumps(bundle_version)},
+            __IRIS_WEBUI_BUNDLE_VERSION__: {json.dumps(bundle_version)},
             addEventListener() {{}},
         }};
         global.api = () => Promise.resolve({{}});

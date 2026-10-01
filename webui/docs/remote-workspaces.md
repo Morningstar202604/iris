@@ -1,12 +1,12 @@
 # Remote Terminal Workspaces
 
-Architecture contract and path-resolution semantics for remote terminal profiles (SSH, Docker) in Hermes WebUI.
+Architecture contract and path-resolution semantics for remote terminal profiles (SSH, Docker) in Iris WebUI.
 
 ---
 
 ## 1. Overview
 
-When a Hermes profile is configured with a remote terminal backend (e.g. `terminal.backend: "ssh"` or `"docker"`), its working directory (`terminal.cwd`) lives on the remote target host rather than the local WebUI host filesystem.
+When a Iris profile is configured with a remote terminal backend (e.g. `terminal.backend: "ssh"` or `"docker"`), its working directory (`terminal.cwd`) lives on the remote target host rather than the local WebUI host filesystem.
 
 On hosts such as macOS, local path resolution via `Path.resolve()` or `os.path.realpath()` expands synthetic firmlinks (e.g. rewriting `/home/<user>` to `/System/Volumes/Data/home/<user>`). Because the target-side path does not exist on the local macOS server, unconstrained local resolution causes runtime validation failures and session corruption.
 

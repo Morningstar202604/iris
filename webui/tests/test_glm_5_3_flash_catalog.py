@@ -181,7 +181,7 @@ def test_glm_5_3_flash_in_models_payload_for_zai_provider(tmp_path, monkeypatch)
     fake_prov = mock.MagicMock()
     fake_prov.return_value = []
     try:
-        import hermes_cli.models as hm
+        import iris_cli.models as hm
         monkeypatch.setattr(hm, "list_available_providers", fake_prov)
     except Exception:
         pass
@@ -191,7 +191,7 @@ def test_glm_5_3_flash_in_models_payload_for_zai_provider(tmp_path, monkeypatch)
     # test_glm_5_3_catalog.py): this tests WebUI catalog propagation, not
     # the installed core version.
     try:
-        import hermes_cli.models as hm
+        import iris_cli.models as hm
         monkeypatch.setattr(hm, "provider_model_ids", lambda _pid: [])
     except Exception:
         pass

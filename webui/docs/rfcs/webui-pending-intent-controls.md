@@ -6,11 +6,11 @@
 - **Tracking issue:** [#3058](https://github.com/nesquena/hermes-webui/issues/3058)
 - **Parent RFC:** [`live-to-final-assistant-replies.md`](live-to-final-assistant-replies.md) / [#3400](https://github.com/nesquena/hermes-webui/issues/3400)
 - **Related issues/PRs:** [#2555](https://github.com/nesquena/hermes-webui/issues/2555), [#3108](https://github.com/nesquena/hermes-webui/issues/3108), [#3808](https://github.com/nesquena/hermes-webui/issues/3808), [#3822](https://github.com/nesquena/hermes-webui/pull/3822), [NousResearch/hermes-agent#28172](https://github.com/NousResearch/hermes-agent/issues/28172)
-- **Related docs:** [`webui-run-state-consistency-contract.md`](webui-run-state-consistency-contract.md), [`hermes-run-adapter-contract.md`](hermes-run-adapter-contract.md), [`turn-journal.md`](turn-journal.md)
+- **Related docs:** [`webui-run-state-consistency-contract.md`](webui-run-state-consistency-contract.md), [`iris-run-adapter-contract.md`](iris-run-adapter-contract.md), [`turn-journal.md`](turn-journal.md)
 
 ## RFC Positioning
 
-This RFC is a child RFC under the Hermes WebUI Live-to-Final product line.
+This RFC is a child RFC under the Iris WebUI Live-to-Final product line.
 
 The Live-to-Final parent RFC defines how a running agent turn moves from live
 process, tool activity, recovery state, and replay into a settled final answer
@@ -25,7 +25,7 @@ semantics for user intervention during an active run.
 
 ## Problem
 
-Hermes WebUI currently treats user input during a running agent turn as one of
+Iris WebUI currently treats user input during a running agent turn as one of
 three busy modes: Queue, Interrupt, or Steer. These look like equivalent send
 modes, but they are not the same kind of action.
 
@@ -337,10 +337,10 @@ runtime applied the Steer without Agent/TUI Gateway evidence.
 This RFC defines product semantics, not a permanent WebUI-private runtime
 protocol.
 
-This boundary is necessary because Hermes WebUI also has the #1925
+This boundary is necessary because Iris WebUI also has the #1925
 RuntimeAdapter direction. The RuntimeAdapter contract moves WebUI toward clearer
 runtime interfaces instead of permanently owning all Agent runtime behavior
-directly. Hermes Desktop / TUI Gateway already exposes related surfaces such as
+directly. Iris Desktop / TUI Gateway already exposes related surfaces such as
 `session.steer`, `session.interrupt`, active session status, and event streams.
 
 WebUI may own:
@@ -358,7 +358,7 @@ WebUI should not invent:
 - a long-lived server-side queue scheduler
 - runtime-level applied detection
 - proof that Agent consumed a Steer
-- a private interrupt model independent of Hermes Agent / TUI Gateway
+- a private interrupt model independent of Iris Agent / TUI Gateway
 - a control protocol that cannot map to RuntimeAdapter later
 
 Delivered vs Applied:
@@ -456,7 +456,7 @@ when the visible queue/steer/stop surfaces change.
   not complete pending intent controls.
 - [#1925](https://github.com/nesquena/hermes-webui/issues/1925):
   RuntimeAdapter / runtime ownership boundary.
-- Hermes Agent / TUI Gateway follow-up: required for reliable applied/consumed
+- Iris Agent / TUI Gateway follow-up: required for reliable applied/consumed
   Steer evidence.
 
 ## Open Questions
@@ -469,5 +469,5 @@ when the visible queue/steer/stop surfaces change.
   Send or fast-forward?
 - Should mobile hide Edit behind a menu, keeping only Delete and Steer visible?
   Or should all three icons stay visible in the attached queued strip?
-- What exact Hermes Agent event shape, ordering, and metadata should prove
+- What exact Iris Agent event shape, ordering, and metadata should prove
   `applied` after WebUI has already recorded `delivered`?

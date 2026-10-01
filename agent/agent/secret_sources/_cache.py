@@ -4,7 +4,7 @@ Two-layer fetch cache (in-process + on-disk); the disk half writes atomically
 with ``0600`` permissions and honours a TTL, so that logic is audited in exactly
 one place. Each backend supplies only its cache-key shape and a serializer.
 The disk layer is strictly best-effort: a miss just triggers a refetch, because
-a cache problem must never block Hermes startup.
+a cache problem must never block Iris startup.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Generic, Optional, TypeVar
 
-from hermes_constants import secure_parent_dir
+from iris_constants import secure_parent_dir
 from utils import atomic_json_write
 
 __all__ = [
@@ -47,11 +47,11 @@ class CachedFetch:
 
 
 def resolve_cache_home(home_path: Optional[Path] = None) -> Path:
-    """``home_path`` as resolved by ``load_hermes_dotenv()``, else ``$HERMES_HOME``/``~/.hermes``."""
+    """``home_path`` as resolved by ``load_iris_dotenv()``, else ``$IRIS_HOME``/``~/.iris``."""
     if home_path is None:
-        from hermes_constants import get_hermes_home
+        from iris_constants import get_iris_home
 
-        home_path = get_hermes_home()
+        home_path = get_iris_home()
     return home_path
 
 
@@ -73,9 +73,9 @@ def atomic_write_json(path: Path, payload: dict) -> None:
     """Secret cache entry at 0600 from creation; the containing dir is tightened to 0700
     (``secure_parent_dir`` refuses ``/``, top-level dirs and the install tree). Raises ``OSError``
     on failure; callers decide whether that is best-effort."""
-    from hermes_constants import mkdir_under_hermes_home
+    from iris_constants import mkdir_under_iris_home
 
-    mkdir_under_hermes_home(path.parent)
+    mkdir_under_iris_home(path.parent)
     secure_parent_dir(path)
     atomic_json_write(path, payload, indent=None, mode=0o600)
 
@@ -86,7 +86,7 @@ K = TypeVar("K")
 class DiskCache(Generic[K]):
     """Best-effort, profile-aware on-disk cache for fetched secret values.
 
-    One JSON object per backend at ``<hermes_home>/cache/<basename>``::
+    One JSON object per backend at ``<iris_home>/cache/<basename>``::
 
         {"key": "<serialized cache key>", "secrets": {...}, "fetched_at": 1.0}
 
@@ -187,7 +187,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

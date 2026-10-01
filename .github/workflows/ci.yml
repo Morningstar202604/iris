@@ -40,7 +40,7 @@ jobs:
         run: python -m compileall -q webui -x "_shots|docs|tests"
       - name: Import smoke test
         run: |
-          cd agent && python -c "import hermes_cli; print('hermes_cli OK')"
+          cd agent && python -c "import iris_cli; print('iris_cli OK')"
           cd ../webui && python -c "import api.routes; print('webui api OK')"
 
   webui-tests:
@@ -88,7 +88,7 @@ jobs:
       - name: Build source archives
         run: |
           mkdir -p dist
-          tar --exclude='.git' --exclude='*/__pycache__' --exclude='*/node_modules' -czf dist/iris-agent-${GITHUB_REF_NAME}.tar.gz agent webui README.md LICENSE docs
+          tar --exclude='.git' --exclude='*/__pycache__' --exclude='*/node_modules' -czf dist/iris-${GITHUB_REF_NAME}.tar.gz agent webui README.md LICENSE docs
           zip -qr dist/iris-${GITHUB_REF_NAME}.zip agent webui README.md LICENSE docs
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:

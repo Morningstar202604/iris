@@ -76,12 +76,12 @@ class TestStreamingModelNotFoundDetection:
         )
 
     def test_not_found_hint_mentions_settings(self):
-        """The model_not_found hint must mention Settings or hermes model."""
+        """The model_not_found hint must mention Settings or iris model."""
         src = _read("api/streaming.py")
         idx = src.find("model_not_found")
         block = src[idx:idx + 500]
-        assert "Settings" in block or "hermes model" in block, (
-            "model_not_found hint must mention Settings or hermes model command"
+        assert "Settings" in block or "iris model" in block, (
+            "model_not_found hint must mention Settings or iris model command"
         )
 
     def test_not_found_check_order_after_auth(self):

@@ -58,7 +58,7 @@ def test_remove_clean_worktree_succeeds(tmp_path):
     main = _make_minimal_git_repo(tmp_path)
     wt_path = tmp_path / "wt_clean"
     subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "hermes/testclean"],
+        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "iris/testclean"],
         check=True, capture_output=True,
     )
     assert wt_path.exists()
@@ -68,7 +68,7 @@ def test_remove_clean_worktree_succeeds(tmp_path):
         title="Clean",
         workspace=str(wt_path),
         worktree_path=str(wt_path),
-        worktree_branch="hermes/testclean",
+        worktree_branch="iris/testclean",
         worktree_repo_root=str(main),
     )
 
@@ -89,12 +89,12 @@ def test_remove_locked_worktree_succeeds_without_force(tmp_path):
     main = _make_minimal_git_repo(tmp_path)
     wt_path = tmp_path / "wt_locked"
     subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "hermes/testlocked"],
+        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "iris/testlocked"],
         check=True, capture_output=True,
     )
     # Reproduce the agent's creation-time lock.
     subprocess.run(
-        ["git", "-C", str(main), "worktree", "lock", "--reason", "hermes pid=12345", str(wt_path)],
+        ["git", "-C", str(main), "worktree", "lock", "--reason", "iris pid=12345", str(wt_path)],
         check=True, capture_output=True,
     )
 
@@ -103,7 +103,7 @@ def test_remove_locked_worktree_succeeds_without_force(tmp_path):
         title="Locked",
         workspace=str(wt_path),
         worktree_path=str(wt_path),
-        worktree_branch="hermes/testlocked",
+        worktree_branch="iris/testlocked",
         worktree_repo_root=str(main),
     )
 
@@ -128,7 +128,7 @@ def test_remove_never_locked_worktree_unlock_is_fail_soft(tmp_path):
     main = _make_minimal_git_repo(tmp_path)
     wt_path = tmp_path / "wt_neverlocked"
     subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "hermes/testneverlocked"],
+        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "iris/testneverlocked"],
         check=True, capture_output=True,
     )
     # Sanity: not locked — `git worktree unlock` on it would fail.
@@ -143,7 +143,7 @@ def test_remove_never_locked_worktree_unlock_is_fail_soft(tmp_path):
         title="Never locked",
         workspace=str(wt_path),
         worktree_path=str(wt_path),
-        worktree_branch="hermes/testneverlocked",
+        worktree_branch="iris/testneverlocked",
         worktree_repo_root=str(main),
     )
 
@@ -164,7 +164,7 @@ def test_remove_clean_worktree_does_not_force(tmp_path, monkeypatch):
         title="Clean",
         workspace=str(worktree_path),
         worktree_path=str(worktree_path),
-        worktree_branch="hermes/testcleanforce",
+        worktree_branch="iris/testcleanforce",
         worktree_repo_root=str(repo_root),
     )
     monkeypatch.setattr(worktrees, "worktree_status_for_session", lambda session: {
@@ -202,7 +202,7 @@ def test_remove_dirty_worktree_without_force_is_rejected(tmp_path, monkeypatch):
         title="Dirty",
         workspace=str(worktree_path),
         worktree_path=str(worktree_path),
-        worktree_branch="hermes/testdirty",
+        worktree_branch="iris/testdirty",
         worktree_repo_root=str(repo_root),
     )
     monkeypatch.setattr(worktrees, "worktree_status_for_session", lambda session: {
@@ -231,7 +231,7 @@ def test_remove_untracked_worktree_without_force_is_rejected(tmp_path, monkeypat
         title="Untracked",
         workspace=str(worktree_path),
         worktree_path=str(worktree_path),
-        worktree_branch="hermes/testuntracked",
+        worktree_branch="iris/testuntracked",
         worktree_repo_root=str(repo_root),
     )
     monkeypatch.setattr(worktrees, "worktree_status_for_session", lambda session: {
@@ -260,7 +260,7 @@ def test_remove_ahead_worktree_without_force_is_rejected(tmp_path, monkeypatch):
         title="Ahead",
         workspace=str(worktree_path),
         worktree_path=str(worktree_path),
-        worktree_branch="hermes/testahead",
+        worktree_branch="iris/testahead",
         worktree_repo_root=str(repo_root),
     )
     monkeypatch.setattr(worktrees, "worktree_status_for_session", lambda session: {
@@ -289,7 +289,7 @@ def test_remove_force_warns_and_uses_git_force(tmp_path, monkeypatch):
         title="Force",
         workspace=str(worktree_path),
         worktree_path=str(worktree_path),
-        worktree_branch="hermes/testforce",
+        worktree_branch="iris/testforce",
         worktree_repo_root=str(repo_root),
     )
     monkeypatch.setattr(worktrees, "worktree_status_for_session", lambda session: {
@@ -325,7 +325,7 @@ def test_remove_worktree_not_exists(tmp_path):
         title="Gone",
         workspace=str(tmp_path / "gone"),
         worktree_path=str(tmp_path / "gone"),
-        worktree_branch="hermes/gone",
+        worktree_branch="iris/gone",
         worktree_repo_root=str(tmp_path / "repo"),
     )
 
@@ -360,7 +360,7 @@ def test_remove_worktree_route_succeeds(tmp_path, monkeypatch):
     main = _make_minimal_git_repo(tmp_path)
     wt_path = tmp_path / "wt_route"
     subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "hermes/testroute"],
+        ["git", "-C", str(main), "worktree", "add", str(wt_path), "-b", "iris/testroute"],
         check=True, capture_output=True,
     )
 
@@ -371,7 +371,7 @@ def test_remove_worktree_route_succeeds(tmp_path, monkeypatch):
         title="Route",
         workspace=str(wt_path),
         worktree_path=str(wt_path),
-        worktree_branch="hermes/testroute",
+        worktree_branch="iris/testroute",
         worktree_repo_root=str(main),
     )
     s.save()

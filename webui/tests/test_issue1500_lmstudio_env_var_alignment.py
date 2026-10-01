@@ -1,7 +1,7 @@
 """Regression: webui aligns LM Studio env var with the agent CLI (#1500).
 
 Pre-#1500 the WebUI used `LMSTUDIO_API_KEY` everywhere — onboarding wrote it,
-Settings detection read it. The agent CLI runtime (hermes_cli/auth.py:182,
+Settings detection read it. The agent CLI runtime (iris_cli/auth.py:182,
 api_key_env_vars=("LM_API_KEY",)) reads `LM_API_KEY`. So a user who configured
 auth on their LM Studio instance and entered the key in the WebUI got:
 
@@ -33,18 +33,18 @@ import api.config as config
 import api.profiles as profiles
 
 
-def _install_fake_hermes_cli(monkeypatch):
-    """Stub hermes_cli modules so tests are deterministic and offline."""
-    fake_pkg = types.ModuleType("hermes_cli")
+def _install_fake_iris_cli(monkeypatch):
+    """Stub iris_cli modules so tests are deterministic and offline."""
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda pid: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
     try:
@@ -81,7 +81,7 @@ class TestIssue1500EnvVarAlignment:
         meta = _SUPPORTED_PROVIDER_SETUPS["lmstudio"]
         assert meta["env_var"] == "LM_API_KEY", (
             f"Onboarding's lmstudio.env_var must be the canonical 'LM_API_KEY' "
-            f"(matching hermes_cli/auth.py:182 api_key_env_vars=('LM_API_KEY',)). "
+            f"(matching iris_cli/auth.py:182 api_key_env_vars=('LM_API_KEY',)). "
             f"Got {meta['env_var']!r}."
         )
         # Legacy alias preserved for read-only fallback.
@@ -94,16 +94,16 @@ class TestIssue1500EnvVarAlignment:
 
     def test_onboarding_writes_canonical_name_only(self, monkeypatch, tmp_path):
         """`apply_onboarding_setup` must write LM_API_KEY (not LMSTUDIO_API_KEY)."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
 
         # Redirect every write target to the tmp_path so we don't touch the real
-        # ~/.hermes — pattern from webui-onboarding-provider-readiness skill.
+        # ~/.iris — pattern from webui-onboarding-provider-readiness skill.
         from api import onboarding as ob
-        monkeypatch.setattr(ob, "_get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(ob, "_get_active_iris_home", lambda: tmp_path)
         cfg_path = tmp_path / "config.yaml"
         monkeypatch.setattr(ob, "_get_config_path", lambda: cfg_path)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-        monkeypatch.delenv("HERMES_WEBUI_SKIP_ONBOARDING", raising=False)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+        monkeypatch.delenv("IRIS_WEBUI_SKIP_ONBOARDING", raising=False)
         monkeypatch.delenv("LM_API_KEY", raising=False)
         monkeypatch.delenv("LMSTUDIO_API_KEY", raising=False)
 
@@ -128,8 +128,8 @@ class TestIssue1500EnvVarAlignment:
 
     def test_legacy_lmstudio_env_var_still_detected(self, monkeypatch, tmp_path):
         """Pre-#1500 users with LMSTUDIO_API_KEY still see has_key=True after upgrade."""
-        _install_fake_hermes_cli(monkeypatch)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
         monkeypatch.delenv("LM_API_KEY", raising=False)
         monkeypatch.setenv("LMSTUDIO_API_KEY", "lm-studio-legacy")
 
@@ -154,8 +154,8 @@ class TestIssue1500EnvVarAlignment:
 
     def test_canonical_takes_precedence_over_legacy(self, monkeypatch, tmp_path):
         """When both env vars are set, canonical wins (rare migration edge)."""
-        _install_fake_hermes_cli(monkeypatch)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
         monkeypatch.setenv("LM_API_KEY", "canonical-wins")
         monkeypatch.setenv("LMSTUDIO_API_KEY", "legacy-loses")
 

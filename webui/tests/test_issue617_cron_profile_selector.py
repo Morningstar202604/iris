@@ -197,16 +197,16 @@ def test_manual_cron_run_uses_execution_profile_but_persists_to_owning_store(mon
     routes._mark_cron_running("job617")
     routes._run_cron_tracked(
         {"id": "job617"},
-        profile_home="/hermes/default",
-        execution_profile_home="/hermes/profiles/research",
+        profile_home="/iris/default",
+        execution_profile_home="/iris/profiles/research",
     )
 
     assert events == [
-        ("run", "job617", "/hermes/profiles/research"),
-        ("enter", "/hermes/default"),
+        ("run", "job617", "/iris/profiles/research"),
+        ("enter", "/iris/default"),
         ("save", "job617", "output"),
         ("mark", "job617", True, None),
-        ("exit", "/hermes/default"),
+        ("exit", "/iris/default"),
     ]
     assert routes._is_cron_running("job617") == (False, 0.0)
 

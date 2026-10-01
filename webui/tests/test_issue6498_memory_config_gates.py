@@ -47,10 +47,10 @@ def _body_from_handler(handler):
 
 
 @pytest.fixture(autouse=True)
-def _patch_get_active_hermes_home(monkeypatch, fake_profile_home):
-    """Patch get_active_hermes_home at its source (api.profiles) so all
+def _patch_get_active_iris_home(monkeypatch, fake_profile_home):
+    """Patch get_active_iris_home at its source (api.profiles) so all
     internal imports within handler functions see the mock."""
-    monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: fake_profile_home)
+    monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: fake_profile_home)
 
 
 class TestMemoryReadConfigGates:
@@ -259,7 +259,7 @@ class TestProfileIsolation:
         mock_h.end_headers = MagicMock()
 
         assert call_count["n"] == 0
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: tmp_path)
         (tmp_path / "memories").mkdir(parents=True, exist_ok=True)
         (tmp_path / "memories" / "MEMORY.md").write_text("test", encoding="utf-8")
         (tmp_path / "memories" / "USER.md").write_text("test", encoding="utf-8")
@@ -293,7 +293,7 @@ class TestProfileIsolation:
                 return {"memory": {"memory_enabled": True, "user_profile_enabled": True}}
 
         monkeypatch.setattr(routes, "get_config_snapshot", per_profile_snapshot)
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: profile_a_home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: profile_a_home)
 
         mock_h = MagicMock()
         mock_h.wfile = io.BytesIO()
@@ -373,7 +373,7 @@ class TestCrossProfileForcedReload:
         (home / "memories" / "MEMORY.md").write_text("A's private memory", encoding="utf-8")
         (home / "memories" / "USER.md").write_text("A's user profile", encoding="utf-8")
         (home / "SOUL.md").write_text("A's soul", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -407,7 +407,7 @@ class TestCrossProfileForcedReload:
         (home / "memories").mkdir(parents=True)
         (home / "memories" / "MEMORY.md").write_text("A's memory", encoding="utf-8")
         (home / "memories" / "USER.md").write_text("A's private profile", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -436,7 +436,7 @@ class TestCrossProfileForcedReload:
         (home / "memories").mkdir(parents=True)
         (home / "memories" / "MEMORY.md").write_text("A's memory", encoding="utf-8")
         (home / "memories" / "USER.md").write_text("A's user", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -464,7 +464,7 @@ class TestCrossProfileForcedReload:
         (home / "memories").mkdir(parents=True)
         mem_file = home / "memories" / "MEMORY.md"
         mem_file.write_text("original bytes", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -489,7 +489,7 @@ class TestCrossProfileForcedReload:
         (home / "memories").mkdir(parents=True)
         user_file = home / "memories" / "USER.md"
         user_file.write_text("original user", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -514,7 +514,7 @@ class TestCrossProfileForcedReload:
         (home / "memories").mkdir(parents=True)
         mem_file = home / "memories" / "MEMORY.md"
         mem_file.write_text("old", encoding="utf-8")
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         calls = self._install_race(
             monkeypatch,
@@ -550,7 +550,7 @@ class TestRealLoaderNestedConfig:
         import api.routes as routes
 
         # Real profile home with private memory files and a real config.yaml
-        # using the nested ``memory`` section (Hermes Agent's schema).
+        # using the nested ``memory`` section (Iris Agent's schema).
         home = tmp_path / "profile_home"
         (home / "memories").mkdir(parents=True)
         (home / "memories" / "MEMORY.md").write_text("private memory", encoding="utf-8")
@@ -563,7 +563,7 @@ class TestRealLoaderNestedConfig:
         # config.yaml and force a reload so the process cache is parsed from it.
         monkeypatch.setattr(config, "_get_config_path", lambda: config_path)
         config.reload_config()
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: home)
 
         routes._handle_memory_read(mock_handler)
 
@@ -585,7 +585,7 @@ class TestRealLoaderNestedConfig:
         write_config = write_home / "config.yaml"
         write_config.write_text(self._DISABLED_YAML, encoding="utf-8")
         monkeypatch.setattr(config, "_get_config_path", lambda: write_config)
-        monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: write_home)
+        monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: write_home)
         config.reload_config()
 
         h2 = MagicMock()

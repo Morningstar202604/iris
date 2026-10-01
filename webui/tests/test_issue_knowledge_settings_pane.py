@@ -8,7 +8,7 @@ loadKnowledgePanel() then populated a hidden pane. Live CDP evidence:
 menu active=True, settingsPaneKnowledge.offsetParent=None, kb empty-state text
 already rendered. The scheduled-jobs banner also told users to run `iris gateway`,
 which is not an installed entry point (pyproject [project.scripts] ships only
-hermes / hermes-agent / hermes-acp).
+iris / iris-agent / iris-acp).
 """
 
 import re
@@ -60,7 +60,7 @@ def test_gateway_hint_references_installed_command():
     haystack = PANELS_JS + I18N_JS
     assert "`iris gateway`" not in haystack, (
         "no `iris` entry point is installed (pyproject [project.scripts]: "
-        "hermes / hermes-agent / hermes-acp); the scheduled-jobs hint must "
+        "iris / iris-agent / iris-acp); the scheduled-jobs hint must "
         "stay executable"
     )
-    assert "`hermes gateway`" in haystack
+    assert "`iris gateway`" in haystack

@@ -113,13 +113,13 @@ class TestIndexHtmlSmdScript:
     def test_smd_vendor_import_is_mount_agnostic(self):
         """Import must resolve relative to current document, not a bare
         specifier (rejected by ES module spec, #1849) and not root-absolute
-        (escapes /hermes/-style subpath mounts). The `./` form is the only
+        (escapes /iris/-style subpath mounts). The `./` form is the only
         shape that satisfies both: ES-spec-valid AND mount-agnostic.
         """
         assert "from './static/vendor/smd.min.js'" in INDEX_HTML, (
             "index.html must use the './static/vendor/smd.min.js' form — "
             "bare specifiers are rejected by the ES module spec (#1849) and "
-            "leading-/ paths break subpath deployments such as /hermes/"
+            "leading-/ paths break subpath deployments such as /iris/"
         )
         # Forbid the bare form (#1849 broke streaming-markdown silently)
         assert "import * as smd from 'static/vendor/smd.min.js'" not in INDEX_HTML, (
@@ -128,11 +128,11 @@ class TestIndexHtmlSmdScript:
         # Forbid the root-absolute form (subpath deployments escape the mount)
         assert "from '/static/vendor/smd.min.js'" not in INDEX_HTML, (
             "streaming-markdown import must not be root-absolute; root-absolute "
-            "static paths break subpath deployments such as /hermes/"
+            "static paths break subpath deployments such as /iris/"
         )
         assert 'from "/static/vendor/smd.min.js"' not in INDEX_HTML, (
             "streaming-markdown import must not be root-absolute; root-absolute "
-            "static paths break subpath deployments such as /hermes/"
+            "static paths break subpath deployments such as /iris/"
         )
 
 

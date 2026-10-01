@@ -1,7 +1,7 @@
 /**
  * E2E chat tests — send a message and verify a response appears.
  *
- * Requires the full boot chain to complete (hermes serve + mock inference
+ * Requires the full boot chain to complete (iris serve + mock inference
  * provider). The mock server returns a canned reply, so we verify the
  * response text shows up in the chat transcript.
  *
@@ -64,7 +64,7 @@ test.describe('chat interaction with mock backend', () => {
     // Wait for the mock response to appear. The canned reply is:
     // "Hello from the mock inference server! The full boot chain is working."
     // Give it a generous timeout — the inference request goes through the
-    // gateway → hermes serve → mock server → streaming SSE back.
+    // gateway → iris serve → mock server → streaming SSE back.
     await page.waitForFunction(
       () => {
         const body = document.body

@@ -56,7 +56,7 @@ from gateway.platforms.yuanbao_media import (
     build_image_msg_body, build_file_msg_body, guess_mime_type, md5_hex,
 )
 from gateway.platforms.yuanbao_proto import (
-    CMD_TYPE, WS_HEARTBEAT_RUNNING, WS_HEARTBEAT_FINISH, HERMES_INSTANCE_ID,
+    CMD_TYPE, WS_HEARTBEAT_RUNNING, WS_HEARTBEAT_FINISH, IRIS_INSTANCE_ID,
     _fields_to_dict, _get_string, _get_varint, _parse_fields,
     decode_conn_msg, decode_inbound_push, decode_forward_msg_data,
     decode_query_group_info_rsp, decode_get_group_member_list_rsp,
@@ -70,11 +70,11 @@ logger = logging.getLogger(__name__)
 
 # AUTH_BIND / sign-token header values
 try:
-    from hermes_cli import __version__ as _HERMES_VERSION
+    from iris_cli import __version__ as _IRIS_VERSION
 except ImportError:
-    _HERMES_VERSION = "0.0.0"
-_APP_VERSION = _BOT_VERSION = _HERMES_VERSION
-_YUANBAO_INSTANCE_ID = str(HERMES_INSTANCE_ID)
+    _IRIS_VERSION = "0.0.0"
+_APP_VERSION = _BOT_VERSION = _IRIS_VERSION
+_YUANBAO_INSTANCE_ID = str(IRIS_INSTANCE_ID)
 _OPERATION_SYSTEM = sys.platform
 
 DEFAULT_WS_GATEWAY_URL = "wss://bot-wss.yuanbao.tencent.com/wss/connection"
@@ -2588,7 +2588,7 @@ class YuanbaoAdapter(BasePlatformAdapter):
     MEDIA_MAX_SIZE_MB: int = 50
     DM_MAX_CHARS = 10000
     _active_instance: ClassVar[Optional["YuanbaoAdapter"]] = None
-    # Per Hermes home: a multiplexed gateway runs one Yuanbao adapter per profile, and the tools /
+    # Per Iris home: a multiplexed gateway runs one Yuanbao adapter per profile, and the tools /
     # send_message read "the" adapter from inside a profile-scoped turn, so last-wins would route
     # profile B's sends through profile A's bot. Registration and lookup both key on the ambient
     # override (connect/reconnect tasks inherit the profile's Context); the slot above serves the
@@ -2597,22 +2597,22 @@ class YuanbaoAdapter(BasePlatformAdapter):
 
     @classmethod
     def get_active(cls) -> Optional["YuanbaoAdapter"]:
-        from hermes_constants import get_hermes_home_override, hermes_home_key
+        from iris_constants import get_iris_home_override, iris_home_key
 
-        if get_hermes_home_override() is None:
+        if get_iris_home_override() is None:
             return cls._active_instance
-        return cls._active_instances.get(hermes_home_key())
+        return cls._active_instances.get(iris_home_key())
 
     @classmethod
     def set_active(cls, adapter: Optional["YuanbaoAdapter"]) -> None:
-        from hermes_constants import get_hermes_home_override, hermes_home_key
+        from iris_constants import get_iris_home_override, iris_home_key
 
-        if get_hermes_home_override() is None:
+        if get_iris_home_override() is None:
             cls._active_instance = adapter
         elif adapter is None:
-            cls._active_instances.pop(hermes_home_key(), None)
+            cls._active_instances.pop(iris_home_key(), None)
         else:
-            cls._active_instances[hermes_home_key()] = adapter
+            cls._active_instances[iris_home_key()] = adapter
 
     def __init__(self, config: PlatformConfig, **kwargs: Any) -> None:
         super().__init__(config, Platform.YUANBAO)

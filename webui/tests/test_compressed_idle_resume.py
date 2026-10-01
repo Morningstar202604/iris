@@ -12,7 +12,7 @@ from api import routes, profiles
 
 @pytest.fixture
 def lineage(tmp_path, monkeypatch):
-    state = pytest.importorskip("hermes_state")
+    state = pytest.importorskip("iris_state")
     # Worker tests restore sys.path after loading Agent lazily. Scope its
     # sibling-module lookup to this fixture, never the global test importer.
     monkeypatch.syspath_prepend(str(Path(state.__file__).parent))
@@ -165,7 +165,7 @@ def test_older_agent_keeps_sidecar_recovery(tmp_path, monkeypatch, method, kind)
         setattr(OldDB, method, None)
     else:
         setattr(OldDB, method, lambda self, sid, required: None)
-    monkeypatch.setitem(sys.modules, 'hermes_state', SimpleNamespace(SessionDB=OldDB))
+    monkeypatch.setitem(sys.modules, 'iris_state', SimpleNamespace(SessionDB=OldDB))
     (tmp_path / 'state.db').touch()
     monkeypatch.setattr(profiles, '_resolve_profile_home_for_name', lambda _: str(tmp_path))
     session = SimpleNamespace(session_id='legacyparent', profile='default', pre_compression_snapshot=True)

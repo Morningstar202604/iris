@@ -3,8 +3,8 @@
 Node ids (from ``agent.learning_graph``): skills → the skill name; memories →
 ``memory:<source>:<index>`` (``source`` = ``memory`` for MEMORY.md / ``profile``
 for USER.md; ``index`` = position in the combined card list, MEMORY.md first).
-Shared by CLI ``hermes journey``, the TUI ``/journey`` overlay and the desktop.
-Deleting a skill *archives* it (``hermes curator restore`` recovers it);
+Shared by CLI ``iris journey``, the TUI ``/journey`` overlay and the desktop.
+Deleting a skill *archives* it (``iris curator restore`` recovers it);
 deleting a memory rewrites its file.
 """
 
@@ -36,12 +36,12 @@ def _locate_memory(node_id: str) -> tuple[Path, list[str], int]:
     Entries come from ``MemoryStore._read_file`` — the memory tool's own parser —
     so journey indices stay aligned with what the graph renders; a profile card's
     local index is its global index minus the MEMORY.md card count."""
-    from hermes_constants import get_hermes_home
+    from iris_constants import get_iris_home
     from agent.learning_graph import _memory_cards
     from tools.memory_tool import MemoryStore
 
     source, gidx = _parse_memory_id(node_id)
-    path = get_hermes_home() / "memories" / _MEMORY_FILES[source]
+    path = get_iris_home() / "memories" / _MEMORY_FILES[source]
     if not path.exists():
         raise ValueError(f"{path.name} not found")
     chunks = MemoryStore._read_file(path)
@@ -117,11 +117,11 @@ def _delete_skill(name: str) -> dict[str, Any]:
     # ``_pinned_guard`` (which only blocks deletion) precisely because there is no user in the loop to
     # consent to an edit here.
     if skill_usage.get_record(name).get("pinned"):
-        return {"ok": False, "message": f"'{name}' is pinned — unpin it first (hermes curator unpin {name})"}
+        return {"ok": False, "message": f"'{name}' is pinned — unpin it first (iris curator unpin {name})"}
     ok, message = skill_usage.archive_skill(name)
     if ok:
         _clear_skill_cache()
-    return {"ok": ok, "message": f"archived '{name}' — restore with: hermes curator restore {name}" if ok else message}
+    return {"ok": ok, "message": f"archived '{name}' — restore with: iris curator restore {name}" if ok else message}
 
 
 def _delete_memory(node_id: str) -> dict[str, Any]:

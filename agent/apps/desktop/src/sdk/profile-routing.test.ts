@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/iris'
 
 vi.mock('@/app/chat/session-view', async () => {
   const { atom } = await import('nanostores')
@@ -14,7 +14,7 @@ vi.mock('@/components/pane-shell/tree/store', async () => {
   return { $narrowViewport: atom(false) }
 })
 vi.mock('@/contrib/events', () => ({ onGatewayEvent: vi.fn() }))
-vi.mock('@/hermes', () => ({ deleteProfile: vi.fn(), getLogs: vi.fn(), getStatus: vi.fn(), hermesApi: vi.fn() }))
+vi.mock('@/iris', () => ({ deleteProfile: vi.fn(), getLogs: vi.fn(), getStatus: vi.fn(), irisApi: vi.fn() }))
 vi.mock('@/store/notifications', () => ({ notify: vi.fn(), notifyError: vi.fn() }))
 vi.mock('@/store/system-actions', () => ({ runGatewayRestart: vi.fn() }))
 vi.mock('@/store/session', async () => {
@@ -126,7 +126,7 @@ vi.mock('@/store/gateway', async () => {
 const { HYDRATION_SYNC_BADGE_TIMEOUT_MS, host } = await import('./index')
 
 const { openSession: openSessionCore } = await import('@/app/open-session')
-const { deleteProfile, hermesApi } = await import('@/hermes')
+const { deleteProfile, irisApi } = await import('@/iris')
 
 const {
   activeGatewayConnectionId,
@@ -198,7 +198,7 @@ afterEach(() => {
   setMockAtom($messages, [])
   $profiles.set([profile('cached-only')])
   setWorkspaceScope('sessions')
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
 })
 
 describe('connection-aware plugin host APIs', () => {
@@ -222,7 +222,7 @@ describe('connection-aware plugin host APIs', () => {
     // badge whose click hot-loops against the deletion guard (#88769).
     expect(refreshProfiles).toHaveBeenCalled()
     // A leftover Bot Mode tile would restore on relaunch and dial the deleted
-    // profile's backend, re-creating its HERMES_HOME (#94235).
+    // profile's backend, re-creating its IRIS_HOME (#94235).
     expect(dropTilesForProfile).toHaveBeenCalledWith('worker', undefined)
   })
 
@@ -250,7 +250,7 @@ describe('connection-aware plugin host APIs', () => {
     ])
 
     vi.mocked(refreshProfiles).mockResolvedValueOnce([profile('desktop-primary'), profile('remote-worker')])
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { getProfileRoutes }
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = { getProfileRoutes }
 
     const routes = await host.profileRoutes()
 
@@ -274,7 +274,7 @@ describe('connection-aware plugin host APIs', () => {
 
     $profiles.set([profile('cached-worker')])
     vi.mocked(refreshProfiles).mockRejectedValueOnce(new Error('profile backend unavailable'))
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { getProfileRoutes }
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = { getProfileRoutes }
 
     await expect(host.profileRoutes()).resolves.toEqual([
       { connectionId: 'connection-cached', mode: 'remote', profile: 'cached-worker', targetProfile: 'cached-worker' }
@@ -312,7 +312,7 @@ describe('connection-aware plugin host APIs', () => {
       targetProfile: 'backend-worker'
     }
 
-    vi.mocked(hermesApi)
+    vi.mocked(irisApi)
       .mockResolvedValueOnce({ sessions: [{ id: 'bot-chat', profile: 'backend-worker', title: 'Bot Chat' }] })
       .mockResolvedValueOnce({ ok: true, hidden: true })
 
@@ -323,20 +323,20 @@ describe('connection-aware plugin host APIs', () => {
       host.setPersistedSessionHidden(route, { sessionId: 'bot-chat', profile: 'backend-worker', hidden: true })
     ).resolves.toMatchObject({ ok: true, hidden: true })
 
-    expect(hermesApi).toHaveBeenNthCalledWith(
+    expect(irisApi).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         connectionId: 'source-a',
         path: expect.stringContaining('/api/profiles/sessions?')
       })
     )
-    expect(hermesApi).toHaveBeenNthCalledWith(2, {
+    expect(irisApi).toHaveBeenNthCalledWith(2, {
       connectionId: 'source-a',
       path: '/api/sessions/bot-chat',
       method: 'PATCH',
       body: { hidden: true, profile: 'backend-worker' }
     })
-    expect(vi.mocked(hermesApi).mock.calls.every(([request]) => !('profile' in request))).toBe(true)
+    expect(vi.mocked(irisApi).mock.calls.every(([request]) => !('profile' in request))).toBe(true)
     expect(requestGatewayForAgent).not.toHaveBeenCalled()
     expect(requestGatewayForProfile).not.toHaveBeenCalled()
   })
@@ -498,7 +498,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('rejects a profile-only request when the current registry makes it ambiguous', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [
           { connectionId: 'source-a', profile: 'research' },
@@ -516,7 +516,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('keeps profile-only compatibility when sole-local enumeration fails', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [],
         sources: [{ connectionId: 'local', kind: 'local', label: 'This device' }]
@@ -531,7 +531,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('rejects profile-only routing when another source is undialed', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [{ connectionId: 'local', profile: 'research' }],
         sources: [
@@ -693,7 +693,7 @@ describe('profile-aware plugin session opens', () => {
   })
 
   it('revalidates an exact route before the one allowed hydration retry', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
       getProfileRoutes: vi.fn(async () => [])
     }
 

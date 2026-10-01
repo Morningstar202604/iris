@@ -26,7 +26,7 @@ SESSIONS_JS = (REPO_ROOT / "static" / "sessions.js").read_text(encoding="utf-8")
 
 def test_gateway_sse_has_visibility_hook():
     """startGatewaySSE installs a visibilitychange hook that closes on hide."""
-    assert "_hermesGatewaySSEVisibilityHook" in SESSIONS_JS
+    assert "_irisGatewaySSEVisibilityHook" in SESSIONS_JS
     # Closes on hide, and skips opening while hidden to save pool slots.
     assert "stopGatewaySSE()" in SESSIONS_JS
     start_idx = SESSIONS_JS.find("function startGatewaySSE()")
@@ -38,7 +38,7 @@ def test_gateway_sse_has_visibility_hook():
 
 def test_session_stream_has_visibility_hook():
     """startSessionStream installs a visibilitychange hook."""
-    assert "_hermesSessionStreamVisibilityHook" in MESSAGES_JS
+    assert "_irisSessionStreamVisibilityHook" in MESSAGES_JS
     start_idx = MESSAGES_JS.find("function startSessionStream(sid)")
     assert start_idx != -1
     block = MESSAGES_JS[start_idx:start_idx + 2600]

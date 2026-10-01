@@ -27,7 +27,7 @@ interface ResolvedPrimaryRemote {
   baseUrl: string
   connectionId?: string
   headers?: Record<string, string>
-  remoteHermesVersion?: string
+  remoteIrisVersion?: string
   remoteHost?: string
   remoteKind?: 'cloud' | 'ssh' | 'url'
   source?: string
@@ -36,7 +36,7 @@ interface ResolvedPrimaryRemote {
     host?: string
     keyPath?: string
     port?: number
-    remoteHermesPath?: string
+    remoteIrisPath?: string
     remoteProfile?: string
     user?: string
   }
@@ -61,7 +61,7 @@ export function createPrimaryRemoteConnection<State extends object>(
     authMode: remote.authMode || 'token',
     remoteHost: remote.remoteHost,
     remoteKind: remote.remoteKind,
-    remoteHermesVersion: remote.remoteHermesVersion,
+    remoteIrisVersion: remote.remoteIrisVersion,
     ...(remote.connectionId ? { connectionId: remote.connectionId } : {}),
     ...(remote.ssh ? { ssh: remote.ssh } : {}),
     // fetchJsonForBackend reads descriptor.headers for every REST call; the
@@ -83,7 +83,7 @@ export class FirstRunSetupResetError extends Error {
   }
 }
 
-// Owns the production startHermes path up to the local process spawn. Keeping
+// Owns the production startIris path up to the local process spawn. Keeping
 // the full ordering here makes the first-run remote boundary executable in a
 // test: an already-saved remote wins immediately; otherwise update exclusion
 // and local backend resolution happen before the setup gate, and a remote Apply

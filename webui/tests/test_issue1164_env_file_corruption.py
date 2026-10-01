@@ -47,7 +47,7 @@ class TestEnvFileCommentPreservation(unittest.TestCase):
     def test_comments_preserved_on_update(self):
         """Comments in .env must survive a key value update."""
         self.env_path.write_text(textwrap.dedent("""\
-            # Hermes API keys
+            # Iris API keys
             OPENROUTER_API_KEY=sk-or-old
             # Another comment
             OPENAI_API_KEY=sk-oai-old
@@ -56,7 +56,7 @@ class TestEnvFileCommentPreservation(unittest.TestCase):
         self._write_env_file(self.env_path, {"OPENROUTER_API_KEY": "sk-or-new"})
 
         content = self._read()
-        self.assertIn("# Hermes API keys", content,
+        self.assertIn("# Iris API keys", content,
                       "Leading comment must be preserved")
         self.assertIn("# Another comment", content,
                       "Inline comment must be preserved")

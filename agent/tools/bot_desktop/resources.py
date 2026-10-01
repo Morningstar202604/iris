@@ -79,7 +79,7 @@ def memory_info() -> MemoryInfo:
 
 
 def min_free_mb() -> int:
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     try:
         return max(0, int(cfg.get("min_free_memory_mb", DEFAULT_MIN_FREE_MB)))

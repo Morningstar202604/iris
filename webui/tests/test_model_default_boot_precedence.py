@@ -104,7 +104,7 @@ function _redirectIfUnauth() { return false; }
 function _fetchLiveModels(provider, _sel) { calls.liveFetches.push(provider); }
 
 const document = {
-  baseURI: 'http://127.0.0.1/hermes/',
+  baseURI: 'http://127.0.0.1/iris/',
   createElement(tag) {
     const upper = tag.toUpperCase();
     if (upper === 'OPTGROUP') {
@@ -174,8 +174,8 @@ def test_boot_settings_applies_default_without_deleting_browser_model_state():
     assert "if(sel&&typeof _applyModelToDropdown==='function')" in snippet
     assert "if(sel&&!savedState&&typeof _applyModelToDropdown==='function')" not in BOOT_JS
     assert "_clearPersistedModelState" not in snippet
-    assert "localStorage.removeItem('hermes-webui-model')" not in snippet
-    assert "localStorage.removeItem('hermes-webui-model-state')" not in snippet
+    assert "localStorage.removeItem('iris-webui-model')" not in snippet
+    assert "localStorage.removeItem('iris-webui-model-state')" not in snippet
 
 
 def test_boot_model_dropdown_explicitly_requests_profile_default_precedence():
@@ -208,7 +208,7 @@ def test_populate_model_dropdown_reconciles_selection_after_rebuild():
     # the helper must fall back to injecting the missing option, not return null
     assert "_ensureModelOptionInDropdown(modelId, sel, providerId)" in snippet
     assert "_readPersistedModelState()" not in snippet
-    assert "localStorage.getItem('hermes-webui-model')" not in snippet
+    assert "localStorage.getItem('iris-webui-model')" not in snippet
 
 
 @pytest.mark.skipif(NODE is None, reason="node not on PATH")

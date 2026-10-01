@@ -4,8 +4,8 @@
 visit, because (its own comment) "empty (new-browser) state is indistinguishable
 from a user who chose the defaults". The inline bootstrap in static/index.html
 used to defeat that: it resolved a theme with
-`localStorage.getItem('hermes-theme')||'dark'` and then wrote the result back
-unconditionally, so a brand-new browser stored `hermes-theme=dark` before any
+`localStorage.getItem('iris-theme')||'dark'` and then wrote the result back
+unconditionally, so a brand-new browser stored `iris-theme=dark` before any
 request was made. syncSettings then saw an "explicit" value, ignored the
 server's SETTINGS_DEFAULTS, and POSTed the fabricated value back — making the
 server-side appearance default unreachable for deployments that change it.
@@ -19,7 +19,7 @@ before: ABSENT appearance state is not the same as EXPLICIT appearance state.
 
 The third is the reason the guard is on the PAIR rather than per key. The write
 is not pointless: it canonicalises legacy names (`solarized` -> dark+poseidon).
-With `hermes-theme=solarized` and no `hermes-skin`, a per-key guard would never
+With `iris-theme=solarized` and no `iris-skin`, a per-key guard would never
 write the derived skin and the mapping would be lost on the next load.
 """
 import json
@@ -47,7 +47,7 @@ def _bootstrap_script() -> str:
     html = INDEX_HTML.read_text(encoding="utf-8")
     for m in re.finditer(r"<script>(.*?)</script>", html, re.S):
         body = m.group(1)
-        if "hermes-theme" in body and "legacy" in body and "skins" in body:
+        if "iris-theme" in body and "legacy" in body and "skins" in body:
             return body
     raise AssertionError("appearance bootstrap <script> not found in index.html")
 
@@ -137,17 +137,17 @@ def test_fresh_browser_still_paints_dark():
 @pytest.mark.parametrize(
     "initial,expected_theme,expected_skin",
     [
-        ({"hermes-theme": "dark"}, "dark", "default"),
-        ({"hermes-skin": "mono"}, "dark", "mono"),
-        ({"hermes-theme": "light", "hermes-skin": "mono"}, "light", "mono"),
+        ({"iris-theme": "dark"}, "dark", "default"),
+        ({"iris-skin": "mono"}, "dark", "mono"),
+        ({"iris-theme": "light", "iris-skin": "mono"}, "light", "mono"),
     ],
 )
 def test_any_prior_state_still_normalises_and_persists(initial, expected_theme, expected_skin):
     """Either key present is enough to make this an explicit choice."""
     out = _run(dict(initial))
-    assert out["store"]["hermes-theme"] == expected_theme
-    assert out["store"]["hermes-skin"] == expected_skin
-    assert [k for k, _ in out["writes"]] == ["hermes-theme", "hermes-skin"]
+    assert out["store"]["iris-theme"] == expected_theme
+    assert out["store"]["iris-skin"] == expected_skin
+    assert [k for k, _ in out["writes"]] == ["iris-theme", "iris-skin"]
 
 
 @pytest.mark.parametrize(
@@ -163,13 +163,13 @@ def test_any_prior_state_still_normalises_and_persists(initial, expected_theme, 
 def test_legacy_theme_migration_survives(legacy, theme, skin):
     """A per-key guard would drop the derived skin here. The pair guard must not.
 
-    Only `hermes-theme` is stored, and the skin is DERIVED from the legacy
-    mapping — so the write of `hermes-skin` is the only thing that persists the
+    Only `iris-theme` is stored, and the skin is DERIVED from the legacy
+    mapping — so the write of `iris-skin` is the only thing that persists the
     migration.
     """
-    out = _run({"hermes-theme": legacy})
-    assert out["store"]["hermes-theme"] == theme
-    assert out["store"]["hermes-skin"] == skin, (
+    out = _run({"iris-theme": legacy})
+    assert out["store"]["iris-theme"] == theme
+    assert out["store"]["iris-skin"] == skin, (
         f"legacy {legacy!r} must persist its derived skin {skin!r}"
     )
 
@@ -179,10 +179,10 @@ def test_guard_is_on_the_pair_not_per_key():
     script = _bootstrap_script()
     assert "_hadAppearance" in script
     assert re.search(
-        r"_hadAppearance\s*=\s*localStorage\.getItem\('hermes-theme'\)\s*!==\s*null\s*\|\|"
-        r"\s*localStorage\.getItem\('hermes-skin'\)\s*!==\s*null",
+        r"_hadAppearance\s*=\s*localStorage\.getItem\('iris-theme'\)\s*!==\s*null\s*\|\|"
+        r"\s*localStorage\.getItem\('iris-skin'\)\s*!==\s*null",
         script,
     ), "the guard must be true when EITHER appearance key is present"
-    assert re.search(r"if\(_hadAppearance\)\{[^}]*setItem\('hermes-theme'", script), (
+    assert re.search(r"if\(_hadAppearance\)\{[^}]*setItem\('iris-theme'", script), (
         "both appearance writes must sit behind the guard"
     )

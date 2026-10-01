@@ -2,8 +2,8 @@
 
 Covers:
 - index.html declares the static prefers-color-scheme media variants (light + dark).
-- index.html declares a single `id="hermes-theme-color"` meta tag for runtime updates.
-- Inline pre-paint script reads localStorage `hermes-theme` and seeds the meta tag
+- index.html declares a single `id="iris-theme-color"` meta tag for runtime updates.
+- Inline pre-paint script reads localStorage `iris-theme` and seeds the meta tag
   before any external JS loads (no flash of wrong colour for native chrome).
 - boot.js defines `_syncThemeColorMeta()` and calls it from `_setResolvedTheme()`
   (covering both prism-loaded and prism-absent paths) and from `_applySkin()`.
@@ -13,7 +13,7 @@ Covers:
   stale media attributes so OS light/dark preference cannot override the user theme.
 
 This bridge is the source of truth that native WKWebView wrappers
-(hermes-webui/hermes-swift-mac) read instead of pixel-sampling the page —
+(iris-webui/iris-swift-mac) read instead of pixel-sampling the page —
 overlay-resistant (modals/lightboxes don't poison it) and IPC-free.
 """
 from pathlib import Path
@@ -36,14 +36,14 @@ class TestIndexHtmlMetaTags:
         assert 'media="(prefers-color-scheme: dark)"' in src
 
     def test_runtime_theme_color_meta_has_stable_id(self):
-        """A third theme-color meta tag (no media query) carries id="hermes-theme-color"
+        """A third theme-color meta tag (no media query) carries id="iris-theme-color"
         so boot.js can update it on theme/skin change. The id is the contract the
-        Mac Swift app reads via `document.getElementById('hermes-theme-color')`.
+        Mac Swift app reads via `document.getElementById('iris-theme-color')`.
         """
         src = INDEX.read_text(encoding="utf-8")
-        assert 'id="hermes-theme-color"' in src
+        assert 'id="iris-theme-color"' in src
         # Must be on a meta tag (not some other element)
-        assert '<meta name="theme-color" id="hermes-theme-color"' in src
+        assert '<meta name="theme-color" id="iris-theme-color"' in src
 
     def test_inline_pre_paint_script_seeds_all_theme_color_metas(self):
         """An inline script in <head> seeds all theme-color tags from localStorage
@@ -52,9 +52,9 @@ class TestIndexHtmlMetaTags:
         and prevents media-query fallbacks from overriding the runtime tag.
         """
         src = INDEX.read_text(encoding="utf-8")
-        assert "hermes-theme" in src
+        assert "iris-theme" in src
         # The seeder must read from the same localStorage key the theme bootstrap uses.
-        assert "localStorage.getItem('hermes-theme')" in src
+        assert "localStorage.getItem('iris-theme')" in src
         # It must update every theme-color tag and neutralize stale light/dark media hints.
         assert "querySelectorAll('meta[name=\"theme-color\"]')" in src
         assert "setAttribute('content'" in src or 'setAttribute("content"' in src
@@ -82,7 +82,7 @@ class TestBootJsThemeColorSync:
         Civilization trembles, but mostly the window looks wrong.
         """
         src = BOOT.read_text(encoding="utf-8")
-        assert "getElementById('hermes-theme-color')" in src
+        assert "getElementById('iris-theme-color')" in src
         assert "querySelectorAll('meta[name=\"theme-color\"]')" in src
         assert "setAttribute('content',bg)" in src
         assert "removeAttribute('media')" in src

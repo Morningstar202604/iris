@@ -1,5 +1,5 @@
-import type { ModelOptionProvider } from '@hermes/shared'
-import { DEFAULT_REASONING_EFFORT, isReasoningEffort, REASONING_EFFORT_VALUES } from '@hermes/shared'
+import type { ModelOptionProvider } from '@iris/shared'
+import { DEFAULT_REASONING_EFFORT, isReasoningEffort, REASONING_EFFORT_VALUES } from '@iris/shared'
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -14,18 +14,18 @@ import {
   getGlobalModelOptions,
   getMoaModels,
   getRecommendedDefaultModel,
-  saveHermesConfig,
+  saveIrisConfig,
   saveMoaModels,
   setEnvVar,
   setModelAssignment
-} from '@/hermes'
+} from '@/iris'
 import type {
   AuxiliaryModelsResponse,
   AuxiliaryTaskAssignment,
   MoaConfigResponse,
   MoaModelSlot,
   StaleAuxAssignment
-} from '@/hermes'
+} from '@/iris'
 import { useI18n } from '@/i18n'
 import { isCodeSkewRestartRequired } from '@/lib/code-skew-error'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'
@@ -36,7 +36,7 @@ import { setMainModelAssignment } from '@/store/model-assignment'
 import { notifyError, readableError } from '@/store/notifications'
 import { startManualLocalEndpoint, startManualOnboarding, startManualProviderOAuth } from '@/store/onboarding'
 
-import { hermesConfigCacheWriter, invalidateHermesConfig, useHermesConfigRecord } from '../hooks/use-config-record'
+import { irisConfigCacheWriter, invalidateIrisConfig, useIrisConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 import { PanelEmpty } from '../overlays/panel'
 
@@ -104,14 +104,14 @@ const isFastTier = (tier: unknown): boolean =>
   )
 
 // A provider row is "ready" to pick a model from when it reports models. The
-// backend now surfaces the full `hermes model` universe (every canonical
+// backend now surfaces the full `iris model` universe (every canonical
 // provider), so unconfigured providers come back with `authenticated:false`
 // and an empty `models` list — those need a setup step before a model exists.
 function isProviderReady(p?: ModelOptionProvider): boolean {
   return !!p && (p.authenticated !== false || (p.models?.length ?? 0) > 0)
 }
 
-// Mirrors `_AUX_TASK_SLOTS` in hermes_cli/web_server.py. Friendly labels and
+// Mirrors `_AUX_TASK_SLOTS` in iris_cli/web_server.py. Friendly labels and
 // hints make the assignments readable; raw task keys (vision, mcp, …) are
 // opaque to most users.
 interface AuxTaskMeta {
@@ -254,8 +254,8 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
   const [newMoaPresetName, setNewMoaPresetName] = useState('')
   // agent.* defaults round-trip through the shared config cache (read → write
   // back the whole record), so a save here shows in the MCP/model surfaces.
-  const { data: config, writeScope } = useHermesConfigRecord(scopeProfile)
-  const setConfig = useMemo(() => hermesConfigCacheWriter(scopeProfile), [scopeProfile])
+  const { data: config, writeScope } = useIrisConfigRecord(scopeProfile)
+  const setConfig = useMemo(() => irisConfigCacheWriter(scopeProfile), [scopeProfile])
   const [applying, setApplying] = useState(false)
   const [editingAuxTask, setEditingAuxTask] = useState<null | string>(null)
 
@@ -334,7 +334,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
 
         // The config record loads via its own shared query; a model switch can
         // change it server-side (aux slots), so nudge that cache to refetch.
-        void invalidateHermesConfig(scopeProfile)
+        void invalidateIrisConfig(scopeProfile)
       } catch (err) {
         if (profileEpoch.current === epoch) {
           setCaughtError(err, m.loadFailed)
@@ -597,7 +597,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       setConfig(next)
 
       try {
-        await saveHermesConfig(setNested({}, key, value), writeScope ?? scopeProfile)
+        await saveIrisConfig(setNested({}, key, value), writeScope ?? scopeProfile)
       } catch (err) {
         setConfig(prev)
         notifyError(err, m.defaultsFailed)
@@ -626,7 +626,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       setApiKeyDraft('')
 
       // Pick a sensible default for the freshly-activated provider (mirrors
-      // `hermes model` curation). Best-effort — fall through to the refreshed
+      // `iris model` curation). Best-effort — fall through to the refreshed
       // model list if it fails.
       let nextModel = ''
 
@@ -855,7 +855,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
     setSkewRestart(false)
 
     try {
-      await window.hermesDesktop?.recycleBackend?.(scopeProfile)
+      await window.irisDesktop?.recycleBackend?.(scopeProfile)
       await refresh({ replaceSelection: true })
     } catch (err) {
       setCaughtError(err, m.restartFailed)
@@ -960,7 +960,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
             <p className="mt-2 text-xs text-muted-foreground">
               {selectedProviderRow?.auth_type === 'api_key'
                 ? `${selectedProviderRow?.name} needs an API key — set it up to choose a model.`
-                : `${selectedProviderRow?.name} signs in through your browser — Hermes runs the flow for you.`}
+                : `${selectedProviderRow?.name} signs in through your browser — Iris runs the flow for you.`}
             </p>
           )}
           {config && mainModel && (reasoningSupported || fastSupported) && (

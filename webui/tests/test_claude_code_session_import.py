@@ -15,7 +15,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 def _claude_fixture_rows() -> list[dict]:
     return [
         {"summary": "Claude Code import QA"},
-        {"timestamp": "2026-04-18T12:00:01Z", "message": {"role": "user", "content": [{"type": "text", "text": "Can Hermes show this Claude Code history read-only?"}]}},
+        {"timestamp": "2026-04-18T12:00:01Z", "message": {"role": "user", "content": [{"type": "text", "text": "Can Iris show this Claude Code history read-only?"}]}},
         {"timestamp": "2026-04-18T12:00:02Z", "message": {"role": "assistant", "content": "Yes — it appears with a Claude Code source badge."}},
         "not a dict",
         {"not_json_message": True},
@@ -26,8 +26,8 @@ def test_default_claude_code_scan_is_disabled_inside_test_state(monkeypatch, tmp
     """Test runs must not accidentally scan Michael's real ~/.claude/projects."""
     import api.models as models
 
-    monkeypatch.delenv("HERMES_WEBUI_CLAUDE_PROJECTS_DIR", raising=False)
-    monkeypatch.setenv("HERMES_WEBUI_TEST_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.delenv("IRIS_WEBUI_CLAUDE_PROJECTS_DIR", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_TEST_STATE_DIR", str(tmp_path / "state"))
 
     assert models._default_claude_code_projects_dir() is None
     assert models.get_claude_code_sessions() == []
@@ -57,7 +57,7 @@ def test_get_claude_code_sessions_reads_fixture_jsonl_without_real_home(tmp_path
 
     messages = models.get_claude_code_session_messages(session["session_id"], projects_dir=projects_dir)
     assert messages == [
-        {"role": "user", "content": "Can Hermes show this Claude Code history read-only?", "timestamp": 1776513601.0},
+        {"role": "user", "content": "Can Iris show this Claude Code history read-only?", "timestamp": 1776513601.0},
         {"role": "assistant", "content": "Yes — it appears with a Claude Code source badge.", "timestamp": 1776513602.0},
     ]
 
@@ -90,9 +90,9 @@ def test_get_cli_sessions_reuses_short_ttl_cache(monkeypatch, tmp_path):
     import api.models as models
     import api.profiles as profiles
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: str(hermes_home))
+    iris_home = tmp_path / "iris"
+    iris_home.mkdir()
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: str(iris_home))
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
     monkeypatch.setattr(models, "_CLI_SESSIONS_CACHE_TTL_SECONDS", 60.0, raising=False)
     models.clear_cli_sessions_cache()
@@ -128,11 +128,11 @@ def test_get_cli_sessions_cache_invalidates_when_sqlite_wal_changes(monkeypatch,
     import api.models as models
     import api.profiles as profiles
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    db_path = hermes_home / "state.db"
+    iris_home = tmp_path / "iris"
+    iris_home.mkdir()
+    db_path = iris_home / "state.db"
     db_path.write_text("initial", encoding="utf-8")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: str(hermes_home))
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: str(iris_home))
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
     monkeypatch.setattr(models, "_CLI_SESSIONS_CACHE_TTL_SECONDS", 60.0, raising=False)
     monkeypatch.setattr(models, "get_claude_code_sessions", lambda: [])

@@ -1,8 +1,8 @@
 """Writes the setup facts agreed during onboarding into the default profile's user memory."""
 import json
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-from hermes_cli.profiles import get_profile_dir
+from iris_constants import reset_iris_home_override, set_iris_home_override
+from iris_cli.profiles import get_profile_dir
 from tools.memory_tool import load_on_disk_store, memory_tool
 
 
@@ -18,7 +18,7 @@ def remember_onboarding(answers: dict) -> dict:
         if value and value.strip():
             facts.append(f'{label}: {value.strip()}')
     for key, label in (('focus', 'Focus areas'), ('connectors', 'Tools the user uses (not connection status)'),
-                       ('plugins', 'Hermes plugins the user picked during onboarding (not install status)')):
+                       ('plugins', 'Iris plugins the user picked during onboarding (not install status)')):
         values = answers.get(key, [])
         if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
             raise ValueError(f'{key} must be a list of text')
@@ -31,8 +31,8 @@ def remember_onboarding(answers: dict) -> dict:
         raise ValueError('Onboarding facts are too long to remember')
 
     # The entry must land in the 'default' profile directory even when this RPC arrives on the guide's
-    # backend or under a custom Hermes home.
-    token = set_hermes_home_override(get_profile_dir('default'))
+    # backend or under a custom Iris home.
+    token = set_iris_home_override(get_profile_dir('default'))
     try:
         result = json.loads(memory_tool(action='add', target='user', content=content, store=load_on_disk_store()))
         if not result.get('success') or result.get('staged'):
@@ -42,4 +42,4 @@ def remember_onboarding(answers: dict) -> dict:
             raise ValueError('Could not verify saved onboarding facts')
         return {'saved': True, 'profile': 'default', 'target': 'user'}
     finally:
-        reset_hermes_home_override(token)
+        reset_iris_home_override(token)

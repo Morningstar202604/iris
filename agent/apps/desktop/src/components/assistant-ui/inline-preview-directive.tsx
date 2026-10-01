@@ -33,8 +33,8 @@ import { localPreviewTarget } from '@/lib/local-preview'
  * app. The page's own styles override all of it, so a full page keeps its
  * own design.
  *
- * WIDGETS TALK BACK OFF-SCREEN. `window.hermes.send(prompt)` (or declarative
- * `data-hermes-send` on any clickable element) routes the prompt through the
+ * WIDGETS TALK BACK OFF-SCREEN. `window.iris.send(prompt)` (or declarative
+ * `data-iris-send` on any clickable element) routes the prompt through the
  * composer's send path as a user turn typed `display_kind=hidden`: the agent
  * wakes and the durable row exists (context, resume, audit via the DB), but
  * no bubble renders — the widget updating is the visible response. Token-
@@ -66,20 +66,20 @@ export function directiveFrameHeight(raw: string | undefined): number | null {
   return Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, parsed))
 }
 
-const SIZE_MESSAGE_TYPE = 'hermes-inline-preview-size'
-const INTENT_MESSAGE_TYPE = 'hermes-inline-preview-intent'
+const SIZE_MESSAGE_TYPE = 'iris-inline-preview-size'
+const INTENT_MESSAGE_TYPE = 'iris-inline-preview-intent'
 
 /** Prompt length cap for a widget intent — a sentence, not a payload dump. */
 const MAX_INTENT_LENGTH = 500
 /** One intent per frame per second; clicks are human-speed. */
 const INTENT_THROTTLE_MS = 1000
 
-/** The script that gives the widget its ONE voice: `hermes.send(prompt)`.
+/** The script that gives the widget its ONE voice: `iris.send(prompt)`.
  *  Posts the prompt up tagged with the mount token; the parent validates,
  *  throttles, and routes it through the composer as a normal user message —
  *  the widget speaks WITH the user's voice, visibly, never silently. Also
- *  wires `data-hermes-send` so declarative HTML works with zero script:
- *  `<button data-hermes-send="get-price eth">ETH</button>`. */
+ *  wires `data-iris-send` so declarative HTML works with zero script:
+ *  `<button data-iris-send="get-price eth">ETH</button>`. */
 export function intentScript(token: string): string {
   return (
     '<script>(function(){var t=' +
@@ -90,10 +90,10 @@ export function intentScript(token: string): string {
     ',token:t,prompt:p.slice(0,' +
     String(MAX_INTENT_LENGTH) +
     ')},"*");return true}' +
-    'window.hermes={send:send};' +
+    'window.iris={send:send};' +
     'addEventListener("click",function(e){var el=e.target&&e.target.closest?' +
-    'e.target.closest("[data-hermes-send]"):null;' +
-    'if(el)send(el.getAttribute("data-hermes-send")||"")},true)})()</script>'
+    'e.target.closest("[data-iris-send]"):null;' +
+    'if(el)send(el.getAttribute("data-iris-send")||"")},true)})()</script>'
   )
 }
 
@@ -257,7 +257,7 @@ export function InlinePreviewDirective({
   // nothing to frame. (Remote gateways used to bail here too — that predates
   // the mode-aware fs bridge; the frame now reads through readDesktopFileText,
   // which fetches over the authenticated /api/fs bridge in remote mode, so a
-  // URL connection — including a same-machine `hermes serve` — renders live.)
+  // URL connection — including a same-machine `iris serve` — renders live.)
   if (!file || !HTML_FILE_RE.test(file)) {
     return file ? <PreviewAttachment target={file} /> : null
   }

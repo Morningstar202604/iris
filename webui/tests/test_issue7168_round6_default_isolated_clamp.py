@@ -2,16 +2,16 @@
 
 Maintainer round-6 re-gate CORE (one remaining instance of the isolation
 class): ``_resolve_profile_home_param("default")`` short-circuited to
-``_DEFAULT_HERMES_HOME`` BEFORE delegating to
-``api.profiles.get_hermes_home_for_profile()``, so it never reached the
+``_DEFAULT_IRIS_HOME`` BEFORE delegating to
+``api.profiles.get_iris_home_for_profile()``, so it never reached the
 isolated-mode clamp in ``_resolve_profile_home_for_name`` (which pins every
-lookup to ``_INITIAL_HERMES_HOME`` when ``HERMES_WEBUI_ISOLATED_PROFILE`` is
+lookup to ``_INITIAL_IRIS_HOME`` when ``IRIS_WEBUI_ISOLATED_PROFILE`` is
 enabled). In an isolated deployment pinned at ``<base>/profiles/default``, a
 session created with ``profile="default"`` therefore used the BASE root
 home's workspace + config instead of the pinned one.
 
 Fix under test: the literal shortcut is gone — the logical string ``"default"``
-flows through ``get_hermes_home_for_profile()`` like every other id, so the
+flows through ``get_iris_home_for_profile()`` like every other id, so the
 clamp applies. Literal-default routing to the global state files is RETAINED
 (canonical ``_is_default_profile_home`` identity), asserted by the fallback
 tests below.
@@ -27,12 +27,12 @@ from api import profiles
 def isolated_default_pinned(tmp_path, monkeypatch):
     """Isolated-mode deployment pinned at <base>/profiles/default.
 
-    Mirrors the gate reproduction: HERMES_WEBUI_ISOLATED_PROFILE=1 with a
-    profile-shaped _INITIAL_HERMES_HOME whose directory NAME is literally
+    Mirrors the gate reproduction: IRIS_WEBUI_ISOLATED_PROFILE=1 with a
+    profile-shaped _INITIAL_IRIS_HOME whose directory NAME is literally
     'default' (the exact shape where base and pin diverge). Base home gets a
     DISTINCT config/workspace marker so any leak of the root home is visible.
     """
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     pinned = base / "profiles" / "default"
     pinned.mkdir(parents=True)
     (pinned / "webui_state").mkdir()
@@ -42,10 +42,10 @@ def isolated_default_pinned(tmp_path, monkeypatch):
         "workspace: /srv/pinned-workspace\n", encoding="utf-8"
     )
 
-    monkeypatch.setenv("HERMES_WEBUI_ISOLATED_PROFILE", "1")
+    monkeypatch.setenv("IRIS_WEBUI_ISOLATED_PROFILE", "1")
     monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "1")
-    monkeypatch.setattr(profiles, "_INITIAL_HERMES_HOME", str(pinned))
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_INITIAL_IRIS_HOME", str(pinned))
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setattr(profiles, "_LIST_PROFILES_CACHE", None)
     # Hermetic w.r.t. the runner's real state dir / remote terminal config.
     monkeypatch.setattr(workspace, "_remote_terminal_cwd", lambda profile=None: None)
@@ -59,7 +59,7 @@ class TestRound6DefaultHonorsIsolationClamp:
         env = isolated_default_pinned
         assert profiles._is_isolated_profile_mode() is True
         assert (
-            profiles.get_hermes_home_for_profile("default") == env["pinned"]
+            profiles.get_iris_home_for_profile("default") == env["pinned"]
         )  # pre-existing correct behavior (the clamp)
         got = workspace._resolve_profile_home_param("default")
         assert got == env["pinned"].resolve(), (
@@ -117,9 +117,9 @@ class TestRound6DefaultHonorsIsolationClamp:
         """
         env = isolated_default_pinned
         # Disable isolation so 'default' resolves canonically to the base home.
-        monkeypatch.delenv("HERMES_WEBUI_ISOLATED_PROFILE", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_ISOLATED_PROFILE", raising=False)
         monkeypatch.setattr(profiles, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "")
-        monkeypatch.setattr(profiles, "_INITIAL_HERMES_HOME", str(env["base"]))
+        monkeypatch.setattr(profiles, "_INITIAL_IRIS_HOME", str(env["base"]))
         global_lw = env["tmp"] / "global-state"
         global_lw.mkdir(parents=True)
         monkeypatch.setattr(workspace, "_GLOBAL_LW_FILE", global_lw / "last_workspace.txt")
@@ -186,7 +186,7 @@ class TestRound6DefaultHonorsIsolationClamp:
         In isolated mode the pinned home IS the active home, so
         get_config_for_profile_home takes the ambient-match branch — which is
         exactly the authority we must verify: the ambient resolver (and its
-        HERMES_CONFIG_PATH) must be anchored at the PINNED home, never at the
+        IRIS_CONFIG_PATH) must be anchored at the PINNED home, never at the
         base/root one. Point the authoritative config INSIDE the pinned home;
         had the resolver leaked to the base home, this config would not win.
         """
@@ -194,7 +194,7 @@ class TestRound6DefaultHonorsIsolationClamp:
         from api.config import get_config_for_profile_home
 
         env = isolated_default_pinned
-        monkeypatch.setenv("HERMES_CONFIG_PATH", str(env["pinned"] / "config.yaml"))
+        monkeypatch.setenv("IRIS_CONFIG_PATH", str(env["pinned"] / "config.yaml"))
         cfg_mod.reload_config()
 
         home = workspace._resolve_profile_home_param("default")

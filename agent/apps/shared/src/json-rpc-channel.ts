@@ -73,7 +73,7 @@ export const JSON_RPC_METHOD_NOT_FOUND = -32601
 export const JSON_RPC_INTERNAL_ERROR = -32603
 
 /** Map a raw `error` member of a response frame to the typed error every surface inspects. */
-export function jsonRpcErrorFromFrame(raw: unknown, fallbackMessage = 'Hermes RPC failed'): JsonRpcGatewayError {
+export function jsonRpcErrorFromFrame(raw: unknown, fallbackMessage = 'Iris RPC failed'): JsonRpcGatewayError {
   const err = (raw && typeof raw === 'object' ? raw : {}) as JsonRpcErrorPayload
 
   return new JsonRpcGatewayError(typeof err.message === 'string' && err.message ? err.message : fallbackMessage, {

@@ -129,7 +129,7 @@ class TestCSRF:
         See test_proxy_host_default_https_port_matches_https_origin for the
         real-world proxy case that should pass.
         """
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert not self._csrf_allowed({
             "Origin": "http://example.com",
             "X-Forwarded-Host": "example.com:443",
@@ -137,7 +137,7 @@ class TestCSRF:
 
     def test_proxy_host_default_https_port_matches_https_origin(self, monkeypatch):
         """HTTPS Origin without port should match X-Forwarded-Host with explicit :443."""
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert self._csrf_allowed({
             "Origin": "https://example.com",
             "X-Forwarded-Host": "example.com:443",
@@ -145,7 +145,7 @@ class TestCSRF:
 
     def test_proxy_host_port_normalization_still_rejects_other_host(self, monkeypatch):
         """Port normalization must not allow different hosts through."""
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert not self._csrf_allowed({
             "Origin": "https://evil.com",
             "X-Forwarded-Host": "example.com:443",
@@ -153,7 +153,7 @@ class TestCSRF:
 
     def test_allowed_public_origin_bypasses_missing_proxy_port(self, monkeypatch):
         """Explicitly configured public origins should pass even if proxy strips :port from Host."""
-        monkeypatch.setenv('HERMES_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000')
+        monkeypatch.setenv('IRIS_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000')
         assert self._csrf_allowed({
             'Origin': 'https://myapp.example.com:8000',
             'Host': 'myapp.example.com',
@@ -162,7 +162,7 @@ class TestCSRF:
 
     def test_other_origin_not_allowed_by_public_origin_allowlist(self, monkeypatch):
         """Allowlist must stay exact; unrelated origins must still be rejected."""
-        monkeypatch.setenv('HERMES_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000')
+        monkeypatch.setenv('IRIS_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000')
         assert not self._csrf_allowed({
             'Origin': 'https://evil.com:8000',
             'Host': 'myapp.example.com',
@@ -177,7 +177,7 @@ class TestCSRF:
         Before M-1 fix, _ports_match treated both 80 and 443 as equivalent to
         absent port, allowing http://host to match https://host:443 servers.
         """
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert not self._csrf_allowed({
             'Origin': 'http://example.com',     # http, no port = :80
             'X-Forwarded-Host': 'example.com:443',  # HTTPS port
@@ -185,7 +185,7 @@ class TestCSRF:
 
     def test_cross_protocol_port_not_confused_https_origin_http_host(self, monkeypatch):
         """https:// origin must NOT match a host with :80 (HTTP default)."""
-        monkeypatch.setenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "1")
+        monkeypatch.setenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "1")
         assert not self._csrf_allowed({
             'Origin': 'https://example.com',    # https, no port = :443
             'X-Forwarded-Host': 'example.com:80',   # HTTP port
@@ -224,19 +224,19 @@ class TestCSRF:
 
         This documents the original bug: Origin: https://app.com:8000 with
         Host: app.com (proxy stripped the port). Before this PR that returned 403.
-        The fix (HERMES_WEBUI_ALLOWED_ORIGINS) handles it; without the env var
+        The fix (IRIS_WEBUI_ALLOWED_ORIGINS) handles it; without the env var
         the request is still rejected, which is the safe default.
         """
-        monkeypatch.delenv('HERMES_WEBUI_ALLOWED_ORIGINS', raising=False)
+        monkeypatch.delenv('IRIS_WEBUI_ALLOWED_ORIGINS', raising=False)
         assert not self._csrf_allowed({
             'Origin': 'https://myapp.example.com:8000',
             'Host': 'myapp.example.com',
         }), 'without allowlist, port mismatch must be rejected (safe default)'
 
     def test_allowed_origins_comma_separated(self, monkeypatch):
-        """HERMES_WEBUI_ALLOWED_ORIGINS accepts multiple comma-separated origins."""
+        """IRIS_WEBUI_ALLOWED_ORIGINS accepts multiple comma-separated origins."""
         monkeypatch.setenv(
-            'HERMES_WEBUI_ALLOWED_ORIGINS',
+            'IRIS_WEBUI_ALLOWED_ORIGINS',
             'https://app1.example.com:8000, https://app2.example.com:9000',
         )
         assert self._csrf_allowed({'Origin': 'https://app1.example.com:8000', 'Host': 'proxy.internal'})
@@ -245,7 +245,7 @@ class TestCSRF:
 
     def test_allowed_origins_without_scheme_ignored(self, monkeypatch, capsys):
         """Allowlist entries missing the scheme are skipped and a warning is printed."""
-        monkeypatch.setenv('HERMES_WEBUI_ALLOWED_ORIGINS', 'myapp.example.com:8000')
+        monkeypatch.setenv('IRIS_WEBUI_ALLOWED_ORIGINS', 'myapp.example.com:8000')
         from api.routes import _allowed_public_origins
         result = _allowed_public_origins()
         assert len(result) == 0, 'entry without scheme must be ignored'
@@ -254,7 +254,7 @@ class TestCSRF:
 
     def test_allowed_origins_trailing_slash_normalized(self, monkeypatch):
         """Trailing slash in allowlist entry is stripped before comparison."""
-        monkeypatch.setenv('HERMES_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000/')
+        monkeypatch.setenv('IRIS_WEBUI_ALLOWED_ORIGINS', 'https://myapp.example.com:8000/')
         assert self._csrf_allowed({
             'Origin': 'https://myapp.example.com:8000',
             'Host': 'proxy.internal',
@@ -400,7 +400,7 @@ class TestSessionIDValidation:
         assert result is None  # No file, but no error
 
     def test_new_format_session_id_passes_validation(self):
-        """New hermes-agent session IDs (YYYYMMDD_HHMMSS_xxxxxx) must pass validation."""
+        """New iris-agent session IDs (YYYYMMDD_HHMMSS_xxxxxx) must pass validation."""
         from api.models import Session
         # Should pass the validator (returns None only because the file doesn't exist)
         result = Session.load("20260406_164014_74b2d1")
@@ -438,16 +438,16 @@ class TestSessionIDValidation:
 class TestSanitizeError:
     def test_unix_path_stripped(self):
         from api.helpers import _sanitize_error
-        e = FileNotFoundError("/home/hermes/.hermes/sessions/abc123.json")
+        e = FileNotFoundError("/home/iris/.iris/sessions/abc123.json")
         result = _sanitize_error(e)
-        assert "/home/hermes" not in result
+        assert "/home/iris" not in result
         assert "<path>" in result
 
     def test_nested_unix_path_stripped(self):
         from api.helpers import _sanitize_error
-        e = ValueError("cannot read /var/lib/hermes/data.db: permission denied")
+        e = ValueError("cannot read /var/lib/iris/data.db: permission denied")
         result = _sanitize_error(e)
-        assert "/var/lib/hermes" not in result
+        assert "/var/lib/iris" not in result
         assert "<path>" in result
 
     def test_no_path_unchanged(self):
@@ -458,9 +458,9 @@ class TestSanitizeError:
 
     def test_windows_path_stripped(self):
         from api.helpers import _sanitize_error
-        e = FileNotFoundError("C:\\Users\\hermes\\AppData\\sessions\\x.json not found")
+        e = FileNotFoundError("C:\\Users\\iris\\AppData\\sessions\\x.json not found")
         result = _sanitize_error(e)
-        assert "C:\\Users\\hermes" not in result
+        assert "C:\\Users\\iris" not in result
 
     def test_live_404_does_not_leak_path(self, webui_server):
         """Live server: file-not-found errors must not expose filesystem paths."""
@@ -542,9 +542,9 @@ class TestSkillsPathTraversal:
             "name": "test-security-skill",
             "content": "---\nname: test-security-skill\ndescription: test\n---\n# test",
         })
-        # 500 = skills module not available (hermes-agent not installed) — skip
+        # 500 = skills module not available (iris-agent not installed) — skip
         if status == 500:
-            import pytest; pytest.skip("skills module requires hermes-agent")
+            import pytest; pytest.skip("skills module requires iris-agent")
         # Should succeed (200) or need auth (401/403) — not path error (400)
         assert status in (200, 401, 403, 404), \
             f"Valid skill save got unexpected status {status}: {body}"

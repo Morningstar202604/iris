@@ -1,4 +1,4 @@
-"""Anthropic Messages API adapter: client construction + the Messages call for Hermes's
+"""Anthropic Messages API adapter: client construction + the Messages call for Iris's
 OpenAI-style internals. Auth: API keys (``sk-ant-api*``) -> x-api-key; OAuth setup-tokens
 (``sk-ant-oat*``) and Claude Code credentials -> Bearer + beta header. Endpoint predicates,
 payload conversion and credentials live in ``agent/anthropic_{endpoints,message_convert,
@@ -27,7 +27,7 @@ from agent.anthropic_message_convert import (
     convert_messages_to_anthropic, convert_tools_to_anthropic, normalize_model_name,
 )
 
-from hermes_cli import __version__ as _HERMES_VERSION
+from iris_cli import __version__ as _IRIS_VERSION
 
 
 # ``import anthropic`` is deliberately NOT at module top: the SDK costs ~220 ms of imports and
@@ -61,7 +61,7 @@ def _require_sdk(purpose: str, verb: str = "Install it with"):
 logger = logging.getLogger(__name__)
 
 THINKING_BUDGET = {"xhigh": 32000, "high": 16000, "medium": 8000, "low": 4000}
-# Hermes effort -> Anthropic adaptive-thinking effort (output_config.effort). 4.7+ exposes
+# Iris effort -> Anthropic adaptive-thinking effort (output_config.effort). 4.7+ exposes
 # low/medium/high/xhigh/max; Opus/Sonnet 4.6 have no xhigh, so callers downgrade xhigh->max
 # there (see _supports_xhigh_effort). "minimal" is a legacy alias for low on every model.
 ADAPTIVE_EFFORT_MAP = {
@@ -281,7 +281,7 @@ def _get_claude_code_version() -> str:
 _CLAUDE_CODE_SYSTEM_PREFIX = "You are Claude Code, Anthropic's official CLI for Claude."
 _MCP_TOOL_PREFIX = "mcp__"
 
-# Anthropic's OAuth billing classifier fingerprints certain Hermes tool schemas/prose as a
+# Anthropic's OAuth billing classifier fingerprints certain Iris tool schemas/prose as a
 # third-party app and reroutes to the metered extra-usage lane (HTTP 400 "You're out of extra
 # usage" on a valid subscription). Live A/B repros isolated two independent triggers — the
 # ``session_search`` tool (schema/name/prose) and the ``memory`` tool (schema/name) — so both are
@@ -334,7 +334,7 @@ def _attribution_headers() -> Dict[str, str]:
     """Same client-attribution set sent to OpenRouter / Vercel AI Gateway / Fireworks."""
     return {
         "HTTP-Referer": "https://gitcode.com/badhope/iris", "X-Title": "Iris",
-        "User-Agent": f"IrisAgent/{_HERMES_VERSION}",
+        "User-Agent": f"IrisAgent/{_IRIS_VERSION}",
     }
 
 
@@ -347,7 +347,7 @@ def _client_timeout(timeout):
 
 def _base_client_kwargs(base_url, timeout) -> tuple[str, Dict[str, Any]]:
     """Shared SDK constructor kwargs -> ``(normalized_base_url, kwargs)``. Retry is delegated to
-    hermes's outer loop (``max_retries=0``): the SDK default of 2 uses its own backoff that ignores
+    iris's outer loop (``max_retries=0``): the SDK default of 2 uses its own backoff that ignores
     Retry-After and double-retries inside our loop. Any trailing ``/v1`` is stripped because the
     SDK appends ``/v1/messages``. Azure's ``api-version`` goes through ``default_query`` so the
     base_url is not corrupted into ``/anthropic?api-version=.../v1/messages``."""
@@ -394,7 +394,7 @@ def _new_sdk_client(sdk, kwargs: Dict[str, Any], headers: Dict[str, str], route:
     keyed by; ``kwargs["base_url"]`` has it stripped) for the per-provider ``extra_headers`` lookup.
 
     The SDK fills whichever of ``api_key`` / ``auth_token`` we left unset from ANTHROPIC_API_KEY /
-    ANTHROPIC_AUTH_TOKEN in the environment (both loaded from ~/.hermes/.env) and then sends dual
+    ANTHROPIC_AUTH_TOKEN in the environment (both loaded from ~/.iris/.env) and then sends dual
     auth — x-api-key *and* Authorization: Bearer — shipping a foreign credential to Portal / MiniMax
     / OAuth / Entra / third-party endpoints (#26970, #105774). An ``Omit()`` default header is the
     SDK-sanctioned way to drop the other header, and unlike an attribute clear it survives
@@ -419,7 +419,7 @@ def _custom_provider_extra_headers(base_url) -> Dict[str, str]:
     if not base_url:
         return {}
     try:
-        from hermes_cli.config import get_custom_provider_extra_headers
+        from iris_cli.config import get_custom_provider_extra_headers
         return get_custom_provider_extra_headers(str(base_url))
     except Exception:
         logger.debug("custom-provider extra_headers skipped for Anthropic client", exc_info=True)
@@ -495,7 +495,7 @@ def build_anthropic_bedrock_client(region: str):
                   "aws_session_token": scoped.get("aws_session_token"), "aws_profile": scoped.get("profile_name")}
     return sdk.AnthropicBedrock(
         aws_region=region, timeout=_client_timeout(None), **{k: v for k, v in aws_kwargs.items() if v},
-        max_retries=0,  # retry belongs to hermes's outer loop (honors Retry-After)
+        max_retries=0,  # retry belongs to iris's outer loop (honors Retry-After)
         default_headers={**_beta_header([*_COMMON_BETAS, _CONTEXT_1M_BETA]), **bedrock_guardrail_headers()},
     )
 
@@ -504,7 +504,7 @@ def _normalize_to_mcp_wire(name: str) -> str:
     """OAuth wire form of a tool name (no aliasing): ``mcp__<...>``. Anthropic's OAuth billing
     classifier treats a single-underscore ``mcp_`` tool name as a third-party-app fingerprint
     (HTTP 400 "Third-party apps now draw from extra usage"); ``mcp__foo`` is accepted. Both bare
-    Hermes tools (``read_file``) and native MCP tools registered as ``mcp_<server>_<tool>`` must
+    Iris tools (``read_file``) and native MCP tools registered as ``mcp_<server>_<tool>`` must
     land on the double-underscore form. normalize_response reverses both via registry lookup."""
     if name.startswith("mcp__"):
         return name  # already correct, don't double-prefix
@@ -535,11 +535,11 @@ _OAUTH_SYSTEM_REPLACEMENTS = (
     ("Iris", "Claude Code"), ("Nous Research", "Anthropic"),
 )
 # The slug is rewritten only as a standalone prose word. Joined to a host, path, repo, mailbox
-# or quoted as an identifier (``hermes-agent.nousresearch.com``, ``~/.hermes/hermes-agent/venv``,
-# ``NousResearch/hermes-agent``, ``skill_view(name='hermes-agent')``) it is an address the model
+# or quoted as an identifier (``hermes-agent.nousresearch.com``, ``~/.iris/iris-agent/venv``,
+# ``NousResearch/hermes-agent``, ``skill_view(name='iris-agent')``) it is an address the model
 # dereferences, and the rewritten form does not exist (#48860). The OPENING quote marks an
 # identifier; a sentence-final ``.`` or a possessive ``'s`` is prose.
-_OAUTH_SLUG_PATTERN = re.compile(r"""(?<![\w./:@'"`-])hermes-agent(?![\w/@-]|\.\w)""")
+_OAUTH_SLUG_PATTERN = re.compile(r"""(?<![\w./:@'"`-])iris-agent(?![\w/@-]|\.\w)""")
 
 
 def _apply_claude_code_identity(system, anthropic_tools, anthropic_messages, to_wire):
@@ -574,7 +574,7 @@ def _thinking_kwargs(reasoning_config: Dict[str, Any], model: str, effective_max
     """Map ``reasoning_config`` to Anthropic thinking kwargs. Adaptive models (Claude 4.6+,
     Kimi/Moonshot) get ``thinking.type=adaptive`` + ``output_config.effort``; older models and
     manual-only compat endpoints (MiniMax) get budget_tokens. Haiku has no extended thinking. On
-    4.7+ ``thinking.display`` defaults to "omitted", hiding the reasoning Hermes shows in its CLI,
+    4.7+ ``thinking.display`` defaults to "omitted", hiding the reasoning Iris shows in its CLI,
     so "summarized" is requested to keep the activity feed populated."""
     if reasoning_config.get("enabled") is False:
         # Adaptive models think by DEFAULT, so omitting the parameter is not a disable — the user
@@ -649,7 +649,7 @@ def build_anthropic_kwargs(
     # ``output_config.effort``, and the replay-validation 400s that originally motivated dropping the
     # parameter (#13848) no longer occur. (Kimi on chat_completions enables thinking via extra_body in the
     # ChatCompletionsTransport — see #13503.) On 4.7+ the `thinking.display` field defaults to "omitted",
-    # which silently hides reasoning text that Hermes surfaces in its CLI. We request "summarized" so the
+    # which silently hides reasoning text that Iris surfaces in its CLI. We request "summarized" so the
     # reasoning blocks stay populated — matching 4.6 behavior and preserving the activity-feed UX during
     # long tool runs.
     if reasoning_config and isinstance(reasoning_config, dict):
@@ -807,15 +807,15 @@ _PLUGIN_COMPAT_LAZY = {
     'base_url_host_matches': ('utils', 'base_url_host_matches'),
     'base_url_hostname': ('utils', 'base_url_hostname'),
     'claude_code_credentials_path': ('agent.anthropic_credentials', 'claude_code_credentials_path'),
-    'get_hermes_home': ('hermes_constants', 'get_hermes_home'),
+    'get_iris_home': ('iris_constants', 'get_iris_home'),
     'is_claude_code_token_valid': ('agent.anthropic_credentials', 'is_claude_code_token_valid'),
     'is_rotation_consumed_uncommitted': ('agent.anthropic_credentials', 'is_rotation_consumed_uncommitted'),
     'mark_rotation_consumed_uncommitted': ('agent.anthropic_credentials', 'mark_rotation_consumed_uncommitted'),
     'read_claude_code_credentials': ('agent.anthropic_credentials', 'read_claude_code_credentials'),
-    'read_hermes_oauth_credentials': ('agent.anthropic_credentials', 'read_hermes_oauth_credentials'),
+    'read_iris_oauth_credentials': ('agent.anthropic_credentials', 'read_iris_oauth_credentials'),
     'refresh_anthropic_oauth_pure': ('agent.anthropic_credentials', 'refresh_anthropic_oauth_pure'),
     'resolve_anthropic_token': ('agent.anthropic_credentials', 'resolve_anthropic_token'),
-    'run_hermes_oauth_login_pure': ('agent.anthropic_credentials', 'run_hermes_oauth_login_pure'),
+    'run_iris_oauth_login_pure': ('agent.anthropic_credentials', 'run_iris_oauth_login_pure'),
     'run_oauth_setup_token': ('agent.anthropic_credentials', 'run_oauth_setup_token'),
 }
 
@@ -825,7 +825,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

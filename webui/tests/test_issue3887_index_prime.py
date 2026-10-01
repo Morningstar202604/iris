@@ -4,7 +4,7 @@ The sidebar's CLI-session scan (``read_importable_agent_session_rows``) orders
 candidate sessions by a correlated ``MAX(mx.timestamp)`` subquery over the
 ``messages`` table. That is fast only when the agent's standard
 ``idx_messages_session ON messages(session_id, timestamp)`` index exists. A
-state.db that lost its migrations (older hermes-agent, or a hand-rebuilt /
+state.db that lost its migrations (older iris-agent, or a hand-rebuilt /
 reimported db) has no such index and the scan degrades to a full ``messages``
 scan per candidate session — stalling ``/api/sessions`` for seconds on every
 refresh.

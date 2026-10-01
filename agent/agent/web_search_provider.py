@@ -22,7 +22,7 @@ from agent.provider_base import ProviderBase
 
 
 def get_provider_env(name: str) -> str:
-    """Config-aware env lookup (``os.environ`` first, then ``~/.hermes/.env``) so
+    """Config-aware env lookup (``os.environ`` first, then ``~/.iris/.env``) so
     credentials set through the config layer are visible in gateway sessions /
     delegate children / subprocess runs. Stripped value, or ``""`` when unset.
 
@@ -32,7 +32,7 @@ def get_provider_env(name: str) -> str:
     an Exa/Parallel key must be refused, not search on another profile's key.
     """
     try:
-        from hermes_cli.config import get_env_value
+        from iris_cli.config import get_env_value
 
         val = get_env_value(name)
     except Exception:  # noqa: BLE001 — config layer optional here
@@ -57,7 +57,7 @@ class WebSearchProvider(ProviderBase):
     @abc.abstractmethod
     def is_available(self) -> bool:
         """True when this provider can service calls. Cheap check only (env var, importable
-        dep, instance URL) — NO network; runs at tool registration and on every ``hermes tools`` paint."""
+        dep, instance URL) — NO network; runs at tool registration and on every ``iris tools`` paint."""
 
     def supports_search(self) -> bool:
         """True if this provider implements :meth:`search`."""

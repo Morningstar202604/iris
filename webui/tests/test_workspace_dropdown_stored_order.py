@@ -157,7 +157,7 @@ def test_workspace_dropdown_renders_in_stored_order():
     """Dropdown rows must match the caller's (server stored) order exactly.
 
     Input is deliberately NON-alphabetical: an alphabetical sort would
-    produce fantasy-football, Hermes Dev, Home — this test fails under the
+    produce fantasy-football, Iris Dev, Home — this test fails under the
     old client-side sort and passes with server order.
     """
     panels_js_repr = repr(
@@ -168,7 +168,7 @@ def test_workspace_dropdown_renders_in_stored_order():
         + _extracted_functions_js()
         + """
 const input = [
-  { name: 'Hermes Dev',        path: '/Users/x/hermes-webui' },
+  { name: 'Iris Dev',        path: '/Users/x/iris-webui' },
   { name: 'Home',              path: '/Users/x' },
   { name: 'fantasy-football',  path: '/Users/x/fantasy-football' },
 ];
@@ -195,14 +195,14 @@ console.log(JSON.stringify({
     assert "error" not in result, result
 
     # Exact rendered sequence === input (stored) sequence.
-    assert result["renderedNames"] == ["Hermes Dev", "Home", "fantasy-football"], (
+    assert result["renderedNames"] == ["Iris Dev", "Home", "fantasy-football"], (
         "Workspace dropdown rows are not in the caller's (server stored) order. "
         "If a client-side alphabetical sort was reintroduced in "
         "renderWorkspaceDropdownInto, the Workspaces view order (drag-and-drop "
         "reorder, 'Home' first) is being ignored by the switcher dropdown."
     )
     assert result["renderedPaths"] == [
-        "/Users/x/hermes-webui",
+        "/Users/x/iris-webui",
         "/Users/x",
         "/Users/x/fantasy-football",
     ]

@@ -9,20 +9,20 @@ them in order before proposing solutions.
 
 ---
 
-## Layer 1 — Is this thing a Hermes plugin, or a separate app?
+## Layer 1 — Is this thing a Iris plugin, or a separate app?
 
 This is the question to answer FIRST. The "OpenViking" case in particular
 trips agents up.
 
 | Surface | What it actually is | Auth path |
 |---|---|---|
-| **OpenViking memory plugin** (`plugins/memory/openviking/`) | Code that runs **inside the Hermes process**. Its LLM calls go through Hermes's already-configured provider. | Already uses Portal if user's Hermes is configured for Portal. Nothing extra needed. `OPENVIKING_API_KEY` is the OpenViking *server's* own auth, not LLM auth. |
+| **OpenViking memory plugin** (`plugins/memory/openviking/`) | Code that runs **inside the Iris process**. Its LLM calls go through Iris's already-configured provider. | Already uses Portal if user's Iris is configured for Portal. Nothing extra needed. `OPENVIKING_API_KEY` is the OpenViking *server's* own auth, not LLM auth. |
 | **OpenViking the standalone server** (separate container) | A separate context-DB service. If it ever calls an LLM on its own, that's a separate HTTP client. | Same as any external app — Layer 2/3 below. |
 | **Karakeep, n8n, LibreChat, OpenWebUI, any self-hosted app** | Different process, often different machine. Makes its own HTTPS calls to `inference-api.nousresearch.com`. | Layer 2/3 below. |
 
 **Pitfall to avoid**: do not pitch "OAuth into Portal" as the solution for a
-plugin that already runs inside Hermes. That LLM call is already authenticated
-via Hermes's provider config. The plugin's own server auth (e.g.
+plugin that already runs inside Iris. That LLM call is already authenticated
+via Iris's provider config. The plugin's own server auth (e.g.
 `OPENVIKING_API_KEY` for talking to the OpenViking REST API) is unrelated to
 Portal.
 
@@ -41,10 +41,10 @@ There is **no general OAuth 2.0 authorization server**. There is no
 against. There is no shared cookie or session that browser-Portal-login
 extends to other apps on the same machine.
 
-What Hermes Agent has that *feels* like OAuth — `hermes login --provider nous`
-opening a browser, user signs in, token lands in `~/.hermes/auth.json` — is a
-**Hermes-specific browser flow**. Under the hood it produces a credential
-Hermes uses as a bearer. It is not a public OAuth provider that Karakeep et al.
+What Iris Agent has that *feels* like OAuth — `iris login --provider nous`
+opening a browser, user signs in, token lands in `~/.iris/auth.json` — is a
+**Iris-specific browser flow**. Under the hood it produces a credential
+Iris uses as a bearer. It is not a public OAuth provider that Karakeep et al.
 can implement a client for, because it isn't an OAuth provider at all from the
 outside.
 
@@ -55,16 +55,16 @@ outside.
 Yes. The pattern is a **local credential-broker proxy**. Even without a public
 OAuth flow, an app on the user's machine can:
 
-1. Read Hermes's existing Portal credential out of `~/.hermes/auth.json`.
+1. Read Iris's existing Portal credential out of `~/.iris/auth.json`.
 2. Expose a local OpenAI-compatible endpoint at `http://localhost:NNNN/v1`.
 3. Forward incoming requests to `inference-api.nousresearch.com/v1` with that
    bearer attached.
 
 Karakeep/OpenWebUI/etc. then point at `http://localhost:NNNN/v1` with any
 placeholder key. The user never copies their Portal key around — the proxy
-rides on the credential Hermes already holds.
+rides on the credential Iris already holds.
 
-Where this could live in Hermes:
+Where this could live in Iris:
 
 - `gateway/platforms/api_server.py` is the precedent — it exposes the agent
   over a local OpenAI-compatible endpoint, but routes through the full agent
@@ -100,7 +100,7 @@ without depending on third-party app changes:
   the sub, scope a key to specific models), in a shape every existing app
   already supports.
 - **Per-key rate limits** so a noisy app can be capped without eating the
-  user's headroom for Hermes itself.
+  user's headroom for Iris itself.
 
 ---
 
@@ -108,8 +108,8 @@ without depending on third-party app changes:
 
 When the user asks "can $APP use my Portal subscription":
 
-1. First decide: Hermes plugin (runs inside Hermes) or separate app? If plugin,
-   it already uses Portal via Hermes's provider config — done.
+1. First decide: Iris plugin (runs inside Iris) or separate app? If plugin,
+   it already uses Portal via Iris's provider config — done.
 2. If separate app: today, paste the static API key from Portal → API Keys.
    Base URL `https://inference-api.nousresearch.com/v1`. Rate limits are
    subscription-tier based, applied per-key.
@@ -117,12 +117,12 @@ When the user asks "can $APP use my Portal subscription":
    the local-broker-proxy answer (Layer 3). Worth building. Not a Portal-side
    OAuth roadmap problem.
 4. Mixed setup ("Portal for some things, OpenRouter/Ollama Cloud for the
-   Hermes agent itself") is fully supported. Hermes treats agent
+   Iris agent itself") is fully supported. Iris treats agent
    provider/model and tool-side LLM calls as independent config; you can
    point each at a different endpoint.
 
 **Note on the Tool Gateway**: the "no separate accounts, no API key juggling"
-pitch in the Tool Gateway announcement is specifically about Hermes Agent's
+pitch in the Tool Gateway announcement is specifically about Iris Agent's
 *tools* (web search, browser, image gen, TTS) flowing through the Portal
-subscription when Hermes is configured to use Portal as its provider. It is
+subscription when Iris is configured to use Portal as its provider. It is
 **not** a claim that arbitrary third-party apps inherit Portal auth.

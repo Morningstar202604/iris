@@ -10,7 +10,7 @@ from typing import Callable, Literal, Protocol
 
 from pydantic import ValidationError
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from tools.connectors.gateway.errors import GatewayAuthError, GatewayUnavailable, ToolGatewayError
 from tools.connectors.portal.client import NotModified, validate_slug
 from tools.connectors.portal.errors import PortalToolsUnavailable
@@ -59,7 +59,7 @@ def _member_key(token: str | None) -> str | None:
 
 def _cache_path(origin: str, member_key: str, slug: str):
     origin_key = hashlib.sha256(origin.encode("utf-8")).hexdigest()[:16]
-    return get_hermes_home() / "cache" / "connectors" / origin_key / member_key / f"{slug}.json"
+    return get_iris_home() / "cache" / "connectors" / origin_key / member_key / f"{slug}.json"
 
 
 def _cached(path) -> ToolsRead | None:

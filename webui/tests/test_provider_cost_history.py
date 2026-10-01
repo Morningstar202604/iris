@@ -69,7 +69,7 @@ def _restore_config(old_cfg, old_mtime):
 
 def test_openrouter_cost_history_happy_path(monkeypatch, tmp_path):
     """On-demand snapshot append returns deltas from cumulative usage."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -132,7 +132,7 @@ def test_openrouter_cost_history_happy_path(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_deltas_from_cumulative(monkeypatch, tmp_path):
     """Deltas are computed as differences between consecutive cumulative values."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -191,7 +191,7 @@ def test_openrouter_cost_history_deltas_from_cumulative(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_reset_uses_fresh_series_delta(monkeypatch, tmp_path):
     """A lower cumulative value starts a fresh series instead of a negative bar."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -234,7 +234,7 @@ def test_openrouter_cost_history_reset_uses_fresh_series_delta(monkeypatch, tmp_
 
 def test_cost_snapshot_append_uses_lock(monkeypatch, tmp_path):
     """Snapshot append serializes the read-modify-write critical section."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     import api.providers as providers
 
@@ -262,7 +262,7 @@ def test_cost_snapshot_append_uses_lock(monkeypatch, tmp_path):
 
 def test_cost_snapshot_append_uses_file_lock(monkeypatch, tmp_path):
     """Snapshot append takes a provider-specific file lock for multi-process workers."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     import api.providers as providers
 
@@ -293,7 +293,7 @@ def test_cost_snapshot_append_uses_file_lock(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_no_key(monkeypatch, tmp_path):
     """No API key → safe no_key response without network call."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
 
@@ -321,7 +321,7 @@ def test_openrouter_cost_history_no_key(monkeypatch, tmp_path):
 
 def test_cost_history_unsupported_provider(monkeypatch, tmp_path):
     """Non-openrouter providers return a clear unsupported response."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg, old_mtime = _with_config(model={"provider": "anthropic"})
 
     import api.providers as providers
@@ -340,7 +340,7 @@ def test_cost_history_unsupported_provider(monkeypatch, tmp_path):
 
 def test_cost_history_missing_provider_param(monkeypatch, tmp_path):
     """Empty provider parameter returns a clear error."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
     import api.providers as providers
 
@@ -358,7 +358,7 @@ def test_cost_history_missing_provider_param(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_upstream_failure_degrades_gracefully(monkeypatch, tmp_path):
     """When OpenRouter API fails, previously persisted snapshots are still returned."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -397,7 +397,7 @@ def test_openrouter_cost_history_upstream_failure_degrades_gracefully(monkeypatc
 
 def test_openrouter_cost_history_timeout_is_safe(monkeypatch, tmp_path):
     """Timeout from OpenRouter does not produce a traceback or leak secrets."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -425,7 +425,7 @@ def test_openrouter_cost_history_timeout_is_safe(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_corrupt_snapshot_file(monkeypatch, tmp_path):
     """A corrupt snapshot file on disk is handled gracefully (treated as empty)."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -465,7 +465,7 @@ def test_openrouter_cost_history_corrupt_snapshot_file(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_same_day_idempotent(monkeypatch, tmp_path):
     """Repeated calls on the same day update the snapshot in-place."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -512,7 +512,7 @@ def test_openrouter_cost_history_same_day_idempotent(monkeypatch, tmp_path):
 
 def test_openrouter_cost_history_window_days_truncation(monkeypatch, tmp_path):
     """The window_days parameter limits how many snapshots are returned."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-or-key\n", encoding="utf-8")
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
@@ -563,7 +563,7 @@ def test_openrouter_cost_history_window_days_truncation(monkeypatch, tmp_path):
 
 def test_cost_history_uses_no_real_network(monkeypatch, tmp_path):
     """Every test path must monkeypatch urlopen; verify no real calls escape."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     old_cfg, old_mtime = _with_config(model={"provider": "openrouter"})
 

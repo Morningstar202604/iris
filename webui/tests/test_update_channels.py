@@ -35,7 +35,7 @@ def channel_repo(tmp_path):
     _git(repo, 'init', '-q')
     _git(repo, 'config', 'user.email', 't@t.co')
     _git(repo, 'config', 'user.name', 'Test')
-    _git(repo, 'remote', 'add', 'origin', 'https://github.com/nesquena/hermes-webui.git')
+    _git(repo, 'remote', 'add', 'origin', 'https://github.com/X33834/iris.git')
     for i in range(1, 6):
         _git(repo, 'commit', '-q', '--allow-empty', '-m', f'batch{i}')
         _git(repo, 'tag', f'exp-v0.52.{i}')
@@ -161,7 +161,7 @@ def test_agent_resolution_identical_under_both_webui_channels(tmp_path, monkeypa
     _git(agent, 'init', '-q')
     _git(agent, 'config', 'user.email', 't@t.co')
     _git(agent, 'config', 'user.name', 'Test')
-    _git(agent, 'remote', 'add', 'origin', 'https://github.com/nesquena/hermes-agent.git')
+    _git(agent, 'remote', 'add', 'origin', 'https://github.com/X33834/iris.git')
     _git(agent, 'commit', '-q', '--allow-empty', '-m', 'a1')
     _git(agent, 'tag', 'v1.0.0')
     _git(agent, 'commit', '-q', '--allow-empty', '-m', 'a2')
@@ -307,7 +307,7 @@ def stable_pinned_repo(tmp_path):
     _git(repo, 'init', '-q')
     _git(repo, 'config', 'user.email', 't@t.co')
     _git(repo, 'config', 'user.name', 'Test')
-    _git(repo, 'remote', 'add', 'origin', 'https://github.com/nesquena/hermes-webui.git')
+    _git(repo, 'remote', 'add', 'origin', 'https://github.com/X33834/iris.git')
     _git(repo, 'commit', '-q', '--allow-empty', '-m', 'v0.52.0 release')
     _git(repo, 'tag', 'v0.52.0')  # stable tag, NO exp tag on this commit
     for i in range(1, 4):

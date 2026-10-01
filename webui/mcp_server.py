@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Hermes WebUI MCP Server — exposes project and session management
+Iris WebUI MCP Server — exposes project and session management
 as MCP tools for any MCP-compatible agent.
 
 Option A rewrite (2026-05-08): imports api.models and api.profiles
@@ -10,18 +10,18 @@ locking, profile scoping, index consistency, and validation.
     pip install "mcp>=1.28,<2"   # one-time setup
     python3 mcp_server.py # start via stdio
 
-MCP config for Hermes Agent (add to config.yaml):
+MCP config for Iris Agent (add to config.yaml):
     mcp_servers:
-      hermes-webui:
+      iris-webui:
         command: /path/to/venv/bin/python3
-        args: [/path/to/hermes-webui/mcp_server.py]
+        args: [/path/to/iris-webui/mcp_server.py]
         env:
-          HERMES_WEBUI_PASSWORD: your_password
+          IRIS_WEBUI_PASSWORD: your_password
 
 Profile override (optional):
-        args: [/path/to/hermes-webui/mcp_server.py, --profile, myprofile]
+        args: [/path/to/iris-webui/mcp_server.py, --profile, myprofile]
 
-AI-authoring disclosure: this file was rewritten by MILO (Hermes Agent)
+AI-authoring disclosure: this file was rewritten by MILO (Iris Agent)
 under human direction, per maintainer guidelines for #1616.
 """
 
@@ -67,13 +67,13 @@ if _profile_arg is not None:
 # Mirror the env-var contract used by api/config.py:32-33 so a non-default
 # WebUI port/host (e.g. when 8787 is held by another service on the host)
 # Just Works without configuration drift between the WebUI process and MCP.
-WEBUI_HOST = os.environ.get("HERMES_WEBUI_HOST", "127.0.0.1")
-WEBUI_PORT = os.environ.get("HERMES_WEBUI_PORT", "8787")
+WEBUI_HOST = os.environ.get("IRIS_WEBUI_HOST", "127.0.0.1")
+WEBUI_PORT = os.environ.get("IRIS_WEBUI_PORT", "8787")
 WEBUI_URL = f"http://{WEBUI_HOST}:{WEBUI_PORT}"
 _auth_cookie: str | None = None
 _auth_expires: float = 0  # unix timestamp after which we re-auth
 
-server = Server("hermes-webui")
+server = Server("iris-webui")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -122,7 +122,7 @@ def _session_compact(row: dict) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _api_password() -> str | None:
-    """Return the plaintext webui password from HERMES_WEBUI_PASSWORD, or None.
+    """Return the plaintext webui password from IRIS_WEBUI_PASSWORD, or None.
 
     settings.json stores only the bcrypt hash, which the login endpoint cannot
     accept — it calls verify_password(plaintext) against the stored hash. So
@@ -130,7 +130,7 @@ def _api_password() -> str | None:
     in unauthenticated mode and any auth-protected mutation will fail clearly
     with the server's 401 instead of silently sending an unusable hash.
     """
-    pw = os.environ.get("HERMES_WEBUI_PASSWORD", "").strip()
+    pw = os.environ.get("IRIS_WEBUI_PASSWORD", "").strip()
     return pw or None
 
 
@@ -158,7 +158,7 @@ def _api_auth() -> str | None:
         resp = urllib.request.urlopen(req, timeout=5)
         cookie = resp.headers.get("Set-Cookie", "")
         if cookie:
-            _auth_cookie = cookie.split(";")[0]  # "hermes_session=VALUE; ..."
+            _auth_cookie = cookie.split(";")[0]  # "iris_session=VALUE; ..."
             _auth_expires = time.time() + 25 * 86400  # 25 days
             return _auth_cookie
     except Exception:
@@ -356,7 +356,7 @@ async def handle_delete_project(arguments: dict) -> list[TextContent]:
             "ok": True,
             "deleted": proj["name"],
             "unassigned_sessions": 0,
-            "warning": "Set HERMES_WEBUI_PASSWORD to unassign sessions; "
+            "warning": "Set IRIS_WEBUI_PASSWORD to unassign sessions; "
                        "without auth the session index cannot be safely "
                        "updated and direct filesystem writes would cause "
                        "index drift in a running WebUI.",
@@ -376,6 +376,8 @@ async def handle_delete_project(arguments: dict) -> list[TextContent]:
                     if "ok" in result or "session" in result:
                         unassigned += 1
             except Exception:
+                # Best-effort per-file scan: one unreadable/corrupt session file
+                # must not abort unassignment of the rest; the loop continues.
                 pass
 
     return [TextContent(type="text", text=json.dumps({

@@ -48,7 +48,7 @@ def _fire_pre_api_request_hook(
     from agent.conversation_loop import _system_prompt_for_hooks
 
     try:
-        from hermes_cli.lifecycle import has_hook, invoke_hook as _invoke_hook
+        from iris_cli.lifecycle import has_hook, invoke_hook as _invoke_hook
         if has_hook("pre_api_request"):
             request_messages = api_kwargs.get("messages")
             if not isinstance(request_messages, list):
@@ -138,7 +138,7 @@ def build_api_request(
         _set_extra_header(api_kwargs, "x-initiator", "user")
         agent._is_user_initiated_turn = False
     try:
-        from hermes_cli.middleware import apply_llm_request_middleware
+        from iris_cli.middleware import apply_llm_request_middleware
 
         _llm_request_mw = apply_llm_request_middleware(
             api_kwargs, task_id=effective_task_id, turn_id=turn_id, api_request_id=api_request_id,
@@ -161,7 +161,7 @@ def build_api_request(
         effective_task_id=effective_task_id, turn_id=turn_id,
     )
 
-    if env_var_enabled("HERMES_DUMP_REQUESTS"):
+    if env_var_enabled("IRIS_DUMP_REQUESTS"):
         agent._dump_api_request_debug(api_kwargs, reason="preflight")
 
     # Private to the in-process MoA facade; added after middleware/hooks/debug dumps so

@@ -85,7 +85,7 @@ def _watchdog_unregister(request_id: str) -> None:
 
 
 def _slow_request_seconds() -> float:
-    raw = os.getenv("HERMES_WEBUI_SLOW_REQUEST_SECONDS", "").strip()
+    raw = os.getenv("IRIS_WEBUI_SLOW_REQUEST_SECONDS", "").strip()
     if not raw:
         return DEFAULT_SLOW_REQUEST_SECONDS
     try:

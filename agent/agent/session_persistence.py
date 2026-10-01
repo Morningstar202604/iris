@@ -57,7 +57,7 @@ def _is_ephemeral_scaffolding(msg: Any) -> bool:
 
 
 def _safe_session_filename_component(session_id: str) -> str:
-    """Path-safe component for a (possibly untrusted ``X-Hermes-Session-Id``) ID: non ``[A-Za-z0-9_-]`` → ``_``,
+    """Path-safe component for a (possibly untrusted ``X-Iris-Session-Id``) ID: non ``[A-Za-z0-9_-]`` → ``_``,
     capped, plus a content hash when changed so distinct IDs cannot collide."""
     raw = str(session_id or "").strip()
     sanitized = re.sub(r"[^\w-]", "_", raw).strip("._")[:96] or "session"
@@ -138,7 +138,7 @@ def adopt_unanswered_turn(history: List[Dict[str, Any]], query: Any, agent: Any)
     reuse it as this turn's user dict and the flush writes no second row. What differs per lane is only HOW
     the dispatcher knows the DM is unanswered:
 
-    * ``hermes_cli.quiet_single_query.adopt_unanswered_turn`` — the delivery lanes' re-run is a fresh CLI
+    * ``iris_cli.quiet_single_query.adopt_unanswered_turn`` — the delivery lanes' re-run is a fresh CLI
       process, told so through ``tools.bot_relay.RESUME_UNANSWERED_TURN_ENV``.
     * ``gateway.platforms.api_server`` — the peer-DM lane re-runs the turn in-process and calls this
       directly on the agent it just built for the re-run (#115325).
@@ -301,8 +301,8 @@ def _db_flush_failed(agent, e: Exception, batch_rows: List[Dict[str, Any]], adop
     agent._db_flush_scan_prefix = None  # full re-scan next flush: an exception mid-loop leaves mixed dispositions
     # The only place the SQLite error is visible before it becomes a bare False — classify it so the turn-end
     # explanation can distinguish lock contention from disk-full/read-only.
-    from hermes_state import StateDbCorruptError, StateDbReplacedError, classify_persistence_error, divert_session_transcript_jsonl
-    from hermes_state_errors import CompressionSessionClosedError
+    from iris_state import StateDbCorruptError, StateDbReplacedError, classify_persistence_error, divert_session_transcript_jsonl
+    from iris_state_errors import CompressionSessionClosedError
     agent._last_persistence_error_cause = classify_persistence_error(e)
     if isinstance(e, (StateDbReplacedError, StateDbCorruptError)):
         # A replaced/quarantined handle will not take this batch again — keep it on disk.

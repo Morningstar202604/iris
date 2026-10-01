@@ -556,7 +556,7 @@ function reasoningText(row){
 function applyProductionAnchorEvent(sourceEventType, data){
   const registry=window._liveAnchorRegistries&&window._liveAnchorRegistries.get('stream-1');
   if(!registry) throw new Error('missing live anchor registry');
-  window.HermesAssistantTurnAnchors.applyAssistantTurnAnchorSourceEvent(
+  window.IrisAssistantTurnAnchors.applyAssistantTurnAnchorSourceEvent(
     registry,
     {
       source_event_type:sourceEventType,

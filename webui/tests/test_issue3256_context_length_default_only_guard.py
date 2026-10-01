@@ -546,12 +546,12 @@ def test_live_snapshot_reuses_hydration_context_length_helper():
 
 def test_live_snapshot_guard_has_legacy_two_arg_fallback():
     """#4618: a TypeError from the modern 6-arg get_model_context_length (older
-    hermes-agent builds) must fall back to the legacy 2-arg form rather than
+    iris-agent builds) must fall back to the legacy 2-arg form rather than
     raising, and the fallback must apply the SAME mismatch condition."""
     assert "from agent.model_metadata import get_model_context_length as _g2_u" in _STREAMING_SRC
     assert "_real_u = _g2_u(_sm_u, _base_u) or 0" in _STREAMING_SRC, (
         "live-snapshot guard must keep a legacy 2-arg get_model_context_length "
-        "fallback for older hermes-agent builds (#4618)"
+        "fallback for older iris-agent builds (#4618)"
     )
 
 
@@ -566,7 +566,7 @@ def test_live_snapshot_resolves_session_profile_config_not_ambient():
         "live-snapshot guard must read the session's profile config, not ambient "
         "get_config() (#3294 cross-profile leak class)"
     )
-    assert "get_hermes_home_for_profile as _ghp_u" in _STREAMING_SRC
+    assert "get_iris_home_for_profile as _ghp_u" in _STREAMING_SRC
     assert "_ghp_u(getattr(_session_obj, 'profile', None))" in _STREAMING_SRC, (
         "profile home must derive from the live session object's profile"
     )

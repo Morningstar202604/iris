@@ -318,7 +318,7 @@ _REQUEST_VALIDATION_PATTERNS = (
     "invalid_request_error", "unknown_parameter", "unsupported_parameter",
 )
 
-# Parameters Hermes sends on SOME routes only → hosts where that is deliberate.
+# Parameters Iris sends on SOME routes only → hosts where that is deliberate.
 # A rejection from any other host means the provider's gateway injected the
 # field itself: a server-side flake, not our request shape. prompt_cache_retention
 # is only sent for api.meta.ai / bedrock-mantle (agent/transports/codex.py).
@@ -695,7 +695,7 @@ def _plugin_verdict(c: _Ctx) -> Optional[Verdict]:
     provider plugin can add or correct verdicts). invoke_hook isolates callback
     failures; this guard only covers import/dispatch failure."""
     try:
-        from hermes_cli.plugins import get_plugin_error_classification
+        from iris_cli.plugins import get_plugin_error_classification
         verdict = get_plugin_error_classification(
             provider=c.provider, model=c.model, status_code=c.status_code, error_type=c.error_type,
             error_code=c.error_code, error_message=c.msg, error_body=c.body, error=c.error,
@@ -781,7 +781,7 @@ def _nous_welcome_tier(c: _Ctx) -> Optional[Verdict]:
     400/403 whose message names the wrong host or a dark tier is deterministic for the request.
     The parsed refusal rides ``error_context`` so the terminal copy can say what happened.
     """
-    from hermes_cli.anon_auth import (
+    from iris_cli.anon_auth import (
         WELCOME_TIER_GATE_REASONS, parse_welcome_refusal, welcome_route_refusal)
     status = c.status_code
     if not c.anonymous:
@@ -965,7 +965,7 @@ def classify_api_error(
     dark-tier 403 on it because that refusal carries no distinguishing message.
     ``api_key`` identifies an anonymous request; a host or fairshare reason alone does not.
     The credential is never included in the returned context."""
-    from hermes_cli.anon_auth import is_anonymous_request
+    from iris_cli.anon_auth import is_anonymous_request
     status_code = _extract_status_code(error)
     # Copilot/GitHub Models RateLimitError may not set .status_code; force 429.
     if status_code is None and type(error).__name__ == "RateLimitError":
@@ -991,7 +991,7 @@ def classify_api_error(
 
 def _off_route_host(c: _Ctx) -> str:
     """The contacted host when ``base_url`` is set and is not the provider's own endpoint; ``""`` otherwise."""
-    from hermes_cli.route_identity import provider_owns_route
+    from iris_cli.route_identity import provider_owns_route
     from utils import base_url_hostname
     host = base_url_hostname(c.base_url)
     if not host or provider_owns_route(c.provider_slug, c.base_url) is True:
@@ -1261,7 +1261,7 @@ def _model_id_missing_known_prefix(model: str, provider: str) -> bool:
     if not name or "/" in name:
         return False
     try:
-        from hermes_cli.model_normalize import suggest_prefixed_model_id
+        from iris_cli.model_normalize import suggest_prefixed_model_id
         return bool(suggest_prefixed_model_id((provider or "").strip(), name))
     except Exception:
         return False

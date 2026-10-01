@@ -26,7 +26,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Optional
 
-from tools.bot_mode_probe import _default_home, _hermes_root, alias_forms
+from tools.bot_mode_probe import _default_home, _iris_root, alias_forms
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ DEFAULT_ENVELOPE_TTL_SECONDS = 900  # older envelopes are refused at drain with 
 # Per-attempt turn timeout and attempt ceiling for bot_relay.deliver (tui_gateway/methods_bot_relay.py).
 TURN_ATTEMPT_TIMEOUT_SECONDS = 600
 TURN_MAX_ATTEMPTS = 2  # first attempt + the policy-gated re-run
-# Mirrors RELAY_DELIVER_TIMEOUT_MS in apps/desktop/src/plugins/hermes-bots/relay.ts; both test suites pin it.
+# Mirrors RELAY_DELIVER_TIMEOUT_MS in apps/desktop/src/plugins/iris-bots/relay.ts; both test suites pin it.
 DESKTOP_DELIVER_SETTLEMENT_MARGIN_SECONDS = 180
 DESKTOP_DELIVER_TIMEOUT_SECONDS = (
     TURN_WAIT_SECONDS_FALLBACK + TURN_ATTEMPT_TIMEOUT_SECONDS * TURN_MAX_ATTEMPTS + DESKTOP_DELIVER_SETTLEMENT_MARGIN_SECONDS
@@ -82,7 +82,7 @@ class EnvelopeRefusedError(RuntimeError):
 # ``message_agent`` target grammar in ``tools/bot_mode_dm.py``).
 _HANDLE_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$")
 
-# One turn in a profile's canonical Bot Chat: ``hermes -p <profile> *BOT_CHAT_TURN_ARGS``.
+# One turn in a profile's canonical Bot Chat: ``iris -p <profile> *BOT_CHAT_TURN_ARGS``.
 # ``-c "Bot Chat"`` must match ``bot_mode_probe.BOT_CHAT_TITLE``.
 BOT_CHAT_TURN_ARGS = ("chat", "--in", "~", "-c", "Bot Chat", "--create-if-missing", "-Q")
 
@@ -90,8 +90,8 @@ BOT_CHAT_TURN_ARGS = ("chat", "--in", "~", "-c", "Bot Chat", "--create-if-missin
 # ``tui_gateway.methods_bot_relay``). The failed attempt's turn-start persist already left the DM as the
 # Bot Chat's unanswered tail row, and a fresh process cannot tell that from a new message on its own — so
 # the re-run is told to adopt that row instead of appending a second copy
-# (``hermes_cli.quiet_single_query.adopt_unanswered_turn``, which consumes the variable before the turn).
-RESUME_UNANSWERED_TURN_ENV = "HERMES_RESUME_UNANSWERED_TURN"
+# (``iris_cli.quiet_single_query.adopt_unanswered_turn``, which consumes the variable before the turn).
+RESUME_UNANSWERED_TURN_ENV = "IRIS_RESUME_UNANSWERED_TURN"
 
 
 def retry_turn_env(env: Optional[Mapping[str, str]]) -> dict[str, str]:
@@ -106,8 +106,8 @@ def relay_root(root: Path | str) -> Path:
 def _ensure_dirs(root: Path | str) -> Path:
     base = relay_root(root)
     for sub in (OUTBOX_DIR, CLAIMED_DIR, REPLIES_DIR):
-        from hermes_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(base / sub)
+        from iris_constants import mkdir_under_iris_home
+        mkdir_under_iris_home(base / sub)
     return base
 
 
@@ -119,7 +119,7 @@ def _bot_mode_cfg(key: str, *, loader: str) -> Any:
     """``bot_mode.<key>`` from config, read lazily (tools/ must not import CLI
     config at import time); None when absent or the config is unreadable."""
     try:
-        import hermes_cli.config as cfgmod
+        import iris_cli.config as cfgmod
 
         cfg = getattr(cfgmod, loader)() or {}
         return (cfg.get("bot_mode") or {}).get(key)
@@ -134,7 +134,7 @@ def _normalize_roster_row(row: Any) -> Optional[dict]:
     if not isinstance(row, dict):
         return None
     profile = str(row.get("profile") or "").strip()
-    handle = str(row.get("handle") or "").strip().lstrip("@") or ("hermes" if profile == "default" else profile)
+    handle = str(row.get("handle") or "").strip().lstrip("@") or ("iris" if profile == "default" else profile)
     connection_id = str(row.get("connection_id") or "").strip()
     if not profile or not connection_id or not all(_HANDLE_RE.match(v) for v in (handle, profile, connection_id)):
         return None
@@ -182,7 +182,7 @@ def _target_ids(row: dict) -> set[str]:
 def _target_aliases(row: dict) -> set[str]:
     """Every lower-cased bare form that addresses ``row``: routing ids plus the Bot Mode title's
     mention slugs (``"CoS Bot"`` → ``cos-bot``/``cosbot``, what the Desktop picker inserts). A remote
-    ``default`` is ``@hermes`` on every gateway, so its title is the only bare form that can single it out."""
+    ``default`` is ``@iris`` on every gateway, so its title is the only bare form that can single it out."""
     return _target_ids(row) | alias_forms(row.get("title") or "")
 
 
@@ -204,7 +204,7 @@ def resolve_remote_target(raw_target: str, roster: list[dict]) -> Any:
 
 def _title_slug(row: dict) -> str:
     """The Bot Mode title's slug form (``"CoS Bot"`` → ``cos-bot``, what the picker inserts); "" when the
-    title is empty, reserved (a bot titled "Hermes") or not a valid handle."""
+    title is empty, reserved (a bot titled "Iris") or not a valid handle."""
     title = str(row.get("title") or "")
     slug = re.sub(r"[^a-z0-9_-]+", "-", title.strip().lower()).strip("-")
     return slug if slug in alias_forms(title) else ""
@@ -214,7 +214,7 @@ def remote_target_forms(roster: list[dict], local_taken: "set[str] | frozenset[s
     """One unambiguous target string per row, shortest first: the bare handle when no other remote
     row and no LOCAL profile (``local_taken``: this gateway's handles and friendly-name slugs) answers
     to it; else the title slug under the same test (a remote ``default`` titled "CoS Bot" is
-    ``@cos-bot``, since bare ``@hermes`` is always this gateway's own default); else
+    ``@cos-bot``, since bare ``@iris`` is always this gateway's own default); else
     ``handle@connection``. Mirrors ``resolve_remote_target``."""
     taken = {form.lower() for form in local_taken}
     id_claims: dict[str, int] = {}
@@ -243,7 +243,7 @@ def qualify_sender_stamp(message: str, from_handle: Any, from_connection: Any, r
                          local_taken: "set[str] | frozenset[str]" = frozenset()) -> str:
     """Rewrite a relayed DM's ``Message from 🤖 <name> (@<handle>):`` stamp so the handle is the
     form THIS gateway can reply to: the sender's row in the local relay roster as
-    ``remote_target_forms`` renders it, else ``handle@connection``. A relayed ``@hermes`` is another
+    ``remote_target_forms`` renders it, else ``handle@connection``. A relayed ``@iris`` is another
     machine's default — left bare, a reply lands on the recipient's own default (#103731)."""
     handle, conn = str(from_handle or "").strip().lstrip("@"), str(from_connection or "").strip()
     match = _SENDER_STAMP_RE.match(str(message or ""))
@@ -468,7 +468,7 @@ def cleanup_bot_relay_artifacts(max_age_hours: float | None = None) -> int:
     only on Desktop drains). ``max_age_hours`` is for ``cleanup_*_cache`` signature parity only."""
     del max_age_hours
     try:
-        base = relay_root(_hermes_root(Path(_default_home())))
+        base = relay_root(_iris_root(Path(_default_home())))
         return _sweep_stale(base) if base.is_dir() else 0
     except Exception:
         logger.debug("bot_relay artifact sweep failed", exc_info=True)
@@ -498,24 +498,24 @@ def waiter_command(root: Path | str, envelope: dict) -> str:
     return shlex.join(argv)
 
 
-def _hermes_cli() -> str:
-    """hermes CLI beside this interpreter, then ``shutil.which``, then the bare name
-    (service contexts lack PATH, so a bare "hermes" died with ENOENT).
+def _iris_cli() -> str:
+    """iris CLI beside this interpreter, then ``shutil.which``, then the bare name
+    (service contexts lack PATH, so a bare "iris" died with ENOENT).
 
     The deliver RPC runs on the target gateway, whose process is the venv python — its bin/Scripts directory
-    holds the matching ``hermes`` entrypoint. A bare ``"hermes"`` relies on PATH, which is exactly what
+    holds the matching ``iris`` entrypoint. A bare ``"iris"`` relies on PATH, which is exactly what
     service contexts (systemd units, desktop launchers, non-login SSH shells) do not provide, so delivery
     died with ENOENT there (#93590). When no sibling exists (e.g. running from a source tree without an
     installed script), a ``shutil.which`` lookup runs next — it honors whatever PATH the process does have —
     before falling back to the bare name, preserving today's behavior for interactive shells.
     """
-    sibling = Path(sys.executable or "").parent / ("hermes.exe" if sys.platform == "win32" else "hermes")
-    return str(sibling) if sibling.is_file() else shutil.which("hermes") or "hermes"
+    sibling = Path(sys.executable or "").parent / ("iris.exe" if sys.platform == "win32" else "iris")
+    return str(sibling) if sibling.is_file() else shutil.which("iris") or "iris"
 
 
 def local_delivery_command(profile: str, query_file: str) -> list[str]:
     """argv that delivers a DM into ``profile``'s Bot Chat on THIS gateway."""
-    return [_hermes_cli(), "-p", profile, *BOT_CHAT_TURN_ARGS, "--query-file", query_file]
+    return [_iris_cli(), "-p", profile, *BOT_CHAT_TURN_ARGS, "--query-file", query_file]
 
 
 class DeliveryAuthor:
@@ -553,8 +553,8 @@ def _delivery_child_session_env_names() -> "tuple[str, ...]":
     """Session-bound env names to strip from a delivery child, from ``gateway.session_context``.
 
     Synced with the session binding surface as vars are added; deliberately NOT a
-    ``HERMES_SESSION_*`` prefix match, which would also strip non-identity knobs
-    (e.g. ``HERMES_SESSION_STALL_TIMEOUT``)."""
+    ``IRIS_SESSION_*`` prefix match, which would also strip non-identity knobs
+    (e.g. ``IRIS_SESSION_STALL_TIMEOUT``)."""
     from gateway.session_context import _VAR_MAP
 
     return tuple(_VAR_MAP)
@@ -574,14 +574,14 @@ def relaying_principal_author(principal: str) -> dict:
 
 
 def delivery_env(author: Optional[dict], profile_home: "str | Path | None" = None) -> dict[str, str]:
-    """Environment for one delivery turn's ``hermes -p <profile>`` child. The dispatcher's own
-    HERMES_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
+    """Environment for one delivery turn's ``iris -p <profile>`` child. The dispatcher's own
+    IRIS_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
     that sent it. Dispatcher session identity (the canonical ``gateway.session_context`` session env names) is
     dropped too: a nested recipient that ``message_agent``s onward must not stamp that grandchild
     notify with the grandparent's key, or the live recipient never resumes. The child runs the target
     profile's Bot Chat turn, so it starts from THAT profile's env (``served_profile_child_env``: launch
     profile ``.env`` / TERMINAL_* residue dropped, target secrets overlaid), never the multiplexer's raw
-    ``os.environ``; ``-p`` alone only pinned HERMES_HOME. ``profile_home`` is the target's home when the
+    ``os.environ``; ``-p`` alone only pinned IRIS_HOME. ``profile_home`` is the target's home when the
     caller knows it (relay RPC, roster); otherwise the active override."""
     from agent.turn_author import TURN_AUTHOR_ENV, turn_author_env
     from tools.environments.local import served_profile_child_env
@@ -596,14 +596,14 @@ def delivery_env(author: Optional[dict], profile_home: "str | Path | None" = Non
 
 
 # Two deliveries into the SAME profile must never run Bot Chat turns concurrently.
-# Deliveries are separate ``hermes`` subprocesses, so the lock is a per-profile
+# Deliveries are separate ``iris`` subprocesses, so the lock is a per-profile
 # lockfile under ``<root>/bot_relay/locks/`` held with ``fcntl.flock`` for exactly
 # the turn window; the kernel releases it on fd close (incl. process death), so a
 # crashed turn can never wedge the profile.
 
 
 # ── per-profile turn lock (#93091) ─────────────────────────────────────────── Two deliveries into the SAME
-# target profile must never run their Bot Chat turns concurrently: deliveries spawn separate ``hermes``
+# target profile must never run their Bot Chat turns concurrently: deliveries spawn separate ``iris``
 # subprocesses, so an in-memory mutex is useless — the lock is a per-profile lockfile under
 # ``<root>/bot_relay/locks/`` held with ``fcntl.flock`` for exactly the turn execution window. flock is
 # released by the kernel when the holder's fd closes (including process death), so a crashed turn can never

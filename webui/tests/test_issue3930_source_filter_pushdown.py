@@ -158,16 +158,16 @@ def test_read_importable_agent_session_rows_uses_parameterized_include_filter(mo
 
 
 def test_get_cli_sessions_source_filter_uses_distinct_cache_key(monkeypatch, tmp_path):
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: str(hermes_home))
+    iris_home = tmp_path / "iris"
+    iris_home.mkdir()
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: str(iris_home))
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
     monkeypatch.setattr(models, "_CLI_SESSIONS_CACHE_TTL_SECONDS", 60.0, raising=False)
     models.clear_cli_sessions_cache()
 
     seen = []
 
-    def fake_loader(_hermes_home, _db_path, _cli_profile, source_filter=None):
+    def fake_loader(_iris_home, _db_path, _cli_profile, source_filter=None):
         seen.append(source_filter)
         return [{"session_id": f"session-{source_filter or 'all'}", "title": "cached"}]
 
@@ -188,23 +188,23 @@ def test_get_cli_sessions_all_profiles_pushes_source_filter_to_every_context(mon
     per-context _load_cli_sessions_uncached calls. The all-profiles branch keys the cache
     on source_filter, so omitting it from the loader returned every-source sessions under
     a filtered key (Codex SILENT finding on the #4067 re-gate)."""
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: str(hermes_home))
+    iris_home = tmp_path / "iris"
+    iris_home.mkdir()
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: str(iris_home))
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
     monkeypatch.setattr(models, "_CLI_SESSIONS_CACHE_TTL_SECONDS", 60.0, raising=False)
     models.clear_cli_sessions_cache()
 
     # Two profile contexts; cache key derived from a stable token.
     contexts = [
-        (hermes_home, hermes_home / "state.db", "default"),
-        (hermes_home / "p2", hermes_home / "p2" / "state.db", "haku"),
+        (iris_home, iris_home / "state.db", "default"),
+        (iris_home / "p2", iris_home / "p2" / "state.db", "haku"),
     ]
     monkeypatch.setattr(models, "_all_profiles_cli_contexts", lambda: (contexts, "ctx-key"))
 
     seen = []
 
-    def fake_loader(_hermes_home, _db_path, _cli_profile, source_filter=None, **kwargs):
+    def fake_loader(_iris_home, _db_path, _cli_profile, source_filter=None, **kwargs):
         seen.append(source_filter)
         return [{"session_id": f"s-{_cli_profile}-{source_filter or 'all'}", "title": "x"}]
 

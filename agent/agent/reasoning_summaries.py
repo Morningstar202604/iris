@@ -5,7 +5,7 @@ Reasoning-summary models (OpenAI gpt-5.x and Responses-API relays onto the chat 
 The chat wire lacks the Responses API's ``summary_index`` delimiter (verified live on Nous
 Portal ``openai/gpt-5.6-sol``), so plain concatenation glues ``**One****Two**`` into one
 half-bold paragraph. The boundary is re-derived from a delta opening a bold heading, matching
-the blank-line join Hermes' own Responses adapter does.
+the blank-line join Iris' own Responses adapter does.
 """
 
 from __future__ import annotations

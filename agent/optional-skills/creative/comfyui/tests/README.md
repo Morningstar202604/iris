@@ -43,7 +43,7 @@ When you change a script:
 
 ## Why the explicit `-c` / `-o`?
 
-The parent hermes-agent repo used to enable `pytest-xdist` by default
+The parent iris-agent repo used to enable `pytest-xdist` by default
 (`-n auto`); the canonical runner has since moved to per-file subprocess
 isolation via `scripts/run_tests_parallel.py` and no longer uses xdist.
 This suite is small enough that parallelism isn't worth the complexity, and

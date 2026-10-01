@@ -179,8 +179,8 @@ class ThreadParticipationTracker:
         self._threads: dict[str, None] = dict.fromkeys(str(t) for t in self._load())
 
     def _state_path(self) -> Path:
-        from hermes_constants import get_hermes_home
-        return get_hermes_home() / f"{self._platform}_threads.json"
+        from iris_constants import get_iris_home
+        return get_iris_home() / f"{self._platform}_threads.json"
 
     def _load(self) -> list[str]:
         try:

@@ -1,6 +1,6 @@
 """Skill Sync wire model: content-addressed objects, the HTTP client, tree walks.
 
-Independent of local skill state (no ``~/.hermes`` reads); ``tools/skills_sync_client.py``
+Independent of local skill state (no ``~/.iris`` reads); ``tools/skills_sync_client.py``
 orchestrates push/pull on top of it and re-exports these names. Wire contract version 1:
 ``hsp_version`` / ``X-HSP-Object-Type`` are deployed protocol identifiers and are NOT
 renamed with the product name "Skill Sync".
@@ -187,8 +187,8 @@ def _check_version(caps: Dict[str, Any]) -> None:
     """Reject an incompatible server major version."""
     ver = str(caps.get("hsp_version") or "")  # wire field name
     if ver.split(".", 1)[0] != WIRE_VERSION:
-        raise SyncError(f"this server speaks sync version {ver!r}, but this Hermes speaks "
-                        f"{WIRE_VERSION} — update Hermes to sync with it")
+        raise SyncError(f"this server speaks sync version {ver!r}, but this Iris speaks "
+                        f"{WIRE_VERSION} — update Iris to sync with it")
 
 
 def _body(r) -> Dict[str, Any]:

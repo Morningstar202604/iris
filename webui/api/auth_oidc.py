@@ -42,7 +42,7 @@ _jwks_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 _warned_allow_values: set[str] = set()
 
 _ALLOW_VALUES_WHITESPACE_WARNING = (
-    "webui_oidc.allow_values (HERMES_WEBUI_OIDC_ALLOW_VALUES) has one or more entries "
+    "webui_oidc.allow_values (IRIS_WEBUI_OIDC_ALLOW_VALUES) has one or more entries "
     "with internal whitespace; whitespace is not a value separator, so a value like "
     '"alice@example.com bob@example.com" is treated as a single entry. '
     'Use a comma-delimited scalar (e.g. "value1,value2") or a YAML array. '
@@ -171,8 +171,8 @@ def _resolve_oidc_config() -> dict[str, Any]:
         env_value = os.getenv(env_name)
         return env_value if env_value is not None else raw.get(name)
 
-    scopes = _normalize_scopes(pick("scopes", "HERMES_WEBUI_OIDC_SCOPES"))
-    raw_allow = pick("allow_values", "HERMES_WEBUI_OIDC_ALLOW_VALUES")
+    scopes = _normalize_scopes(pick("scopes", "IRIS_WEBUI_OIDC_SCOPES"))
+    raw_allow = pick("allow_values", "IRIS_WEBUI_OIDC_ALLOW_VALUES")
     allow_values = _normalize_allow_values(raw_allow)
     if (
         raw_allow is not None
@@ -184,12 +184,12 @@ def _resolve_oidc_config() -> dict[str, Any]:
             _warned_allow_values.add(key)
             logger.warning(_ALLOW_VALUES_WHITESPACE_WARNING)
     return {
-        "issuer": str(pick("issuer", "HERMES_WEBUI_OIDC_ISSUER") or "").strip(),
-        "client_id": str(pick("client_id", "HERMES_WEBUI_OIDC_CLIENT_ID") or "").strip(),
-        "client_secret": str(pick("client_secret", "HERMES_WEBUI_OIDC_CLIENT_SECRET") or "").strip(),
-        "redirect_uri": str(pick("redirect_uri", "HERMES_WEBUI_OIDC_REDIRECT_URI") or "").strip(),
+        "issuer": str(pick("issuer", "IRIS_WEBUI_OIDC_ISSUER") or "").strip(),
+        "client_id": str(pick("client_id", "IRIS_WEBUI_OIDC_CLIENT_ID") or "").strip(),
+        "client_secret": str(pick("client_secret", "IRIS_WEBUI_OIDC_CLIENT_SECRET") or "").strip(),
+        "redirect_uri": str(pick("redirect_uri", "IRIS_WEBUI_OIDC_REDIRECT_URI") or "").strip(),
         "scopes": scopes,
-        "allow_claim": str(pick("allow_claim", "HERMES_WEBUI_OIDC_ALLOW_CLAIM") or "").strip(),
+        "allow_claim": str(pick("allow_claim", "IRIS_WEBUI_OIDC_ALLOW_CLAIM") or "").strip(),
         "allow_values": allow_values,
     }
 
@@ -225,7 +225,7 @@ def _normalize_allow_values(raw: Any) -> list[str]:
 
     Unlike ``_normalize_text_list`` (which also splits on whitespace), this
     preserves multi-word values such as OIDC group names containing spaces
-    (e.g. ``"Hermes Users"`` stays as one entry).
+    (e.g. ``"Iris Users"`` stays as one entry).
 
     RFC 6749 §3.3 requires space-delimited scope strings, so
     ``_normalize_scopes`` must keep using ``_normalize_text_list`` -- this

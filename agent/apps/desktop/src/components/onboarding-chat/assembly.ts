@@ -86,7 +86,7 @@ export function takeGuideShape(): void {
 
   // startChatOnboardingSolo declines when the guide is off; shrink only when it took.
   if ($chatOnboardingSolo.get()) {
-    window.hermesDesktop?.chatOnboarding?.soloBoot?.()
+    window.irisDesktop?.chatOnboarding?.soloBoot?.()
   }
 }
 
@@ -162,7 +162,7 @@ function reconcileLayout(id: string, tree: LayoutNode): void {
 
   undismissTreePanes(declared)
 
-  // plugins/hermes-bots/plugin.tsx enforces a dock onto Sessions; adoption
+  // plugins/iris-bots/plugin.tsx enforces a dock onto Sessions; adoption
   // otherwise adds its roster and a tab strip to the sidebar. Dismiss every
   // undeclared pane, including registry entries not placed yet, so subsequent
   // adoption cannot bring them back. Their own toggles still can.
@@ -206,7 +206,7 @@ export function assembleChatOnboarding(id: string, tree: LayoutNode, mode?: Inte
   if (firstPick) {
     const growth = LAYOUT_GROWTH.get(id) ?? { left: 220 }
 
-    window.hermesDesktop?.chatOnboarding?.grow({
+    window.irisDesktop?.chatOnboarding?.grow({
       bottom: growth.bottom ?? 0,
       left: growth.left ?? 0,
       right: growth.right ?? 0,

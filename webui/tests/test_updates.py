@@ -24,7 +24,7 @@ def _dirty_stable_repo(tmp_path):
     _git(repo, 'init', '-q')
     _git(repo, 'config', 'user.email', 't@t.co')
     _git(repo, 'config', 'user.name', 'Test')
-    _git(repo, 'remote', 'add', 'origin', 'https://github.com/nesquena/hermes-webui.git')
+    _git(repo, 'remote', 'add', 'origin', 'https://github.com/X33834/iris.git')
     (repo / '.gitignore').write_text('ignored/\n', encoding='utf-8')
     tracked = repo / 'tracked.txt'
     tracked.write_text('stable content\n', encoding='utf-8')
@@ -67,7 +67,7 @@ def _fake_git_for_release_fetch_failure(args, cwd, timeout=10):
     if args == ['merge-base', '--is-ancestor', 'HEAD', 'v0.51.106']:
         return '', True
     if args == ['remote', 'get-url', 'origin']:
-        return 'https://github.com/nesquena/hermes-webui.git', True
+        return 'https://github.com/X33834/iris.git', True
     raise AssertionError(f'unexpected git args: {args!r}')
 
 
@@ -200,10 +200,61 @@ def test_check_repo_reports_manual_update_for_baked_webui_version(tmp_path, monk
     assert info['current_sha'] == 'current-sha'
     assert info['latest_sha'] == 'stable-sha'
     assert info['compare_url'] == (
-        'https://github.com/nesquena/hermes-webui/compare/current-sha...stable-sha'
+        'https://github.com/X33834/iris/compare/current-sha...stable-sha'
     )
-    assert seen['url'] == 'https://api.github.com/repos/nesquena/hermes-webui/tags?per_page=100'
+    # Dual-track: the GitHub primary tags endpoint is probed first.
+    assert seen['url'] == 'https://api.github.com/repos/X33834/iris/tags?per_page=100'
     assert seen['timeout'] == 3.0
+
+
+def test_check_repo_webui_dual_track_falls_back_to_gitcode_when_github_down(tmp_path, monkeypatch):
+    """Dual-track: when the GitHub primary tags endpoint is unreachable, the
+    probe must degrade to the GitCode mirror and report its repo/compare URLs."""
+
+    class FakeResponse:
+        def __init__(self, body):
+            self._body = body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return self._body
+
+    payload = [
+        {'name': 'v0.51.833', 'commit': {'sha': 'current-sha'}},
+        {'name': 'v0.51.914', 'commit': {'sha': 'stable-sha'}},
+    ]
+    attempted = []
+
+    def fake_urlopen(request, timeout=0):
+        url = request.full_url
+        attempted.append(url)
+        # Primary GitHub source raises (blocked / unreachable) ...
+        if url == 'https://api.github.com/repos/X33834/iris/tags?per_page=100':
+            raise updates.urllib.error.URLError('github blocked')
+        # ... the GitCode fallback answers with the same tag list.
+        if 'badhope/iris' in url:
+            return FakeResponse(json.dumps(payload).encode('utf-8'))
+        raise AssertionError(f'unexpected tags url: {url!r}')
+
+    monkeypatch.setattr(updates.urllib.request, 'urlopen', fake_urlopen)
+    monkeypatch.setattr(updates, 'WEBUI_VERSION', 'v0.51.833')
+
+    info = updates._check_repo(tmp_path, 'webui')
+
+    assert info['manual_update'] is True
+    assert info['release_based'] is True
+    assert info['behind'] == 1
+    # Primary was tried first, then the GitCode fallback answered.
+    assert attempted[0] == 'https://api.github.com/repos/X33834/iris/tags?per_page=100'
+    assert any('badhope/iris' in u for u in attempted)
+    # The answering source supplies repo/compare URLs (GitCode).
+    assert info['repo_url'] == 'https://gitcode.com/badhope/iris'
+    assert info['compare_url'] == 'https://gitcode.com/badhope/iris/compare/current-sha...stable-sha'
 
 
 def test_check_repo_webui_no_git_falls_back_to_old_payload_on_tags_failure(tmp_path, monkeypatch):
@@ -293,7 +344,7 @@ def test_apply_fetch_failure_keeps_connectivity_guidance_for_network_errors(tmp_
 
     def fake_git(args, cwd, timeout=10):
         if args == ['fetch', 'origin', '--quiet', '--tags', '--force']:
-            return 'fatal: unable to access https://github.com/nesquena/hermes-webui.git/: Could not resolve host: github.com', False
+            return 'fatal: unable to access https://github.com/X33834/iris.git/: Could not resolve host: github.com', False
         raise AssertionError(f'unexpected git args: {args!r}')
 
     cases = [
@@ -995,7 +1046,7 @@ def test_check_repo_recovers_from_remote_retag(tmp_path):
         if args == ['describe', '--tags', '--always', '--match', 'v*']:
             return 'v0.51.110', True
         if args == ['remote', 'get-url', 'origin']:
-            return 'https://github.com/nesquena/hermes-webui.git', True
+            return 'https://github.com/X33834/iris.git', True
         # Branch-check fallback is fine to no-op for this assertion.
         return '', True
 
@@ -1025,7 +1076,7 @@ def test_check_repo_recovers_from_remote_retag(tmp_path):
 def test_check_repo_release_falls_through_when_head_is_past_tag(tmp_path):
     """_check_repo_release returns None when behind==0 but HEAD is past the tag.
 
-    Simulates the hermes-agent case: latest tag == current tag (v2026.5.16)
+    Simulates the iris-agent case: latest tag == current tag (v2026.5.16)
     but git describe shows 608 commits past it.  The release check must
     not report 'Up to date'; it should fall through so the branch check
     counts the real gap.
@@ -1064,7 +1115,7 @@ def test_check_repo_release_not_affected_when_head_exactly_on_tag(tmp_path):
         if args == ['describe', '--tags', '--always', '--match', 'v*']:
             return 'v2026.5.16', True
         if args == ['remote', 'get-url', 'origin']:
-            return 'https://github.com/nesquena/hermes-agent.git', True
+            return 'https://github.com/X33834/iris.git', True
         raise AssertionError(f'unexpected git args: {args!r}')
 
     with patch.object(updates, '_run_git', side_effect=fake_git):
@@ -1107,7 +1158,7 @@ def test_check_repo_branch_check_runs_for_post_tag_commits(tmp_path):
         if args[:2] == ['rev-parse', '--short']:
             return 'abc1234', True
         if args == ['remote', 'get-url', 'origin']:
-            return 'https://github.com/nesquena/hermes-agent.git', True
+            return 'https://github.com/X33834/iris.git', True
         return '', True
 
     with patch.object(updates, '_run_git', side_effect=fake_git):
@@ -1154,7 +1205,7 @@ def test_select_apply_compare_ref_uses_tag_when_head_is_on_tag(tmp_path):
 def test_select_apply_compare_ref_falls_through_when_head_is_past_tag(tmp_path):
     """HEAD past latest tag → apply path advances to origin/<branch>, not the tag.
 
-    Mirrors the issue #2846 repro: hermes-agent has tag v2026.5.16, master is
+    Mirrors the issue #2846 repro: iris-agent has tag v2026.5.16, master is
     608 commits ahead, the banner correctly reports 608 commits available
     (post-#2758), but pre-fix apply ran `git pull --ff-only v2026.5.16` — a
     no-op — and the banner reappeared after restart.
@@ -1422,7 +1473,7 @@ def test_is_git_lock_error_detects_lock_error(output):
     '',
     None,
     "fatal: cannot lock ref 'refs/tags/v0.51.106': is at 123 but expected 456",
-    "fatal: unable to access 'https://github.com/nesquena/hermes-webui.git/': Could not resolve host",
+    "fatal: unable to access 'https://github.com/X33834/iris.git/': Could not resolve host",
     "fatal: Not a git repository",
     "error: failed to push some refs",
 ])

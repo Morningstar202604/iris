@@ -1,4 +1,4 @@
-"""Smoke tests for the packaged ``hermes-webui`` CLI entry point (#6739).
+"""Smoke tests for the packaged ``iris-webui`` CLI entry point (#6739).
 
 The console script is declared in ``pyproject.toml`` under
 ``[project.scripts]`` and must keep resolving to ``bootstrap.main`` — the
@@ -22,7 +22,7 @@ import tomllib
 import pytest
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXPECTED_SCRIPT = "hermes-webui"
+EXPECTED_SCRIPT = "iris-webui"
 EXPECTED_TARGET = "bootstrap:main"
 
 
@@ -48,7 +48,7 @@ def test_console_script_target_resolves_to_callable():
 
 
 def _installed_entry_point():
-    """Return the installed hermes-webui console-script EntryPoint, or None."""
+    """Return the installed iris-webui console-script EntryPoint, or None."""
     selected = importlib.metadata.entry_points().select(
         group="console_scripts", name=EXPECTED_SCRIPT
     )
@@ -59,6 +59,6 @@ def test_installed_entry_point_wiring():
     """When installed, the console script must resolve to bootstrap.main."""
     ep = _installed_entry_point()
     if ep is None:
-        pytest.skip("hermes-webui not installed in this test environment")
+        pytest.skip("iris-webui not installed in this test environment")
     assert ep.value == EXPECTED_TARGET
     assert callable(ep.load())

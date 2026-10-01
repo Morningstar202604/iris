@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
 import { $confirmRequest } from '@/store/confirm'
-import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
+import type { EnvVarInfo, OAuthProvider } from '@/types/iris'
 
 const listOAuthProviders = vi.fn()
 const disconnectOAuthProvider = vi.fn()
@@ -22,7 +22,7 @@ vi.mock('@/store/profile', () => ({
   profileLabel: (p: { display_name?: string; name: string }) => p.display_name || p.name
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   setApiRequestProfile: vi.fn(),
   getProfiles: async () => ({ profiles: (await import('@/store/profile')).$profiles.get() }),
   setEnvVar: (key: string, value: string, profile?: string) => setEnvVar(key, value, profile),
@@ -39,7 +39,7 @@ vi.mock('@/store/onboarding', () => ({
 
 function provider(id: string, loggedIn: boolean, patch: Partial<OAuthProvider> = {}): OAuthProvider {
   return {
-    cli_command: `hermes auth add ${id}`,
+    cli_command: `iris auth add ${id}`,
     disconnectable: true,
     docs_url: '',
     flow: 'device_code',
@@ -202,8 +202,8 @@ describe('ProvidersSettings', () => {
     listOAuthProviders.mockResolvedValue({
       providers: [
         provider('qwen-oauth', true, {
-          cli_command: 'hermes auth add qwen-oauth',
-          disconnect_hint: "Use `hermes auth add qwen-oauth` or that provider's CLI to remove it.",
+          cli_command: 'iris auth add qwen-oauth',
+          disconnect_hint: "Use `iris auth add qwen-oauth` or that provider's CLI to remove it.",
           disconnectable: false,
           flow: 'external',
           name: 'Qwen (via Qwen CLI)'

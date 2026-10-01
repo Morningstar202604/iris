@@ -8,7 +8,7 @@ Two issues addressed in one PR:
    OAuth providers regardless of `list_available_providers().authenticated`.
    ``api/config.py:_build_available_models_uncached`` only includes providers
    in ``detected_providers``, which is gated on
-   ``list_available_providers().authenticated``. On some hermes_cli versions
+   ``list_available_providers().authenticated``. On some iris_cli versions
    that flag disagrees with ``get_auth_status(<id>).logged_in``. Result: the
    providers card shows the live catalog (e.g. 396 models) and the picker
    shows nothing or the stale 4-entry static fallback.
@@ -51,7 +51,7 @@ def _build_big_catalog() -> list[str]:
     return out
 
 
-def _install_fake_hermes_cli(
+def _install_fake_iris_cli(
     monkeypatch,
     *,
     nous_ids: list[str] | None = None,
@@ -59,29 +59,29 @@ def _install_fake_hermes_cli(
     list_authenticated: bool = True,
     auth_status_logged_in: bool = True,
 ):
-    """Install fake ``hermes_cli`` modules with controllable Nous behavior.
+    """Install fake ``iris_cli`` modules with controllable Nous behavior.
 
     The two flags ``list_authenticated`` and ``auth_status_logged_in`` model
-    the divergence between ``hermes_cli.models.list_available_providers()``
-    and ``hermes_cli.auth.get_auth_status()`` that #1567 calls out as a
-    real-world pattern on some hermes_cli versions.
+    the divergence between ``iris_cli.models.list_available_providers()``
+    and ``iris_cli.auth.get_auth_status()`` that #1567 calls out as a
+    real-world pattern on some iris_cli versions.
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": "nous", "label": "Nous Portal", "aliases": [], "authenticated": list_authenticated},
     ]
     if raise_on_lookup:
         def _raise(_pid):
-            raise RuntimeError("simulated hermes_cli failure")
+            raise RuntimeError("simulated iris_cli failure")
         fake_models.provider_model_ids = _raise
     else:
         ids = list(nous_ids) if nous_ids is not None else []
         fake_models.provider_model_ids = lambda pid: ids if pid == "nous" else []
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
 
     def _get_auth_status(pid):
         if pid == "nous":
@@ -90,9 +90,9 @@ def _install_fake_hermes_cli(
 
     fake_auth.get_auth_status = _get_auth_status
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
 
@@ -132,9 +132,9 @@ def _scrub_provider_env(monkeypatch):
         "NOUS_API_KEY", "NVIDIA_API_KEY", "LM_API_KEY", "LMSTUDIO_API_KEY",
         # Model-selection overrides: get_effective_default_model() treats these
         # as the highest-priority default-model source, above config. A runner
-        # exporting HERMES_MODEL (e.g. a live agent session on "opus-4.8") injects
+        # exporting IRIS_MODEL (e.g. a live agent session on "opus-4.8") injects
         # that id into the picker/catalog and breaks capacity/symmetry assertions.
-        "HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL",
+        "IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -303,8 +303,8 @@ class TestApiModelsLargeCatalog:
     def test_picker_caps_large_catalog_and_exposes_extras(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
         catalog = _build_big_catalog()
-        _install_fake_hermes_cli(monkeypatch, nous_ids=catalog)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=catalog)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -335,8 +335,8 @@ class TestApiModelsLargeCatalog:
         _scrub_provider_env(monkeypatch)
         # 20 models — below threshold, should pass through with no extras.
         small_catalog = [f"vendor-{i % 4}/model-{i:02d}" for i in range(20)]
-        _install_fake_hermes_cli(monkeypatch, nous_ids=small_catalog)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=small_catalog)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -366,13 +366,13 @@ class TestNousDetectionSymmetry:
         get_auth_status('nous').logged_in=True. Picker must still show Nous."""
         _scrub_provider_env(monkeypatch)
         catalog = ["anthropic/claude-opus-4.7", "openai/gpt-5.5"]
-        _install_fake_hermes_cli(
+        _install_fake_iris_cli(
             monkeypatch,
             nous_ids=catalog,
             list_authenticated=False,  # primary detection path says NO
             auth_status_logged_in=True,  # secondary detection path says YES
         )
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -391,15 +391,15 @@ class TestNousDetectionSymmetry:
         """When neither signal reports authenticated, Nous should NOT appear.
         Previously the static 4-entry list could leak in via the fallback path
         even for unauthenticated users — that fallback is now scoped to the
-        hermes_cli-unavailable case only."""
+        iris_cli-unavailable case only."""
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(
+        _install_fake_iris_cli(
             monkeypatch,
             nous_ids=[],  # no live catalog (also no auth)
             list_authenticated=False,
             auth_status_logged_in=False,
         )
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "anthropic"}})
         try:
@@ -421,19 +421,19 @@ class TestNousDetectionSymmetry:
 
 
 class TestNousLiveFetchEmpty:
-    """When authenticated but live-fetch returns [] (transient hermes_cli
+    """When authenticated but live-fetch returns [] (transient iris_cli
     state, OAuth refresh in flight), DON'T fall back to the stale 4-entry
     static list — that creates the providers-card-vs-picker disagreement
     that #1567 reports. Omit the group entirely instead."""
 
     def test_authenticated_empty_catalog_omits_nous_group(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(
+        _install_fake_iris_cli(
             monkeypatch,
             nous_ids=[],  # live-fetch returns empty list (no exception)
             auth_status_logged_in=True,  # but user IS authenticated
         )
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
@@ -449,30 +449,30 @@ class TestNousLiveFetchEmpty:
         finally:
             restore()
 
-    def test_hermes_cli_unavailable_falls_back_to_static_4(self, monkeypatch, tmp_path):
-        """When hermes_cli is unavailable (raises) — distinct from returning [] —
+    def test_iris_cli_unavailable_falls_back_to_static_4(self, monkeypatch, tmp_path):
+        """When iris_cli is unavailable (raises) — distinct from returning [] —
         we DO fall back to the static list so the picker isn't empty in that
         degraded environment. This preserves pre-#1538 behavior for test envs
-        without hermes_cli.
+        without iris_cli.
 
         Note: _seed_provider_models_from_core() may have enriched the static
-        list at import time if hermes_cli was available then, so we assert the
+        list at import time if iris_cli was available then, so we assert the
         original 4 curated entries are present (subset) rather than an exact
         count (#4413)."""
         _scrub_provider_env(monkeypatch)
-        _install_fake_hermes_cli(
+        _install_fake_iris_cli(
             monkeypatch,
             raise_on_lookup=True,
             auth_status_logged_in=True,
         )
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:
             data = config.get_available_models()
             nous_groups = [g for g in data["groups"] if g["provider_id"] == "nous"]
             assert nous_groups, (
-                "When hermes_cli raises, Nous group MUST still appear with "
+                "When iris_cli raises, Nous group MUST still appear with "
                 "the curated static fallback so the picker isn't empty in "
                 "test envs that lack the agent package."
             )
@@ -517,8 +517,8 @@ class TestProvidersCardPickerSymmetry:
     def test_providers_card_and_picker_agree_on_featured_set(self, monkeypatch, tmp_path):
         _scrub_provider_env(monkeypatch)
         catalog = _build_big_catalog()
-        _install_fake_hermes_cli(monkeypatch, nous_ids=catalog)
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+        _install_fake_iris_cli(monkeypatch, nous_ids=catalog)
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
         restore = _swap_in_test_config({"model": {"provider": "nous"}})
         try:

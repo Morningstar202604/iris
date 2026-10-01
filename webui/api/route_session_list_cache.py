@@ -259,12 +259,12 @@ def _session_list_cache_gateway_session_metadata_path() -> Path:
         pass
 
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        hermes_home = Path(get_active_hermes_home()).expanduser().resolve()
+        iris_home = Path(get_active_iris_home()).expanduser().resolve()
     except Exception:
-        hermes_home = Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser().resolve()
-    return hermes_home / "sessions" / "sessions.json"
+        iris_home = Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser().resolve()
+    return iris_home / "sessions" / "sessions.json"
 
 
 def _session_list_cache_active_stream_ids():
@@ -560,7 +560,7 @@ def _session_list_cache_source_stamp(key: tuple) -> tuple[tuple[int, int], tuple
     except Exception:
         swv = 0
     # WebUI-origin sessions can also receive settled rows in state.db when the
-    # official Hermes Desktop App continues the same agent session.  The sidebar
+    # official Iris Desktop App continues the same agent session.  The sidebar
     # therefore watches state.db even when the CLI/external-session tab is hidden.
     #
     # Streaming hold-down (#4672): while a turn is in flight, collapse the

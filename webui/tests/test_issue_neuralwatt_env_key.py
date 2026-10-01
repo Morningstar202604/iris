@@ -17,7 +17,7 @@ def _force_env_fallback(monkeypatch):
     real_import = builtins.__import__
 
     def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        if name in ("hermes_cli.models", "hermes_cli.auth"):
+        if name in ("iris_cli.models", "iris_cli.auth"):
             raise ImportError(name)
         return real_import(name, globals, locals, fromlist, level)
 
@@ -30,7 +30,7 @@ def _run_available_models_with_cfg(monkeypatch, tmp_path, cfg):
     old_path = getattr(config, "_cfg_path", None)
     monkeypatch.setattr(config, "_models_cache_path", tmp_path / "models_cache.json")
     monkeypatch.setattr(config, "_get_config_path", lambda: tmp_path / "missing-config.yaml")
-    monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: tmp_path, raising=False)
     config.cfg.clear()
     config.cfg.update(cfg)
     config._cfg_mtime = 0.0
@@ -53,7 +53,7 @@ def test_neuralwatt_env_var_mapping():
 
 def test_neuralwatt_provider_has_key_when_env_set(monkeypatch, tmp_path):
     """Key detection returns True when NEURALWATT_API_KEY is in the environment."""
-    monkeypatch.setattr(providers, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(providers, "_get_iris_home", lambda: tmp_path)
     monkeypatch.setenv("NEURALWATT_API_KEY", "test-neuralwatt-key")
 
     assert providers._provider_has_key("neuralwatt") is True
@@ -61,7 +61,7 @@ def test_neuralwatt_provider_has_key_when_env_set(monkeypatch, tmp_path):
 
 def test_neuralwatt_provider_has_key_false_without_env(monkeypatch, tmp_path):
     """Key detection returns False when NEURALWATT_API_KEY is not set."""
-    monkeypatch.setattr(providers, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(providers, "_get_iris_home", lambda: tmp_path)
     monkeypatch.delenv("NEURALWATT_API_KEY", raising=False)
 
     assert providers._provider_has_key("neuralwatt") is False

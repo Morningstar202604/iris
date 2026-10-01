@@ -295,7 +295,7 @@ function runGit(gitBin: string, args: string[], cwd?: string): Promise<{ code: n
 }
 
 async function cloneToTemp(gitBin: string, gitUrl: string): Promise<string> {
-  const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'hermes-plugin-'))
+  const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'iris-plugin-'))
 
   try {
     const { code, stderr } = await runGit(gitBin, ['clone', '--depth', '1', gitUrl, tmpRoot])

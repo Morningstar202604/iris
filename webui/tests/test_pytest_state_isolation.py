@@ -14,7 +14,7 @@ def test_api_config_uses_pytest_state_dir():
     from tests.conftest import TEST_STATE_DIR
 
     test_state_dir = TEST_STATE_DIR.resolve()
-    production_state_dir = (Path.home() / ".hermes" / "webui").resolve()
+    production_state_dir = (Path.home() / ".iris" / "webui").resolve()
 
     assert config.STATE_DIR == test_state_dir
     assert config.SESSION_DIR == test_state_dir / "sessions"

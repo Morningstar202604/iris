@@ -1,6 +1,6 @@
 """Skill bundles — aliases that load multiple skills under one slash command.
 
-YAML files in ``<HERMES_HOME>/skill-bundles/`` (``name``, ``description``,
+YAML files in ``<IRIS_HOME>/skill-bundles/`` (``name``, ``description``,
 ``skills: [...]``, optional ``instruction``; file stem = fallback name).
 ``/<bundle>`` loads every member skill into one user message. If a bundle and a
 skill share a slug, the bundle wins — slash dispatch checks bundles first, on purpose.
@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from agent.skill_commands import command_snapshot, diff_command_snapshots, resolve_slash_key, slugify_skill_name as _slugify
 
 logger = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ _bundles_cache_mtime: Optional[float] = None
 
 
 def _bundles_dir() -> Path:
-    """Bundles directory: ``HERMES_BUNDLES_DIR`` override (tests) or ``<HERMES_HOME>/skill-bundles``."""
-    override = os.environ.get("HERMES_BUNDLES_DIR")
-    return Path(override).expanduser() if override else get_hermes_home() / "skill-bundles"
+    """Bundles directory: ``IRIS_BUNDLES_DIR`` override (tests) or ``<IRIS_HOME>/skill-bundles``."""
+    override = os.environ.get("IRIS_BUNDLES_DIR")
+    return Path(override).expanduser() if override else get_iris_home() / "skill-bundles"
 
 
 def _iter_bundle_files() -> List[Path]:
@@ -160,7 +160,7 @@ def build_bundle_invocation_message(
     return ("\n\n".join([header, *skill_blocks]), loaded_names, missing)
 
 
-# File-level CRUD — used by `hermes bundles`.
+# File-level CRUD — used by `iris bundles`.
 
 
 def bundle_path_for(name: str) -> Path:

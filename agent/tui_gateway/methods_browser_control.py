@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 import logging
 
-from hermes_cli.dashboard_auth.ws_tickets import (
+from iris_cli.dashboard_auth.ws_tickets import (
     INTERNAL_PROVIDER as _INTERNAL_PROVIDER, INTERNAL_USER_ID as _INTERNAL_USER_ID)
 
 from .method_ctx import HandlerRegistry, bind_module
@@ -235,7 +235,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

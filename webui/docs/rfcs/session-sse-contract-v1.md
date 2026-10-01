@@ -11,7 +11,7 @@ Refs #4812
 
 ## Problem
 
-hermes-webui has no stable, cross-client contract for observing the lifecycle
+iris-webui has no stable, cross-client contract for observing the lifecycle
 of an individual session over SSE. Five or more future consumers — WebUI
 reconnect/multi-tab, Android wrapper, iOS/PWA wrapper, desktop/TWA wrapper, and
 test/CLI observers — each need a resumable, dedupe-safe event stream. Without a

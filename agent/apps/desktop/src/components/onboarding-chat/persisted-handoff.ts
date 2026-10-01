@@ -1,4 +1,4 @@
-import type { SessionHistoryResult } from '@hermes/shared'
+import type { SessionHistoryResult } from '@iris/shared'
 
 import { segmentTranscriptDirectives } from '@/lib/transcript-directives'
 import { requestGatewayForAgent } from '@/store/gateway'

@@ -18,7 +18,7 @@ from cron.jobs import (
     load_jobs,
 )
 from cron.scheduler import get_running_job_ids
-from hermes_time import now as _now
+from iris_time import now as _now
 
 logger = logging.getLogger(__name__)
 _KNOWN_STATUSES = {"claimed", "running", "completed", "failed", "unknown"}
@@ -126,8 +126,8 @@ def _is_overdue(job: dict[str, Any], now: datetime) -> bool:
 
 def _job_metrics(metrics: list[GatewayMetric]) -> None:
     enabled = [job for job in load_jobs() if job.get("enabled", True)]
-    metrics.append(GatewayMetric("hermes.cron.jobs.enabled", len(enabled), {}))
-    metrics.append(GatewayMetric("hermes.cron.jobs.overdue", sum(1 for job in enabled if _is_overdue(job, _now())), {}))
+    metrics.append(GatewayMetric("iris.cron.jobs.enabled", len(enabled), {}))
+    metrics.append(GatewayMetric("iris.cron.jobs.overdue", sum(1 for job in enabled if _is_overdue(job, _now())), {}))
 
 
 def _freshness_metric(name: str, reader: Callable[[], Optional[float]]) -> Callable[[list[GatewayMetric]], None]:
@@ -146,11 +146,11 @@ def _single_metric(name: str, reader: Callable[[], Any]) -> Callable[[list[Gatew
 # Each group is independently fail-open so one unavailable source never hides the rest.
 # Readers are wrapped in lambdas so monkeypatching this module's names still takes effect.
 _METRIC_GROUPS: tuple[tuple[Callable[[list[GatewayMetric]], None], str], ...] = (
-    (_freshness_metric("hermes.cron.scheduler.heartbeat_age_seconds", lambda: get_ticker_heartbeat_age()), "cron freshness metric unavailable"),
-    (_freshness_metric("hermes.cron.scheduler.last_success_age_seconds", lambda: get_ticker_success_age()), "cron freshness metric unavailable"),
-    (_single_metric("hermes.cron.scheduler.catch_up_occurrences", lambda: get_catch_up_occurrence_count()), "cron catch-up metric unavailable"),
+    (_freshness_metric("iris.cron.scheduler.heartbeat_age_seconds", lambda: get_ticker_heartbeat_age()), "cron freshness metric unavailable"),
+    (_freshness_metric("iris.cron.scheduler.last_success_age_seconds", lambda: get_ticker_success_age()), "cron freshness metric unavailable"),
+    (_single_metric("iris.cron.scheduler.catch_up_occurrences", lambda: get_catch_up_occurrence_count()), "cron catch-up metric unavailable"),
     (_job_metrics, "cron job metrics unavailable"),
-    (_single_metric("hermes.cron.jobs.running", lambda: len(get_running_job_ids())), "cron running-job metric unavailable"),
+    (_single_metric("iris.cron.jobs.running", lambda: len(get_running_job_ids())), "cron running-job metric unavailable"),
 )
 
 
@@ -187,7 +187,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

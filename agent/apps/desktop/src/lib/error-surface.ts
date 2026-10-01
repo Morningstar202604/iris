@@ -241,8 +241,8 @@ export interface ErrorRecoveryPlan {
   startNewSession: boolean
   /** Open the preceding user message in the edit composer (safety refusal). */
   editMessage: boolean
-  /** Reveal the Hermes data folder so the user can free space (disk_full). */
-  openHermesFolder: boolean
+  /** Reveal the Iris data folder so the user can free space (disk_full). */
+  openIrisFolder: boolean
   /** Settings → Keys deep link (auth, api_key). */
   updateApiKey: boolean
   /** Re-run the provider's OAuth sign-in (auth, oauth). */
@@ -266,7 +266,7 @@ const CODE_PLANS: Partial<Record<ErrorCodeKey, Partial<ErrorRecoveryPlan>>> = {
   SESSION_NOT_OWNED: { retry: false, startNewSession: true },
   content_policy_blocked: { editMessage: true, retry: false },
   context_overflow: { compress: true, retry: false, startNewSession: true },
-  disk_full: { openHermesFolder: true, retry: true },
+  disk_full: { openIrisFolder: true, retry: true },
   loop_error: { startNewSession: true },
   model_not_found: { chooseModel: true, retry: false },
   payload_too_large: { compress: true, retry: false, startNewSession: true }
@@ -280,7 +280,7 @@ export function errorRecoveryPlan(surface: ErrorSurface | null | undefined): Err
     chooseModel: false,
     compress: false,
     editMessage: false,
-    openHermesFolder: false,
+    openIrisFolder: false,
     // Retry re-runs the failed prompt in place. Suppressed when the classifier
     // says the failure is deterministic — except for a credential rejection,
     // where fixing the credential changes the outcome and Retry is the
@@ -312,7 +312,7 @@ export function formatErrorDiagnostics(input: {
   const model = input.surface?.model || input.model
 
   const lines = [
-    '── Hermes error details ──',
+    '── Iris error details ──',
     `time: ${new Date().toISOString()}`,
     input.surface ? `layer: ${input.surface.layer}` : null,
     input.surface ? `code: ${input.surface.code}` : null,

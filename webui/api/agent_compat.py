@@ -1,10 +1,10 @@
-"""Resolve Hermes Agent names that moved to a sibling module.
+"""Resolve Iris Agent names that moved to a sibling module.
 
-Hermes Agent's September 2026 decomposition moved many names out of their
+Iris Agent's September 2026 decomposition moved many names out of their
 original modules (``tools.approval``, ``tools.mcp_tool``,
-``hermes_cli.kanban_db``, ...) into ``<stem>_<topic>`` siblings. The old paths
+``iris_cli.kanban_db``, ...) into ``<stem>_<topic>`` siblings. The old paths
 kept resolving for a while only through PEP 562 ``__getattr__`` pointers that
-emit ``HermesPluginCompatWarning`` and are removed on schedule, so WebUI code
+emit ``IrisPluginCompatWarning`` and are removed on schedule, so WebUI code
 must not rely on them. Importing only the new module would instead break Agent
 installs that predate the split.
 

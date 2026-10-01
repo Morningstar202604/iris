@@ -1,7 +1,7 @@
 """Onboarding MVP tests — first-run wizard and provider config persistence.
 
 Tests that call /api/onboarding/setup require PyYAML in the test server's
-Python environment (the agent venv). They are skipped when hermes-agent is
+Python environment (the agent venv). They are skipped when iris-agent is
 not installed, since the server falls back to system Python which typically
 lacks pyyaml.
 """
@@ -42,28 +42,28 @@ def post(path, body=None):
         return json.loads(e.read()), e.code
 
 
-def _server_hermes_home() -> pathlib.Path:
-    """Get the hermes home path the test server is actually using.
+def _server_iris_home() -> pathlib.Path:
+    """Get the iris home path the test server is actually using.
 
     Using the server's own /api/onboarding/status response is more robust than
     reading TEST_STATE_DIR from conftest, which can get the wrong path when
-    conftest is imported multiple times under different HERMES_HOME environments
-    (api.config resets HERMES_HOME at module import time via init_profile_state).
+    conftest is imported multiple times under different IRIS_HOME environments
+    (api.config resets IRIS_HOME at module import time via init_profile_state).
     """
     data, _ = get("/api/onboarding/status")
     env_path = data.get("system", {}).get("env_path", "")
     if env_path:
         return pathlib.Path(env_path).parent
     # Fallback
-    hermes_home = pathlib.Path.home() / ".hermes"
-    return hermes_home / "webui-mvp-test"
+    iris_home = pathlib.Path.home() / ".iris"
+    return iris_home / "webui-mvp-test"
 
 
 @pytest.fixture(autouse=True)
-def clean_hermes_config_files():
-    hermes_home = _server_hermes_home()
+def clean_iris_config_files():
+    iris_home = _server_iris_home()
     for rel in ("config.yaml", ".env"):
-        (hermes_home / rel).unlink(missing_ok=True)
+        (iris_home / rel).unlink(missing_ok=True)
     # onboarding_completed lives in settings.json (not config.yaml/.env), so the
     # unlinks above don't reset it. A prior test that completes onboarding would
     # otherwise leak the flag and make tests asserting the pristine "incomplete"
@@ -72,7 +72,7 @@ def clean_hermes_config_files():
     post("/api/settings", {"onboarding_completed": False})
     yield
     for rel in ("config.yaml", ".env"):
-        (hermes_home / rel).unlink(missing_ok=True)
+        (iris_home / rel).unlink(missing_ok=True)
     post("/api/settings", {"onboarding_completed": False})
 
 
@@ -103,15 +103,15 @@ def test_onboarding_setup_openrouter_writes_real_config_and_env():
     assert status == 200
     assert data["system"]["provider_configured"] is True
     assert data["system"]["provider_ready"] is True
-    if data["system"]["imports_ok"] and data["system"]["hermes_found"]:
+    if data["system"]["imports_ok"] and data["system"]["iris_found"]:
         assert data["system"]["chat_ready"] is True
         assert data["system"]["setup_state"] == "ready"
     else:
         assert data["system"]["chat_ready"] is False
         assert data["system"]["setup_state"] == "agent_unavailable"
 
-    cfg_text = (_server_hermes_home() / "config.yaml").read_text(encoding="utf-8")
-    env_text = (_server_hermes_home() / ".env").read_text(encoding="utf-8")
+    cfg_text = (_server_iris_home() / "config.yaml").read_text(encoding="utf-8")
+    env_text = (_server_iris_home() / ".env").read_text(encoding="utf-8")
     assert "provider: openrouter" in cfg_text
     assert "default: anthropic/claude-sonnet-4.6" in cfg_text
     assert "OPENROUTER_API_KEY=sk-or-test" in env_text
@@ -131,7 +131,7 @@ def test_onboarding_setup_custom_endpoint_writes_runtime_files():
     assert status == 200
     assert data["system"]["provider_configured"] is True
     assert data["system"]["provider_ready"] is True
-    if data["system"]["imports_ok"] and data["system"]["hermes_found"]:
+    if data["system"]["imports_ok"] and data["system"]["iris_found"]:
         assert data["system"]["chat_ready"] is True
         assert data["system"]["setup_state"] == "ready"
     else:
@@ -140,8 +140,8 @@ def test_onboarding_setup_custom_endpoint_writes_runtime_files():
     assert data["system"]["current_provider"] == "custom"
     assert data["system"]["current_base_url"] == "http://localhost:4000/v1"
 
-    cfg_text = (_server_hermes_home() / "config.yaml").read_text(encoding="utf-8")
-    env_text = (_server_hermes_home() / ".env").read_text(encoding="utf-8")
+    cfg_text = (_server_iris_home() / "config.yaml").read_text(encoding="utf-8")
+    env_text = (_server_iris_home() / ".env").read_text(encoding="utf-8")
     assert "provider: custom" in cfg_text
     assert "default: google/gemma-3-27b-it" in cfg_text
     assert "base_url: http://localhost:4000/v1" in cfg_text
@@ -160,7 +160,7 @@ def test_onboarding_setup_detects_incomplete_saved_provider():
     )
     assert code == 200
 
-    (_server_hermes_home() / ".env").unlink(missing_ok=True)
+    (_server_iris_home() / ".env").unlink(missing_ok=True)
     data, status_code = get("/api/onboarding/status")
     assert status_code == 200
     assert data["system"]["provider_configured"] is True
@@ -189,7 +189,7 @@ def test_onboarding_complete_persists_flag():
     assert data["completed"] is True
 
     settings = json.loads(
-        (_server_hermes_home() / "settings.json").read_text(encoding="utf-8")
+        (_server_iris_home() / "settings.json").read_text(encoding="utf-8")
     )
     assert settings["onboarding_completed"] is True
 

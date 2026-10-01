@@ -1,4 +1,4 @@
-import { Box, Text, useInput, useStdout } from '@hermes/ink'
+import { Box, Text, useInput, useStdout } from '@iris/ink'
 import { useEffect, useState } from 'react'
 
 import type { GatewayClient } from '../gatewayClient.js'
@@ -172,7 +172,7 @@ export function PluginsHub({ gw, maxWidth, onClose, t }: PluginsHubProps) {
           Plugins Hub
         </Text>
         <Text color={t.color.muted}>no plugins installed</Text>
-        <Text color={t.color.muted}>install: hermes plugins install owner/repo</Text>
+        <Text color={t.color.muted}>install: iris plugins install owner/repo</Text>
         <OverlayHint t={t}>Esc/q close</OverlayHint>
       </Box>
     )

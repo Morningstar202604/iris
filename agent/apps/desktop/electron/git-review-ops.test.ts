@@ -17,12 +17,12 @@ afterEach(() => {
 })
 
 function makeRepo() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-desktop-git-status-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-desktop-git-status-'))
 
   tempDirs.push(dir)
   execFileSync('git', ['init', '-q'], { cwd: dir })
-  execFileSync('git', ['config', 'user.email', 'hermes-test@example.com'], { cwd: dir })
-  execFileSync('git', ['config', 'user.name', 'Hermes Test'], { cwd: dir })
+  execFileSync('git', ['config', 'user.email', 'iris-test@example.com'], { cwd: dir })
+  execFileSync('git', ['config', 'user.name', 'Iris Test'], { cwd: dir })
   fs.writeFileSync(path.join(dir, 'tracked.txt'), 'tracked\n')
   execFileSync('git', ['add', 'tracked.txt'], { cwd: dir })
   execFileSync('git', ['commit', '-qm', 'initial'], { cwd: dir })

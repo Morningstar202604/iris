@@ -87,6 +87,6 @@ export function quitPromptFor(work: ActiveWork, quittingForHandoff: boolean): nu
       .filter(line => line !== null)
       .join('\n')
       .trim(),
-    message: work.count === 1 ? 'Hermes is still working on 1 chat.' : `Hermes is still working on ${work.count} chats.`
+    message: work.count === 1 ? 'Iris is still working on 1 chat.' : `Iris is still working on ${work.count} chats.`
   }
 }

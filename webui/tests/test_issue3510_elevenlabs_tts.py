@@ -51,7 +51,7 @@ def _fresh(monkeypatch):
     import api.auth as _auth
     monkeypatch.setattr(_auth, "is_auth_enabled", lambda: False)
     monkeypatch.setattr(routes, "is_auth_enabled", lambda: False, raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     if hasattr(routes._handle_tts, "_tts_limiter"):
         del routes._handle_tts._tts_limiter
     yield
@@ -64,7 +64,7 @@ def test_elevenlabs_missing_key_returns_503(monkeypatch, tmp_path):
     monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
     # Point the .env fallback at an empty home so no key is found.
     import api.profiles as profiles
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     h = _post({"text": "hello", "engine": "elevenlabs"}, client="9.9.9.1")
     routes._handle_tts(h, None)
     assert h.status == 503

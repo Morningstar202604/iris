@@ -1,10 +1,10 @@
 """
 Tests for SOUL.md support in the memory API (GET /api/memory, POST /api/memory/write).
 
-SOUL.md lives at HERMES_HOME/SOUL.md (not in the memories/ subdirectory).
+SOUL.md lives at IRIS_HOME/SOUL.md (not in the memories/ subdirectory).
 This test file verifies:
 - GET /api/memory returns soul content, path, and mtime
-- POST /api/memory/write with section="soul" writes to HERMES_HOME/SOUL.md
+- POST /api/memory/write with section="soul" writes to IRIS_HOME/SOUL.md
 - Redaction still applies to soul content
 - Existing memory/user sections remain unaffected
 """
@@ -58,7 +58,7 @@ def test_memory_write_soul_roundtrip():
     assert status == 200, f"Expected 200, got {status}: {data}"
     assert data.get("ok") is True
     assert data.get("section") == "soul"
-    # Path should be at HERMES_HOME/SOUL.md
+    # Path should be at IRIS_HOME/SOUL.md
     assert data.get("path", "").endswith("SOUL.md"), f"path should end with SOUL.md, got {data.get('path')}"
     # Read back
     read_back = get("/api/memory").get("soul")
@@ -85,7 +85,7 @@ def test_memory_write_soul_does_not_affect_memory_or_user():
 
 
 def test_memory_write_soul_path_not_in_memories_dir():
-    """The SOUL.md file should be at HERMES_HOME/SOUL.md, not memories/SOUL.md."""
+    """The SOUL.md file should be at IRIS_HOME/SOUL.md, not memories/SOUL.md."""
     data, status = post("/api/memory/write", {"section": "soul", "content": "# Path check"})
     assert status == 200
     assert "/memories/" not in data.get("path", ""), f"SOUL.md should NOT be in memories/ dir, got {data.get('path')}"

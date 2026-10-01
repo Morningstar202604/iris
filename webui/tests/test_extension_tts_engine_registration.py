@@ -1,4 +1,4 @@
-"""Extension TTS-engine registration capability (window.registerHermesTtsEngine).
+"""Extension TTS-engine registration capability (window.registerIrisTtsEngine).
 
 Two layers:
   1. Structural — the public API + the two playback paths + the settings re-add
@@ -23,14 +23,14 @@ PANELS_JS = (REPO / "static" / "panels.js").read_text(encoding="utf-8")
 
 
 def test_public_api_present():
-    assert "window.registerHermesTtsEngine=function" in BOOT_JS
-    assert "window._hermesTtsSynth=function" in BOOT_JS
-    assert "window._hermesTtsIsRegistered=function" in BOOT_JS
-    assert "window._hermesTtsEngineOptions=function" in BOOT_JS
+    assert "window.registerIrisTtsEngine=function" in BOOT_JS
+    assert "window._irisTtsSynth=function" in BOOT_JS
+    assert "window._irisTtsIsRegistered=function" in BOOT_JS
+    assert "window._irisTtsEngineOptions=function" in BOOT_JS
 
 
 def test_reserved_builtins_guarded():
-    assert "_HERMES_TTS_RESERVED" in BOOT_JS
+    assert "_IRIS_TTS_RESERVED" in BOOT_JS
     # browser/edge/elevenlabs/openai must be reserved so an extension can't shadow them
     assert "browser:1" in BOOT_JS
     assert "edge:1" in BOOT_JS
@@ -41,12 +41,12 @@ def test_reserved_builtins_guarded():
 def test_both_playback_paths_check_registry():
     # voice-mode auto-read (boot.js _speakResponse) and the per-message Listen
     # button (ui.js speakMessage) must both route registered engines.
-    assert "_hermesTtsIsRegistered(engine)" in BOOT_JS, "voice-mode path must check the registry"
-    assert "_hermesTtsIsRegistered(engine)" in UI_JS, "per-message path must check the registry"
+    assert "_irisTtsIsRegistered(engine)" in BOOT_JS, "voice-mode path must check the registry"
+    assert "_irisTtsIsRegistered(engine)" in UI_JS, "per-message path must check the registry"
 
 
 def test_settings_panel_readds_registered_options():
-    assert "_hermesTtsEngineOptions" in PANELS_JS, (
+    assert "_irisTtsEngineOptions" in PANELS_JS, (
         "settings panel must re-add registered engine options on render"
     )
 
@@ -59,8 +59,8 @@ def test_option_label_uses_textcontent_not_innerhtml():
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not available")
 def test_registration_behavior():
     """Drive the real registry logic from boot.js in a Node harness."""
-    start = BOOT_JS.index("var _HERMES_TTS_ENGINES")
-    end = BOOT_JS.index("window._hermesTtsSynth=function")
+    start = BOOT_JS.index("var _IRIS_TTS_ENGINES")
+    end = BOOT_JS.index("window._irisTtsSynth=function")
     end = BOOT_JS.index("};", BOOT_JS.index("throw new Error('TTS engine returned", end)) + 2
     region = BOOT_JS[start:end]
 
@@ -71,27 +71,27 @@ def test_registration_behavior():
         %s
         const results = {};
         // valid registration
-        results.validOk = window.registerHermesTtsEngine({
+        results.validOk = window.registerIrisTtsEngine({
           id: 'voicevox', label: 'VOICEVOX', synthesize: () => new ArrayBuffer(4)
         });
-        results.isRegistered = window._hermesTtsIsRegistered('voicevox');
+        results.isRegistered = window._irisTtsIsRegistered('voicevox');
         // reserved key rejected
-        results.reservedRejected = (window.registerHermesTtsEngine({
+        results.reservedRejected = (window.registerIrisTtsEngine({
           id: 'edge', label: 'x', synthesize: () => new ArrayBuffer(1) }) === false);
-        results.openaiReservedRejected = (window.registerHermesTtsEngine({
+        results.openaiReservedRejected = (window.registerIrisTtsEngine({
           id: 'openai', label: 'x', synthesize: () => new ArrayBuffer(1) }) === false);
         // bad id rejected
-        results.badIdRejected = (window.registerHermesTtsEngine({
+        results.badIdRejected = (window.registerIrisTtsEngine({
           id: 'Bad Id!', label: 'x', synthesize: () => new ArrayBuffer(1) }) === false);
         // missing synthesize rejected
-        results.noSynthRejected = (window.registerHermesTtsEngine({ id: 'nosynth', label: 'x' }) === false);
+        results.noSynthRejected = (window.registerIrisTtsEngine({ id: 'nosynth', label: 'x' }) === false);
         // options list reflects the registered engine
-        results.optionListed = window._hermesTtsEngineOptions().some(e => e.id === 'voicevox');
+        results.optionListed = window._irisTtsEngineOptions().some(e => e.id === 'voicevox');
         // synth coerces ArrayBuffer through
-        window._hermesTtsSynth('voicevox', 'hi', {}).then(buf => {
+        window._irisTtsSynth('voicevox', 'hi', {}).then(buf => {
           results.synthReturnsArrayBuffer = (buf instanceof ArrayBuffer);
           // unregistered engine returns null
-          results.unregisteredNull = (window._hermesTtsSynth('ghost', 'hi', {}) === null);
+          results.unregisteredNull = (window._irisTtsSynth('ghost', 'hi', {}) === null);
           console.log(JSON.stringify(results));
         });
         """

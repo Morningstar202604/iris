@@ -1,4 +1,4 @@
-import type { GatewayWsUrlResult } from '@hermes/shared'
+import type { GatewayWsUrlResult } from '@iris/shared'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -11,10 +11,10 @@ const gatewayMocks = vi.hoisted(() => ({
   }>
 }))
 
-vi.mock('@/hermes', async importOriginal => {
-  const actual = await importOriginal<typeof HermesModule>()
+vi.mock('@/iris', async importOriginal => {
+  const actual = await importOriginal<typeof IrisModule>()
 
-  class FakeHermesGateway {
+  class FakeIrisGateway {
     connectionState = 'closed'
     wsUrl = ''
     request = vi.fn()
@@ -47,11 +47,11 @@ vi.mock('@/hermes', async importOriginal => {
     }
   }
 
-  return { ...actual, HermesGateway: FakeHermesGateway }
+  return { ...actual, IrisGateway: FakeIrisGateway }
 })
 
-import type * as HermesModule from '@/hermes'
-import type { HermesGateway } from '@/hermes'
+import type * as IrisModule from '@/iris'
+import type { IrisGateway } from '@/iris'
 import {
   $gateway,
   closeSecondaryGateways,
@@ -71,7 +71,7 @@ interface TestGateway {
   wsUrl?: string
 }
 
-const fakeGateway = { connectionState: 'open' } as unknown as HermesGateway
+const fakeGateway = { connectionState: 'open' } as unknown as IrisGateway
 
 const remoteConnection = {
   authMode: 'oauth' as const,
@@ -119,7 +119,7 @@ function installRemoteDesktop() {
     }
   )
 
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { getConnection, getConnectionFor, getGatewayWsUrl, getGatewayWsUrlFor }
   })
@@ -148,7 +148,7 @@ function installPrimaryDesktop(authMode: 'oauth' | 'token') {
   const getConnectionFor = vi.fn()
   const getGatewayWsUrlFor = vi.fn()
 
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { getConnection, getConnectionFor, getGatewayWsUrl, getGatewayWsUrlFor }
   })
@@ -168,8 +168,8 @@ async function activateRemoteGateway() {
   const desktop = installRemoteDesktop()
   const primary = makePrimaryGateway()
 
-  setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-  $gateway.set(primary as unknown as HermesGateway)
+  setPrimaryGateway(primary as unknown as IrisGateway, 'default')
+  $gateway.set(primary as unknown as IrisGateway)
   await ensureGatewayForAgent('ssh-source', 'research')
 
   const gateway = $gateway.get() as unknown as TestGateway
@@ -228,7 +228,7 @@ afterEach(() => {
   $connection.set(null)
   $gatewayState.set('idle')
   $activeGatewayProfile.set('default')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'irisDesktop')
 })
 
 describe('useGatewayRequest', () => {
@@ -324,7 +324,7 @@ describe('useGatewayRequest', () => {
 
   it('surfaces a missing optional scoped mint bridge without falling back to a stale ticket or local lookup', async () => {
     const { desktop, gateway } = await activateRemoteGateway()
-    Reflect.deleteProperty(window.hermesDesktop, 'getGatewayWsUrlFor')
+    Reflect.deleteProperty(window.irisDesktop, 'getGatewayWsUrlFor')
 
     const { result } = renderHook(() => useGatewayRequest())
 
@@ -343,8 +343,8 @@ describe('useGatewayRequest', () => {
     const primary = makePrimaryGateway()
     primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
 
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as IrisGateway, 'default')
+    $gateway.set(primary as unknown as IrisGateway)
     $gatewayState.set('closed')
 
     const { result } = renderHook(() => useGatewayRequest())
@@ -375,12 +375,12 @@ describe('useGatewayRequest', () => {
         })
       }
 
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: desktop })
+      Object.defineProperty(window, 'irisDesktop', { configurable: true, value: desktop })
 
       const primary = makePrimaryGateway()
       primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
-      setPrimaryGateway(primary as unknown as HermesGateway, connection.profile)
-      $gateway.set(primary as unknown as HermesGateway)
+      setPrimaryGateway(primary as unknown as IrisGateway, connection.profile)
+      $gateway.set(primary as unknown as IrisGateway)
       $activeGatewayProfile.set(connection.profile)
       $gatewayState.set('closed')
 
@@ -411,11 +411,11 @@ describe('useGatewayRequest', () => {
     const dropped = {
       connectionState: 'closed',
       request: vi.fn().mockRejectedValue(new Error('connection closed'))
-    } as unknown as HermesGateway
+    } as unknown as IrisGateway
 
     const getConnection = vi.fn(() => new Promise(() => undefined))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { getConnection }
+    ;(window as unknown as { irisDesktop: unknown }).irisDesktop = { getConnection }
     $gateway.set(dropped)
 
     const { result } = renderHook(() => useGatewayRequest())

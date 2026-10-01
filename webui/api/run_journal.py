@@ -54,7 +54,7 @@ _TERMINAL_SSE_EVENTS = TERMINAL_SSE_EVENTS
 # (``cursor_event_missing`` bound) and the offline-gap coverage check count
 # journal seqs and must keep seeing every row.
 REPLAY_SKIPPED_SSE_EVENTS = frozenset({"metering"})
-_FSYNC_MODE_ENV = "HERMES_WEBUI_RUN_JOURNAL_FSYNC"
+_FSYNC_MODE_ENV = "IRIS_WEBUI_RUN_JOURNAL_FSYNC"
 _FSYNC_MODE_EAGER = "eager"
 _FSYNC_MODE_TERMINAL_ONLY = "terminal-only"
 _SESSION_REPLAY_MAX_BYTES = 4 * 1024 * 1024

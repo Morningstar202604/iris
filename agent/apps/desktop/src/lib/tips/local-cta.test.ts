@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 import { TIP_CATALOG } from '@/lib/tips/catalog'
 import { LOCAL_SETUP_RESHOW_MS, LOCAL_SETUP_TIP_ID, localSetupDue, localSetupEligible } from '@/lib/tips/local-cta'
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/iris'
 
 function status(overrides: Partial<LocalModelsStatus> = {}): LocalModelsStatus {
   return {

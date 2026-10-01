@@ -17,7 +17,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tip } from '@/components/ui/tooltip'
 import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/plugins-store'
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/iris'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
@@ -56,12 +56,12 @@ import { PluginSettingsForm } from './plugin-settings-form'
 // The REAL Plugin Catalog page (docs site) embedded as a one-click picker —
 // the same pattern as the Skills tab's EmbeddedHubPicker. `?embed=picker`
 // hides the docs chrome and adds "+ Add to this Agent" per card, which posts
-//   { type: 'hermes-plugin-pick', name, repo, sha, subdir, tier, installCmd }
+//   { type: 'iris-plugin-pick', name, repo, sha, subdir, tier, installCmd }
 // to the parent window. We validate the origin and open the shared
 // dual-target install modal (agent half → catalog-pinned install into the
 // scoped profile; desktop half → this app), so unified packages install both
 // halves in one flow. URLs live in `@/lib/plugin-catalog` so the
-// `hermes://plugin/install?catalog=` deep link resolves against the same feed.
+// `iris://plugin/install?catalog=` deep link resolves against the same feed.
 
 // Catalog viewport: persisted through the shared pane store, dragged from the
 // section's TOP edge ("pull the catalog up"), clamped so neither the catalog
@@ -97,14 +97,14 @@ function profileParam(scope: ProfileScope): null | string {
 }
 
 function reveal(file: string) {
-  void window.hermesDesktop?.revealPath?.(file)?.catch(() => undefined)
+  void window.irisDesktop?.revealPath?.(file)?.catch(() => undefined)
 }
 
 async function revealPluginsDir() {
   try {
     // Electron owns the app-level plugin root — deriving it from the backend's
-    // hermes_home breaks against a remote backend (#66899).
-    const dir = await window.hermesDesktop?.desktopPluginsRoot?.()
+    // iris_home breaks against a remote backend (#66899).
+    const dir = await window.irisDesktop?.desktopPluginsRoot?.()
 
     if (!dir) {
       notifyError('Desktop plugins are unavailable', 'Could not resolve the plugins folder')
@@ -112,7 +112,7 @@ async function revealPluginsDir() {
       return
     }
 
-    const result = await window.hermesDesktop?.openDir?.(dir)
+    const result = await window.irisDesktop?.openDir?.(dir)
 
     if (result && !result.ok) {
       notifyError(result.error ?? 'unknown error', 'Could not open the plugins folder')
@@ -125,7 +125,7 @@ async function revealPluginsDir() {
 /** Copy any changed unified desktop halves into the app root FIRST, then
  *  rescan the root — a concurrent scan would read the pre-copy state. */
 async function rescanAll(requestGateway: GatewayRequest, scope: null | string) {
-  await window.hermesDesktop?.reconcileDesktopPlugins?.().catch(() => undefined)
+  await window.irisDesktop?.reconcileDesktopPlugins?.().catch(() => undefined)
   await discoverRuntimePlugins()
   await loadAgentPlugins(requestGateway, scope)
 }
@@ -273,7 +273,7 @@ function PackageRow({
   // the backend and entrypoint (pip-installed) ones go with their package.
   const agentRemovable = agent?.source === 'user' || agent?.source === 'git'
   const unavailableServers = agent?.servers?.filter(server => server.state !== 'connected') ?? []
-  // A STANDALONE desktop plugin (a folder in <HERMES_HOME>/desktop-plugins with
+  // A STANDALONE desktop plugin (a folder in <IRIS_HOME>/desktop-plugins with
   // no agent package behind it) is deleted by Electron. A unified package's
   // desktop half is not offered here: uninstalling the agent half prunes it.
   const desktopRemovable = desktop?.kind === 'disk' && !desktop.packageName && !agent
@@ -587,7 +587,7 @@ export const PluginsTab = memo(function PluginsTab({
 
       const data = event.data as null | PluginPickMessage
 
-      if (!data || data.type !== 'hermes-plugin-pick' || !data.name || !data.repo) {
+      if (!data || data.type !== 'iris-plugin-pick' || !data.name || !data.repo) {
         return
       }
 

@@ -33,7 +33,7 @@ def _get_jwk_client(jwks_url: str) -> Any:
             from jwt import PyJWKClient
             # Explicit Accept + User-Agent: the portal WAF 403s the default urllib fingerprint.
             client = PyJWKClient(
-                jwks_url, headers={"Accept": "application/json", "User-Agent": "HermesAgent/1.0"})
+                jwks_url, headers={"Accept": "application/json", "User-Agent": "IrisAgent/1.0"})
             _JWK_CLIENTS[jwks_url] = client
         return client
 

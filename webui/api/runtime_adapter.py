@@ -1,7 +1,7 @@
 """RuntimeAdapter seam for WebUI-owned run execution.
 
 This is the #1925 RuntimeAdapter seam.  The default WebUI chat path remains the
-legacy direct route; enabling ``HERMES_WEBUI_RUNTIME_ADAPTER=legacy-journal``
+legacy direct route; enabling ``IRIS_WEBUI_RUNTIME_ADAPTER=legacy-journal``
 routes through this protocol-translator facade over the same legacy execution
 path plus the Slice 1 run journal.  Slice 4 adds a default-off runner-local
 selection point for tests and future runner backends, but live chat routes still
@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Iterable, Literal, Protocol
 
-_RUNTIME_ADAPTER_ENV = "HERMES_WEBUI_RUNTIME_ADAPTER"
+_RUNTIME_ADAPTER_ENV = "IRIS_WEBUI_RUNTIME_ADAPTER"
 _RUNTIME_ADAPTER_DIRECT = "legacy-direct"
 _RUNTIME_ADAPTER_JOURNAL = "legacy-journal"
 _RUNTIME_ADAPTER_RUNNER_LOCAL = "runner-local"

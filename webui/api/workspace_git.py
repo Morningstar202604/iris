@@ -31,7 +31,7 @@ GIT_REMOTE_TIMEOUT = 60
 STATUS_FILE_LIMIT = 500
 DIFF_SIZE_LIMIT = 512 * 1024
 COMMIT_MESSAGE_DIFF_LIMIT = 64 * 1024
-WORKSPACE_GIT_DESTRUCTIVE_ENV = "HERMES_WEBUI_WORKSPACE_GIT_DESTRUCTIVE"
+WORKSPACE_GIT_DESTRUCTIVE_ENV = "IRIS_WEBUI_WORKSPACE_GIT_DESTRUCTIVE"
 _GIT_ENV_SCRUB_KEYS = (
     "GIT_DIR",
     "GIT_WORK_TREE",
@@ -45,7 +45,7 @@ _GIT_ENV_SCRUB_KEYS = (
     "GIT_SSH_COMMAND",
 )
 _GIT_ENV_SCRUB_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
-_HERMES_BRANCH_SWITCH_STASH_PREFIX = "hermes-webui branch switch"
+_IRIS_BRANCH_SWITCH_STASH_PREFIX = "iris-webui branch switch"
 _GIT_HARDENED_CONFIG = (
     # Workspace Git operations can run against repositories provided by agents,
     # restored sessions, or mounted workspaces. Keep repo-local configuration
@@ -215,7 +215,7 @@ def _run_git(
     temporary_dirs: list[str] = []
     try:
         if disable_filter_attributes:
-            fd, attributes_path = tempfile.mkstemp(prefix="hermes-webui-git-attrs-")
+            fd, attributes_path = tempfile.mkstemp(prefix="iris-webui-git-attrs-")
             os.close(fd)
             attributes_file = attributes_path
             temporary_attributes = [attributes_path]
@@ -229,7 +229,7 @@ def _run_git(
             extra_configs.extend(_destructive_remote_helper_overrides(cwd, run_env))
             args = _destructive_remote_command_args(args, cwd, run_env)
         if hardened_destructive_path:
-            hooks_path = tempfile.mkdtemp(prefix="hermes-webui-git-hooks-")
+            hooks_path = tempfile.mkdtemp(prefix="iris-webui-git-hooks-")
             temporary_dirs = [hooks_path]
         if extra_configs:
             run_env["GIT_CONFIG_COUNT"] = str(len(extra_configs))
@@ -961,12 +961,12 @@ def _stash_subject_parts(subject: str) -> tuple[str, str] | None:
     branch, message = subject[3:].split(": ", 1)
     branch = branch.strip()
     message = message.strip()
-    if not branch or not message.startswith(_HERMES_BRANCH_SWITCH_STASH_PREFIX):
+    if not branch or not message.startswith(_IRIS_BRANCH_SWITCH_STASH_PREFIX):
         return None
     return branch, message
 
 
-def _hermes_branch_switch_stashes(ctx: GitContext) -> list[dict]:
+def _iris_branch_switch_stashes(ctx: GitContext) -> list[dict]:
     result = _run_git(ctx, ["stash", "list", "--format=%gd%x00%gs"], check=False)
     if result.returncode != 0:
         return []
@@ -992,7 +992,7 @@ def _restore_branch_switch_stash_locked(ctx: GitContext, branch: str) -> dict:
         }
     if _dirty_worktree(ctx):
         return {}
-    for item in _hermes_branch_switch_stashes(ctx):
+    for item in _iris_branch_switch_stashes(ctx):
         if item.get("branch") != branch:
             continue
         result = _run_git(
@@ -1155,7 +1155,7 @@ def git_stash_and_checkout(
         raise GitWorkspaceError("Workspace is not a Git repository", "not_a_repo")
     mode = str(mode or "local").strip().lower()
     target_label = str(new_branch or ref or "HEAD").strip() or "HEAD"
-    stash_name = f"{_HERMES_BRANCH_SWITCH_STASH_PREFIX} to {target_label}".strip()
+    stash_name = f"{_IRIS_BRANCH_SWITCH_STASH_PREFIX} to {target_label}".strip()
     restored: dict = {}
     with _git_mutation_lock(ctx):
         _validate_checkout_request_locked(ctx, ref, mode, new_branch)
@@ -1434,7 +1434,7 @@ def _selected_temp_index_env(ctx: GitContext, specs: list[str]) -> tuple[dict[st
         "Repository uses local Git filters; selected commit staging may corrupt index content. "
         "Use the terminal to commit manually.",
     )
-    fd, index_path = tempfile.mkstemp(prefix="hermes-webui-git-index-")
+    fd, index_path = tempfile.mkstemp(prefix="iris-webui-git-index-")
     os.close(fd)
     Path(index_path).unlink(missing_ok=True)
     env = {"GIT_INDEX_FILE": index_path}

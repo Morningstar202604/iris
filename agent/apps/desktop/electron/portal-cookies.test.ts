@@ -25,12 +25,12 @@ test('either portal credential family signs in, and refresh-only material is a s
   }
 })
 
-// Contract: the jar also holds Hermes GATEWAY session cookies, NAS provider
+// Contract: the jar also holds Iris GATEWAY session cookies, NAS provider
 // routing hints and logout identifiers. None of those authenticate the portal.
 test('gateway cookies, routing hints, empty values and non-arrays are never a portal credential', () => {
   const noise = [
-    { name: 'hermes_session_at', value: 'x' },
-    { name: '__Host-hermes_session_rt', value: 'x' },
+    { name: 'iris_session_at', value: 'x' },
+    { name: '__Host-iris_session_rt', value: 'x' },
     { name: 'next-auth-provider', value: 'workos' },
     { name: 'workos-session-id', value: 'logout-only' },
     { name: 'privy-token', value: '' },

@@ -32,12 +32,12 @@ def _clear_profile_rows_cache():
     profiles._LIST_PROFILES_CACHE = None
 
 
-def _install_fake_hermes_profiles(monkeypatch, rows):
-    hermes_cli = types.ModuleType("hermes_cli")
-    profiles_mod = types.ModuleType("hermes_cli.profiles")
+def _install_fake_iris_profiles(monkeypatch, rows):
+    iris_cli = types.ModuleType("iris_cli")
+    profiles_mod = types.ModuleType("iris_cli.profiles")
     profiles_mod.list_profiles = lambda: rows
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.profiles", profiles_mod)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.profiles", profiles_mod)
 
 
 def test_profile_yaml_visible_false_is_exposed_as_hidden(monkeypatch, tmp_path):
@@ -62,7 +62,7 @@ def test_profile_yaml_visible_false_is_exposed_as_hidden(monkeypatch, tmp_path):
         _profile_row("malformed", malformed),
         _profile_row("string-false", string_false),
     ]
-    _install_fake_hermes_profiles(monkeypatch, rows)
+    _install_fake_iris_profiles(monkeypatch, rows)
     monkeypatch.setattr(profiles, "_get_profile_skills_stats", lambda _path: (0, 0))
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "human")
 

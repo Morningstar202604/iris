@@ -2,11 +2,11 @@
 name: powerpoint
 description: Create, read, edit .pptx decks with python-pptx.
 version: 1.1.0
-author: Nous Research
+author: Nous Research (original Hermes bundler); Iris fork
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [pptx, powerpoint, presentations, slides, office, python-pptx]
     category: productivity
     related_skills: [docx, xlsx, pdf]

@@ -71,7 +71,7 @@ def _post_session_new(tmp_path, monkeypatch, body, *, config_default, workspace_
 def _fake_worktree_info(repo, worktree):
     return {
         "path": str(worktree),
-        "branch": "hermes/hermes-6022",
+        "branch": "iris/iris-6022",
         "repo_root": str(repo),
         "created_at": 321.0,
     }
@@ -79,7 +79,7 @@ def _fake_worktree_info(repo, worktree):
 
 def _mk_repo_dirs(tmp_path):
     repo = tmp_path / "repo"
-    worktree = repo / ".worktrees" / "hermes-6022"
+    worktree = repo / ".worktrees" / "iris-6022"
     repo.mkdir()
     worktree.mkdir(parents=True)
     return repo, worktree
@@ -117,7 +117,7 @@ def test_absent_key_with_config_default_on_creates_worktree_session(tmp_path, mo
     session = captured["payload"]["session"]
     assert session["workspace"] == str(worktree.resolve())
     assert session["worktree_path"] == str(worktree.resolve())
-    assert session["worktree_branch"] == "hermes/hermes-6022"
+    assert session["worktree_branch"] == "iris/iris-6022"
 
 
 # ── Route matrix: explicit wins ──────────────────────────────────────────────
@@ -233,7 +233,7 @@ def test_worktree_default_resolves_named_profile_home(monkeypatch, tmp_path):
 
     seen = {}
     monkeypatch.setattr(
-        profiles, "get_hermes_home_for_profile", lambda name: tmp_path / name
+        profiles, "get_iris_home_for_profile", lambda name: tmp_path / name
     )
 
     def fake_cfg(home):

@@ -2,11 +2,11 @@
 name: document-to-action-items
 description: "Extract cited obligations, deadlines, tasks from documents."
 version: 0.1.0
-author: Ben Barclay (benbarclay), Hermes Agent
+author: Ben Barclay (benbarclay), Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [Documents, OCR, Action-Items, Deadlines, Extraction]
     related_skills: [pdf, pdf, docx, notion]
 ---

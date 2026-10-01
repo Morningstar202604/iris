@@ -23,9 +23,9 @@ def test_production_dockerfile_does_not_grant_passwordless_sudo():
     packages = _dockerfile_install_packages()
     assert "sudo" not in packages, "production Dockerfile must not install sudo"
     assert "NOPASSWD" not in DOCKERFILE, "production Dockerfile must not grant passwordless sudo"
-    assert "adduser hermeswebui sudo" not in DOCKERFILE
-    assert "adduser hermeswebuitoo sudo" not in DOCKERFILE
-    assert "hermeswebuitoo" not in DOCKERFILE, "production image should not keep a sudo-capable staging user"
+    assert "adduser iriswebui sudo" not in DOCKERFILE
+    assert "adduser iriswebuitoo sudo" not in DOCKERFILE
+    assert "iriswebuitoo" not in DOCKERFILE, "production image should not keep a sudo-capable staging user"
 
 
 def test_init_script_does_not_depend_on_sudo_at_runtime():
@@ -34,8 +34,8 @@ def test_init_script_does_not_depend_on_sudo_at_runtime():
         "docker_init.bash should perform privileged setup only in an explicit root init block"
     )
     assert "sudo " not in INIT_SCRIPT, "docker_init.bash must not invoke sudo in production"
-    assert re.search(r"\bsu\b.*\bhermeswebui\b", INIT_SCRIPT), (
-        "docker_init.bash must drop from root to hermeswebui before launching the server"
+    assert re.search(r"\bsu\b.*\biriswebui\b", INIT_SCRIPT), (
+        "docker_init.bash must drop from root to iriswebui before launching the server"
     )
 
 
@@ -44,7 +44,7 @@ def test_init_script_uses_private_scratch_permissions():
     assert "chmod 777" not in INIT_SCRIPT
     assert "umask 0077" in INIT_SCRIPT
     assert re.search(r"chmod\s+700\s+\"?\$itdir\"?", INIT_SCRIPT), (
-        "/tmp/hermeswebui_init should be mode 700"
+        "/tmp/iriswebui_init should be mode 700"
     )
     assert re.search(r"chmod\s+600\s+\"?\$\{?tmpfile\}?\"?", INIT_SCRIPT), (
         "scratch files storing UID/GID/env data should be mode 600"
@@ -56,5 +56,5 @@ def test_docker_docs_explain_production_privilege_model():
     hardening_section = DOCKER_DOCS[DOCKER_DOCS.find("## Production image security model") :]
     assert "## Production image security model" in DOCKER_DOCS
     assert "passwordless sudo" in hardening_section
-    assert "root" in hardening_section and "hermeswebui" in hardening_section
+    assert "root" in hardening_section and "iriswebui" in hardening_section
     assert "single-tenant" in hardening_section

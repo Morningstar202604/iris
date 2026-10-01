@@ -257,10 +257,10 @@ def test_login_page_renders_absolute_oidc_href_when_enabled(monkeypatch):
 def test_oidc_enablement_requires_explicit_allowlist(monkeypatch):
     import api.auth_oidc as auth_oidc
 
-    monkeypatch.delenv("HERMES_WEBUI_OIDC_ISSUER", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_OIDC_CLIENT_ID", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_OIDC_ALLOW_CLAIM", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_OIDC_ALLOW_VALUES", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_OIDC_ISSUER", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_OIDC_CLIENT_ID", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_OIDC_ALLOW_CLAIM", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_OIDC_ALLOW_VALUES", raising=False)
     monkeypatch.setattr(
         auth_oidc,
         "get_config",
@@ -551,17 +551,17 @@ def test_coerce_numeric_claim_rejects_non_finite_values(value):
 
 def test_normalize_allow_values_and_scopes_use_separate_delimiters():
     """#6244: allowlist values are comma/newline-delimited (multi-word group names
-    like "Hermes Users" stay intact), while OAuth scopes stay space-delimited
+    like "Iris Users" stay intact), while OAuth scopes stay space-delimited
     (RFC 6749 §3.3). The two parsers must NOT share whitespace-splitting."""
     from api import auth_oidc
 
     # Allowlist: multi-word group name stays ONE entry; commas/newlines split.
-    assert auth_oidc._normalize_allow_values("Hermes Users") == ["Hermes Users"]
-    assert auth_oidc._normalize_allow_values("Hermes Users, Admins") == ["Hermes Users", "Admins"]
+    assert auth_oidc._normalize_allow_values("Iris Users") == ["Iris Users"]
+    assert auth_oidc._normalize_allow_values("Iris Users, Admins") == ["Iris Users", "Admins"]
     assert auth_oidc._normalize_allow_values("a\nb") == ["a", "b"]
     # Blank collection elements are filtered (a bare [""] must not brick OIDC login).
     assert auth_oidc._normalize_allow_values([""]) == []
-    assert auth_oidc._normalize_allow_values(["Hermes Users", "", "  "]) == ["Hermes Users"]
+    assert auth_oidc._normalize_allow_values(["Iris Users", "", "  "]) == ["Iris Users"]
 
     # Scopes: space-delimited per RFC 6749 §3.3 — whitespace splitting is retained.
     assert auth_oidc._normalize_text_list("openid profile email") == ["openid", "profile", "email"]

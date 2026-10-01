@@ -73,7 +73,7 @@ def test_test_notification_without_sid_still_targets_current_page_for_reuse():
 
 
 def test_service_worker_update_delivery_keeps_versioned_no_store_route():
-    assert "const CACHE_NAME = 'hermes-shell-__WEBUI_VERSION__';" in SW_SRC
+    assert "const CACHE_NAME = 'iris-shell-__WEBUI_VERSION__';" in SW_SRC
     assert "self.skipWaiting();" in SW_SRC
     assert "self.clients.claim();" in SW_SRC
 

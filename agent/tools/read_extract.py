@@ -140,7 +140,7 @@ def _anydoc_missing_error(path: str) -> str:
         f"Cannot convert {path!r}: this format needs the optional anydoc "
         "converter, which is not installed (install blocked or first "
         "attempt failed; retried every 5 minutes). Fix: `pip install "
-        "firecrawl-anydoc` in Hermes's environment, or convert the file "
+        "firecrawl-anydoc` in Iris's environment, or convert the file "
         "yourself via terminal (e.g. libreoffice --headless --convert-to "
         "txt).")
 
@@ -155,7 +155,7 @@ def _hosted_ocr_config() -> tuple:
     api_key = get_secret("FIRECRAWL_API_KEY") or None
     enabled = api_key is not None
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config_readonly
+        from iris_cli.config import load_config_readonly
         section = load_config_readonly().get("file_tools")
         if isinstance(section, dict) and section.get("hosted_ocr") is False:
             enabled = False

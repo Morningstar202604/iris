@@ -1,7 +1,7 @@
 """Regression tests for #1699: /api/models cache must track external auth/config changes.
 
 The bug: WebUI caches /api/models for 24h in memory and on disk. When a user
-runs `hermes setup` in a terminal and the Hermes auth store switches the active
+runs `iris setup` in a terminal and the Iris auth store switches the active
 provider outside WebUI, the browser can keep seeing the previous provider's
 PRIMARY badge until the cache is manually cleared or expires.
 """
@@ -41,49 +41,49 @@ def _valid_models_cache(provider_id: str, model_id: str) -> dict:
     }
 
 
-def _write_auth_store(hermes_home, provider_id: str) -> None:
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(
+def _write_auth_store(iris_home, provider_id: str) -> None:
+    iris_home.mkdir(parents=True, exist_ok=True)
+    (iris_home / "auth.json").write_text(
         json.dumps({"active_provider": provider_id, "credential_pool": {}}),
         encoding="utf-8",
     )
 
 
 def _configure_isolated_sources(tmp_path, monkeypatch, provider_id: str) -> None:
-    hermes_home = tmp_path / "hermes-home"
+    iris_home = tmp_path / "iris-home"
     state_dir = tmp_path / "state"
     cache_path = state_dir / "models_cache.json"
     state_dir.mkdir(parents=True, exist_ok=True)
 
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    config_path = hermes_home / "config.yaml"
+    iris_home.mkdir(parents=True, exist_ok=True)
+    config_path = iris_home / "config.yaml"
     # Leave model.provider unset so get_available_models() must honor the auth
     # store's active_provider fallback, matching CLI setup/auth-store drift.
     config_path.write_text("model:\n  default: glm-5.1\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(config_path))
 
     import api.profiles as profiles
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: hermes_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: iris_home)
     monkeypatch.setattr(config, "_models_cache_path", cache_path)
 
-    # Keep the test hermetic without requiring hermes-agent to be installed in
-    # CI: inject the tiny hermes_cli surface get_available_models() imports.
-    fake_pkg = types.ModuleType("hermes_cli")
+    # Keep the test hermetic without requiring iris-agent to be installed in
+    # CI: inject the tiny iris_cli surface get_available_models() imports.
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models._PROVIDER_ALIASES = {}
     fake_models.list_available_providers = lambda: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda provider_id: {
         "logged_in": False,
         "key_source": "",
     }
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
-    _write_auth_store(hermes_home, provider_id)
+    _write_auth_store(iris_home, provider_id)
     config.reload_config()
     _reset_memory_cache()
 
@@ -119,9 +119,9 @@ def test_disk_models_cache_invalidates_when_auth_store_active_provider_changes(
     config._save_models_cache_to_disk(stale_openrouter)
     assert config._models_cache_path.exists()
 
-    # External terminal `hermes setup` changes auth.json, not WebUI's in-process cache.
-    hermes_home = config._models_cache_path.parent.parent / "hermes-home"
-    _write_auth_store(hermes_home, "opencode-go")
+    # External terminal `iris setup` changes auth.json, not WebUI's in-process cache.
+    iris_home = config._models_cache_path.parent.parent / "iris-home"
+    _write_auth_store(iris_home, "opencode-go")
     _reset_memory_cache()
 
     result = config.get_available_models()

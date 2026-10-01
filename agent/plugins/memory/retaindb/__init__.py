@@ -37,7 +37,7 @@ _TEXT_EXTS = (".txt", ".md", ".json", ".csv", ".yaml", ".yml", ".xml", ".html")
 def _load_retaindb_config() -> dict[str, Any]:
     """``memory.retaindb`` block from config.yaml (empty on error): Dashboard-persisted base_url/project; api_key stays in scoped secrets."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from iris_cli.config import load_config_readonly
         block = load_config_readonly().get("memory", {}).get("retaindb", {})
     except Exception:
         block = None
@@ -99,7 +99,7 @@ class _Client:
 
     def _headers(self, path: str, json_body: bool = True) -> dict:
         token = self.api_key.replace("Bearer ", "").strip()
-        return {"Authorization": f"Bearer {token}", "x-sdk-runtime": "hermes-plugin",
+        return {"Authorization": f"Bearer {token}", "x-sdk-runtime": "iris-plugin",
                 **({"Content-Type": "application/json"} if json_body else {}),
                 **({"X-API-Key": token} if path.startswith(("/v1/memory", "/v1/context")) else {})}  # memory/context also accept X-API-Key
 
@@ -307,7 +307,7 @@ class RetainDBMemoryProvider(MemoryProvider):
     def __init__(self):
         self._client: _Client | None = None
         self._queue: _WriteQueue | None = None
-        self._user_id, self._session_id, self._agent_id = "default", "", "hermes"
+        self._user_id, self._session_id, self._agent_id = "default", "", "iris"
         self._lock = threading.Lock()  # guards the prefetch caches below
         self._context_result, self._dialectic_result, self._agent_model = "", "", {}
         self._prefetch_threads: list[threading.Thread] = []  # tracked so rapid turns don't pile up threads
@@ -330,18 +330,18 @@ class RetainDBMemoryProvider(MemoryProvider):
         # Non-secret fields resolve env (profile-scoped) -> config.yaml (written by the Dashboard) -> default.
         cfg = {k: v.strip() for k, v in _load_retaindb_config().items() if isinstance(v, str)}
         base_url = re.sub(r"/+$", "", get_secret("RETAINDB_BASE_URL", "") or cfg.get("base_url") or _DEFAULT_BASE_URL)
-        # Project: RETAINDB_PROJECT > config.yaml > hermes-<profile> > "default" (API auto-creates "default").
+        # Project: RETAINDB_PROJECT > config.yaml > iris-<profile> > "default" (API auto-creates "default").
         # The project is the data partition: read through the secret scope so a multiplexed secondary's
         # memories never land in the default profile's project.
         project = get_secret("RETAINDB_PROJECT", "") or cfg.get("project")
         if not project:
-            profile_name = os.path.basename(str(kwargs.get("hermes_home", "")))
-            project = f"hermes-{profile_name}" if profile_name not in {"", ".hermes"} else "default"
+            profile_name = os.path.basename(str(kwargs.get("iris_home", "")))
+            project = f"iris-{profile_name}" if profile_name not in {"", ".iris"} else "default"
         self._client = _Client(get_secret("RETAINDB_API_KEY", "") or "", base_url, project)
         self._session_id, self._user_id = session_id, kwargs.get("user_id", "default") or "default"
-        self._agent_id = kwargs.get("agent_id", "hermes") or "hermes"
-        from hermes_constants import get_hermes_home
-        home = get_hermes_home()
+        self._agent_id = kwargs.get("agent_id", "iris") or "iris"
+        from iris_constants import get_iris_home
+        home = get_iris_home()
         self._queue = _WriteQueue(self._client, home / "retaindb_queue.db")
         soul = (home / "SOUL.md").read_text(encoding="utf-8", errors="replace").strip() if (home / "SOUL.md").exists() else ""
         if soul:  # seed agent identity from SOUL.md in background

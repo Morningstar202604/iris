@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- public read-only share snapshots.
+Iris Web UI -- public read-only share snapshots.
 
 Stores a sanitized, immutable snapshot of a conversation under STATE_DIR/shares.
 The snapshot is intentionally narrower than a full session export so public
@@ -100,7 +100,7 @@ def _share_message_text(message: dict) -> str:
 def _redact_share_paths(text: str, extra_paths) -> str:
     """Strip known local session/workspace/home paths out of public-share text.
 
-    A workspace path or Hermes home can be embedded inside message prose (an
+    A workspace path or Iris home can be embedded inside message prose (an
     agent quoting a file path, a traceback, etc.). Redact the concrete local
     paths so a public share never discloses the operator's filesystem layout.
     """
@@ -404,8 +404,8 @@ def build_share_snapshot(session) -> dict:
         if val:
             redact_paths.append(str(val))
     try:
-        from api.profiles import get_active_hermes_home
-        redact_paths.append(str(get_active_hermes_home()))
+        from api.profiles import get_active_iris_home
+        redact_paths.append(str(get_active_iris_home()))
     except Exception:
         pass
     try:

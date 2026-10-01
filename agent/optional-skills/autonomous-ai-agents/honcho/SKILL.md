@@ -1,22 +1,22 @@
 ---
 name: honcho
-description: Configure and troubleshoot Honcho memory for Hermes.
+description: Configure and troubleshoot Honcho memory for Iris.
 version: 2.0.0
-author: Hermes Agent
+author: Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [Honcho, Memory, Profiles, Observation, Dialectic, User-Modeling, Session-Summary]
     homepage: https://docs.honcho.dev
-    related_skills: [hermes-agent]
+    related_skills: [iris-agent]
 prerequisites:
   pip: [honcho-ai]
 ---
 
-# Honcho Memory for Hermes
+# Honcho Memory for Iris
 
-Honcho provides AI-native cross-session user modeling. It learns who the user is across conversations and gives every Hermes profile its own peer identity while sharing a unified view of the user.
+Honcho provides AI-native cross-session user modeling. It learns who the user is across conversations and gives every Iris profile its own peer identity while sharing a unified view of the user.
 
 ## When to Use
 
@@ -32,23 +32,23 @@ Honcho provides AI-native cross-session user modeling. It learns who the user is
 ### Cloud (app.honcho.dev)
 
 ```bash
-hermes memory setup honcho
+iris memory setup honcho
 # select "cloud", paste API key from https://app.honcho.dev
 ```
 
 ### Self-hosted
 
 ```bash
-hermes memory setup honcho
+iris memory setup honcho
 # select "local", enter base URL (e.g. http://localhost:8000)
 ```
 
-See: https://docs.honcho.dev/v3/guides/integrations/hermes#running-honcho-locally-with-hermes
+See: https://docs.honcho.dev/v3/guides/integrations/iris#running-honcho-locally-with-iris
 
 ### Verify
 
 ```bash
-hermes honcho status    # shows resolved config, connection test, peer info
+iris honcho status    # shows resolved config, connection test, peer info
 ```
 
 ## Architecture
@@ -59,7 +59,7 @@ When Honcho injects context into the system prompt (in `hybrid` or `context` rec
 
 1. **Session summary** -- a short digest of the current session so far (placed first so the model has immediate conversational continuity)
 2. **User representation** -- Honcho's accumulated model of the user (preferences, facts, patterns)
-3. **AI peer card** -- the identity card for this Hermes profile's AI peer
+3. **AI peer card** -- the identity card for this Iris profile's AI peer
 
 The session summary is generated automatically by Honcho at the start of each turn (when a prior session exists). It gives the model a warm start without replaying full history.
 
@@ -76,10 +76,10 @@ You do not need to configure this -- it is automatic based on session state.
 
 ### Peers
 
-Honcho models conversations as interactions between **peers**. Hermes creates two peers per session:
+Honcho models conversations as interactions between **peers**. Iris creates two peers per session:
 
 - **User peer** (`peerName`): represents the human. Honcho builds a user representation from observed messages.
-- **AI peer** (`aiPeer`): represents this Hermes instance. Each profile gets its own AI peer so agents develop independent views.
+- **AI peer** (`aiPeer`): represents this Iris instance. Each profile gets its own AI peer so agents develop independent views.
 
 ### Observation
 
@@ -120,10 +120,10 @@ Honcho sessions scope where messages and observations land. Strategy options:
 |----------|----------|
 | `per-directory` (default) | One session per working directory |
 | `per-repo` | One session per git repository root |
-| `per-session` | New Honcho session each Hermes run |
+| `per-session` | New Honcho session each Iris run |
 | `global` | Single session across all directories |
 
-Manual override: `hermes honcho map my-project-name`
+Manual override: `iris honcho map my-project-name`
 
 ### Recall Modes
 
@@ -196,7 +196,7 @@ Higher levels produce richer synthesis but cost more tokens on Honcho's backend.
 
 ## Multi-Profile Setup
 
-Each Hermes profile gets its own Honcho AI peer while sharing the same workspace (user context). This means:
+Each Iris profile gets its own Honcho AI peer while sharing the same workspace (user context). This means:
 
 - All profiles see the same user representation
 - Each profile builds its own AI identity and observations
@@ -205,12 +205,12 @@ Each Hermes profile gets its own Honcho AI peer while sharing the same workspace
 ### Create a profile with Honcho peer
 
 ```bash
-hermes profile create coder --clone
-# creates host block hermes.coder, AI peer "coder", inherits config from default
+iris profile create coder --clone
+# creates host block iris.coder, AI peer "coder", inherits config from default
 ```
 
 What `--clone` does for Honcho:
-1. Creates a `hermes.coder` host block in `honcho.json`
+1. Creates a `iris.coder` host block in `honcho.json`
 2. Sets `aiPeer: "coder"` (the profile name)
 3. Inherits `workspace`, `peerName`, `writeFrequency`, `recallMode`, etc. from default
 4. Eagerly creates the peer in Honcho so it exists before first message
@@ -218,7 +218,7 @@ What `--clone` does for Honcho:
 ### Backfill existing profiles
 
 ```bash
-hermes honcho sync    # creates host blocks for all profiles that don't have one yet
+iris honcho sync    # creates host blocks for all profiles that don't have one yet
 ```
 
 ### Per-profile config
@@ -228,7 +228,7 @@ Override any setting in the host block:
 ```json
 {
   "hosts": {
-    "hermes.coder": {
+    "iris.coder": {
       "aiPeer": "coder",
       "recallMode": "tools",
       "dialecticDepth": 2,
@@ -288,7 +288,7 @@ honcho_conclude delete_id="abc123"    # PII removal
 
 ## Agent Usage Patterns
 
-Guidelines for Hermes when Honcho memory is active.
+Guidelines for Iris when Honcho memory is active.
 
 ### On conversation start
 
@@ -337,7 +337,7 @@ In `hybrid` and `context` modes, base context (user representation + card + sess
 
 ## Config Reference
 
-Config file: `$HERMES_HOME/honcho.json` (profile-local) or `~/.honcho/config.json` (global).
+Config file: `$IRIS_HOME/honcho.json` (profile-local) or `~/.honcho/config.json` (global).
 
 ### Key settings
 
@@ -389,13 +389,13 @@ This fix addresses edge cases where raw user conclusions containing markup or sp
 ## Troubleshooting
 
 ### "Honcho not configured"
-Run `hermes honcho setup`. Ensure `memory.provider: honcho` is in `~/.hermes/config.yaml`.
+Run `iris honcho setup`. Ensure `memory.provider: honcho` is in `~/.iris/config.yaml`.
 
 ### Memory not persisting across sessions
-Check `hermes honcho status` -- verify `saveMessages: true` and `writeFrequency` isn't `session` (which only writes on exit).
+Check `iris honcho status` -- verify `saveMessages: true` and `writeFrequency` isn't `session` (which only writes on exit).
 
 ### Profile not getting its own peer
-Use `--clone` when creating: `hermes profile create <name> --clone`. For existing profiles: `hermes honcho sync`.
+Use `--clone` when creating: `iris profile create <name> --clone`. For existing profiles: `iris honcho sync`.
 
 ### Observation changes in dashboard not reflected
 Observation config is synced from the server on each session init. Start a new session after changing settings in the Honcho UI.
@@ -413,19 +413,19 @@ Session summary requires at least one prior turn in the current Honcho session. 
 
 | Command | Description |
 |---------|-------------|
-| `hermes honcho setup` | Interactive setup wizard (cloud/local, identity, observation, recall, sessions) |
-| `hermes honcho status` | Show resolved config, connection test, peer info for active profile |
-| `hermes honcho enable` | Enable Honcho for the active profile (creates host block if needed) |
-| `hermes honcho disable` | Disable Honcho for the active profile |
-| `hermes honcho peer` | Show or update peer names (`--user <name>`, `--ai <name>`, `--reasoning <level>`) |
-| `hermes honcho peers` | Show peer identities across all profiles |
-| `hermes honcho mode` | Show or set recall mode (`hybrid`, `context`, `tools`) |
-| `hermes honcho tokens` | Show or set token budgets (`--context <N>`, `--dialectic <N>`) |
-| `hermes honcho sessions` | List known directory-to-session-name mappings |
-| `hermes honcho map <name>` | Map current working directory to a Honcho session name |
-| `hermes honcho identity` | Seed AI peer identity or show both peer representations |
-| `hermes honcho sync` | Create host blocks for all Hermes profiles that don't have one yet |
-| `hermes honcho migrate` | Step-by-step migration guide from OpenClaw native memory to Hermes + Honcho |
-| `hermes memory setup` | Generic memory provider picker (selecting "honcho" runs the same wizard) |
-| `hermes memory status` | Show active memory provider and config |
-| `hermes memory off` | Disable external memory provider |
+| `iris honcho setup` | Interactive setup wizard (cloud/local, identity, observation, recall, sessions) |
+| `iris honcho status` | Show resolved config, connection test, peer info for active profile |
+| `iris honcho enable` | Enable Honcho for the active profile (creates host block if needed) |
+| `iris honcho disable` | Disable Honcho for the active profile |
+| `iris honcho peer` | Show or update peer names (`--user <name>`, `--ai <name>`, `--reasoning <level>`) |
+| `iris honcho peers` | Show peer identities across all profiles |
+| `iris honcho mode` | Show or set recall mode (`hybrid`, `context`, `tools`) |
+| `iris honcho tokens` | Show or set token budgets (`--context <N>`, `--dialectic <N>`) |
+| `iris honcho sessions` | List known directory-to-session-name mappings |
+| `iris honcho map <name>` | Map current working directory to a Honcho session name |
+| `iris honcho identity` | Seed AI peer identity or show both peer representations |
+| `iris honcho sync` | Create host blocks for all Iris profiles that don't have one yet |
+| `iris honcho migrate` | Step-by-step migration guide from OpenClaw native memory to Iris + Honcho |
+| `iris memory setup` | Generic memory provider picker (selecting "honcho" runs the same wizard) |
+| `iris memory status` | Show active memory provider and config |
+| `iris memory off` | Disable external memory provider |

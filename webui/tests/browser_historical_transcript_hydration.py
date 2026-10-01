@@ -147,12 +147,12 @@ def main() -> int:
         return 2
 
     repo_root = Path(__file__).resolve().parent.parent
-    state_tmp = tempfile.TemporaryDirectory(prefix="hermes-historical-hydration-")
+    state_tmp = tempfile.TemporaryDirectory(prefix="iris-historical-hydration-")
     state_dir = Path(state_tmp.name)
     artifact_env = str(os.environ.get("HISTORICAL_HYDRATION_ARTIFACT_DIR") or "").strip()
     artifact_dir_owned = not bool(artifact_env)
     artifact_dir = Path(artifact_env) if artifact_env else Path(
-        tempfile.mkdtemp(prefix="hermes-historical-hydration-artifacts-")
+        tempfile.mkdtemp(prefix="iris-historical-hydration-artifacts-")
     )
     artifact_dir.mkdir(parents=True, exist_ok=True)
     agent_dir = state_dir / "no-agent"
@@ -166,20 +166,20 @@ def main() -> int:
             env.pop(key, None)
     for key in (
         "API_SERVER_KEY",
-        "HERMES_WEBUI_PASSWORD",
-        "HERMES_WEBUI_EXTENSION_DIR",
-        "HERMES_WEBUI_EXTENSION_MANIFEST",
+        "IRIS_WEBUI_PASSWORD",
+        "IRIS_WEBUI_EXTENSION_DIR",
+        "IRIS_WEBUI_EXTENSION_MANIFEST",
     ):
         env.pop(key, None)
     env.update({
-        "HERMES_WEBUI_HOST": "127.0.0.1",
-        "HERMES_WEBUI_STATE_DIR": str(state_dir / "webui-state"),
-        "HERMES_HOME": str(state_dir / "hermes-home"),
-        "HERMES_BASE_HOME": str(state_dir / "hermes-home"),
-        "HERMES_CONFIG_PATH": str(state_dir / "hermes-home" / "config.yaml"),
-        "HERMES_WEBUI_SKIP_ONBOARDING": "1",
-        "HERMES_WEBUI_AGENT_DIR": str(agent_dir),
-        "HERMES_WEBUI_DEFAULT_WORKSPACE": str(workspace_dir),
+        "IRIS_WEBUI_HOST": "127.0.0.1",
+        "IRIS_WEBUI_STATE_DIR": str(state_dir / "webui-state"),
+        "IRIS_HOME": str(state_dir / "iris-home"),
+        "IRIS_BASE_HOME": str(state_dir / "iris-home"),
+        "IRIS_CONFIG_PATH": str(state_dir / "iris-home" / "config.yaml"),
+        "IRIS_WEBUI_SKIP_ONBOARDING": "1",
+        "IRIS_WEBUI_AGENT_DIR": str(agent_dir),
+        "IRIS_WEBUI_DEFAULT_WORKSPACE": str(workspace_dir),
         "NO_PROXY": "127.0.0.1,localhost",
         "no_proxy": "127.0.0.1,localhost",
     })

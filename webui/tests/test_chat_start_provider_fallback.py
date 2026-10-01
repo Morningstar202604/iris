@@ -87,7 +87,7 @@ const localStorage = {
   setItem(k, v) { store.set(k, String(v)); },
   removeItem(k) { store.delete(k); },
 };
-const MODEL_STATE_KEY = 'hermes-webui-model-state';
+const MODEL_STATE_KEY = 'iris-webui-model-state';
 
 for (const name of [
   '_getOptionProviderId',

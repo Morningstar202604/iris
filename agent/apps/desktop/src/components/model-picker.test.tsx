@@ -1,5 +1,5 @@
-import type { ModelOptionsResult } from '@hermes/shared'
-import { fuzzyRank, modelSearchText } from '@hermes/shared'
+import type { ModelOptionsResult } from '@iris/shared'
+import { fuzzyRank, modelSearchText } from '@iris/shared'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
@@ -9,11 +9,11 @@ import { I18nProvider } from '@/i18n'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { $localRuntimeJobs } from '@/store/local-runtime-jobs'
 import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/iris'
 
 import { ModelPickerDialog } from './model-picker'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getLocalModelsStatus: vi.fn().mockResolvedValue({ loading: {} })
 }))
 vi.mock('@/lib/model-options', async importOriginal => ({
@@ -40,7 +40,7 @@ const OPTIONS: ModelOptionsResult = {
     {
       slug: 'nous',
       name: 'Nous',
-      models: ['Hermes-4.5'],
+      models: ['Iris-4.5'],
       authenticated: true
     }
   ]
@@ -118,7 +118,7 @@ describe('ModelPickerDialog download rows', () => {
     })
     renderPicker()
 
-    expect(await screen.findByText('Hermes-4.5')).toBeTruthy()
+    expect(await screen.findByText('Iris-4.5')).toBeTruthy()
     expect(screen.getByText('Qwen3.8 Flash Next (UD-Q4_K_XL)')).toBeTruthy()
     expect(screen.getByText('41%')).toBeTruthy()
   })

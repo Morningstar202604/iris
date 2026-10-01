@@ -37,8 +37,8 @@ function mount(target: string, surfaceId: string, key = 'draft-a') {
 }
 
 function bridge() {
-  window.hermesDesktop = {
-    ...window.hermesDesktop,
+  window.irisDesktop = {
+    ...window.irisDesktop,
     screenshot: {
       getSettings: vi.fn(),
       setEnabled: vi.fn(),
@@ -58,7 +58,7 @@ afterEach(() => {
   cleanup()
   listeners.clear()
   vi.clearAllMocks()
-  delete window.hermesDesktop.screenshot
+  delete window.irisDesktop.screenshot
   markActiveComposer('main')
 })
 

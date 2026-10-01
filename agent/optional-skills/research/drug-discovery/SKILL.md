@@ -6,7 +6,7 @@ version: 1.0.0
 author: bennytimz
 license: MIT
 metadata:
-  hermes:
+  iris:
     tags: [science, chemistry, pharmacology, research, health]
 prerequisites:
   commands: [curl, python]

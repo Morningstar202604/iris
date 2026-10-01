@@ -1,4 +1,4 @@
-import { parseColor, THEME_PRESET_PALETTES, type ThemePresetPalette } from "@hermes/shared";
+import { parseColor, THEME_PRESET_PALETTES, type ThemePresetPalette } from "@iris/shared";
 import type { DashboardTheme, ThemePalette, ThemeTypography, ThemeLayout } from "./types";
 
 /**
@@ -9,10 +9,10 @@ import type { DashboardTheme, ThemePalette, ThemeTypography, ThemeLayout } from 
  * corner-radius all shift to match the theme's personality.
  *
  * Theme names must stay in sync with the backend's
- * `_BUILTIN_DASHBOARD_THEMES` list in `hermes_cli/web_server.py`.
+ * `_BUILTIN_DASHBOARD_THEMES` list in `iris_cli/web_server.py`.
  *
  * Presets that also ship on the desktop (midnight, ember, mono, cyberpunk)
- * take their colours from `@hermes/shared` `THEME_PRESET_PALETTES` so both
+ * take their colours from `@iris/shared` `THEME_PRESET_PALETTES` so both
  * surfaces render one palette; only typography/layout/overrides live here.
  */
 
@@ -67,8 +67,8 @@ export function webPresetFromShared(
 
 export const defaultTheme: DashboardTheme = {
   name: "default",
-  label: "Hermes Teal",
-  description: "Classic dark teal — the canonical Hermes look",
+  label: "Iris Teal",
+  description: "Classic dark teal — the canonical Iris look",
   palette: {
     background: { hex: "#041c1c", alpha: 1 },
     midground: { hex: "#ffe6cb", alpha: 1 },
@@ -229,8 +229,8 @@ export const nousBlueTheme: DashboardTheme = {
  */
 export const defaultLargeTheme: DashboardTheme = {
   name: "default-large",
-  label: "Hermes Teal (Large)",
-  description: "Hermes Teal with bigger fonts and roomier spacing",
+  label: "Iris Teal (Large)",
+  description: "Iris Teal with bigger fonts and roomier spacing",
   palette: defaultTheme.palette,
   typography: {
     ...DEFAULT_TYPOGRAPHY,

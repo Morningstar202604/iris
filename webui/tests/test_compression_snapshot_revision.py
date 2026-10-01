@@ -195,9 +195,9 @@ def _install_streaming_session(monkeypatch, tmp_path, *, sid, stream_id, message
     monkeypatch.setattr(config, "get_config", lambda: {})
     monkeypatch.setattr(config, "_resolve_cli_toolsets", lambda *_args, **_kwargs: [])
 
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.__dict__["SessionDB"] = lambda *_args, **_kwargs: object()
-    monkeypatch.setitem(sys.modules, "hermes_state", fake_hermes_state)
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.__dict__["SessionDB"] = lambda *_args, **_kwargs: object()
+    monkeypatch.setitem(sys.modules, "iris_state", fake_iris_state)
 
     return session, event_queue
 
@@ -789,7 +789,7 @@ def test_webui_run_passes_revision_from_original_snapshot_when_sqlite_changes_be
     )
     session.profile = "named-profile"
     session.save(touch_updated_at=False)
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda _profile: profile_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda _profile: profile_home)
     monkeypatch.setattr(profiles, "get_profile_runtime_env", lambda _home: {})
 
     original_reconcile = streaming.reconciled_state_db_messages_for_session
@@ -880,7 +880,7 @@ def test_webui_run_missing_explicit_profile_passes_no_foreign_revision(
     )
     session.profile = "missing"
     session.save(touch_updated_at=False)
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda _profile: missing_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda _profile: missing_home)
     monkeypatch.setattr(profiles, "get_profile_runtime_env", lambda _home: {})
     captured = {}
 

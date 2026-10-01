@@ -78,7 +78,7 @@ describe('gateway `error` event → error card + toast', () => {
   it("keeps the server's own plain copy as the toast message when no code was recovered", () => {
     // tui_gateway/user_messages.py already writes actionable sentences for
     // pre-turn failures; the generic "couldn't finish" gloss must not bury them.
-    const serverCopy = 'Hermes could not start the assistant for this chat. Check your model settings and try again.'
+    const serverCopy = 'Iris could not start the assistant for this chat. Check your model settings and try again.'
     const { ctx, failAssistantMessage } = errorContext(serverCopy)
 
     handleStatusEvent(ctx)

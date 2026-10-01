@@ -116,7 +116,7 @@ const attachmentOnlyWakeup = {
   attachments: [{name: 'result.txt'}],
 };
 const markerWakeupContent = [
-  '[Workspace::v1: /tmp/hermes]',
+  '[Workspace::v1: /tmp/iris]',
   'Visible wakeup text',
   '',
   '[Attached files: result.txt]',

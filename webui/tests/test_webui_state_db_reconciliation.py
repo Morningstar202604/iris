@@ -107,7 +107,7 @@ def _install_test_session(monkeypatch, tmp_path, sid, sidecar_messages):
     monkeypatch.setattr(models, "SESSION_DIR", session_dir, raising=False)
     monkeypatch.setattr(models, "SESSION_INDEX_FILE", session_dir / "_index.json", raising=False)
     monkeypatch.setattr(models, "SESSIONS", OrderedDict(), raising=False)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(models, "_active_state_db_path", lambda: tmp_path / "state.db", raising=False)
     monkeypatch.setattr(routes, "_active_state_db_path", lambda: tmp_path / "state.db", raising=False)
     session_dir.mkdir(parents=True, exist_ok=True)
@@ -587,8 +587,8 @@ def test_api_sessions_overlays_webui_state_db_summary_after_desktop_append(monke
     first_row = next(row for row in first.response_json["sessions"] if row["session_id"] == sid)
     assert first_row["message_count"] == 2
 
-    # Simulate the official Hermes Desktop App continuing the same WebUI-origin
-    # Hermes Agent session and settling its final rows into state.db. The second
+    # Simulate the official Iris Desktop App continuing the same WebUI-origin
+    # Iris Agent session and settling its final rows into state.db. The second
     # request happens immediately, so it only updates if the WebUI sidebar cache
     # observes state.db changes even when the CLI/external-session tab is hidden.
     _append_state_db_rows(
@@ -1423,7 +1423,7 @@ def test_deferred_session_model_resolution_uses_profile_provider(monkeypatch, tm
     )
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: profile_home,
         raising=False,
     )

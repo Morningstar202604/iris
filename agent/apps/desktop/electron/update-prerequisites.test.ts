@@ -8,7 +8,7 @@ import { test } from 'vitest'
 import { windowsUpdatePrerequisiteError } from './updater-process'
 
 test('handoff prerequisites fail closed without requiring dependencies, shim or browser UI', () => {
-  const root = mkdtempSync(path.join(tmpdir(), 'hermes-prerequisites-'))
+  const root = mkdtempSync(path.join(tmpdir(), 'iris-prerequisites-'))
 
   try {
     const python = path.join(root, 'venv', 'Scripts', 'python.exe')

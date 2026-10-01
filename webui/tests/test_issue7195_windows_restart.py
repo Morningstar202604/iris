@@ -86,7 +86,7 @@ def test_reported_pytest_argv_restarts_canonical_server(monkeypatch):
 @pytest.mark.parametrize("argv", [
     ["server.py"],
     ["python", "-m", "server"],
-    ["hermes-webui", "--profile", "default"],
+    ["iris-webui", "--profile", "default"],
     ["wrapper", "--run", "server.py"],
 ])
 def test_source_restart_always_targets_server(monkeypatch, argv):
@@ -95,7 +95,7 @@ def test_source_restart_always_targets_server(monkeypatch, argv):
 
 
 def test_frozen_restart_preserves_argv(monkeypatch):
-    argv = [r"C:\Apps\Hermes\hermes.exe", "--profile", "default"]
+    argv = [r"C:\Apps\Iris\iris.exe", "--profile", "default"]
     assert next(event for event in _run_restart(monkeypatch, argv=argv, frozen=True) if event[0] == "spawn")[1] == argv
 
 

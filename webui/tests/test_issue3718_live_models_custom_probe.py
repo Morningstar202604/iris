@@ -33,13 +33,13 @@ import pytest
 
 
 def _install_provider_model_ids(monkeypatch, fn):
-    """Stub hermes_cli.models.provider_model_ids (returns [] for custom:*)."""
-    hermes_cli = types.ModuleType("hermes_cli")
-    hermes_cli.__path__ = []
-    models = types.ModuleType("hermes_cli.models")
+    """Stub iris_cli.models.provider_model_ids (returns [] for custom:*)."""
+    iris_cli = types.ModuleType("iris_cli")
+    iris_cli.__path__ = []
+    models = types.ModuleType("iris_cli.models")
     models.provider_model_ids = fn
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", models)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", models)
 
 
 class _FakeResponse(io.BytesIO):
@@ -129,7 +129,7 @@ def test_allowlist_filters_live_catalog(monkeypatch, models_value):
     """An explicit plural allowlist must trim the live catalog to itself.
 
     The JSON-array-string and Python-literal cases are the regression: those
-    shapes are what ``hermes config set`` / JSON-mode editor saves persist, and
+    shapes are what ``iris config set`` / JSON-mode editor saves persist, and
     a dict/list-only parser drops them to ``[]`` → read as "no allowlist" → the
     full upstream catalog floods the picker.
     """
@@ -149,7 +149,7 @@ def test_allowlist_filters_live_catalog(monkeypatch, models_value):
 def test_dict_models_without_discover_false_does_not_gate(monkeypatch):
     """A dict-shaped ``models`` is per-model metadata — NOT an allowlist (#7165).
 
-    Hermes Agent's setup flow and ``hermes_cli/model_switch.py::_save_custom_provider``
+    Iris Agent's setup flow and ``iris_cli/model_switch.py::_save_custom_provider``
     persist per-model metadata as a mapping, e.g. ``{chat-a: {context_length: 128000}}``.
     Treating its keys as an allowlist would collapse the live picker to the saved
     default while the CLI live-probe shows the full catalog.  Without an explicit
@@ -313,7 +313,7 @@ def test_empty_allowlist_is_treated_as_not_configured(monkeypatch, models_value)
 def test_models_discovered_catalog_is_not_an_allowlist(monkeypatch):
     """``models_discovered: true`` marks ``models:`` as discovery metadata (#7165).
 
-    Hermes persists *discovery results* back into config as ``models: {...}``
+    Iris persists *discovery results* back into config as ``models: {...}``
     plus ``models_discovered: true``. That mapping is a snapshot of what the
     gateway exposed at discovery time — NOT a hand-curated allowlist. Treating
     it as one permanently pins the live catalog to the first-discovery set, so

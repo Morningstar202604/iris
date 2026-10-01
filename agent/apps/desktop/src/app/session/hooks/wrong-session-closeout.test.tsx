@@ -35,7 +35,7 @@ import {
   setSessions
 } from '@/store/session'
 import { $focusedStoredSessionId, $sessionTiles, clearAllSessionStates } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 import { useSessionActions } from './use-session-actions'
 import { useSessionStateCache } from './use-session-state-cache'

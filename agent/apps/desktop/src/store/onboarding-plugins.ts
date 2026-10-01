@@ -5,7 +5,7 @@
  * each app from the plugin's pinned declaration (`plugins.manage action=onboarding`). The card only
  * orders and draws them. A failed or missing RPC is an empty list: the connectors half still works.
  */
-import type { OnboardingCatalogPlugin } from '@hermes/shared'
+import type { OnboardingCatalogPlugin } from '@iris/shared'
 import { useQuery } from '@tanstack/react-query'
 
 import { resolveSessionOwner } from '@/app/session/hooks/use-session-actions/utils'

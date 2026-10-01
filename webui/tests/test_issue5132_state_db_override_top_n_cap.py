@@ -14,7 +14,7 @@ regression — see test_source_classification_is_never_capped below):
   * The expensive MESSAGES aggregation (COUNT(*)/MAX(timestamp) GROUP BY) — the actual
     bottleneck — is capped to the top-N (default 300) paint-priority rows.
 
-The cap is env-configurable (HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N) and fails open.
+The cap is env-configurable (IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N) and fails open.
 
 These tests pin: (1) source ids are NEVER capped; (2) count ids ARE capped to top-N;
 (3) the env override bounds the COUNT tier; (4) a non-positive / unparseable cap;
@@ -51,7 +51,7 @@ def _sessions(n):
 def test_source_classification_is_never_capped(monkeypatch):
     """SOURCE tier must cover ALL rows (capping it dropped rows from the sidebar — #5132 regression)."""
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.delenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
     models._apply_sidebar_state_db_overrides(_sessions(1000))
     assert seen["source_ids"] == {f"s{i}" for i in range(1000)}, (
         "Source/title classification must be read for EVERY row, never capped"
@@ -60,7 +60,7 @@ def test_source_classification_is_never_capped(monkeypatch):
 
 def test_count_aggregation_capped_to_top_n_default_300(monkeypatch):
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.delenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
     models._apply_sidebar_state_db_overrides(_sessions(1000))
     assert seen["count_ids"] == {f"s{i}" for i in range(300)}, (
         "The expensive message-count aggregation must be capped to the top-300"
@@ -69,10 +69,10 @@ def test_count_aggregation_capped_to_top_n_default_300(monkeypatch):
 
 def test_env_override_changes_count_cap(monkeypatch):
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", "50")
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", "50")
     models._apply_sidebar_state_db_overrides(_sessions(1000))
     assert seen["count_ids"] == {f"s{i}" for i in range(50)}, (
-        "HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N must bound the COUNT tier"
+        "IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N must bound the COUNT tier"
     )
     assert seen["source_ids"] == {f"s{i}" for i in range(1000)}, (
         "...but the source tier stays uncapped"
@@ -81,7 +81,7 @@ def test_env_override_changes_count_cap(monkeypatch):
 
 def test_non_positive_cap_disables_capping(monkeypatch):
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", "0")
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", "0")
     models._apply_sidebar_state_db_overrides(_sessions(500))
     assert seen["count_ids"] is None, "cap<=0 must disable the count cap (count every row)"
     assert len(seen["source_ids"]) == 500
@@ -89,7 +89,7 @@ def test_non_positive_cap_disables_capping(monkeypatch):
 
 def test_unparseable_cap_falls_back_to_default(monkeypatch):
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", "not-a-number")
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", "not-a-number")
     models._apply_sidebar_state_db_overrides(_sessions(1000))
     assert seen["count_ids"] == {f"s{i}" for i in range(300)}, (
         "An unparseable cap must fall back to the default 300, not crash"
@@ -98,7 +98,7 @@ def test_unparseable_cap_falls_back_to_default(monkeypatch):
 
 def test_list_under_cap_counts_everything(monkeypatch):
     seen = _capture_probed_ids(monkeypatch)
-    monkeypatch.delenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
     models._apply_sidebar_state_db_overrides(_sessions(120))
     assert seen["count_ids"] is None, "A list at/under the cap counts every row (no cap needed)"
     assert seen["source_ids"] == {f"s{i}" for i in range(120)}
@@ -157,7 +157,7 @@ def test_stale_cli_json_beyond_cap_stays_webui_via_real_db(monkeypatch, tmp_path
     conn.close()
 
     monkeypatch.setattr(models, "_active_state_db_path", lambda: db)
-    monkeypatch.delenv("HERMES_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_STATE_DB_OVERRIDE_TOP_N", raising=False)
 
     sessions = _sessions(500)
     # JSON metadata wrongly marks it CLI.

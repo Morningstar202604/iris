@@ -73,7 +73,7 @@ import {
   $updateStatus,
   openUpdateOverlayFor
 } from '@/store/updates'
-import type { StatusResponse, UsageStats } from '@/types/hermes'
+import type { StatusResponse, UsageStats } from '@/types/iris'
 
 import { CRON_ROUTE, SETTINGS_ROUTE, WEBHOOKS_ROUTE } from '../../routes'
 import type { StatusbarItem } from '../statusbar-controls'
@@ -122,7 +122,7 @@ export function useStatusbarItems({
   const terminalShowing = useStore($paneVisible('terminal'))
   const sessionsShowing = useStore($paneVisible('sessions'))
   const profileRailVisible = useStore($profileRailVisible)
-  const botsShowing = useStore($paneVisible('hermes-bots:pane'))
+  const botsShowing = useStore($paneVisible('iris-bots:pane'))
   const primaryBusy = useStore($busy)
   // Draft / primary composer atom — used only while the focused surface is the
   // primary (or a draft with no runtime slice yet). A focused TILE keeps its

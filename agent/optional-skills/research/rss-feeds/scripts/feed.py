@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read RSS / Atom / JSON Feed sources and discover feeds behind a page URL.
 
-Standard library only, so it runs in any Hermes environment without an install
+Standard library only, so it runs in any Iris environment without an install
 step. Output is JSON (``--json``) or a compact text listing.
 
     python3 feed.py read https://example.com/feed.xml [--limit N] [--since 2026-09-01]
@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-USER_AGENT = "hermes-agent/1.0 (rss-feeds skill; +https://github.com/NousResearch/hermes-agent)"
+USER_AGENT = "iris-agent/1.0 (rss-feeds skill; +https://github.com/X33834/iris)"
 TIMEOUT = 20
 NS = {
     "atom": "http://www.w3.org/2005/Atom",

@@ -17,7 +17,7 @@ class TestIssue4536ServiceTier:
            (str(config_path), st_mtime_ns, st_size). pytest reuses tmp_path base
            dirs across the session, so a prior test's config.yaml can share both
            the path string AND the (mtime_ns, size) of this test's tiny file
-           (same coarse mtime tick) → set_hermes_default_model() reads the STALE
+           (same coarse mtime tick) → set_iris_default_model() reads the STALE
            cached dict (e.g. an lmstudio config) and writes THAT back, so the
            on-disk assertion sees the wrong provider. This is the actual root
            cause of the #4536 service_tier flake.
@@ -54,7 +54,7 @@ class TestIssue4536ServiceTier:
         monkeypatch.setattr(config, "_get_config_path", lambda: config_path)
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
 
-        result = config.set_hermes_default_model(
+        result = config.set_iris_default_model(
             "gpt-5.5",
             advanced={"service_tier": "priority"},
         )
@@ -77,7 +77,7 @@ class TestIssue4536ServiceTier:
         monkeypatch.setattr(config, "_get_config_path", lambda: config_path)
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
 
-        result = config.set_hermes_default_model(
+        result = config.set_iris_default_model(
             "gpt-5.5",
             advanced={"service_tier": "default"},
         )
@@ -207,14 +207,14 @@ class TestIssue4536ServiceTier:
             {"model": {"provider": "openai", "default": "gpt-5.5"}},
         )
 
-        result = config.set_hermes_default_model("meta-llama/llama-3.1")
+        result = config.set_iris_default_model("meta-llama/llama-3.1")
 
         assert result["ok"] is True
         text = config_path.read_text(encoding="utf-8")
         assert "service_tier" not in text
 
     def test_standalone_agent_import_failure_preserves_supported_service_tier(self, monkeypatch, tmp_path):
-        """If hermes_cli is unavailable, Settings saves should not delete supported service_tier state."""
+        """If iris_cli is unavailable, Settings saves should not delete supported service_tier state."""
         from api import config
 
         config_path = tmp_path / "config.yaml"
@@ -229,13 +229,13 @@ class TestIssue4536ServiceTier:
             "cfg",
             {"model": {"provider": "openai-codex", "default": "gpt-5.5", "service_tier": "priority"}},
         )
-        monkeypatch.setitem(sys.modules, "hermes_cli.models", None)
+        monkeypatch.setitem(sys.modules, "iris_cli.models", None)
 
         assert config._main_model_request_overrides(
             {"model": {"provider": "openai-codex", "default": "gpt-5.5", "service_tier": "priority"}},
         ) == {"service_tier": "priority"}
 
-        result = config.set_hermes_default_model("gpt-5.5", provider="openai-codex")
+        result = config.set_iris_default_model("gpt-5.5", provider="openai-codex")
 
         assert result["ok"] is True
         text = config_path.read_text(encoding="utf-8")
@@ -245,7 +245,7 @@ class TestIssue4536ServiceTier:
         """The compatibility fallback must not broadly enable Codex-specific model slugs."""
         from api import config
 
-        monkeypatch.setitem(sys.modules, "hermes_cli.models", None)
+        monkeypatch.setitem(sys.modules, "iris_cli.models", None)
 
         assert config._main_model_request_overrides(
             {"model": {"provider": "openai-codex", "default": "gpt-5.3-codex", "service_tier": "priority"}},

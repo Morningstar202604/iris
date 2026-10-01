@@ -11,7 +11,7 @@ from .base import JsonValue, Params, Payload, Result, WireEnum
 
 class OpenModel(Result):
     """A result/payload row whose known fields are typed but which the producer may extend
-    (the closed set is owned elsewhere: hermes_state rows, provider inventories)."""
+    (the closed set is owned elsewhere: iris_state rows, provider inventories)."""
 
     model_config = Result.model_config | {"extra": "allow"}
 
@@ -68,7 +68,7 @@ class SessionLiveInfo(OpenModel):
     provider: str = ""
     reasoning_effort: str = ""
     # The level the route's entry clamp actually sends for ``reasoning_effort`` ("" when unset/none;
-    # equal when verbatim). Lets clients label a clamped Hermes step ("ultra sends max on this route").
+    # equal when verbatim). Lets clients label a clamped Iris step ("ultra sends max on this route").
     reasoning_effort_wire: str = ""
     service_tier: str = ""
     fast: bool = False
@@ -99,7 +99,7 @@ class SessionLiveInfo(OpenModel):
 
 
 class StoredSessionRow(OpenModel):
-    """One ``sessions`` row as ``hermes_state`` lists it (``session.list`` / ``session.info`` rows /
+    """One ``sessions`` row as ``iris_state`` lists it (``session.list`` / ``session.info`` rows /
     ``sessions.changed``)."""
 
     id: str
@@ -207,7 +207,7 @@ class PendingApproval(OpenModel):
 
 
 class MessageReaction(OpenModel):
-    """One persisted reaction row (``hermes_state_messages.set_message_reaction``); ``seen`` is
+    """One persisted reaction row (``iris_state_messages.set_message_reaction``); ``seen`` is
     stamped once announced."""
 
     emoji: str

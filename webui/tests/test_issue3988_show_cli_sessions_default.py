@@ -1,7 +1,7 @@
 """show_cli_sessions default-True + grandfather migration + hydration consistency (#3988).
 
 The default for ``show_cli_sessions`` flipped to **True** so that NEW installs
-surface CLI / TUI / Telegram / Discord / Hermes One sessions in the WebUI sidebar
+surface CLI / TUI / Telegram / Discord / Iris One sessions in the WebUI sidebar
 without users having to discover the toggle in Settings (the surprise described in
 #3988).
 

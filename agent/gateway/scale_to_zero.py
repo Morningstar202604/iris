@@ -21,7 +21,7 @@ from typing import Any, Iterable, Optional
 
 logger = logging.getLogger(__name__)
 
-SCALE_TO_ZERO_ENV = "HERMES_SCALE_TO_ZERO"  # stamped by NAS when the Labs toggle is on
+SCALE_TO_ZERO_ENV = "IRIS_SCALE_TO_ZERO"  # stamped by NAS when the Labs toggle is on
 FLY_APP_NAME_ENV = "FLY_APP_NAME"  # Fly-injected identity; both needed for self_suspend_available()
 FLY_MACHINE_ID_ENV = "FLY_MACHINE_ID"
 # Local flaps (Fly Machines API) socket; POST .../suspend freezes THIS machine.
@@ -89,12 +89,12 @@ def is_idle(*, active_work_count: int, seconds_since_last_inbound: float,
             and seconds_since_last_inbound >= idle_timeout_seconds)
 
 
-def dashboard_client_heartbeat_path(hermes_home: Optional[os.PathLike | str] = None):
-    """Path of the dashboard-client liveness marker under HERMES_HOME."""
-    if hermes_home is None:
-        from hermes_constants import get_hermes_home
-        hermes_home = get_hermes_home()
-    return Path(hermes_home) / DASHBOARD_CLIENT_HEARTBEAT_REL
+def dashboard_client_heartbeat_path(iris_home: Optional[os.PathLike | str] = None):
+    """Path of the dashboard-client liveness marker under IRIS_HOME."""
+    if iris_home is None:
+        from iris_constants import get_iris_home
+        iris_home = get_iris_home()
+    return Path(iris_home) / DASHBOARD_CLIENT_HEARTBEAT_REL
 
 
 def touch_dashboard_client_heartbeat(path: Optional[os.PathLike | str] = None) -> bool:

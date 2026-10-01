@@ -9,7 +9,7 @@ const desktopRoot = path.resolve(import.meta.dirname, '..')
 const repoRoot = path.resolve(desktopRoot, '..', '..')
 const electronMacPath = path.join(repoRoot, 'node_modules', 'app-builder-lib', 'out', 'electron', 'electronMac.js')
 
-const marker = 'hermes-macos-electron-binary-fallback'
+const marker = 'iris-macos-electron-binary-fallback'
 const needle = `    await Promise.all([
         doRename(path.join(contentsPath, "MacOS"), electronBranding.productName, appPlist.CFBundleExecutable),
         (0, builder_util_1.unlinkIfExists)(path.join(appOutDir, "LICENSE")),

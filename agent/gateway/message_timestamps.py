@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 from typing import Any, Optional, Tuple
 
-from hermes_time import safe_strftime
+from iris_time import safe_strftime
 
 
 # Leading timestamp prefix, either the current human format

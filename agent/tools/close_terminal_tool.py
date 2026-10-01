@@ -1,4 +1,4 @@
-"""Close a read-only agent terminal tab in the Hermes desktop GUI WITHOUT killing
+"""Close a read-only agent terminal tab in the Iris desktop GUI WITHOUT killing
 the mirrored ``terminal(background=true)`` process (output keeps buffering; the user
 can reopen it). Routes through the process registry's ``on_close`` sink, which the
 desktop gateway wires to a ``terminal.close`` event. ``desktop_ui`` toolset only."""
@@ -21,7 +21,7 @@ CLOSE_TERMINAL_SCHEMA = {
     "name": "close_terminal",
     "description": (
         "Hide a background process's terminal tab (process keeps running) in "
-        "the Hermes desktop GUI (the tabs mirroring terminal(background=true) runs). "
+        "the Iris desktop GUI (the tabs mirroring terminal(background=true) runs). "
         "This does NOT kill the process — it only drops the tab/view; the output "
         "keeps buffering and the user can reopen it from the status stack. Use it "
         "to tidy up when a background process's live terminal is no longer worth "

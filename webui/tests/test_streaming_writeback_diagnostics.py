@@ -16,13 +16,13 @@ class _FakeLog:
 def test_stream_writeback_diag_threshold_parsing():
     assert streaming._stream_writeback_diag_threshold_seconds({}) == pytest.approx(0.25)
     assert streaming._stream_writeback_diag_threshold_seconds({
-        "HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS": "0",
+        "IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS": "0",
     }) == 0.0
     assert streaming._stream_writeback_diag_threshold_seconds({
-        "HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS": "-1",
+        "IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS": "-1",
     }) is None
     assert streaming._stream_writeback_diag_threshold_seconds({
-        "HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS": "not-a-number",
+        "IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS": "not-a-number",
     }) == pytest.approx(0.25)
 
 
@@ -46,7 +46,7 @@ def test_stream_writeback_timing_log_respects_threshold():
         1.0,
         clock=lambda: 1.2,
         log=log,
-        environ={"HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS": "500"},
+        environ={"IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS": "500"},
     )
 
     assert emitted is False
@@ -59,7 +59,7 @@ def test_stream_writeback_timing_log_respects_threshold():
         1.0,
         clock=lambda: 1.3,
         log=log,
-        environ={"HERMES_WEBUI_STREAM_WRITEBACK_DIAG_MS": "250"},
+        environ={"IRIS_WEBUI_STREAM_WRITEBACK_DIAG_MS": "250"},
     )
 
     assert emitted is True

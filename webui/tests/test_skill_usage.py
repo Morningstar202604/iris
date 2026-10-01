@@ -23,7 +23,7 @@ class TestReadSkillUsage:
         """Well-formed .usage.json with nested entries is returned as-is."""
         data = {
             "research-arxiv": {"use_count": 12, "view_count": 5},
-            "hermes-agent": {"use_count": 8, "view_count": 3},
+            "iris-agent": {"use_count": 8, "view_count": 3},
         }
         (tmp_path / ".usage.json").write_text(json.dumps(data), encoding="utf-8")
         assert read_skill_usage(tmp_path) == data

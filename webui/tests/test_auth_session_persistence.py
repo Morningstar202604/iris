@@ -17,7 +17,7 @@ from unittest import mock
 
 # Isolate state dir so tests never touch real sessions
 _TEST_STATE = Path(tempfile.mkdtemp())
-os.environ["HERMES_WEBUI_STATE_DIR"] = str(_TEST_STATE)
+os.environ["IRIS_WEBUI_STATE_DIR"] = str(_TEST_STATE)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

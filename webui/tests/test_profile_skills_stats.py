@@ -47,7 +47,7 @@ def test_list_profiles_api_contains_formatted_skills(monkeypatch, tmp_path):
 
     Drives the fast path (``_build_profile_rows_fast``), which discovers
     profiles via the cheap upstream helpers and skips the alias scan, so this
-    patches ``_get_default_hermes_home`` / ``_get_profiles_root`` to point at a
+    patches ``_get_default_iris_home`` / ``_get_profiles_root`` to point at a
     tmp profile layout rather than monkeypatching the (now-bypassed)
     ``list_profiles`` aggregate.
     """
@@ -68,8 +68,8 @@ def test_list_profiles_api_contains_formatted_skills(monkeypatch, tmp_path):
 
     # Point the fast-path discovery helpers at our tmp layout. The base home is
     # surfaced as "default" by _build_profile_rows_fast regardless of dir name.
-    import hermes_cli.profiles as cli_p
-    monkeypatch.setattr(cli_p, "_get_default_hermes_home", lambda: p_default)
+    import iris_cli.profiles as cli_p
+    monkeypatch.setattr(cli_p, "_get_default_iris_home", lambda: p_default)
     monkeypatch.setattr(cli_p, "_get_profiles_root", lambda: profiles_root)
     monkeypatch.setattr(cli_p, "_check_gateway_running", lambda home: False)
 
@@ -178,8 +178,8 @@ def test_list_profiles_api_skips_alias_scan(monkeypatch, tmp_path):
     _write_skill(p_default, "a1")
     _write_config(p_default, [])
 
-    import hermes_cli.profiles as cli_p
-    monkeypatch.setattr(cli_p, "_get_default_hermes_home", lambda: p_default)
+    import iris_cli.profiles as cli_p
+    monkeypatch.setattr(cli_p, "_get_default_iris_home", lambda: p_default)
     monkeypatch.setattr(cli_p, "_get_profiles_root", lambda: tmp_path / "profiles")
     monkeypatch.setattr(cli_p, "_check_gateway_running", lambda home: False)
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
@@ -208,8 +208,8 @@ def test_list_profiles_api_caches_and_invalidates(monkeypatch, tmp_path):
     _write_skill(p_default, "a1")
     _write_config(p_default, [])
 
-    import hermes_cli.profiles as cli_p
-    monkeypatch.setattr(cli_p, "_get_default_hermes_home", lambda: p_default)
+    import iris_cli.profiles as cli_p
+    monkeypatch.setattr(cli_p, "_get_default_iris_home", lambda: p_default)
     monkeypatch.setattr(cli_p, "_get_profiles_root", lambda: tmp_path / "profiles")
     monkeypatch.setattr(cli_p, "_check_gateway_running", lambda home: False)
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
@@ -259,7 +259,7 @@ def test_list_profiles_api_falls_back_when_fast_path_unavailable(monkeypatch, tm
 
     monkeypatch.setattr(profiles, "_build_profile_rows_fast", lambda: None)
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: "default")
-    import hermes_cli.profiles as cli_p
+    import iris_cli.profiles as cli_p
     monkeypatch.setattr(cli_p, "list_profiles", lambda: [FakeProfile("default", p_default)])
 
     profiles._SKILLS_STATS_CACHE.clear()

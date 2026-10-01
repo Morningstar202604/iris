@@ -209,7 +209,7 @@ function PreviewLoadError({
             href={error.url}
             onClick={event => {
               event.preventDefault()
-              void window.hermesDesktop?.openExternal(error.url)
+              void window.irisDesktop?.openExternal(error.url)
             }}
           >
             {compactUrl(error.url)}
@@ -429,7 +429,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
           '({ width: window.innerWidth, height: window.innerHeight })'
         )) as { height: number; width: number }
 
-        const dataUrl = await window.hermesDesktop.capturePreview?.({ rect, viewport, webContentsId })
+        const dataUrl = await window.irisDesktop.capturePreview?.({ rect, viewport, webContentsId })
 
         if (!dataUrl) {
           throw new Error('preview capture is unavailable')
@@ -653,7 +653,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
 
     // Auto-open the preview console so the user can see progress events
     // streaming back from the background agent. Without this, clicking
-    // "Ask Hermes to restart the server" looked like it did nothing —
+    // "Ask Iris to restart the server" looked like it did nothing —
     // the work was happening, but in a collapsed pane.
     consoleState.setOpen(true)
 
@@ -934,8 +934,8 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
     if (
       target.kind !== 'file' ||
       isDesktopFsRemoteMode() ||
-      !window.hermesDesktop?.watchPreviewFile ||
-      !window.hermesDesktop?.onPreviewFileChanged
+      !window.irisDesktop?.watchPreviewFile ||
+      !window.irisDesktop?.onPreviewFileChanged
     ) {
       return
     }
@@ -968,7 +968,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
       reloadPreview()
     }
 
-    const unsubscribe = window.hermesDesktop.onPreviewFileChanged(payload => {
+    const unsubscribe = window.irisDesktop.onPreviewFileChanged(payload => {
       if (!active || payload.id !== watchId) {
         return
       }
@@ -986,11 +986,11 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
       }, FILE_RELOAD_DEBOUNCE_MS)
     })
 
-    void window.hermesDesktop
+    void window.irisDesktop
       .watchPreviewFile(target.url)
       .then(watch => {
         if (!active) {
-          void window.hermesDesktop?.stopPreviewFileWatch?.(watch.id)
+          void window.irisDesktop?.stopPreviewFileWatch?.(watch.id)
 
           return
         }
@@ -1013,7 +1013,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
       }
 
       if (watchId) {
-        void window.hermesDesktop?.stopPreviewFileWatch?.(watchId)
+        void window.irisDesktop?.stopPreviewFileWatch?.(watchId)
       }
     }
   }, [appendConsoleEntry, copy, reloadPreview, target.kind, target.url])
@@ -1043,7 +1043,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
 
     const webview = document.createElement('webview') as PreviewWebview
     webview.className = 'flex h-full w-full flex-1 bg-transparent'
-    webview.setAttribute('partition', 'persist:hermes-preview')
+    webview.setAttribute('partition', 'persist:iris-preview')
     webview.setAttribute('src', target.url)
     webview.setAttribute('webpreferences', 'contextIsolation=yes,nodeIntegration=no,sandbox=yes')
 
@@ -1051,7 +1051,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
     // clicked `_blank` anchor here. Admission is our side of the contract —
     // http/https only, so a guest page can never reach the local-file
     // opener — and the open itself goes through the audited
-    // `hermes:openExternal` channel, never a popup side effect.
+    // `iris:openExternal` channel, never a popup side effect.
     const onGuestExternal = (event: Event) => {
       const detail = event as Event & { args?: unknown[]; channel?: string }
 
@@ -1062,7 +1062,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
       const url = String(detail.args?.[0] ?? '')
 
       if (admitPreviewExternalUrl(url)) {
-        void window.hermesDesktop?.openExternal?.(url)
+        void window.irisDesktop?.openExternal?.(url)
       }
     }
 
@@ -1191,7 +1191,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
         return
       }
 
-      const zoom = window.hermesDesktop?.zoom?.factor?.() || 1
+      const zoom = window.irisDesktop?.zoom?.factor?.() || 1
       // Window CSS point of the click (the menu anchors here).
       const windowX = params.x / zoom
       const windowY = params.y / zoom
@@ -1227,10 +1227,10 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
             const webContentsId = webview.getWebContentsId?.()
 
             if (typeof webContentsId === 'number') {
-              void window.hermesDesktop?.contextMenuGuestAddWord?.({ webContentsId, word })
+              void window.irisDesktop?.contextMenuGuestAddWord?.({ webContentsId, word })
             }
           },
-          copyImage: () => void window.hermesDesktop?.contextMenuCopyImage?.(),
+          copyImage: () => void window.irisDesktop?.contextMenuCopyImage?.(),
           // The tag's edit commands act on the focused webContents, and the
           // menu click just parked focus on the HOST body — measured live:
           // selectAll() with host focus selected the address bar + chat
@@ -1348,7 +1348,7 @@ export function PreviewPane({ embedded = false, onRestartServer, reloadRequest =
             onNavigate={navigateTo}
             onOpenExternal={
               !isBrowserWindow() && !canOpenBrowserWindow()
-                ? () => void window.hermesDesktop?.openExternal(currentUrl)
+                ? () => void window.irisDesktop?.openExternal(currentUrl)
                 : undefined
             }
             onPopIn={isBrowserWindow() ? () => window.close() : undefined}

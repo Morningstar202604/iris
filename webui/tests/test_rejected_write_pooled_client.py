@@ -508,7 +508,7 @@ def auth_on(monkeypatch):
     """Turn password auth on for this test (conftest resets the hash cache)."""
     import api.auth as auth
 
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "pooled-client-regression")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "pooled-client-regression")
     auth._invalidate_password_hash_cache()
     assert auth.is_auth_enabled(), "the auth-path regression needs auth enabled"
     return auth

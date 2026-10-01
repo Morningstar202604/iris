@@ -145,7 +145,7 @@ class TestSidebarCollapseBootJS:
     def test_localstorage_key_constant(self):
         m = re.search(r"const\s+_SIDEBAR_COLLAPSED_KEY\s*=\s*'([^']*)'", BOOT_JS)
         assert m, "_SIDEBAR_COLLAPSED_KEY constant missing from boot.js"
-        assert m.group(1) == "hermes-webui-sidebar-collapsed", \
+        assert m.group(1) == "iris-webui-sidebar-collapsed", \
             f"Unexpected localStorage key: {m.group(1)!r}"
 
     def test_is_desktop_width_function(self):
@@ -216,7 +216,7 @@ class TestSidebarCollapseBootJS:
         depth = 0
         end = BOOT_JS.index("});", idx)
         block = BOOT_JS[idx:end + 3]
-        assert "hermes-webui-sidebar-collapsed" in block, \
+        assert "iris-webui-sidebar-collapsed" in block, \
             "pageshow handler must re-sync sidebar state from localStorage"
         assert "_syncSidebarAria" in block, \
             "pageshow handler must call _syncSidebarAria after re-sync"
@@ -303,8 +303,8 @@ class TestRailButtonsPassFromRailClick:
 
     def test_dashboard_button_unchanged(self):
         # Dashboard opens an external page; must NOT pass fromRailClick
-        assert "openHermesDashboard(event)" in HTML
-        dash_idx = HTML.index("openHermesDashboard(event)")
+        assert "openIrisDashboard(event)" in HTML
+        dash_idx = HTML.index("openIrisDashboard(event)")
         # 200-char window before the dashboard onclick should not mention fromRailClick
         assert "fromRailClick" not in HTML[dash_idx - 200:dash_idx + 50], \
             "Dashboard button should not receive fromRailClick"
@@ -316,12 +316,12 @@ class TestFlashPreventionScript:
     """The inline <script> in <head> sets data-sidebar-collapsed before CSS."""
 
     def test_inline_script_exists(self):
-        assert "hermes-webui-sidebar-collapsed" in HTML, \
+        assert "iris-webui-sidebar-collapsed" in HTML, \
             "Inline flash-prevention script missing from index.html"
 
     def test_inline_script_uses_correct_dataset_key(self):
         # The dataset attribute on <html> must match what CSS targets
-        script_idx = HTML.index("hermes-webui-sidebar-collapsed")
+        script_idx = HTML.index("iris-webui-sidebar-collapsed")
         # Find the enclosing <script>...</script>
         open_tag = HTML.rfind("<script>", 0, script_idx)
         close_tag = HTML.index("</script>", script_idx)
@@ -331,7 +331,7 @@ class TestFlashPreventionScript:
 
     def test_inline_script_runs_before_stylesheet(self):
         # The script must appear before the main stylesheet <link>
-        script_idx = HTML.index("hermes-webui-sidebar-collapsed")
+        script_idx = HTML.index("iris-webui-sidebar-collapsed")
         css_idx = HTML.index('href="static/style.css')
         assert script_idx < css_idx, \
             "Flash-prevention script must run before stylesheet to avoid paint flash"

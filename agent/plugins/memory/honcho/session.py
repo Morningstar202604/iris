@@ -57,7 +57,7 @@ class HonchoSession:
 
 
 class HonchoSessionManager(SessionAuthMixin, SessionPeersMixin, SessionContextMixin, SessionMigrationMixin):
-    """Conversation sessions backed by Honcho, alongside hermes' SQLite state and file memory.
+    """Conversation sessions backed by Honcho, alongside iris' SQLite state and file memory.
     Auth retry, peer-ID resolution, recall and memory-file migration live in the mixins."""
 
     def __init__(

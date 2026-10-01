@@ -84,7 +84,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const registry = api.createAssistantTurnAnchorRegistry({{
   session_id:'sid-1',
   turn_id:'turn-1',
@@ -130,7 +130,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const shadow = api.createAssistantTurnAnchorShadowSnapshot({{
   anchor:{{
     session_id:'sid-shadow',
@@ -178,7 +178,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const registry = api.createAssistantTurnAnchorRegistry({{
   session_id:'sid-scene',
   turn_id:'turn-scene',
@@ -270,7 +270,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const registry = api.createAssistantTurnAnchorRegistry({{
   session_id:'sid-reconcile',
   turn_id:'turn-reconcile',
@@ -354,7 +354,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 
 function node(attrs, text, children, classes) {{
   const attrMap = attrs || {{}};
@@ -491,7 +491,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const projected = api.projectAssistantTurnAnchorSettledMessageFinalAnswer({{
   role:'assistant',
   id:'message-final',
@@ -544,7 +544,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 
 const toolRegistry = api.createAssistantTurnAnchorRegistry({{
   session_id:'sid-tool',
@@ -651,7 +651,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 
 function build(order) {{
   const registry = api.createAssistantTurnAnchorRegistry({{

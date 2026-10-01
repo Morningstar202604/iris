@@ -45,7 +45,7 @@ def test_probe_uses_official_dashboard_status_fingerprint(monkeypatch):
 
     def fake_urlopen(request, timeout):
         calls.append((request.full_url, timeout))
-        return _FakeResponse({"version": "0.12.0", "release_date": "2026-05-01", "hermes_home": "/tmp/hermes"})
+        return _FakeResponse({"version": "0.12.0", "release_date": "2026-05-01", "iris_home": "/tmp/iris"})
 
     from api import dashboard_probe
 
@@ -112,9 +112,9 @@ def test_status_tries_default_loopback_targets_until_dashboard_found(monkeypatch
     from api import dashboard_probe
 
     # This test verifies the default auto-probe sequence. Other tests exercise
-    # .env/bootstrap behavior and may leave HERMES_WEBUI_HOST at 0.0.0.0 in the
+    # .env/bootstrap behavior and may leave IRIS_WEBUI_HOST at 0.0.0.0 in the
     # process env; make the default precondition explicit here.
-    monkeypatch.delenv("HERMES_WEBUI_HOST", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_HOST", raising=False)
 
     attempts = []
 
@@ -168,7 +168,7 @@ def test_status_skips_auto_probe_when_webui_bind_host_is_non_loopback(monkeypatc
     def fail_probe(*args, **kwargs):
         raise AssertionError("auto mode must not probe dashboard when WebUI binds non-loopback")
 
-    monkeypatch.setenv("HERMES_WEBUI_HOST", "0.0.0.0")
+    monkeypatch.setenv("IRIS_WEBUI_HOST", "0.0.0.0")
     monkeypatch.setattr(dashboard_probe, "probe_official_dashboard", fail_probe)
 
     result = dashboard_probe.get_dashboard_status(config_data={})
@@ -202,7 +202,7 @@ def test_dashboard_status_route_returns_safe_payload(monkeypatch):
 
 
 def test_dashboard_config_roundtrip_writes_profile_config_yaml(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(tmp_path / "config.yaml"))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(tmp_path / "config.yaml"))
 
     from api.dashboard_probe import get_dashboard_config, save_dashboard_config
 

@@ -33,7 +33,7 @@ export function createMinimizeToTray(options: Options) {
   const broadcast = () => {
     for (const win of BrowserWindow.getAllWindows()) {
       if (!win.isDestroyed()) {
-        win.webContents.send('hermes:minimize-to-tray:changed', status())
+        win.webContents.send('iris:minimize-to-tray:changed', status())
       }
     }
   }
@@ -153,10 +153,10 @@ export function createMinimizeToTray(options: Options) {
         tray.setToolTip('Iris')
         tray.setContextMenu(
           Menu.buildFromTemplate([
-            { label: 'Show Hermes', click: restore },
+            { label: 'Show Iris', click: restore },
             { type: 'separator' },
             // Do not bypass the ordinary active-work confirmation or teardown.
-            { label: 'Quit Hermes', click: () => app.quit() }
+            { label: 'Quit Iris', click: () => app.quit() }
           ])
         )
 
@@ -263,8 +263,8 @@ export function createMinimizeToTray(options: Options) {
     return operation
   }
 
-  ipcMain.handle('hermes:minimize-to-tray:get', status)
-  ipcMain.handle('hermes:minimize-to-tray:set', (_event, on) => setEnabled(on === true))
+  ipcMain.handle('iris:minimize-to-tray:get', status)
+  ipcMain.handle('iris:minimize-to-tray:set', (_event, on) => setEnabled(on === true))
   app.on('will-quit', destroyTray)
 
   return {

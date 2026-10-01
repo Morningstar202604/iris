@@ -8,9 +8,9 @@ silently fell back. Re-saving from the settings panel set the global
 synchronously, which is why "re-save fixes it".
 
 The fix gives `window._defaultMessageMode` a deterministic value at script top,
-read synchronously from a localStorage mirror ('hermes-default-message-mode',
-with a legacy 'hermes-busy-input-mode' fallback read) that the resolved settings
-+ the save handler both keep in sync — mirroring how hermes-lang / hermes-theme
+read synchronously from a localStorage mirror ('iris-default-message-mode',
+with a legacy 'iris-busy-input-mode' fallback read) that the resolved settings
++ the save handler both keep in sync — mirroring how iris-lang / iris-theme
 are bootstrapped from a synchronous source.
 
 Reported by @b3nw. Issues: #5167 (boot race), #5170 (autosave + panel-load
@@ -90,14 +90,14 @@ class TestSyncMirrorHelpers:
         assert "localStorage.getItem(_DEFAULT_MESSAGE_MODE_KEY" in BOOT_JS, (
             "read helper must read the mode from the same localStorage key"
         )
-        assert "_DEFAULT_MESSAGE_MODE_KEY='hermes-default-message-mode'" in BOOT_JS, (
-            "the dedicated key must be 'hermes-default-message-mode'"
+        assert "_DEFAULT_MESSAGE_MODE_KEY='iris-default-message-mode'" in BOOT_JS, (
+            "the dedicated key must be 'iris-default-message-mode'"
         )
 
     def test_mirror_reads_legacy_key_as_fallback(self):
         """A pre-rename user's persisted preference (under the old
-        'hermes-busy-input-mode' key) must survive the rename via a fallback read."""
-        assert "_LEGACY_DEFAULT_MESSAGE_MODE_KEY='hermes-busy-input-mode'" in BOOT_JS, (
+        'iris-busy-input-mode' key) must survive the rename via a fallback read."""
+        assert "_LEGACY_DEFAULT_MESSAGE_MODE_KEY='iris-busy-input-mode'" in BOOT_JS, (
             "the legacy localStorage key must still be recognised for back-compat"
         )
         assert "localStorage.getItem(_LEGACY_DEFAULT_MESSAGE_MODE_KEY" in BOOT_JS, (

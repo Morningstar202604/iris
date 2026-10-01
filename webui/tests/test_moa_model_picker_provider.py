@@ -27,7 +27,7 @@ def test_moa_presets_render_as_virtual_provider_models(monkeypatch, tmp_path):
         if provider_id == "copilot":
             return ["gpt-5.5"]
         # MoA presets are local config, so the picker must still render them
-        # when older Hermes Agent installs cannot provide provider_model_ids("moa").
+        # when older Iris Agent installs cannot provide provider_model_ids("moa").
         if provider_id == "moa":
             return []
         return []
@@ -83,11 +83,11 @@ def test_resolve_moa_config_uses_selected_preset(monkeypatch):
         }
     }
 
-    hermes_cli_pkg = sys.modules.get("hermes_cli") or ModuleType("hermes_cli")
-    # monkeypatch.setattr restores the REAL hermes_cli.__path__ on teardown;
+    iris_cli_pkg = sys.modules.get("iris_cli") or ModuleType("iris_cli")
+    # monkeypatch.setattr restores the REAL iris_cli.__path__ on teardown;
     # emptying it in place would strand the package for the rest of the suite.
-    monkeypatch.setattr(hermes_cli_pkg, "__path__", [], raising=False)
-    moa_config = ModuleType("hermes_cli.moa_config")
+    monkeypatch.setattr(iris_cli_pkg, "__path__", [], raising=False)
+    moa_config = ModuleType("iris_cli.moa_config")
 
     def normalize_moa_config(raw):
         return {
@@ -103,8 +103,8 @@ def test_resolve_moa_config_uses_selected_preset(monkeypatch):
     moa_config_any.normalize_moa_config = normalize_moa_config
     moa_config_any.resolve_moa_preset = resolve_moa_preset
     moa_config_any.moa_usage = lambda: "Usage: /moa <prompt>"
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.moa_config", moa_config)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.moa_config", moa_config)
     monkeypatch.setattr(commands, "_load_config_for_moa_resolution", lambda: cfg, raising=False)
 
     resolved = commands.resolve_moa_config("Frontier Tuned")
@@ -127,11 +127,11 @@ def test_resolve_moa_config_falls_back_when_preset_resolution_raises(monkeypatch
             "presets": {"default": {"enabled": True}},
         }
     }
-    hermes_cli_pkg = sys.modules.get("hermes_cli") or ModuleType("hermes_cli")
-    # monkeypatch.setattr restores the REAL hermes_cli.__path__ on teardown;
+    iris_cli_pkg = sys.modules.get("iris_cli") or ModuleType("iris_cli")
+    # monkeypatch.setattr restores the REAL iris_cli.__path__ on teardown;
     # emptying it in place would strand the package for the rest of the suite.
-    monkeypatch.setattr(hermes_cli_pkg, "__path__", [], raising=False)
-    moa_config = ModuleType("hermes_cli.moa_config")
+    monkeypatch.setattr(iris_cli_pkg, "__path__", [], raising=False)
+    moa_config = ModuleType("iris_cli.moa_config")
 
     def normalize_moa_config(raw):
         return {
@@ -146,8 +146,8 @@ def test_resolve_moa_config_falls_back_when_preset_resolution_raises(monkeypatch
     moa_config_any.normalize_moa_config = normalize_moa_config
     moa_config_any.resolve_moa_preset = resolve_moa_preset
     moa_config_any.moa_usage = lambda: "Usage: /moa <prompt>"
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.moa_config", moa_config)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.moa_config", moa_config)
     monkeypatch.setattr(commands, "_load_config_for_moa_resolution", lambda: cfg, raising=False)
 
     resolved = commands.resolve_moa_config("broken")
@@ -170,11 +170,11 @@ def test_resolve_moa_config_ignores_non_dict_preset_result(monkeypatch):
             "presets": {"default": {"enabled": True}},
         }
     }
-    hermes_cli_pkg = sys.modules.get("hermes_cli") or ModuleType("hermes_cli")
-    # monkeypatch.setattr restores the REAL hermes_cli.__path__ on teardown;
+    iris_cli_pkg = sys.modules.get("iris_cli") or ModuleType("iris_cli")
+    # monkeypatch.setattr restores the REAL iris_cli.__path__ on teardown;
     # emptying it in place would strand the package for the rest of the suite.
-    monkeypatch.setattr(hermes_cli_pkg, "__path__", [], raising=False)
-    moa_config = ModuleType("hermes_cli.moa_config")
+    monkeypatch.setattr(iris_cli_pkg, "__path__", [], raising=False)
+    moa_config = ModuleType("iris_cli.moa_config")
 
     def normalize_moa_config(raw):
         return {
@@ -182,7 +182,7 @@ def test_resolve_moa_config_ignores_non_dict_preset_result(monkeypatch):
             "presets": raw.get("presets", {}),
         }
 
-    # A hermes-agent build that returns ``None`` for a missing/unknown preset
+    # A iris-agent build that returns ``None`` for a missing/unknown preset
     # instead of raising. Without a dict guard, ``resolved.update(None)`` would
     # raise ``TypeError`` and bypass the routes.py ``except RuntimeError`` guard,
     # surfacing as an unhandled 500 on chat start.
@@ -193,8 +193,8 @@ def test_resolve_moa_config_ignores_non_dict_preset_result(monkeypatch):
     moa_config_any.normalize_moa_config = normalize_moa_config
     moa_config_any.resolve_moa_preset = resolve_moa_preset
     moa_config_any.moa_usage = lambda: "Usage: /moa <prompt>"
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.moa_config", moa_config)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.moa_config", moa_config)
     monkeypatch.setattr(commands, "_load_config_for_moa_resolution", lambda: cfg, raising=False)
 
     resolved = commands.resolve_moa_config("default")

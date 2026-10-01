@@ -1,5 +1,5 @@
 # ── Skill usage reader (read-only) ──
-# Note: .usage.json is written by hermes-agent (tools/skill_usage.py).
+# Note: .usage.json is written by iris-agent (tools/skill_usage.py).
 # WebUI only reads to display usage stats in Insights page.
 
 import json

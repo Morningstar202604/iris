@@ -565,7 +565,7 @@ class TestApprovalHTTPEndpoints:
         # default local backend a mirrored approval is resolved locally
         # instead (see test_issue4771_local_approval_regression.py). Pin the
         # gateway backend so this test exercises the intended 409 path.
-        monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+        monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
 
         with _lock:
             r._pending.pop(sid, None)
@@ -699,7 +699,7 @@ class TestApprovalHTTPEndpoints:
 
         monkeypatch.setattr(r, "j", fake_j)
         monkeypatch.setattr(r, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
-        monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+        monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
         entry = _ApprovalEntry(approval)
         sibling_entry = _ApprovalEntry(sibling)
         with _lock:
@@ -746,7 +746,7 @@ class TestApprovalHTTPEndpoints:
 
         monkeypatch.setattr(r, "j", fake_j)
         monkeypatch.setattr(r, "get_session", lambda _sid: SimpleNamespace(active_stream_id=stream_id))
-        monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+        monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
         entry = _ApprovalEntry(approval)
         with _lock:
             r._pending.pop(sid, None)
@@ -813,7 +813,7 @@ class TestApprovalHTTPEndpoints:
 
         monkeypatch.setattr(r, "j", fake_j)
         monkeypatch.setattr(r, "get_session", lambda _sid: SimpleNamespace(active_stream_id=None))
-        monkeypatch.setenv("HERMES_WEBUI_CHAT_BACKEND", "gateway")
+        monkeypatch.setenv("IRIS_WEBUI_CHAT_BACKEND", "gateway")
         with _lock:
             r._pending.pop(sid, None)
             r._gateway_queues[sid] = [entry_a, entry_b]

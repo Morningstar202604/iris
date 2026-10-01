@@ -443,7 +443,7 @@ console.log(JSON.stringify({{
     assert body["activeProject"] is None
     assert body["selectedSize"] == 0
     assert body["sessionSelectMode"] is False
-    assert body["storageWrites"] == [["hermes-session-source-filter", "cli"]]
+    assert body["storageWrites"] == [["iris-session-source-filter", "cli"]]
     assert body["renderCalls"] == ["cache", {"deferWhileInteracting": False}]
 
 

@@ -6,7 +6,7 @@ A per-subsystem boolean ``write_approval`` gates the agent's cross-session write
 origin (**foreground** turn or **background_review** fork). ``false`` (default)
 writes freely; ``true`` never commits directly: it prompts inline (memory,
 interactive CLI only) or **stages** the write under
-``<HERMES_HOME>/pending/{memory,skills}/<id>.json`` for out-of-band review.
+``<IRIS_HOME>/pending/{memory,skills}/<id>.json`` for out-of-band review.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ def write_approval_enabled(subsystem: str) -> bool:
     if subsystem not in _SUBSYSTEMS:
         return False
     try:
-        from hermes_cli.config import load_config, cfg_get
+        from iris_cli.config import load_config, cfg_get
         return _normalize_enabled(cfg_get(load_config(), subsystem, CONFIG_KEY, default=False))
     except Exception:
         return False
@@ -62,7 +62,7 @@ def _normalize_enabled(value: Any) -> bool:
 # --- Pending store (file-backed) ---
 
 def _pending_path(subsystem: str, pending_id: str) -> Path:
-    return get_hermes_home() / "pending" / subsystem / f"{pending_id}.json"
+    return get_iris_home() / "pending" / subsystem / f"{pending_id}.json"
 
 
 def _pending_files(subsystem: str) -> list:

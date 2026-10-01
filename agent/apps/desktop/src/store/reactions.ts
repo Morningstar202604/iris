@@ -3,7 +3,7 @@ import { $gateway } from '@/store/gateway'
 import { notifyError } from '@/store/notifications'
 import { $activeSessionId, $messages, setMessages } from '@/store/session'
 import { requestForOwnedSession } from '@/store/session-states'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/iris'
 
 /** The six iOS Tapback defaults, in Apple's order. */
 export const QUICK_REACTIONS = ['❤️', '👍', '👎', '😂', '‼️', '❓'] as const

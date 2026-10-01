@@ -17,7 +17,7 @@ The fix gates pool detection behind ``_is_known_model_provider()`` (both the
 ``load_pool`` and the raw-dict ``ImportError`` branches) and, defensively,
 stops the ``else`` branch from painting an unknown id with the global catalog.
 
-These tests mock at the WebUI boundary (stub ``hermes_cli`` + a fake
+These tests mock at the WebUI boundary (stub ``iris_cli`` + a fake
 ``load_pool`` + a fake ``urlopen`` for the base-url probe) and never import
 the bundled ``agent`` package, which is not installed in CI.
 """
@@ -30,26 +30,26 @@ import api.config as config
 import api.profiles as profiles
 
 
-def _install_fake_hermes_cli(monkeypatch, *, with_load_pool: bool = False, pool_data: dict | None = None):
-    """Stub hermes_cli so detection is deterministic and offline.
+def _install_fake_iris_cli(monkeypatch, *, with_load_pool: bool = False, pool_data: dict | None = None):
+    """Stub iris_cli so detection is deterministic and offline.
 
     list_available_providers() returns [] so the ONLY way a provider can be
     detected is via the credential_pool path under test (mirrors the
     test_credential_pool_providers.py helper).
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda pid: []
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
     # Remove the real agent.credential_pool. When with_load_pool is False this
     # forces the ImportError raw-dict fallback path; when True we install a
@@ -114,7 +114,7 @@ def _install_fake_base_url_probe(monkeypatch, model_ids):
 
 def _call_get_available_models(monkeypatch, tmp_path, auth_payload, *,
                                with_load_pool=False, base_url=None, probe_models=None):
-    _install_fake_hermes_cli(
+    _install_fake_iris_cli(
         monkeypatch,
         with_load_pool=with_load_pool,
         pool_data=auth_payload.get("credential_pool", {}),
@@ -123,9 +123,9 @@ def _call_get_available_models(monkeypatch, tmp_path, auth_payload, *,
         _install_fake_base_url_probe(monkeypatch, probe_models or [])
 
     (tmp_path / "auth.json").write_text(json.dumps(auth_payload), encoding="utf-8")
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
 
-    for var in ("OPENAI_API_KEY", "HERMES_API_KEY", "HERMES_OPENAI_API_KEY",
+    for var in ("OPENAI_API_KEY", "IRIS_API_KEY", "IRIS_OPENAI_API_KEY",
                 "LOCAL_API_KEY", "OPENROUTER_API_KEY", "API_KEY"):
         monkeypatch.delenv(var, raising=False)
 

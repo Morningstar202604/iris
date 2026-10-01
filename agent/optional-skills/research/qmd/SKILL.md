@@ -2,13 +2,13 @@
 name: qmd
 description: Hybrid local search over notes, docs, and transcripts.
 version: 1.0.0
-author: Hermes Agent + Teknium
+author: Iris Agent + Teknium
 license: MIT
 platforms: [macos, linux]
 metadata:
-  hermes:
+  iris:
     tags: [Search, Knowledge-Base, RAG, Notes, MCP, Local-AI]
-    related_skills: [obsidian, hermes-agent, arxiv]
+    related_skills: [obsidian, iris-agent, arxiv]
 ---
 
 # QMD — Query Markup Documents
@@ -220,13 +220,13 @@ qmd multi-get "journals/*.md" --json  # Batch retrieve by glob
 ## MCP Integration (Recommended)
 
 qmd exposes an MCP server that provides search tools directly to
-Hermes Agent via the native MCP client. This is the preferred
+Iris Agent via the native MCP client. This is the preferred
 integration — once configured, the agent gets qmd tools automatically
 without needing to load this skill.
 
 ### Option A: Stdio Mode (Simple)
 
-Add to `~/.hermes/config.yaml`:
+Add to `~/.iris/config.yaml`:
 
 ```yaml
 mcp_servers:
@@ -254,7 +254,7 @@ qmd mcp --http --daemon
 # Runs on http://localhost:8181 by default
 ```
 
-Then configure Hermes Agent to connect via HTTP:
+Then configure Iris Agent to connect via HTTP:
 
 ```yaml
 mcp_servers:
@@ -291,9 +291,9 @@ cat > ~/Library/LaunchAgents/com.qmd.daemon.plist << 'EOF'
   <key>KeepAlive</key>
   <true/>
   <key>StandardOutPath</key>
-  <string>/Users/YOU/.hermes/cache/scratch/qmd-daemon.log</string>
+  <string>/Users/YOU/.iris/cache/scratch/qmd-daemon.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/YOU/.hermes/cache/scratch/qmd-daemon.log</string>
+  <string>/Users/YOU/.iris/cache/scratch/qmd-daemon.log</string>
 </dict>
 </plist>
 EOF

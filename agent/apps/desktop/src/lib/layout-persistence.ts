@@ -11,20 +11,20 @@ interface LayoutEntry {
 }
 
 export const LAYOUT_KEYS = {
-  floating: 'hermes.desktop.floatingPanes.v1',
-  tree: 'hermes.desktop.layoutTree.v2',
-  preset: 'hermes.desktop.layoutPreset.active',
-  panes: 'hermes.desktop.paneStates.v1',
-  dismissed: 'hermes.desktop.dismissedPanes.v1',
-  shares: 'hermes.desktop.paneShare.v1',
-  hiddenTabs: 'hermes.desktop.hiddenStripTabs.v1',
-  placed: 'hermes.desktop.userPlacedPanes.v1',
-  flipped: 'hermes.desktop.panesFlipped',
-  collapsed: 'hermes.desktop.collapsedTreeSides.v1'
+  floating: 'iris.desktop.floatingPanes.v1',
+  tree: 'iris.desktop.layoutTree.v2',
+  preset: 'iris.desktop.layoutPreset.active',
+  panes: 'iris.desktop.paneStates.v1',
+  dismissed: 'iris.desktop.dismissedPanes.v1',
+  shares: 'iris.desktop.paneShare.v1',
+  hiddenTabs: 'iris.desktop.hiddenStripTabs.v1',
+  placed: 'iris.desktop.userPlacedPanes.v1',
+  flipped: 'iris.desktop.panesFlipped',
+  collapsed: 'iris.desktop.collapsedTreeSides.v1'
 } as const
 
 function migrateLayoutScopes(initialMode: InterfaceMode) {
-  const marker = 'hermes.desktop.layoutModeScopes.v1'
+  const marker = 'iris.desktop.layoutModeScopes.v1'
   const legacy = new Map<string, string>()
 
   if (readKey(marker) !== null) {

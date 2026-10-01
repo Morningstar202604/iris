@@ -15,9 +15,9 @@ if str(REPO) not in sys.path:
 
 
 def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch):
-    """WebUI streaming must not rely on hermes_state.DEFAULT_DB_PATH.
+    """WebUI streaming must not rely on iris_state.DEFAULT_DB_PATH.
 
-    ``hermes_state.DEFAULT_DB_PATH`` is frozen at import time. A non-default
+    ``iris_state.DEFAULT_DB_PATH`` is frozen at import time. A non-default
     WebUI profile therefore needs the streaming attach path to pass the already
     resolved profile home to SessionDB explicitly.
     """
@@ -26,7 +26,7 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
     from api import profiles
     from api import streaming
 
-    profile_home = tmp_path / "hermes-home" / "profiles" / "zhangtingban"
+    profile_home = tmp_path / "iris-home" / "profiles" / "zhangtingban"
     profile_home.mkdir(parents=True)
 
     class FakeSession:
@@ -111,16 +111,16 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
         session_db_instances.append(db)
         return db
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "provider": requested or "test-provider",
         "api_key": "synthetic-key",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = fake_session_db
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = fake_session_db
 
     fake_session = FakeSession()
 
@@ -132,7 +132,7 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
         lambda _model, **_kw: ("test-model", "test-provider", None),
     )
     monkeypatch.setattr(streaming, "_maybe_schedule_title_refresh", lambda *args, **kwargs: None)
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda _profile: profile_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda _profile: profile_home)
     monkeypatch.setattr(profiles, "get_profile_runtime_env", lambda _home: {})
     monkeypatch.setattr(
         oauth,
@@ -146,9 +146,9 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
     monkeypatch.setattr("api.config.get_config", lambda: {})
     monkeypatch.setattr("api.config._resolve_cli_toolsets", lambda _cfg: [])
     monkeypatch.setattr("api.config.load_settings", lambda: {})
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
-    monkeypatch.setitem(sys.modules, "hermes_state", fake_hermes_state)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
+    monkeypatch.setitem(sys.modules, "iris_state", fake_iris_state)
 
     with cfg.SESSION_AGENT_CACHE_LOCK:
         cfg.SESSION_AGENT_CACHE.clear()
@@ -160,7 +160,7 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
     streaming.STREAM_LIVE_TOOL_CALLS.clear()
 
     streaming.STREAMS[fake_session.active_stream_id] = queue.Queue()
-    old_home = os.environ.get("HERMES_HOME")
+    old_home = os.environ.get("IRIS_HOME")
     try:
         streaming._run_agent_streaming(
             session_id=fake_session.session_id,
@@ -172,9 +172,9 @@ def test_streaming_sessiondb_uses_session_profile_state_db(tmp_path, monkeypatch
         )
     finally:
         if old_home is None:
-            os.environ.pop("HERMES_HOME", None)
+            os.environ.pop("IRIS_HOME", None)
         else:
-            os.environ["HERMES_HOME"] = old_home
+            os.environ["IRIS_HOME"] = old_home
 
     assert session_db_instances, "streaming should construct a SessionDB for session_search"
     assert session_db_instances[0].db_path == profile_home / "state.db"

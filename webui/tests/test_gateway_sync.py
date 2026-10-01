@@ -25,7 +25,7 @@ from tests._pytest_port import BASE
 def get(path, *, profile=None):
     headers = {}
     if profile:
-        headers["Cookie"] = f"hermes_profile={profile}"
+        headers["Cookie"] = f"iris_profile={profile}"
     req = urllib.request.Request(BASE + path, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as r:
         return json.loads(r.read()), r.status
@@ -35,7 +35,7 @@ def post(path, body=None, *, profile=None):
     data = json.dumps(body or {}).encode()
     headers = {"Content-Type": "application/json"}
     if profile:
-        headers["Cookie"] = f"hermes_profile={profile}"
+        headers["Cookie"] = f"iris_profile={profile}"
     req = urllib.request.Request(BASE + path, data=data, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
@@ -50,11 +50,11 @@ def post(path, body=None, *, profile=None):
 def _get_test_state_dir():
     """Return the test state directory (matches conftest.py TEST_STATE_DIR).
 
-    conftest.py sets HERMES_WEBUI_TEST_STATE_DIR in the test-process environment
+    conftest.py sets IRIS_WEBUI_TEST_STATE_DIR in the test-process environment
     (via os.environ.setdefault) so that tests writing directly to state.db always
     use the same path the test server was started with.  If the env var is not
     set (e.g. when running this file standalone), fall back to the conftest
-    formula via _pytest_port (temp-rooted, never ~/.hermes).
+    formula via _pytest_port (temp-rooted, never ~/.iris).
     """
     # Use _pytest_port which applies the same auto-derivation as conftest.py
     from tests._pytest_port import TEST_STATE_DIR as _ptsd
@@ -1007,7 +1007,7 @@ def test_gateway_session_has_correct_metadata():
 
 
 def test_agent_session_source_normalization_contract():
-    """Raw Hermes Agent sources map to stable WebUI source categories."""
+    """Raw Iris Agent sources map to stable WebUI source categories."""
     from api.agent_sessions import normalize_agent_session_source
 
     cases = {
@@ -1417,7 +1417,7 @@ def test_all_profiles_cli_contexts_normalizes_default_profile_name(tmp_path, mon
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: None)
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda profile_name: tmp_path / (profile_name or "default-home"),
     )
     monkeypatch.setattr(
@@ -2013,7 +2013,7 @@ def test_archiving_raw_messaging_session_imports_without_erasing_agent_memory(cl
 
 
 def test_delete_imported_messaging_session_preserves_agent_memory(cleanup_test_sessions):
-    """WebUI delete must not delete Hermes Agent memory for external channels."""
+    """WebUI delete must not delete Iris Agent memory for external channels."""
     conn = _ensure_state_db()
     sid = 'gw_delete_weixin_safe_001'
     cleanup_test_sessions.append(sid)
@@ -2271,7 +2271,7 @@ def test_session_prefers_state_db_messages_over_stale_local_snapshot(cleanup_tes
         s = Session(
             session_id=sid,
             title='Legacy Local Telegram Snapshot',
-            workspace=str(pathlib.Path.home() / '.hermes'),
+            workspace=str(pathlib.Path.home() / '.iris'),
             model='openai/gpt-5',
             messages=[{"role": r, "content": c, "timestamp": t} for r, c, t in stale_messages],
         )
@@ -2343,7 +2343,7 @@ def test_messaging_session_message_count_matches_deduped_display_messages(cleanu
         s = Session(
             session_id=sid,
             title='Legacy Discord Snapshot',
-            workspace='/tmp/hermes-webui-test',
+            workspace='/tmp/iris-webui-test',
             model='openai/gpt-5',
             messages=[{"role": "user", "content": "Thread question", "timestamp": base_ts + 1}],
             session_source='messaging',
@@ -2597,7 +2597,7 @@ def test_gateway_sse_stream_probe_reports_status():
 def test_gateway_sse_stream_probe_disabled_keeps_session_stream_markers():
     """Disabled probe (404) still signals that /api/session/stream is usable.
 
-    Regression for hermes-webui/hermes-android#58: a client probing the gateway
+    Regression for iris-webui/iris-android#58: a client probing the gateway
     stream while 'agent sessions' are off must be able to tell that persistent
     per-session streaming remains available instead of classifying all SSE as
     unsupported.

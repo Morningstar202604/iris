@@ -1,12 +1,12 @@
 """
-Hermes Web UI -- Profile state management.
-Wraps hermes_cli.profiles to provide profile switching for the web UI.
+Iris Web UI -- Profile state management.
+Wraps iris_cli.profiles to provide profile switching for the web UI.
 
 The web UI maintains a process-level "active profile" that determines which
-HERMES_HOME directory is used for config, skills, memory, cron, and API keys.
-Profile switches update os.environ['HERMES_HOME'] and monkey-patch module-level
-cached paths in hermes-agent modules (skills_tool, skill_manager_tool,
-cron/jobs) that snapshot HERMES_HOME at import time.
+IRIS_HOME directory is used for config, skills, memory, cron, and API keys.
+Profile switches update os.environ['IRIS_HOME'] and monkey-patch module-level
+cached paths in iris-agent modules (skills_tool, skill_manager_tool,
+cron/jobs) that snapshot IRIS_HOME at import time.
 """
 import json
 import logging
@@ -26,7 +26,7 @@ from api.session_events import publish_session_list_changed
 
 logger = logging.getLogger(__name__)
 
-# ── Constants (match hermes_cli.profiles upstream) ─────────────────────────
+# ── Constants (match iris_cli.profiles upstream) ─────────────────────────
 _PROFILE_ID_RE = re.compile(r'^[a-z0-9][a-z0-9_-]{0,63}$')
 _PROFILE_DIRS = [
     'memories', 'sessions', 'skills', 'skins',
@@ -35,12 +35,12 @@ _PROFILE_DIRS = [
 _CLONE_CONFIG_FILES = ['config.yaml', '.env', 'SOUL.md']
 
 # ── Snapshot startup env before profile init / dotenv reload mutates it ───────
-# _is_isolated_profile_mode() needs startup HERMES_HOME, not the value after
+# _is_isolated_profile_mode() needs startup IRIS_HOME, not the value after
 # init_profile_state() rewrites it. The opt-in flag is also an operator-level
 # startup control: a pinned profile's .env may be loaded into live os.environ
 # later, but must not be able to change whether the process is isolated.
-_INITIAL_HERMES_HOME = os.getenv('HERMES_HOME', '').strip()
-_INITIAL_ISOLATED_PROFILE_OPT_IN = os.getenv('HERMES_WEBUI_ISOLATED_PROFILE', '').strip().lower()
+_INITIAL_IRIS_HOME = os.getenv('IRIS_HOME', '').strip()
+_INITIAL_ISOLATED_PROFILE_OPT_IN = os.getenv('IRIS_WEBUI_ISOLATED_PROFILE', '').strip().lower()
 _ISOLATED_SYMLINK_WARNING_EMITTED = False
 _ISOLATED_PROFILE_SHAPE_WITHOUT_OPT_IN_WARNING_EMITTED = False
 _ISOLATED_PROFILE_TRUTHY_VALUES = frozenset({'1', 'true', 'yes', 'on'})
@@ -52,7 +52,7 @@ _loaded_profile_env_keys: set[str] = set()
 
 # Thread-local profile context: set per-request by server.py, cleared after.
 # Enables per-client profile isolation (issue #798) — each HTTP request thread
-# reads its own profile from the hermes_profile cookie instead of the
+# reads its own profile from the iris_profile cookie instead of the
 # process-global _active_profile.
 _tls = threading.local()
 
@@ -70,8 +70,8 @@ def snapshot_skill_home_modules() -> dict[str, dict[str, object]]:
             continue
         snapshot[module_name] = {
             "module_present": True,
-            "has_HERMES_HOME": hasattr(module, "HERMES_HOME"),
-            "HERMES_HOME": getattr(module, "HERMES_HOME", None),
+            "has_IRIS_HOME": hasattr(module, "IRIS_HOME"),
+            "IRIS_HOME": getattr(module, "IRIS_HOME", None),
             "has_SKILLS_DIR": hasattr(module, "SKILLS_DIR"),
             "SKILLS_DIR": getattr(module, "SKILLS_DIR", None),
         }
@@ -144,13 +144,13 @@ def _skill_modules_support_profile_home(profile_home: Path) -> bool:
 
 
 def patch_skill_home_modules(home: Path) -> None:
-    """Patch imported skill modules that cache HERMES_HOME at import time."""
+    """Patch imported skill modules that cache IRIS_HOME at import time."""
     for module_name in _SKILL_HOME_MODULES:
         module = sys.modules.get(module_name)
         if module is None:
             continue
         try:
-            module.HERMES_HOME = home
+            module.IRIS_HOME = home
             module.SKILLS_DIR = home / "skills"
         except AttributeError:
             logger.debug("Failed to patch %s module", module_name)
@@ -173,7 +173,7 @@ def restore_skill_home_modules(snapshot: dict[str, dict[str, object]]) -> None:
             continue
         if module is None:
             continue
-        for attr in ("HERMES_HOME", "SKILLS_DIR"):
+        for attr in ("IRIS_HOME", "SKILLS_DIR"):
             has_attr = bool(values.get(f"has_{attr}"))
             try:
                 if has_attr:
@@ -188,7 +188,7 @@ def restore_skill_home_modules(snapshot: dict[str, dict[str, object]]) -> None:
 
 
 def _unwrap_profile_home_to_base(home: Path) -> Path:
-    """Return the base Hermes home when *home* is already a named profile dir."""
+    """Return the base Iris home when *home* is already a named profile dir."""
     if home.parent.name == 'profiles':
         return home.parent.parent
     return home
@@ -196,20 +196,20 @@ def _unwrap_profile_home_to_base(home: Path) -> Path:
 
 # Env keys a pinned profile's .env may NOT override via _reload_dotenv() — these
 # are operator/deployment-level postures, not per-profile toggles. Letting a
-# profile .env set HERMES_WEBUI_ISOLATED_PROFILE=0 would let a contained user
+# profile .env set IRIS_WEBUI_ISOLATED_PROFILE=0 would let a contained user
 # escape isolation (#4589).
 _PROTECTED_ENV_KEYS = frozenset({
-    'HERMES_WEBUI_ISOLATED_PROFILE',
+    'IRIS_WEBUI_ISOLATED_PROFILE',
     # Server-wide sidebar window; a profile .env must not widen the per-request query.
-    'HERMES_WEBUI_VISIBLE_SESSION_LIMIT',
-    # #7656 round-3: HERMES_WEBUI_MAX_SESSION_RESOLVE is a process-wide resource
+    'IRIS_WEBUI_VISIBLE_SESSION_LIMIT',
+    # #7656 round-3: IRIS_WEBUI_MAX_SESSION_RESOLVE is a process-wide resource
     # cap (controls the BoundedSemaphore that gates full-transcript resolves).
     # A profile's .env is per-profile by design; allowing it to set a
     # server-wide limit (and a first-load-wins asymmetry) would let a
     # single profile drag the rest into a tighter or looser posture than
     # the operator intended. Same shape as the isolated-profile key: only
     # the operator/launcher env at startup can set it.
-    'HERMES_WEBUI_MAX_SESSION_RESOLVE',
+    'IRIS_WEBUI_MAX_SESSION_RESOLVE',
 })
 
 
@@ -217,10 +217,10 @@ def _isolated_profile_opt_in() -> bool:
     """Return True only when isolated single-profile mode is EXPLICITLY enabled.
     Isolated mode is an intentional multi-user deployment posture (each user is
     pinned to one profile and cross-profile operations are rejected). It must be
-    opted into with ``HERMES_WEBUI_ISOLATED_PROFILE`` — it is NEVER inferred from
-    the ``HERMES_HOME`` shape alone, because a normal single-user who runs under a
+    opted into with ``IRIS_WEBUI_ISOLATED_PROFILE`` — it is NEVER inferred from
+    the ``IRIS_HOME`` shape alone, because a normal single-user who runs under a
     named profile produces the byte-identical ``*/profiles/<name>`` shape (the
-    Hermes Agent launcher exports ``HERMES_HOME=~/.hermes/profiles/<name>`` for any
+    Iris Agent launcher exports ``IRIS_HOME=~/.iris/profiles/<name>`` for any
     active named profile). Keying isolation off the shape alone therefore breaks
     profile switching for ordinary single-user deployments (#4586).
 
@@ -236,19 +236,19 @@ def _isolated_profile_opt_in() -> bool:
 
 
 def _warn_if_profile_shape_without_isolated_opt_in() -> None:
-    """Log once when HERMES_HOME looks pinned but startup opt-in is absent."""
+    """Log once when IRIS_HOME looks pinned but startup opt-in is absent."""
     global _ISOLATED_PROFILE_SHAPE_WITHOUT_OPT_IN_WARNING_EMITTED
     if _ISOLATED_PROFILE_SHAPE_WITHOUT_OPT_IN_WARNING_EMITTED:
         return
-    hermes_home = _INITIAL_HERMES_HOME
-    if not hermes_home:
+    iris_home = _INITIAL_IRIS_HOME
+    if not iris_home:
         return
-    p = Path(hermes_home).expanduser()
+    p = Path(iris_home).expanduser()
     if p.parent.name != 'profiles' or not p.name:
         return
     logger.warning(
-        "HERMES_HOME points at a profile directory (%s), but "
-        "HERMES_WEBUI_ISOLATED_PROFILE was not enabled at startup; isolated "
+        "IRIS_HOME points at a profile directory (%s), but "
+        "IRIS_WEBUI_ISOLATED_PROFILE was not enabled at startup; isolated "
         "profile mode stays off and normal multi-profile switching remains enabled.",
         p,
     )
@@ -259,25 +259,25 @@ def _is_isolated_profile_mode() -> bool:
     """Detect isolated single-profile mode.
 
     Returns True only when BOTH conditions hold:
-      1. ``HERMES_WEBUI_ISOLATED_PROFILE`` is explicitly enabled (the PRIMARY
+      1. ``IRIS_WEBUI_ISOLATED_PROFILE`` is explicitly enabled (the PRIMARY
          gate — see _isolated_profile_opt_in), AND
-      2. HERMES_HOME at startup points at a concrete profile subdirectory
-         (e.g., ~/.hermes/profiles/user1) rather than the base home.
+      2. IRIS_HOME at startup points at a concrete profile subdirectory
+         (e.g., ~/.iris/profiles/user1) rather than the base home.
 
     Why the explicit flag is required (#4586 regression fix): the
     ``*/profiles/<name>`` shape alone CANNOT distinguish an intentional
     multi-user isolation deployment from an ordinary single-user running under a
-    named profile — the Hermes Agent launcher sets
-    ``HERMES_HOME=~/.hermes/profiles/<name>`` for any active named profile, so the
+    named profile — the Iris Agent launcher sets
+    ``IRIS_HOME=~/.iris/profiles/<name>`` for any active named profile, so the
     two cases are byte-identical at the env-var level. Inferring isolation from
     the shape alone (the v0.51.528 behaviour from #2698) wrongly pinned ordinary
     single-user deployments to one profile and disabled profile switching. The
     multi-user wrapper that genuinely wants isolation now sets the explicit flag;
     everyone else is never caught. The shape stays as a secondary requirement so
-    a stray flag without a profile-shaped HERMES_HOME does not engage isolation.
+    a stray flag without a profile-shaped IRIS_HOME does not engage isolation.
 
-    Uses _INITIAL_HERMES_HOME (snapshotted at import time) to detect the shape,
-    not the current os.environ value. init_profile_state() overwrites HERMES_HOME
+    Uses _INITIAL_IRIS_HOME (snapshotted at import time) to detect the shape,
+    not the current os.environ value. init_profile_state() overwrites IRIS_HOME
     at startup, which would disable detection if we read it here.
     """
     # PRIMARY gate: explicit startup opt-in. Default OFF → a normal named-profile
@@ -288,12 +288,12 @@ def _is_isolated_profile_mode() -> bool:
         _warn_if_profile_shape_without_isolated_opt_in()
         return False
 
-    hermes_home = _INITIAL_HERMES_HOME
-    if not hermes_home:
+    iris_home = _INITIAL_IRIS_HOME
+    if not iris_home:
         return False
 
-    p = Path(hermes_home).expanduser()
-    # SECONDARY requirement: HERMES_HOME must look like ~/.hermes/profiles/<name>
+    p = Path(iris_home).expanduser()
+    # SECONDARY requirement: IRIS_HOME must look like ~/.iris/profiles/<name>
     # i.e., parent dir is named 'profiles' and grandparent exists.
     if p.parent.name == 'profiles' and p.parent.parent.exists():
         return True
@@ -301,7 +301,7 @@ def _is_isolated_profile_mode() -> bool:
         global _ISOLATED_SYMLINK_WARNING_EMITTED
         if not _ISOLATED_SYMLINK_WARNING_EMITTED:
             logger.warning(
-                "HERMES_WEBUI_ISOLATED_PROFILE is set but HERMES_HOME %s does not "
+                "IRIS_WEBUI_ISOLATED_PROFILE is set but IRIS_HOME %s does not "
                 "literally match */profiles/<name>; isolated profile mode stays off "
                 "unless the literal profile path is used.",
                 p,
@@ -311,62 +311,62 @@ def _is_isolated_profile_mode() -> bool:
 
 
 def _isolated_profile_name() -> str:
-    """Return the profile directory name from _INITIAL_HERMES_HOME."""
-    return Path(_INITIAL_HERMES_HOME).expanduser().name
+    """Return the profile directory name from _INITIAL_IRIS_HOME."""
+    return Path(_INITIAL_IRIS_HOME).expanduser().name
 
 
-def _resolve_base_hermes_home() -> Path:
-    """Return the BASE ~/.hermes directory — the root that contains profiles/.
+def _resolve_base_iris_home() -> Path:
+    """Return the BASE ~/.iris directory — the root that contains profiles/.
 
-    This is intentionally distinct from HERMES_HOME, which tracks the *active
+    This is intentionally distinct from IRIS_HOME, which tracks the *active
     profile's* home and changes on every profile switch.  The base dir must
-    always point to the top-level .hermes regardless of which profile is active.
+    always point to the top-level .iris regardless of which profile is active.
 
     Resolution order:
-      1. HERMES_BASE_HOME env var (set explicitly, highest priority)
-      2. HERMES_HOME env var — but only if it does NOT look like a profile subdir
+      1. IRIS_BASE_HOME env var (set explicitly, highest priority)
+      2. IRIS_HOME env var — but only if it does NOT look like a profile subdir
          (i.e. its parent is not named 'profiles').  This handles test isolation
-         where HERMES_HOME is set to an isolated test state dir.
-      3. ~/.hermes (always-correct default)
+         where IRIS_HOME is set to an isolated test state dir.
+      3. ~/.iris (always-correct default)
 
-    The bug this prevents: if HERMES_HOME has already been mutated to
-    /home/user/.hermes/profiles/webui (by init_profile_state at startup),
-    reading it here would make _DEFAULT_HERMES_HOME point to that subdir,
+    The bug this prevents: if IRIS_HOME has already been mutated to
+    /home/user/.iris/profiles/webui (by init_profile_state at startup),
+    reading it here would make _DEFAULT_IRIS_HOME point to that subdir,
     causing switch_profile('webui') to look for
-    /home/user/.hermes/profiles/webui/profiles/webui — which doesn't exist.
+    /home/user/.iris/profiles/webui/profiles/webui — which doesn't exist.
 
-    HERMES_BASE_HOME normally points at the base home already, but isolated
+    IRIS_BASE_HOME normally points at the base home already, but isolated
     single-profile WebUI deployments can provide /base/profiles/<name> there as
     well.  Normalize both env vars through the same helper so active-profile
     and per-request resolution share one base-root contract (#749).
     """
     # Explicit override for tests or unusual setups
-    base_override = os.getenv('HERMES_BASE_HOME', '').strip()
+    base_override = os.getenv('IRIS_BASE_HOME', '').strip()
     if base_override:
         return _unwrap_profile_home_to_base(Path(base_override).expanduser())
 
-    hermes_home = os.getenv('HERMES_HOME', '').strip()
-    if hermes_home:
-        p = Path(hermes_home).expanduser()
-        # If HERMES_HOME points to a profiles/ subdir, walk up two levels to the base
+    iris_home = os.getenv('IRIS_HOME', '').strip()
+    if iris_home:
+        p = Path(iris_home).expanduser()
+        # If IRIS_HOME points to a profiles/ subdir, walk up two levels to the base
         return _unwrap_profile_home_to_base(p)
 
     # Platform default. On Windows this includes the #2905 migration-safety
-    # fallback (prefer the populated legacy %USERPROFILE%\.hermes over an
-    # empty %LOCALAPPDATA%\hermes). Import the shared path helper directly
+    # fallback (prefer the populated legacy %USERPROFILE%\.iris over an
+    # empty %LOCALAPPDATA%\iris). Import the shared path helper directly
     # instead of importing api.config here; api.config imports profiles during
     # startup, so going through config creates a partial-module circular import
     # when api.profiles is imported first.
-    from api.paths import _platform_default_hermes_home
+    from api.paths import _platform_default_iris_home
 
-    return _platform_default_hermes_home()
+    return _platform_default_iris_home()
 
-_DEFAULT_HERMES_HOME = _resolve_base_hermes_home()
+_DEFAULT_IRIS_HOME = _resolve_base_iris_home()
 
 
 def _read_active_profile_file() -> str:
-    """Read the sticky active profile from ~/.hermes/active_profile."""
-    ap_file = _DEFAULT_HERMES_HOME / 'active_profile'
+    """Read the sticky active profile from ~/.iris/active_profile."""
+    ap_file = _DEFAULT_IRIS_HOME / 'active_profile'
     if ap_file.exists():
         try:
             name = ap_file.read_text(encoding="utf-8").strip()
@@ -381,17 +381,17 @@ def _read_active_profile_file() -> str:
 
 # ── Root-profile resolution (#1612) ────────────────────────────────────────
 #
-# Hermes Agent allows the root/default profile (~/.hermes itself) to have a
+# Iris Agent allows the root/default profile (~/.iris itself) to have a
 # display name other than the legacy literal 'default'.  When that happens,
-# WebUI must NOT resolve the display name as ~/.hermes/profiles/<name> — that
+# WebUI must NOT resolve the display name as ~/.iris/profiles/<name> — that
 # directory doesn't exist, and every site that does `if name == 'default':`
 # will fall through to the wrong filesystem path.
 #
-# `_is_root_profile(name)` answers "does this name resolve to ~/.hermes?" and
+# `_is_root_profile(name)` answers "does this name resolve to ~/.iris?" and
 # is the canonical replacement for scattered `if name == 'default':` checks
-# in switch_profile, get_active_hermes_home, _validate_profile_name, etc.
+# in switch_profile, get_active_iris_home, _validate_profile_name, etc.
 #
-# Cost note: list_profiles_api() shells out via hermes_cli (non-trivial), so
+# Cost note: list_profiles_api() shells out via iris_cli (non-trivial), so
 # we memoize the lookup. The cache is invalidated whenever profiles are
 # created, deleted, renamed, or cloned — i.e. on every mutation site we
 # control.
@@ -415,7 +415,7 @@ def _invalidate_root_profile_cache() -> None:
 
 
 def _is_root_profile(name: str) -> bool:
-    """True if *name* resolves to the Hermes Agent root profile (~/.hermes).
+    """True if *name* resolves to the Iris Agent root profile (~/.iris).
 
     Matches the legacy 'default' alias plus any name where list_profiles_api()
     reports is_default=True. Memoized; call _invalidate_root_profile_cache()
@@ -430,7 +430,7 @@ def _is_root_profile(name: str) -> bool:
         if _root_profile_name_cache_loaded:
             return name in _root_profile_name_cache
     # Cache miss — populate from list_profiles_api(). Done outside the lock to
-    # avoid holding it across a hermes_cli subprocess call.
+    # avoid holding it across a iris_cli subprocess call.
     try:
         infos = list_profiles_api()
     except Exception:
@@ -480,8 +480,8 @@ def get_active_profile_name() -> str:
     """Return the currently active profile name.
 
     Priority:
-      1. Isolated-profile deployment name from the configured HERMES_HOME path
-      2. Thread-local (set per-request from hermes_profile cookie) — issue #798
+      1. Isolated-profile deployment name from the configured IRIS_HOME path
+      2. Thread-local (set per-request from iris_profile cookie) — issue #798
       3. Process-level default (_active_profile)
     """
     if _is_isolated_profile_mode():
@@ -495,7 +495,7 @@ def get_active_profile_name() -> str:
 def set_request_profile(name: str) -> None:
     """Set the per-request profile context for this thread.
 
-    Called by server.py at the start of each request when a hermes_profile
+    Called by server.py at the start of each request when a iris_profile
     cookie is present.  Always paired with clear_request_profile() in a
     finally block so the thread-local is released after the request.
     """
@@ -512,19 +512,19 @@ def clear_request_profile() -> None:
 
 
 def _resolve_profile_home_for_name(name: str) -> Path:
-    """Resolve a logical profile name to its Hermes home path.
+    """Resolve a logical profile name to its Iris home path.
 
-    Root/default aliases resolve to _DEFAULT_HERMES_HOME.  Valid named profiles
-    resolve to _DEFAULT_HERMES_HOME/profiles/<name> even when the directory has
+    Root/default aliases resolve to _DEFAULT_IRIS_HOME.  Valid named profiles
+    resolve to _DEFAULT_IRIS_HOME/profiles/<name> even when the directory has
     not been created yet; the agent layer may create it on first use.  Invalid
     names fall back to the base home so traversal-shaped cookie values cannot
     influence filesystem paths.
     """
     # In isolated mode, every logical profile lookup clamps to the configured
-    # startup HERMES_HOME so callers cannot resolve a foreign profile path.
+    # startup IRIS_HOME so callers cannot resolve a foreign profile path.
     if _is_isolated_profile_mode():
         isolated_name = _isolated_profile_name()
-        isolated_home = Path(_INITIAL_HERMES_HOME).expanduser()
+        isolated_home = Path(_INITIAL_IRIS_HOME).expanduser()
         if name and not _profiles_match(name, isolated_name):
             logger.warning(
                 "Ignoring profile lookup %r in isolated profile mode; using pinned profile %r",
@@ -532,29 +532,29 @@ def _resolve_profile_home_for_name(name: str) -> Path:
             )
         return isolated_home
     if not name or _is_root_profile(name):
-        return _DEFAULT_HERMES_HOME
+        return _DEFAULT_IRIS_HOME
     if not _PROFILE_ID_RE.fullmatch(name):
-        return _DEFAULT_HERMES_HOME
+        return _DEFAULT_IRIS_HOME
     return _resolve_named_profile_home(name)
 
 
-def get_active_hermes_home() -> Path:
-    """Return the HERMES_HOME path for the currently active profile.
+def get_active_iris_home() -> Path:
+    """Return the IRIS_HOME path for the currently active profile.
 
     Uses get_active_profile_name() so per-request TLS context (issue #798)
     is respected, not just the process-level global.
     """
     if _is_isolated_profile_mode():
-        return Path(_INITIAL_HERMES_HOME).expanduser()
+        return Path(_INITIAL_IRIS_HOME).expanduser()
     return _resolve_profile_home_for_name(get_active_profile_name())
 
 
 
 # ── Cron-call profile isolation (issue: Scheduled jobs ignored active profile) ─
-# `cron.jobs` reads HERMES_HOME from os.environ (process-global) at function-
+# `cron.jobs` reads IRIS_HOME from os.environ (process-global) at function-
 # call time. That bypasses our per-request thread-local profile, so the
 # `/api/crons*` endpoints always returned the process-default profile's jobs.
-# This context manager swaps HERMES_HOME (and the cached module-level constants
+# This context manager swaps IRIS_HOME (and the cached module-level constants
 # in cron.jobs) for the duration of a cron call, serialized by a lock so
 # concurrent requests from different profiles don't race on the global env var.
 #
@@ -563,10 +563,10 @@ def get_active_hermes_home() -> Path:
 # multi-step read-modify-write sequences (snapshot prev → assign new → restore
 # on exit) are NOT atomic without explicit serialization. The _cron_env_lock
 # below makes the entire context-manager body run-to-completion serially, so
-# all webui access to HERMES_HOME goes through one thread at a time. Any
+# all webui access to IRIS_HOME goes through one thread at a time. Any
 # subprocess.Popen() call inside `run_job` inherits the env at fork time,
 # which is also under the lock — so child processes always see a consistent
-# (own-profile) HERMES_HOME, never a half-swapped state.
+# (own-profile) IRIS_HOME, never a half-swapped state.
 _cron_env_lock = threading.Lock()
 
 
@@ -587,7 +587,7 @@ def _home_for_scheduled_cron_job(job: dict) -> Path:
     """Resolve the profile home an auto-fired scheduler job should execute in.
 
     Legacy jobs with no profile keep the scheduler's server-default profile.
-    Jobs pinned to a named profile execute under that profile's HERMES_HOME, so
+    Jobs pinned to a named profile execute under that profile's IRIS_HOME, so
     an in-process WebUI scheduler thread does not leak process-global config or
     .env into the agent run. If a profile was deleted after the job was saved,
     fall back to the server default rather than crashing every scheduler tick.
@@ -600,24 +600,24 @@ def _home_for_scheduled_cron_job(job: dict) -> Path:
                 "Cron job %s references profile %r outside isolated profile %r; falling back to isolated home",
                 (job or {}).get('id', '?'), raw, active,
             )
-        return get_active_hermes_home()
+        return get_active_iris_home()
     if not raw:
-        return get_active_hermes_home()
+        return get_active_iris_home()
     if _is_root_profile(raw):
-        return _DEFAULT_HERMES_HOME
+        return _DEFAULT_IRIS_HOME
     if not _PROFILE_ID_RE.fullmatch(raw):
         logger.warning(
             "Cron job %s has invalid profile %r; falling back to server default",
             (job or {}).get('id', '?'), raw,
         )
-        return get_active_hermes_home()
+        return get_active_iris_home()
     home = _resolve_named_profile_home(raw)
     if not home.is_dir():
         logger.warning(
             "Cron job %s references missing profile %r; falling back to server default",
             (job or {}).get('id', '?'), raw,
         )
-        return get_active_hermes_home()
+        return get_active_iris_home()
     return home
 
 
@@ -628,7 +628,7 @@ def install_cron_scheduler_profile_isolation() -> None:
     if a future/single-process deployment calls cron.scheduler.tick() from the
     WebUI worker, tick's background job path has no request TLS context. Wrap
     run_job so each auto-fired job's persisted ``profile`` field gets the same
-    HERMES_HOME isolation as the manual /api/crons/run path.
+    IRIS_HOME isolation as the manual /api/crons/run path.
     """
     try:
         import cron.scheduler as _cs
@@ -666,7 +666,7 @@ def install_cron_scheduler_profile_isolation() -> None:
 
 
 class cron_profile_context_for_home:
-    """Context manager that pins HERMES_HOME to an explicit profile home path.
+    """Context manager that pins IRIS_HOME to an explicit profile home path.
 
     Use this variant from worker threads that don't have TLS context (e.g. the
     background thread started by /api/crons/run). The HTTP-side variant below
@@ -680,23 +680,23 @@ class cron_profile_context_for_home:
         _cron_env_lock.acquire()
         _push_cron_profile_context_depth()
         try:
-            self._prev_env = os.environ.get('HERMES_HOME')
-            os.environ['HERMES_HOME'] = str(self._home)
+            self._prev_env = os.environ.get('IRIS_HOME')
+            os.environ['IRIS_HOME'] = str(self._home)
 
             # Re-patch cron.jobs module-level constants (see main context manager
             # below for the rationale).
             self._prev_cj = None
             try:
                 import cron.jobs as _cj
-                self._prev_cj = (_cj.HERMES_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR)
-                _cj.HERMES_DIR = self._home
+                self._prev_cj = (_cj.IRIS_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR)
+                _cj.IRIS_DIR = self._home
                 _cj.CRON_DIR = self._home / 'cron'
                 _cj.JOBS_FILE = _cj.CRON_DIR / 'jobs.json'
                 _cj.OUTPUT_DIR = _cj.CRON_DIR / 'output'
             except (ImportError, AttributeError):
                 logger.debug("cron_profile_context_for_home: cron.jobs unavailable")
 
-            # cron.scheduler snapshots _hermes_home at import time and run_job()
+            # cron.scheduler snapshots _iris_home at import time and run_job()
             # reads config/.env from that module global. Patch it alongside
             # cron.jobs so manual WebUI runs actually execute under the selected
             # profile, not merely write output metadata there (#617).
@@ -704,11 +704,11 @@ class cron_profile_context_for_home:
             try:
                 import cron.scheduler as _cs
                 self._prev_cs = (
-                    getattr(_cs, '_hermes_home', None),
+                    getattr(_cs, '_iris_home', None),
                     getattr(_cs, '_LOCK_DIR', None),
                     getattr(_cs, '_LOCK_FILE', None),
                 )
-                _cs._hermes_home = self._home
+                _cs._iris_home = self._home
                 _cs._LOCK_DIR = self._home / 'cron'
                 _cs._LOCK_FILE = _cs._LOCK_DIR / '.tick.lock'
             except (ImportError, AttributeError):
@@ -722,19 +722,19 @@ class cron_profile_context_for_home:
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             if self._prev_env is None:
-                os.environ.pop('HERMES_HOME', None)
+                os.environ.pop('IRIS_HOME', None)
             else:
-                os.environ['HERMES_HOME'] = self._prev_env
+                os.environ['IRIS_HOME'] = self._prev_env
             if self._prev_cj is not None:
                 try:
                     import cron.jobs as _cj
-                    _cj.HERMES_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR = self._prev_cj
+                    _cj.IRIS_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR = self._prev_cj
                 except (ImportError, AttributeError):
                     pass
             if getattr(self, '_prev_cs', None) is not None:
                 try:
                     import cron.scheduler as _cs
-                    _cs._hermes_home, _cs._LOCK_DIR, _cs._LOCK_FILE = self._prev_cs
+                    _cs._iris_home, _cs._LOCK_DIR, _cs._LOCK_FILE = self._prev_cs
                 except (ImportError, AttributeError):
                     pass
         finally:
@@ -744,7 +744,7 @@ class cron_profile_context_for_home:
 
 
 class cron_profile_context:
-    """Context manager that pins HERMES_HOME to the TLS-active profile.
+    """Context manager that pins IRIS_HOME to the TLS-active profile.
 
     Usage:
         with cron_profile_context():
@@ -759,9 +759,9 @@ class cron_profile_context:
         _cron_env_lock.acquire()
         _push_cron_profile_context_depth()
         try:
-            self._prev_env = os.environ.get('HERMES_HOME')
-            home = get_active_hermes_home()
-            os.environ['HERMES_HOME'] = str(home)
+            self._prev_env = os.environ.get('IRIS_HOME')
+            home = get_active_iris_home()
+            os.environ['IRIS_HOME'] = str(home)
 
             # Re-patch cron.jobs module-level constants. They are snapshot at
             # import time (line 68-71 of cron/jobs.py) and don't participate in
@@ -770,8 +770,8 @@ class cron_profile_context:
             self._prev_cj = None
             try:
                 import cron.jobs as _cj
-                self._prev_cj = (_cj.HERMES_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR)
-                _cj.HERMES_DIR = home
+                self._prev_cj = (_cj.IRIS_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR)
+                _cj.IRIS_DIR = home
                 _cj.CRON_DIR = home / 'cron'
                 _cj.JOBS_FILE = _cj.CRON_DIR / 'jobs.json'
                 _cj.OUTPUT_DIR = _cj.CRON_DIR / 'output'
@@ -782,11 +782,11 @@ class cron_profile_context:
             try:
                 import cron.scheduler as _cs
                 self._prev_cs = (
-                    getattr(_cs, '_hermes_home', None),
+                    getattr(_cs, '_iris_home', None),
                     getattr(_cs, '_LOCK_DIR', None),
                     getattr(_cs, '_LOCK_FILE', None),
                 )
-                _cs._hermes_home = home
+                _cs._iris_home = home
                 _cs._LOCK_DIR = home / 'cron'
                 _cs._LOCK_FILE = _cs._LOCK_DIR / '.tick.lock'
             except (ImportError, AttributeError):
@@ -801,21 +801,21 @@ class cron_profile_context:
         try:
             # Restore env var
             if self._prev_env is None:
-                os.environ.pop('HERMES_HOME', None)
+                os.environ.pop('IRIS_HOME', None)
             else:
-                os.environ['HERMES_HOME'] = self._prev_env
+                os.environ['IRIS_HOME'] = self._prev_env
 
             # Restore cron.jobs module constants
             if self._prev_cj is not None:
                 try:
                     import cron.jobs as _cj
-                    _cj.HERMES_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR = self._prev_cj
+                    _cj.IRIS_DIR, _cj.CRON_DIR, _cj.JOBS_FILE, _cj.OUTPUT_DIR = self._prev_cj
                 except (ImportError, AttributeError):
                     pass
             if getattr(self, '_prev_cs', None) is not None:
                 try:
                     import cron.scheduler as _cs
-                    _cs._hermes_home, _cs._LOCK_DIR, _cs._LOCK_FILE = self._prev_cs
+                    _cs._iris_home, _cs._LOCK_DIR, _cs._LOCK_FILE = self._prev_cs
                 except (ImportError, AttributeError):
                     pass
         finally:
@@ -824,14 +824,14 @@ class cron_profile_context:
         return False
 
 
-def get_hermes_home_for_profile(name: str) -> Path:
-    """Return the HERMES_HOME Path for *name* without mutating any process state.
+def get_iris_home_for_profile(name: str) -> Path:
+    """Return the IRIS_HOME Path for *name* without mutating any process state.
 
     Safe to call from per-request context (streaming, session creation) because
     it reads only the filesystem — it never touches os.environ, module-level
     cached paths, or the process-level _active_profile global.
 
-    Falls back to _DEFAULT_HERMES_HOME (same as 'default') when *name* is None,
+    Falls back to _DEFAULT_IRIS_HOME (same as 'default') when *name* is None,
     empty, 'default', or does not match the profile-name format (rejects path
     traversal such as '../../etc').
     """
@@ -881,7 +881,7 @@ def get_profile_runtime_env(home: Path) -> dict[str, str]:
     WebUI profile switching is per-client/cookie scoped, so it intentionally
     does not call ``switch_profile(..., process_wide=True)`` for every browser.
     Agent/tool code still consumes terminal backend settings through
-    environment variables (matching ``hermes -p <profile>``), so streaming must
+    environment variables (matching ``iris -p <profile>``), so streaming must
     apply the selected profile's terminal config and ``.env`` for the duration
     of that run.
     """
@@ -916,7 +916,7 @@ def get_profile_runtime_env(home: Path) -> dict[str, str]:
                     if k and v:
                         # #4589: never let a profile's own .env override an
                         # operator/deployment posture (e.g. disable isolation via
-                        # HERMES_WEBUI_ISOLATED_PROFILE=0) on the runtime-env path
+                        # IRIS_WEBUI_ISOLATED_PROFILE=0) on the runtime-env path
                         # the same way _reload_dotenv() protects the live env.
                         if k in _PROTECTED_ENV_KEYS:
                             continue
@@ -927,8 +927,8 @@ def get_profile_runtime_env(home: Path) -> dict[str, str]:
     return env
 
 
-# Match Hermes Agent gateway behavior: profile-scoped WebUI runs should
-# project intended runtime vars (credentials, HERMES_HOME, TERMINAL_*)
+# Match Iris Agent gateway behavior: profile-scoped WebUI runs should
+# project intended runtime vars (credentials, IRIS_HOME, TERMINAL_*)
 # without allowing profile env to override core shell identity variables
 # like HOME or PATH.
 _BLOCKED_RUNTIME_ENV_KEYS = {
@@ -945,19 +945,19 @@ _BLOCKED_RUNTIME_ENV_KEYS = {
     'LD_LIBRARY_PATH',
     # #4589: operator/deployment isolation posture — never overridable by a
     # profile's own env on any runtime/gateway-parity path.
-    'HERMES_WEBUI_ISOLATED_PROFILE',
-    'HERMES_WEBUI_VISIBLE_SESSION_LIMIT',
+    'IRIS_WEBUI_ISOLATED_PROFILE',
+    'IRIS_WEBUI_VISIBLE_SESSION_LIMIT',
     # #7656 round-3: process-wide resolve cap. Filter out a profile's
     # .env override the same way we filter the isolated-profile key, so
     # the cap stays at the operator/launcher value across profile
     # switches rather than re-sizing to whatever the first-loaded
     # profile env set.
-    'HERMES_WEBUI_MAX_SESSION_RESOLVE',
+    'IRIS_WEBUI_MAX_SESSION_RESOLVE',
 }
 
 
 def filter_runtime_env_for_gateway_parity(env: dict[str, str]) -> dict[str, str]:
-    """Return a profile runtime env filtered to mimic Hermes gateway semantics."""
+    """Return a profile runtime env filtered to mimic Iris gateway semantics."""
     filtered: dict[str, str] = {}
     for key, value in (env or {}).items():
         k = str(key).strip()
@@ -972,14 +972,14 @@ def filter_runtime_env_for_gateway_parity(env: dict[str, str]) -> dict[str, str]
 
 
 # Credential env vars the agent runtime resolves via raw os.getenv() that are
-# NOT in hermes_cli.auth.PROVIDER_REGISTRY (so the registry-derived scrub set
+# NOT in iris_cli.auth.PROVIDER_REGISTRY (so the registry-derived scrub set
 # would miss them). Fail-closed list — verified against the installed agent:
-#   CUSTOM_API_KEY            hermes_cli/models.py (generic custom provider key)
-#   AZURE_ANTHROPIC_KEY       hermes_cli/runtime_provider.py (Azure-hosted Anthropic)
-#   AZURE_FOUNDRY_API_KEY     hermes_cli/runtime_provider.py (Azure Foundry key)
+#   CUSTOM_API_KEY            iris_cli/models.py (generic custom provider key)
+#   AZURE_ANTHROPIC_KEY       iris_cli/runtime_provider.py (Azure-hosted Anthropic)
+#   AZURE_FOUNDRY_API_KEY     iris_cli/runtime_provider.py (Azure Foundry key)
 #   AZURE_* identity family   agent/azure_identity_adapter.py (service-principal /
 #                             workload-identity model auth)
-#   AWS_BEARER_TOKEN_BEDROCK  hermes_cli/model_switch.py (Bedrock bearer token)
+#   AWS_BEARER_TOKEN_BEDROCK  iris_cli/model_switch.py (Bedrock bearer token)
 #   AWS_* credential chain    agent/bedrock_adapter.py + model_switch._has_aws_creds
 #                             (boto3 access keys, session token, profile,
 #                              container/web-identity credential providers)
@@ -993,7 +993,7 @@ _NON_REGISTRY_AGENT_CREDENTIAL_ENV_NAMES: tuple[str, ...] = (
     # Anthropic OAuth/token aliases. These ARE in the agent auth registry, but
     # are duplicated here as a fail-closed floor so the scrub still covers them
     # when the agent package can't be imported (e.g. a WebUI-only CI/test env
-    # where hermes_cli.auth is absent) — the registry union is best-effort.
+    # where iris_cli.auth is absent) — the registry union is best-effort.
     "ANTHROPIC_TOKEN",
     "CLAUDE_CODE_OAUTH_TOKEN",
     "AZURE_ANTHROPIC_KEY",
@@ -1025,7 +1025,7 @@ def _agent_registry_credential_env_names() -> set[str]:
     """Credential env-var names the *agent* runtime reads, beyond the WebUI's own
     settable-key map. Two sources:
 
-    1. ``hermes_cli.auth.PROVIDER_REGISTRY[*].api_key_env_vars`` — every provider
+    1. ``iris_cli.auth.PROVIDER_REGISTRY[*].api_key_env_vars`` — every provider
        the agent CLI knows, incl. OAuth/token-flow providers like Anthropic's
        ``ANTHROPIC_TOKEN`` / ``CLAUDE_CODE_OAUTH_TOKEN`` that the WebUI's own
        ``_PROVIDER_ENV_VAR`` map omits (they aren't WebUI-settable API keys).
@@ -1040,7 +1040,7 @@ def _agent_registry_credential_env_names() -> set[str]:
     (#3961 residual cross-profile leak)."""
     names: set[str] = set(_NON_REGISTRY_AGENT_CREDENTIAL_ENV_NAMES)
     try:
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from iris_cli.auth import PROVIDER_REGISTRY
 
         registry = PROVIDER_REGISTRY
         items = registry.items() if hasattr(registry, "items") else enumerate(registry)
@@ -1146,38 +1146,38 @@ def _resolve_secret_scope_module():
     return None
 
 
-# #5567: hermes-agent v0.18.0+ exposes a CONTEXT-LOCAL Hermes-home override
-# (`hermes_constants.set_hermes_home_override`) that `get_hermes_home()` — and
-# therefore `hermes_cli.config.get_config_path()` / `load_config()` — consults
-# BEFORE the process-global `os.environ["HERMES_HOME"]`. Installing it inside the
-# profile worker scope eliminates the cross-profile HERMES_HOME race at the
+# #5567: iris-agent v0.18.0+ exposes a CONTEXT-LOCAL Iris-home override
+# (`iris_constants.set_iris_home_override`) that `get_iris_home()` — and
+# therefore `iris_cli.config.get_config_path()` / `load_config()` — consults
+# BEFORE the process-global `os.environ["IRIS_HOME"]`. Installing it inside the
+# profile worker scope eliminates the cross-profile IRIS_HOME race at the
 # reader (a config read resolves the task-local profile home even if another
 # thread clobbers os.environ mid-body) WITHOUT serializing workers or mutating
 # shared state. Resolved lazily + optionally so OLDER agents (no override symbol)
 # degrade gracefully to the pre-existing os.environ-mirror behavior — unchanged.
-_hermes_home_override_available = None
+_iris_home_override_available = None
 
 
-def _resolve_hermes_home_override():
-    """Return the hermes_constants module iff it exposes the v0.18.0+ context-local
+def _resolve_iris_home_override():
+    """Return the iris_constants module iff it exposes the v0.18.0+ context-local
     home override (set/reset), else None. Cached; import-safe on older agents."""
-    global _hermes_home_override_available
+    global _iris_home_override_available
     import sys as _sys
-    if _hermes_home_override_available is False:
+    if _iris_home_override_available is False:
         return None
-    mod = _sys.modules.get('hermes_constants')
-    if mod is None and _hermes_home_override_available is None:
+    mod = _sys.modules.get('iris_constants')
+    if mod is None and _iris_home_override_available is None:
         try:
-            import hermes_constants as mod  # noqa: F811
+            import iris_constants as mod  # noqa: F811
         except Exception:
-            _hermes_home_override_available = False
+            _iris_home_override_available = False
             return None
-    if mod is not None and hasattr(mod, 'set_hermes_home_override') and hasattr(
-        mod, 'reset_hermes_home_override'
+    if mod is not None and hasattr(mod, 'set_iris_home_override') and hasattr(
+        mod, 'reset_iris_home_override'
     ):
-        _hermes_home_override_available = True
+        _iris_home_override_available = True
         return mod
-    _hermes_home_override_available = False
+    _iris_home_override_available = False
     return None
 
 
@@ -1209,7 +1209,7 @@ def profile_env_for_background_worker(
         from api.config import _clear_thread_env, _set_thread_env, _thread_ctx
         from api.streaming import _ENV_LOCK
 
-        profile_home_path = Path(get_hermes_home_for_profile(profile))
+        profile_home_path = Path(get_iris_home_for_profile(profile))
         runtime_env = get_profile_runtime_env(profile_home_path)
         safe_runtime_env = filter_runtime_env_for_gateway_parity(runtime_env)
         secret_env_names = _profile_secret_env_names(profile_home_path)
@@ -1224,16 +1224,16 @@ def profile_env_for_background_worker(
         return
 
     thread_env = dict(safe_runtime_env)
-    thread_env["HERMES_HOME"] = str(profile_home_path)
+    thread_env["IRIS_HOME"] = str(profile_home_path)
     # Hybrid profile routing: keep the broad runtime env in WebUI's thread-local
     # channel for WebUI helpers, and also mirror it into process env for the
-    # worker body because several production Hermes readers still call
+    # worker body because several production Iris readers still call
     # os.getenv() directly for provider credentials.  Keep the _ENV_LOCK scope
     # narrow: serialize only setup/restore, not the whole worker body.
     skill_home_snapshot = None
     old_runtime_env: dict[str, Optional[str]] = {}
-    old_hermes_home = None
-    had_hermes_home = False
+    old_iris_home = None
+    had_iris_home = False
     previous_thread_env = getattr(_thread_ctx, "env", {}).copy()
     previous_block_process_env = bool(
         getattr(_thread_ctx, "block_process_env_fallback", False)
@@ -1241,7 +1241,7 @@ def profile_env_for_background_worker(
     _scope_token = None
     _has_scope = False
     _secret_scope_mod = None
-    # #5567: context-local Hermes-home override (hermes-agent v0.18.0+). None on
+    # #5567: context-local Iris-home override (iris-agent v0.18.0+). None on
     # older agents → graceful no-op (falls back to the os.environ mirror below).
     _home_override_mod = None
     _home_override_token = None
@@ -1261,16 +1261,16 @@ def profile_env_for_background_worker(
                 _has_scope = True
             except Exception:
                 pass
-        # #5567: install the context-local Hermes-home override so the agent
-        # config reader (get_hermes_home -> get_config_path/load_config) resolves
+        # #5567: install the context-local Iris-home override so the agent
+        # config reader (get_iris_home -> get_config_path/load_config) resolves
         # THIS profile's home from task-local state, immune to a concurrent
-        # cross-profile os.environ["HERMES_HOME"] clobber during the worker body.
+        # cross-profile os.environ["IRIS_HOME"] clobber during the worker body.
         # No-op on agents < v0.18.0 (resolver returns None) → os.environ mirror
         # below remains the behavior, exactly as today.
-        _home_override_mod = _resolve_hermes_home_override()
+        _home_override_mod = _resolve_iris_home_override()
         if _home_override_mod is not None:
             try:
-                _home_override_token = _home_override_mod.set_hermes_home_override(
+                _home_override_token = _home_override_mod.set_iris_home_override(
                     str(profile_home_path)
                 )
                 _home_override_installed = True
@@ -1315,10 +1315,10 @@ def profile_env_for_background_worker(
                 safe_runtime_env,
                 secret_env_names=secret_env_names,
             )
-            had_hermes_home = "HERMES_HOME" in os.environ
-            old_hermes_home = os.environ.get("HERMES_HOME")
+            had_iris_home = "IRIS_HOME" in os.environ
+            old_iris_home = os.environ.get("IRIS_HOME")
             os.environ.update(safe_runtime_env)
-            os.environ["HERMES_HOME"] = str(profile_home_path)
+            os.environ["IRIS_HOME"] = str(profile_home_path)
         yield
     finally:
         try:
@@ -1328,10 +1328,10 @@ def profile_env_for_background_worker(
                         os.environ.pop(key, None)
                     else:
                         os.environ[key] = old_value
-                if had_hermes_home:
-                    os.environ["HERMES_HOME"] = old_hermes_home or ""
+                if had_iris_home:
+                    os.environ["IRIS_HOME"] = old_iris_home or ""
                 else:
-                    os.environ.pop("HERMES_HOME", None)
+                    os.environ.pop("IRIS_HOME", None)
                 if should_restore_skill_modules and skill_home_snapshot is not None:
                     restore_skill_home_modules(skill_home_snapshot)
         finally:
@@ -1341,7 +1341,7 @@ def profile_env_for_background_worker(
             # Reset context-local state after the fallback globals are restored.
             if _home_override_mod is not None and _home_override_installed:
                 try:
-                    _home_override_mod.reset_hermes_home_override(_home_override_token)
+                    _home_override_mod.reset_iris_home_override(_home_override_token)
                 except Exception:
                     pass
             if _has_scope and _secret_scope_mod is not None:
@@ -1364,14 +1364,14 @@ def profile_env_for_active_request_readonly(
     """Apply the active per-request profile's env to thread-local state only (#3957).
 
     WebUI profile switching is per-client/cookie scoped (issue #798): a browser
-    on a named profile sets a ``hermes_profile`` cookie, which ``server.py``
+    on a named profile sets a ``iris_profile`` cookie, which ``server.py``
     turns into a thread-local via ``set_request_profile()``.  This wrapper keeps
     provider-credential reads isolated to the request profile and does not touch
     process-wide environment for read-only endpoints.
 
     A thread-local read-only scope is used for ``/api/providers`` and
     ``/api/models`` flows that now resolve credentials through thread-local
-    environment first. It also sets a context-local Hermes-home override so
+    environment first. It also sets a context-local Iris-home override so
     agent-side auth-store reads stay on the active profile without mutating
     process-global ``os.environ``.
 
@@ -1384,7 +1384,7 @@ def profile_env_for_active_request_readonly(
         return
     try:
         from api.config import _clear_thread_env, _set_thread_env, _thread_ctx
-        profile_home_path = Path(get_hermes_home_for_profile(profile))
+        profile_home_path = Path(get_iris_home_for_profile(profile))
         runtime_env = get_profile_runtime_env(profile_home_path)
         safe_runtime_env = filter_runtime_env_for_gateway_parity(runtime_env)
     except Exception:
@@ -1399,16 +1399,16 @@ def profile_env_for_active_request_readonly(
         yield
         return
     try:
-        from hermes_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+        from iris_constants import (
+            reset_iris_home_override,
+            set_iris_home_override,
         )
     except Exception:
-        reset_hermes_home_override = None
-        set_hermes_home_override = None
+        reset_iris_home_override = None
+        set_iris_home_override = None
 
     thread_env = dict(safe_runtime_env)
-    thread_env["HERMES_HOME"] = str(profile_home_path)
+    thread_env["IRIS_HOME"] = str(profile_home_path)
     previous_thread_env = getattr(_thread_ctx, "env", {}).copy()
     previous_block_process_env = bool(
         getattr(_thread_ctx, "block_process_env_fallback", False)
@@ -1429,13 +1429,13 @@ def profile_env_for_active_request_readonly(
                 _has_scope = True
             except Exception:
                 pass
-        if set_hermes_home_override is not None:
+        if set_iris_home_override is not None:
             try:
-                home_override_token = set_hermes_home_override(profile_home_path)
+                home_override_token = set_iris_home_override(profile_home_path)
                 home_override_installed = True
             except Exception:
                 logger.debug(
-                    "Failed to install Hermes-home override for active request profile %s in %s",
+                    "Failed to install Iris-home override for active request profile %s in %s",
                     profile,
                     purpose,
                     exc_info=True,
@@ -1447,12 +1447,12 @@ def profile_env_for_active_request_readonly(
                 _secret_scope_mod.reset_secret_scope(_scope_token)
             except Exception:
                 pass
-        if reset_hermes_home_override is not None and home_override_installed:
+        if reset_iris_home_override is not None and home_override_installed:
             try:
-                reset_hermes_home_override(home_override_token)
+                reset_iris_home_override(home_override_token)
             except Exception:
                 (logger_override or logger).debug(
-                    "Failed to reset Hermes-home override for active request profile %s in %s",
+                    "Failed to reset Iris-home override for active request profile %s in %s",
                     profile,
                     purpose,
                     exc_info=True,
@@ -1471,8 +1471,8 @@ def profile_env_for_active_request(
 ):
     """Apply the active per-request profile through the legacy mirrored path.
 
-    Some request-scoped readers still delegate into Hermes helpers that resolve
-    credentials directly from process env or ``get_hermes_home()``. Those paths
+    Some request-scoped readers still delegate into Iris helpers that resolve
+    credentials directly from process env or ``get_iris_home()``. Those paths
     stay on the mirrored scope until they are fully audited.
     """
     profile = (get_active_profile_name() or "").strip()
@@ -1528,16 +1528,16 @@ def profile_scope_for_detached_worker(
         clear_request_profile()
 
 
-def _set_hermes_home(home: Path):
-    """Set HERMES_HOME env var and monkey-patch cached module-level paths."""
-    os.environ['HERMES_HOME'] = str(home)
+def _set_iris_home(home: Path):
+    """Set IRIS_HOME env var and monkey-patch cached module-level paths."""
+    os.environ['IRIS_HOME'] = str(home)
 
     patch_skill_home_modules(home)
 
     # Patch cron/jobs module-level cache
     try:
         import cron.jobs as _cj
-        _cj.HERMES_DIR = home
+        _cj.IRIS_DIR = home
         _cj.CRON_DIR = home / 'cron'
         _cj.JOBS_FILE = _cj.CRON_DIR / 'jobs.json'
         _cj.OUTPUT_DIR = _cj.CRON_DIR / 'output'
@@ -1546,7 +1546,7 @@ def _set_hermes_home(home: Path):
 
     try:
         import cron.scheduler as _cs
-        _cs._hermes_home = home
+        _cs._iris_home = home
         _cs._LOCK_DIR = home / 'cron'
         _cs._LOCK_FILE = _cs._LOCK_DIR / '.tick.lock'
     except (ImportError, AttributeError):
@@ -1581,7 +1581,7 @@ def _reload_dotenv(home: Path):
                 if k and v:
                     # Operator/deployment-level keys are never overridable by a
                     # profile's own .env (#4589 — prevents a contained user from
-                    # disabling their isolation via HERMES_WEBUI_ISOLATED_PROFILE=0).
+                    # disabling their isolation via IRIS_WEBUI_ISOLATED_PROFILE=0).
                     if k in _PROTECTED_ENV_KEYS:
                         logger.warning(
                             "Ignoring protected key %s in profile .env %s; "
@@ -1600,17 +1600,17 @@ def _reload_dotenv(home: Path):
 def init_profile_state() -> None:
     """Initialize profile state at server startup.
 
-    Reads ~/.hermes/active_profile, sets HERMES_HOME env var, patches
+    Reads ~/.iris/active_profile, sets IRIS_HOME env var, patches
     module-level cached paths.  Called once from config.py after imports.
     """
     global _active_profile
     if _is_isolated_profile_mode():
         _active_profile = _isolated_profile_name()
-        home = Path(_INITIAL_HERMES_HOME).expanduser()
+        home = Path(_INITIAL_IRIS_HOME).expanduser()
     else:
         _active_profile = _read_active_profile_file()
-        home = get_active_hermes_home()
-    _set_hermes_home(home)
+        home = get_active_iris_home()
+    _set_iris_home(home)
     install_cron_scheduler_profile_isolation()
     _reload_dotenv(home)
 
@@ -1648,7 +1648,7 @@ def switch_profile(name: str, *, process_wide: bool = True) -> dict:
     # Import here to avoid circular import at module load
     from api.config import STREAMS, STREAMS_LOCK, reload_config
 
-    # Process-wide profile switches mutate HERMES_HOME, module-level path caches,
+    # Process-wide profile switches mutate IRIS_HOME, module-level path caches,
     # os.environ-backed .env keys, and the global config cache. Keep those blocked
     # while any agent stream is active. Per-client WebUI switches are cookie/TLS
     # scoped (process_wide=False) and do not mutate those globals, so users can
@@ -1663,9 +1663,9 @@ def switch_profile(name: str, *, process_wide: bool = True) -> dict:
 
     # Resolve profile directory
     if _is_isolated_profile_mode():
-        home = Path(_INITIAL_HERMES_HOME).expanduser()
+        home = Path(_INITIAL_IRIS_HOME).expanduser()
     elif _is_root_profile(name):
-        home = _DEFAULT_HERMES_HOME
+        home = _DEFAULT_IRIS_HOME
     else:
         home = _resolve_named_profile_home(name)
         if not home.is_dir():
@@ -1676,13 +1676,13 @@ def switch_profile(name: str, *, process_wide: bool = True) -> dict:
         if process_wide:
             global _active_profile
             _active_profile = name
-            _set_hermes_home(home)
+            _set_iris_home(home)
             _reload_dotenv(home)
 
     if process_wide:
         # Write sticky default for CLI consistency
         try:
-            ap_file = _DEFAULT_HERMES_HOME / 'active_profile'
+            ap_file = _DEFAULT_IRIS_HOME / 'active_profile'
             ap_file.write_text('' if _is_root_profile(name) else name, encoding='utf-8')
         except Exception:
             logger.debug("Failed to write active profile file")
@@ -1890,7 +1890,7 @@ def _compute_profile_skills_stats(profile_dir: Path) -> tuple[int, int]:
     except ImportError as exc:
         logger.debug("agent.skill_utils unavailable; reporting skill stats as unknown: %s", exc)
         # agent source not mounted (two-container Docker,
-        # HERMES_WEBUI_CHAT_BACKEND=gateway): this must never 500 GET
+        # IRIS_WEBUI_CHAT_BACKEND=gateway): this must never 500 GET
         # /api/profiles (#7305). Report the skill stats as unknown — a stable
         # (0, 0) — instead of keeping a partial shadow of agent.skill_utils
         # here: a local re-implementation cannot preserve the index walk's
@@ -1997,7 +1997,7 @@ def _invalidate_list_profiles_cache() -> None:
 def _build_profile_rows_fast() -> list | None:
     """Build the profile list WITHOUT the upstream alias scan.
 
-    ``hermes_cli.profiles.list_profiles()`` calls ``find_alias_for_profile()``
+    ``iris_cli.profiles.list_profiles()`` calls ``find_alias_for_profile()``
     once per profile, which iterates every file in the wrapper dir
     (``~/.local/bin``) and ``read_text()``s each one — including large binaries
     (claude, node, uv, …). On a machine with big binaries on PATH that is
@@ -2015,8 +2015,8 @@ def _build_profile_rows_fast() -> list | None:
     correct with nothing to revert.
     """
     try:
-        from hermes_cli.profiles import (
-            _get_default_hermes_home,
+        from iris_cli.profiles import (
+            _get_default_iris_home,
             _get_profiles_root,
             _read_config_model,
             _check_gateway_running,
@@ -2051,10 +2051,10 @@ def _build_profile_rows_fast() -> list | None:
         }
 
     rows: list = []
-    default_home = _get_default_hermes_home()
+    default_home = _get_default_iris_home()
     if default_home.is_dir():
         # Upstream hardcodes the base home's display name to "default" even when
-        # the directory is literally ".hermes" — match that exactly.
+        # the directory is literally ".iris" — match that exactly.
         rows.append(_row(default_home, 'default', True))
 
     profiles_root = _get_profiles_root()
@@ -2072,7 +2072,7 @@ def _build_profile_rows_fast() -> list | None:
 def list_profiles_api() -> list:
     """List all profiles with metadata, serialized for JSON response.
 
-    In isolated profile mode (HERMES_HOME points to ~/.hermes/profiles/<name>),
+    In isolated profile mode (IRIS_HOME points to ~/.iris/profiles/<name>),
     returns only that single profile and skips other profiles entirely.
 
     Fast path: build the rows from upstream's cheap per-profile helpers and skip
@@ -2089,16 +2089,16 @@ def list_profiles_api() -> list:
     # In isolated profile mode, return only the active (isolated) profile
     if _is_isolated_profile_mode():
         active = _isolated_profile_name()
-        hermes_home = Path(_INITIAL_HERMES_HOME).expanduser()
+        iris_home = Path(_INITIAL_IRIS_HOME).expanduser()
         try:
-            from hermes_cli.profiles import list_profiles
+            from iris_cli.profiles import list_profiles
             infos = list_profiles()
             # When the isolated profile is literally named "default", upstream
             # can surface the base-home row first. Only trust a row whose path
             # resolves to the same directory as the isolated startup home.
             for p in infos:
                 try:
-                    same_home = Path(p.path).expanduser().resolve() == hermes_home.resolve()
+                    same_home = Path(p.path).expanduser().resolve() == iris_home.resolve()
                 except OSError:
                     same_home = False
                 if p.name == active and same_home:
@@ -2119,18 +2119,18 @@ def list_profiles_api() -> list:
                     }]
         except (ImportError, OSError, PermissionError):
             pass
-        # Fallback: construct profile dict with actual active name and hermes_home path
-        enabled_count, total_count = _get_profile_skills_stats(hermes_home)
+        # Fallback: construct profile dict with actual active name and iris_home path
+        enabled_count, total_count = _get_profile_skills_stats(iris_home)
         return [{
             'name': active,
-            'path': str(hermes_home),
+            'path': str(iris_home),
             'is_default': active == 'default',
             'is_active': True,
             'gateway_running': False,
             'model': None,
             'provider': None,
-            'has_env': (hermes_home / '.env').exists(),
-            'visible': _profile_visible_from_meta(hermes_home),
+            'has_env': (iris_home / '.env').exists(),
+            'visible': _profile_visible_from_meta(iris_home),
             'skill_count': enabled_count,
             'enabled_skills': enabled_count,
             'total_skills': total_count,
@@ -2153,13 +2153,13 @@ def list_profiles_api() -> list:
 
     if rows is None:
         # Fallback: cheap helpers unavailable — use the original (slow) path,
-        # or the default-only dict if hermes_cli isn't importable at all.
+        # or the default-only dict if iris_cli isn't importable at all.
         logger.debug(
             "list_profiles_api: fast path unavailable, falling back to "
             "upstream list_profiles() (slower)"
         )
         try:
-            from hermes_cli.profiles import list_profiles
+            from iris_cli.profiles import list_profiles
             infos = list_profiles()
         except ImportError:
             return [_default_profile_dict()]
@@ -2204,17 +2204,17 @@ def _profile_visible_from_meta(profile_path: Path) -> bool:
 
 
 def _default_profile_dict() -> dict:
-    """Fallback profile dict when hermes_cli is not importable."""
-    enabled_count, compatible_count = _get_profile_skills_stats(_DEFAULT_HERMES_HOME)
+    """Fallback profile dict when iris_cli is not importable."""
+    enabled_count, compatible_count = _get_profile_skills_stats(_DEFAULT_IRIS_HOME)
     return {
         'name': 'default',
-        'path': str(_DEFAULT_HERMES_HOME),
+        'path': str(_DEFAULT_IRIS_HOME),
         'is_default': True,
         'is_active': True,
         'gateway_running': False,
         'model': None,
         'provider': None,
-        'has_env': (_DEFAULT_HERMES_HOME / '.env').exists(),
+        'has_env': (_DEFAULT_IRIS_HOME / '.env').exists(),
         'visible': True,
         'skill_count': enabled_count,
         'enabled_skills': enabled_count,
@@ -2223,7 +2223,7 @@ def _default_profile_dict() -> dict:
 
 
 def _validate_profile_name(name: str):
-    """Validate profile name format (matches hermes_cli.profiles upstream)."""
+    """Validate profile name format (matches iris_cli.profiles upstream)."""
     if name == 'default':
         raise ValueError("Cannot create a profile named 'default' -- it is the built-in profile.")
     # Use fullmatch (not match) so a trailing newline can't sneak past the $ anchor
@@ -2236,14 +2236,14 @@ def _validate_profile_name(name: str):
 
 def _profiles_root() -> Path:
     """Return the canonical root that contains named profiles."""
-    return (_DEFAULT_HERMES_HOME / 'profiles').resolve()
+    return (_DEFAULT_IRIS_HOME / 'profiles').resolve()
 
 
 def _resolve_named_profile_home(name: str) -> Path:
     """Resolve a named profile to a directory under the profiles root.
 
     Validates *name* as a logical profile identifier first, then resolves the
-    final filesystem path and enforces containment under ~/.hermes/profiles.
+    final filesystem path and enforces containment under ~/.iris/profiles.
     """
     _validate_profile_name(name)
     profiles_root = _profiles_root()
@@ -2254,8 +2254,8 @@ def _resolve_named_profile_home(name: str) -> Path:
 
 def _create_profile_fallback(name: str, clone_from: str = None,
                               clone_config: bool = False) -> Path:
-    """Create a profile directory without hermes_cli (Docker/standalone fallback)."""
-    profile_dir = _DEFAULT_HERMES_HOME / 'profiles' / name
+    """Create a profile directory without iris_cli (Docker/standalone fallback)."""
+    profile_dir = _DEFAULT_IRIS_HOME / 'profiles' / name
     if profile_dir.exists():
         raise FileExistsError(f"Profile '{name}' already exists.")
 
@@ -2267,9 +2267,9 @@ def _create_profile_fallback(name: str, clone_from: str = None,
     # Clone config files from source profile if requested
     if clone_config and clone_from:
         if _is_root_profile(clone_from):
-            source_dir = _DEFAULT_HERMES_HOME
+            source_dir = _DEFAULT_IRIS_HOME
         else:
-            source_dir = _DEFAULT_HERMES_HOME / 'profiles' / clone_from
+            source_dir = _DEFAULT_IRIS_HOME / 'profiles' / clone_from
         if source_dir.is_dir():
             for filename in _CLONE_CONFIG_FILES:
                 src = source_dir / filename
@@ -2281,7 +2281,7 @@ def _create_profile_fallback(name: str, clone_from: str = None,
 
 # Provider → .env variable name mapping.
 # When a user supplies an API key during profile creation in the WebUI,
-# the key must be written to the profile's .env file so that Hermes Agent's
+# the key must be written to the profile's .env file so that Iris Agent's
 # provider layer can read it — config.yaml model.api_key is not consumed.
 _PROVIDER_ENV_MAP: dict[str, str] = {
     "kimi-coding": "KIMI_API_KEY",
@@ -2359,11 +2359,11 @@ def _write_api_key_to_dotenv(
 
     If *model_provider* is known, the key is stored under the provider-specific
     env var (e.g. ``KIMI_API_KEY``); otherwise it falls back to a generic
-    ``HERMES_API_KEY`` that the user can rename later.
+    ``IRIS_API_KEY`` that the user can rename later.
     """
     env_var = _resolve_env_var_for_provider(model_provider)
     if not env_var:
-        env_var = "HERMES_API_KEY"
+        env_var = "IRIS_API_KEY"
         logger.info(
             "No provider→env mapping for %r; writing API key as %s",
             model_provider,
@@ -2594,7 +2594,7 @@ def create_profile_api(name: str, clone_from: str = None,
     _validate_profile_model_selection(default_model, model_provider)
 
     try:
-        from hermes_cli.profiles import create_profile
+        from iris_cli.profiles import create_profile
         create_profile(
             name,
             clone_from=clone_from,
@@ -2606,10 +2606,10 @@ def create_profile_api(name: str, clone_from: str = None,
         _create_profile_fallback(name, clone_from, clone_config)
 
     # Resolve the profile directory from the profile list when possible.
-    # hermes_cli and the webui runtime do not always agree on the exact root,
+    # iris_cli and the webui runtime do not always agree on the exact root,
     # so we prefer the path returned by list_profiles_api() and fall back to the
     # standard profile location only if the profile cannot be found there yet.
-    profile_path = _DEFAULT_HERMES_HOME / 'profiles' / name
+    profile_path = _DEFAULT_IRIS_HOME / 'profiles' / name
     for p in list_profiles_api():
         if p['name'] == name:
             try:
@@ -2625,12 +2625,12 @@ def create_profile_api(name: str, clone_from: str = None,
     # receive a second bundled-skill overlay.
     if clone_from is None:
         try:
-            from hermes_cli.profiles import seed_profile_skills
+            from iris_cli.profiles import seed_profile_skills
             seed_profile_skills(profile_path, quiet=True)
         except ImportError:
             logger.debug(
                 'seed_profile_skills unavailable — bundled skills not seeded '
-                'for profile %s (hermes_cli not in path)',
+                'for profile %s (iris_cli not in path)',
                 name,
             )
         except Exception:
@@ -2661,7 +2661,7 @@ def create_profile_api(name: str, clone_from: str = None,
     _invalidate_root_profile_cache()
 
     # Find and return the newly created profile info.
-    # When hermes_cli is not importable, list_profiles_api() also falls back
+    # When iris_cli is not importable, list_profiles_api() also falls back
     # to the stub default-only list and won't find the new profile by name.
     # In that case, return a complete profile dict directly.
     for p in list_profiles_api():
@@ -2704,7 +2704,7 @@ def delete_profile_api(name: str) -> dict:
             )
 
     try:
-        from hermes_cli.profiles import delete_profile
+        from iris_cli.profiles import delete_profile
         delete_profile(name, yes=True)
     except ImportError:
         # Manual fallback: just remove the directory

@@ -73,12 +73,12 @@ def _isolate_agent_locks():
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes_home"
+def iris_home(tmp_path, monkeypatch):
+    home = tmp_path / "iris_home"
     home.mkdir()
     (home / "sessions").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", home)
+    monkeypatch.setenv("IRIS_HOME", str(home))
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", home)
     return home
 
 
@@ -510,7 +510,7 @@ def test_server_treats_broken_pipe_as_client_disconnect_not_500():
     assert "do not convert it into a misleading server 500" in server_py
 
 
-def test_lost_response_recovered_on_second_read(hermes_home):
+def test_lost_response_recovered_on_second_read(iris_home):
     sid = "9f14583f0e4e4444aaaa111122223333"
     stream_id = "7c8b4108d52b4aba9af362d3a54f47ac"
 
@@ -518,7 +518,7 @@ def test_lost_response_recovered_on_second_read(hermes_home):
     # run-journal for this stream is empty/absent on disk.
     s = _make_dead_stream_session(sid, stream_id=stream_id)
     s.save()
-    core_path = hermes_home / "sessions" / f"session_{sid}.json"
+    core_path = iris_home / "sessions" / f"session_{sid}.json"
 
     result = _apply_core_sync_or_error_marker(
         s, core_path, stream_id_for_recheck=stream_id,
@@ -551,8 +551,8 @@ def test_lost_response_recovered_on_second_read(hermes_home):
         "tool",
         {
             "name": "terminal",
-            "preview": "gh pr list --repo nesquena/hermes-webui",
-            "args": {"command": "gh pr list --repo nesquena/hermes-webui"},
+            "preview": "gh pr list --repo nesquena/iris-webui",
+            "args": {"command": "gh pr list --repo nesquena/iris-webui"},
         },
     )
     append_run_event(
@@ -608,7 +608,7 @@ def test_lost_response_recovered_on_second_read(hermes_home):
     assert "_journal_retry_first_seen_ts" not in promoted
 
 
-def test_concurrent_get_session_serializes_lazy_journal_retry(hermes_home, monkeypatch):
+def test_concurrent_get_session_serializes_lazy_journal_retry(iris_home, monkeypatch):
     sid = "retry_lock_sid"
     stream_id = "retry_lock_stream"
     s = _make_pending_retry_session(sid, stream_id=stream_id)
@@ -640,7 +640,7 @@ def test_concurrent_get_session_serializes_lazy_journal_retry(hermes_home, monke
     assert calls == 1
 
 
-def test_still_arriving_journal_does_not_consume_retry_budget(hermes_home, monkeypatch):
+def test_still_arriving_journal_does_not_consume_retry_budget(iris_home, monkeypatch):
     sid = "retry_arriving_sid"
     stream_id = "retry_arriving_stream"
     s = _make_pending_retry_session(sid, stream_id=stream_id)
@@ -658,7 +658,7 @@ def test_still_arriving_journal_does_not_consume_retry_budget(hermes_home, monke
     assert marker["content"] == models._INTERRUPTED_PENDING_RETRY_WORDING
 
 
-def test_sealed_empty_journal_consumes_retry_budget_and_demotes_at_max(hermes_home, monkeypatch):
+def test_sealed_empty_journal_consumes_retry_budget_and_demotes_at_max(iris_home, monkeypatch):
     sid = "retry_sealed_sid"
     stream_id = "retry_sealed_stream"
     s = _make_pending_retry_session(sid, stream_id=stream_id)
@@ -674,7 +674,7 @@ def test_sealed_empty_journal_consumes_retry_budget_and_demotes_at_max(hermes_ho
     assert not any(m.get("_recovered_from_run_journal") for m in s.messages)
 
 
-def test_marker_demotes_after_max_attempts_with_sealed_empty_journal(hermes_home, monkeypatch):
+def test_marker_demotes_after_max_attempts_with_sealed_empty_journal(iris_home, monkeypatch):
     sid = "retry_max_sid"
     stream_id = "retry_max_stream"
     s = _make_pending_retry_session(sid, stream_id=stream_id)
@@ -690,7 +690,7 @@ def test_marker_demotes_after_max_attempts_with_sealed_empty_journal(hermes_home
     assert not any(m.get("_recovered_from_run_journal") for m in s.messages)
 
 
-def test_marker_demotes_after_giveup_seconds(hermes_home, monkeypatch):
+def test_marker_demotes_after_giveup_seconds(iris_home, monkeypatch):
     base = 1_779_000_000
     monkeypatch.setattr(models.time, "time", lambda: base)
     sid = "retry_age_sid"
@@ -718,7 +718,7 @@ def test_marker_demotes_after_giveup_seconds(hermes_home, monkeypatch):
     assert append_calls == 0
 
 
-def test_repair_stale_pending_skips_pre_compression_snapshot_parent(hermes_home):
+def test_repair_stale_pending_skips_pre_compression_snapshot_parent(iris_home):
     """Archived compression parents must not get synthetic interrupt markers."""
     s = _make_dead_stream_session("compressed_parent", stream_id="dead-stream")
     s.pre_compression_snapshot = True
@@ -731,7 +731,7 @@ def test_repair_stale_pending_skips_pre_compression_snapshot_parent(hermes_home)
     assert s.pending_user_message
 
 
-def test_repair_stale_pending_skips_parent_when_continuation_exists(hermes_home):
+def test_repair_stale_pending_skips_parent_when_continuation_exists(iris_home):
     """Compression old→new rotation owns the turn in the child, not the old parent."""
     parent = _make_dead_stream_session("compression_parent", stream_id="rotated-stream")
     child = Session(
@@ -761,7 +761,7 @@ def test_get_session_syncs_sidecar_from_newer_state_db_even_when_stream_not_term
 
     Repro shape from a source-WebUI run: sidecar JSON still has
     active_stream_id/pending_user_message and ends at the previous completed
-    turn, while the underlying Hermes agent has already written the current
+    turn, while the underlying Iris agent has already written the current
     user/assistant/tool rows to state.db. The run journal has no terminal done,
     so stale-pending repair deliberately does not fire; read-side reconciliation
     must still sync the sidecar from state.db.

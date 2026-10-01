@@ -1,4 +1,4 @@
-"""Helpers for restarting the active-profile Hermes gateway."""
+"""Helpers for restarting the active-profile Iris gateway."""
 
 from __future__ import annotations
 
@@ -13,9 +13,9 @@ from pathlib import Path
 from api.profiles import (
     _PROFILE_ID_RE,
     _is_root_profile,
-    get_active_hermes_home,
+    get_active_iris_home,
     get_active_profile_name,
-    get_hermes_home_for_profile,
+    get_iris_home_for_profile,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,16 +23,16 @@ logger = logging.getLogger(__name__)
 _GATEWAY_RESTART_LOCK = threading.Lock()
 
 
-def _resolve_hermes_command() -> str:
+def _resolve_iris_command() -> str:
     """Resolve the CLI path used for active-profile gateway restarts."""
-    hermes_cmd = shutil.which("hermes")
-    if hermes_cmd:
-        return hermes_cmd
+    iris_cmd = shutil.which("iris")
+    if iris_cmd:
+        return iris_cmd
 
-    sibling = Path(sys.executable).parent / "hermes"
+    sibling = Path(sys.executable).parent / "iris"
     if sibling.exists():
         return str(sibling)
-    return "hermes"
+    return "iris"
 
 
 def _consume_stream(stream) -> None:
@@ -53,15 +53,15 @@ def _release_lock() -> None:
 
 
 def _gateway_restart_profile_context(profile: str | None = None) -> tuple[Path, str | None]:
-    """Return the HERMES_HOME and CLI profile arg for a gateway restart."""
+    """Return the IRIS_HOME and CLI profile arg for a gateway restart."""
     if profile is None:
         raw_profile = str(get_active_profile_name() or "default").strip()
-        active_home = Path(get_active_hermes_home())
+        active_home = Path(get_active_iris_home())
     else:
         raw_profile = str(profile or "")
         if not raw_profile or not _PROFILE_ID_RE.fullmatch(raw_profile):
             raise ValueError(f"Invalid profile for gateway restart: {profile!r}")
-        active_home = Path(get_hermes_home_for_profile(raw_profile))
+        active_home = Path(get_iris_home_for_profile(raw_profile))
 
     if (
         raw_profile == "default"
@@ -80,7 +80,7 @@ def restart_active_profile_gateway(
     quick_timeout_seconds: float = 2.0,
     background_wait_seconds: float = 240.0,
 ) -> dict:
-    """Run a non-blocking ``hermes gateway restart`` for the active profile.
+    """Run a non-blocking ``iris gateway restart`` for the active profile.
 
     Returns a short status dict with these values:
     - completed: command finished quickly and succeeded.
@@ -97,23 +97,23 @@ def restart_active_profile_gateway(
     try:
         active_home, cli_profile = _gateway_restart_profile_context(profile)
         env = os.environ.copy()
-        env["HERMES_HOME"] = str(active_home)
-        hermes_cmd = _resolve_hermes_command()
-        cmd = [hermes_cmd]
+        env["IRIS_HOME"] = str(active_home)
+        iris_cmd = _resolve_iris_command()
+        cmd = [iris_cmd]
         if cli_profile is not None:
             cmd.extend(["--profile", cli_profile])
         cmd.extend(["gateway", "restart"])
 
         if cli_profile is None:
             logger.info(
-                "Restarting gateway service via CLI command: %s gateway restart (HERMES_HOME=%s)",
-                hermes_cmd,
+                "Restarting gateway service via CLI command: %s gateway restart (IRIS_HOME=%s)",
+                iris_cmd,
                 active_home,
             )
         else:
             logger.info(
-                "Restarting gateway service via CLI command: %s --profile %s gateway restart (HERMES_HOME=%s)",
-                hermes_cmd,
+                "Restarting gateway service via CLI command: %s --profile %s gateway restart (IRIS_HOME=%s)",
+                iris_cmd,
                 cli_profile,
                 active_home,
             )

@@ -89,7 +89,7 @@ def test_current_sha_is_merge_base_not_local_HEAD(tmp_path, monkeypatch):
     Before #1579 fix: current_sha = local HEAD = unpublished SHA → URL 404s.
     After fix: current_sha = merge-base = the public ancestor commit → URL resolves.
     """
-    # Clear cached config (api.updates may import HERMES_HOME at import time)
+    # Clear cached config (api.updates may import IRIS_HOME at import time)
     repo = _make_throwaway_repo(
         tmp_path, local_only_commits=2, upstream_advanced=3,
     )

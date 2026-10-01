@@ -27,7 +27,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const context = {{
   session_id:'sid-1',
   turn_id:'turn-1',

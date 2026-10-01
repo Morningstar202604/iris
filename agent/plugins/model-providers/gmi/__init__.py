@@ -1,6 +1,6 @@
 """GMI Cloud provider profile."""
 
-from hermes_cli import __version__ as _HERMES_VERSION
+from iris_cli import __version__ as _IRIS_VERSION
 from providers import register_provider
 from providers.base import ProviderProfile
 
@@ -9,8 +9,8 @@ gmi = ProviderProfile(
     description="GMI Cloud — multi-model direct API (slash-form model IDs)",
     signup_url="https://www.gmicloud.ai/", env_vars=("GMI_API_KEY", "GMI_BASE_URL"),
     base_url="https://api.gmi-serving.com/v1", auth_type="api_key",
-    # Attribution so GMI can identify Hermes Agent traffic.
-    default_headers={"User-Agent": f"HermesAgent/{_HERMES_VERSION}"},
+    # Attribution so GMI can identify Iris Agent traffic.
+    default_headers={"User-Agent": f"IrisAgent/{_IRIS_VERSION}"},
     default_aux_model="google/gemini-3.1-flash-lite-preview",
     fallback_models=(
         "zai-org/GLM-5.1-FP8", "deepseek-ai/DeepSeek-V3.2", "moonshotai/Kimi-K2.5",

@@ -87,27 +87,27 @@ class TestLoadCronsAnimateFlag:
 
 
 class TestCronCreatedEventListener:
-    """A global `hermes:cron_created` listener must be registered so
+    """A global `iris:cron_created` listener must be registered so
     future chat paths can trigger the cron list refresh."""
 
     def test_listener_registered_at_module_scope(self):
         js = _read("static/panels.js")
         assert re.search(
-            r"addEventListener\(\s*['\"]hermes:cron_created['\"]",
+            r"addEventListener\(\s*['\"]iris:cron_created['\"]",
             js,
         ), (
-            "panels.js must register a window-level 'hermes:cron_created' event listener"
+            "panels.js must register a window-level 'iris:cron_created' event listener"
         )
 
     def test_listener_triggers_load_crons(self):
         js = _read("static/panels.js")
         m = re.search(
-            r"addEventListener\(\s*['\"]hermes:cron_created['\"].*?\}\s*\)",
+            r"addEventListener\(\s*['\"]iris:cron_created['\"].*?\}\s*\)",
             js,
             re.DOTALL,
         )
-        assert m, "hermes:cron_created listener body not found"
+        assert m, "iris:cron_created listener body not found"
         body = m.group(0)
         assert 'loadCrons' in body, (
-            "hermes:cron_created listener must call loadCrons() to refresh the list"
+            "iris:cron_created listener must call loadCrons() to refresh the list"
         )

@@ -7,7 +7,7 @@ license: MIT
 dependencies: [chromadb, sentence-transformers]
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [RAG, Chroma, Vector Database, Embeddings, Semantic Search, Open Source, Self-Hosted, Document Retrieval, Metadata Filtering]
 
 ---

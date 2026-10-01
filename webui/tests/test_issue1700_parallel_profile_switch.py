@@ -2,7 +2,7 @@
 
 A WebUI profile switch uses cookie/thread-local profile state, so it should be
 allowed while another session is streaming. Only process-wide profile switches
-must remain blocked because they mutate global Hermes runtime state.
+must remain blocked because they mutate global Iris runtime state.
 """
 import re
 from pathlib import Path
@@ -31,7 +31,7 @@ def _extract_switch_to_profile() -> str:
 def _prepare_profile_tree(tmp_path, monkeypatch):
     import api.profiles as profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".iris"
     target_home = default_home / "profiles" / "writer"
     target_workspace = tmp_path / "writer-workspace"
     target_workspace.mkdir(parents=True)
@@ -42,7 +42,7 @@ def _prepare_profile_tree(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", default_home)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", default_home)
     monkeypatch.setattr(profiles, "_active_profile", "default")
     monkeypatch.setattr(profiles, "list_profiles_api", lambda: [{"name": "default"}, {"name": "writer"}])
     profiles._tls.profile = None

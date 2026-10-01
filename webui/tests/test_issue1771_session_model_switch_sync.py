@@ -135,14 +135,14 @@ function syncWorkspaceDisplays() {}
 function syncReasoningChip() {}
 function syncToolsetsChip() {}
 function syncTerminalButton() {}
-function _syncHermesPanelSessionActions() {}
+function _syncIrisPanelSessionActions() {}
 function _latestGatewayRoutingForSession() { return null; }
 function getModelLabel(v) { return v; }
 function _formatGatewayModelLabel(_v, text) { return text; }
 const _liveModelFetchPending = new Set();
 const document = {
   title: '',
-  baseURI: 'http://127.0.0.1/hermes/',
+  baseURI: 'http://127.0.0.1/iris/',
   createElement(tag) {
     const upper = String(tag || '').toUpperCase();
     if (upper === 'OPTGROUP') return makeOptGroup('', '');
@@ -151,7 +151,7 @@ const document = {
   },
   createTextNode(text) { return {textContent: text}; },
 };
-const window = { _botName: 'Hermes', _defaultModel: null, _activeProvider: null };
+const window = { _botName: 'Iris', _defaultModel: null, _activeProvider: null };
 function fetch(url, opts) { calls.fetches.push({url: String(url), body: opts && opts.body || ''}); return Promise.resolve({ok: true}); }
 
 for (const name of [

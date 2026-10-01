@@ -24,8 +24,8 @@ from pathlib import Path
 from typing import Any
 
 API_BASE = "https://api.github.com"
-EVIDENCE_START = "<!-- hermes-e2e-evidence:start -->"
-EVIDENCE_END = "<!-- hermes-e2e-evidence:end -->"
+EVIDENCE_START = "<!-- iris-e2e-evidence:start -->"
+EVIDENCE_END = "<!-- iris-e2e-evidence:end -->"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MAX_FILES = 20
 MAX_FILE_BYTES = 5 * 1024 * 1024
@@ -62,7 +62,7 @@ def _api_request(
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
             "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "hermes-e2e-evidence-publisher",
+            "User-Agent": "iris-e2e-evidence-publisher",
         },
     )
     with urllib.request.urlopen(request) as response:
@@ -198,7 +198,7 @@ def _find_review_comment(comments: object) -> dict[str, Any] | None:
         if not isinstance(item, dict):
             continue
         body = str(item.get("body", ""))
-        if body.startswith("<!-- hermes-ci-review-bot -->") and EVIDENCE_START in body and EVIDENCE_END in body:
+        if body.startswith("<!-- iris-ci-review-bot -->") and EVIDENCE_START in body and EVIDENCE_END in body:
             return item
     return None
 
@@ -211,7 +211,7 @@ def _wait_for_review_comment(token: str, source_repo: str, pr_number: str) -> di
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "hermes-e2e-evidence-publisher",
+            "User-Agent": "iris-e2e-evidence-publisher",
         },
     )
     for attempt in range(COMMENT_LOOKUP_ATTEMPTS):

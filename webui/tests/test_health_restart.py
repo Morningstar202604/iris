@@ -88,16 +88,16 @@ def test_restart_active_profile_gateway_success_uses_active_profile_home(monkeyp
             env=env,
         )
 
-    monkeypatch.setattr(gateway_restart, "get_active_hermes_home", lambda: "/mock/hermes/home")
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart, "get_active_iris_home", lambda: "/mock/iris/home")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
 
     result = gateway_restart.restart_active_profile_gateway()
 
     assert result["status"] == "completed"
     assert result["message"] == "Gateway service restarted successfully"
-    assert called["args"] == ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"]
-    assert called["env"]["HERMES_HOME"] == "/mock/hermes/home"
+    assert called["args"] == ["/mock/bin/iris", "--profile", "default", "gateway", "restart"]
+    assert called["env"]["IRIS_HOME"] == "/mock/iris/home"
     assert gateway_restart._GATEWAY_RESTART_LOCK.locked() is False
 
 
@@ -112,17 +112,17 @@ def test_restart_active_profile_gateway_pins_explicit_default_profile(monkeypatc
 
     monkeypatch.setattr(
         gateway_restart,
-        "get_hermes_home_for_profile",
-        lambda profile: "/mock/hermes/default" if profile == "default" else "/mock/hermes/profiles/work",
+        "get_iris_home_for_profile",
+        lambda profile: "/mock/iris/default" if profile == "default" else "/mock/iris/profiles/work",
     )
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
 
     result = gateway_restart.restart_active_profile_gateway(profile="default")
 
     assert result["status"] == "completed"
-    assert called["args"] == ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"]
-    assert called["env"]["HERMES_HOME"] == "/mock/hermes/default"
+    assert called["args"] == ["/mock/bin/iris", "--profile", "default", "gateway", "restart"]
+    assert called["env"]["IRIS_HOME"] == "/mock/iris/default"
 
 
 def test_restart_active_profile_gateway_omits_profile_for_isolated_default_home(monkeypatch):
@@ -136,17 +136,17 @@ def test_restart_active_profile_gateway_omits_profile_for_isolated_default_home(
 
     monkeypatch.setattr(
         gateway_restart,
-        "get_hermes_home_for_profile",
-        lambda profile: "/mock/hermes/profiles/default",
+        "get_iris_home_for_profile",
+        lambda profile: "/mock/iris/profiles/default",
     )
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
 
     result = gateway_restart.restart_active_profile_gateway(profile="default")
 
     assert result["status"] == "completed"
-    assert called["args"] == ["/mock/bin/hermes", "gateway", "restart"]
-    assert called["env"]["HERMES_HOME"] == "/mock/hermes/profiles/default"
+    assert called["args"] == ["/mock/bin/iris", "gateway", "restart"]
+    assert called["env"]["IRIS_HOME"] == "/mock/iris/profiles/default"
 
 
 def test_restart_active_profile_gateway_rejects_malformed_explicit_profile(monkeypatch):
@@ -176,29 +176,29 @@ def test_restart_active_profile_gateway_accepts_renamed_root_alias(monkeypatch):
 
     monkeypatch.setattr(
         gateway_restart,
-        "get_hermes_home_for_profile",
-        lambda profile: "/mock/hermes/root" if profile == "rootalias" else "/mock/hermes/other",
+        "get_iris_home_for_profile",
+        lambda profile: "/mock/iris/root" if profile == "rootalias" else "/mock/iris/other",
     )
     monkeypatch.setattr(
         gateway_restart,
         "_is_root_profile",
         lambda profile: profile in {"default", "rootalias"},
     )
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(gateway_restart.subprocess, "Popen", fake_popen)
 
     result = gateway_restart.restart_active_profile_gateway(profile="rootalias")
 
     assert result["status"] == "completed"
-    assert called["args"] == ["/mock/bin/hermes", "--profile", "default", "gateway", "restart"]
-    assert called["env"]["HERMES_HOME"] == "/mock/hermes/root"
+    assert called["args"] == ["/mock/bin/iris", "--profile", "default", "gateway", "restart"]
+    assert called["env"]["IRIS_HOME"] == "/mock/iris/root"
 
 
 def test_restart_active_profile_gateway_failure_preserves_empty_output_contract(monkeypatch):
     gateway_restart._GATEWAY_RESTART_LOCK = threading.Lock()
 
-    monkeypatch.setattr(gateway_restart, "get_active_hermes_home", lambda: "/mock/hermes/home")
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart, "get_active_iris_home", lambda: "/mock/iris/home")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(
         gateway_restart.subprocess,
         "Popen",
@@ -220,13 +220,13 @@ def test_restart_active_profile_gateway_failure_preserves_empty_output_contract(
 def test_restart_active_profile_gateway_timeout_releases_lock_after_background_wait(monkeypatch):
     gateway_restart._GATEWAY_RESTART_LOCK = threading.Lock()
     proc = MockPopen(
-        ["/mock/bin/hermes", "gateway", "restart"],
+        ["/mock/bin/iris", "gateway", "restart"],
         communicate_timeout=True,
-        env={"HERMES_HOME": "/mock/hermes/home"},
+        env={"IRIS_HOME": "/mock/iris/home"},
     )
 
-    monkeypatch.setattr(gateway_restart, "get_active_hermes_home", lambda: "/mock/hermes/home")
-    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/hermes")
+    monkeypatch.setattr(gateway_restart, "get_active_iris_home", lambda: "/mock/iris/home")
+    monkeypatch.setattr(gateway_restart.shutil, "which", lambda cmd: "/mock/bin/iris")
     monkeypatch.setattr(gateway_restart.subprocess, "Popen", lambda *args, **kwargs: proc)
     monkeypatch.setattr(gateway_restart.threading, "Thread", InlineThread)
 

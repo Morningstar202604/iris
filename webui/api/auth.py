@@ -1,6 +1,6 @@
 """
-Hermes Web UI -- optional authentication.
-Off by default. Enable by setting HERMES_WEBUI_PASSWORD, configuring a
+Iris Web UI -- optional authentication.
+Off by default. Enable by setting IRIS_WEBUI_PASSWORD, configuring a
 password in Settings, registering passkeys, or configuring native OIDC SSO.
 """
 import hashlib
@@ -32,11 +32,11 @@ SESSION_TTL = 86400 * 30  # 30 days
 def _resolve_session_ttl() -> int:
     """Resolve session TTL from env > settings > default.
 
-    Priority mirrors get_password_hash(): HERMES_WEBUI_SESSION_TTL env var
+    Priority mirrors get_password_hash(): IRIS_WEBUI_SESSION_TTL env var
     first, then settings.json, falling back to ``SESSION_TTL`` (30 days).
     Clamped to [60s, 1 year] to prevent runaway cookies or self-lockout.
     """
-    env_v = os.getenv('HERMES_WEBUI_SESSION_TTL', '').strip()
+    env_v = os.getenv('IRIS_WEBUI_SESSION_TTL', '').strip()
     if env_v.isdigit():
         val = int(env_v)
         if 60 <= val <= 86400 * 365:
@@ -59,8 +59,8 @@ PUBLIC_PATHS = frozenset({
     '/session/manifest.json', '/session/manifest.webmanifest',
 })
 
-COOKIE_NAME = 'hermes_session'
-CSRF_HEADER_NAME = 'X-Hermes-CSRF-Token'
+COOKIE_NAME = 'iris_session'
+CSRF_HEADER_NAME = 'X-Iris-CSRF-Token'
 
 
 # RFC 6265 cookie-name token: a non-empty run of token chars
@@ -71,19 +71,19 @@ _COOKIE_NAME_RE = re.compile(r"^[-!#$%&'*+.^_`|~0-9A-Za-z]+$")
 def _resolve_cookie_name() -> str:
     """Resolve the auth session cookie name from env > default.
 
-    Honours ``HERMES_WEBUI_COOKIE_NAME`` so multiple WebUI instances sharing a
+    Honours ``IRIS_WEBUI_COOKIE_NAME`` so multiple WebUI instances sharing a
     hostname (different ports) can use distinct cookie names instead of
     trampling each other's session — browsers scope cookies by host, not
     host+port (RFC 6265). Falls back to ``COOKIE_NAME`` when the env var is
     unset, empty, or not a valid RFC 6265 token.
     """
-    name = os.getenv('HERMES_WEBUI_COOKIE_NAME', '').strip()
+    name = os.getenv('IRIS_WEBUI_COOKIE_NAME', '').strip()
     if not name:
         return COOKIE_NAME
     if _COOKIE_NAME_RE.match(name):
         return name
     logger.warning(
-        'Ignoring invalid HERMES_WEBUI_COOKIE_NAME=%r; falling back to %r '
+        'Ignoring invalid IRIS_WEBUI_COOKIE_NAME=%r; falling back to %r '
         '(name must be a valid RFC 6265 token)', name, COOKIE_NAME,
     )
     return COOKIE_NAME
@@ -102,16 +102,16 @@ def _warn_auth_persistence_failure(prefix: str, artifact: Path, exc: Exception, 
 
 
 _SESSIONS_FILE = STATE_DIR / '.sessions.json'
-_TRUSTED_AUTH_HEADER_ENV = 'HERMES_WEBUI_TRUSTED_AUTH_HEADER'
-_TRUSTED_GROUPS_HEADER_ENV = 'HERMES_WEBUI_TRUSTED_GROUPS_HEADER'
-_TRUSTED_GROUP_PROFILE_MAP_ENV = 'HERMES_WEBUI_GROUP_PROFILE_MAP'
-_TRUSTED_AUTH_LOGOUT_URL_ENV = 'HERMES_WEBUI_TRUSTED_AUTH_LOGOUT_URL'
+_TRUSTED_AUTH_HEADER_ENV = 'IRIS_WEBUI_TRUSTED_AUTH_HEADER'
+_TRUSTED_GROUPS_HEADER_ENV = 'IRIS_WEBUI_TRUSTED_GROUPS_HEADER'
+_TRUSTED_GROUP_PROFILE_MAP_ENV = 'IRIS_WEBUI_GROUP_PROFILE_MAP'
+_TRUSTED_AUTH_LOGOUT_URL_ENV = 'IRIS_WEBUI_TRUSTED_AUTH_LOGOUT_URL'
 # Opt-in: also treat '|' as a group separator in the trusted-groups header.
 # Off by default so an existing deployment whose group NAME legitimately
 # contains a literal '|' is never silently re-split into two groups (which
 # could change its profile binding). Set to 1/true/yes/on for identity
 # providers (some Authentik outpost configs) that emit "admins|developpeur".
-_TRUSTED_GROUPS_PIPE_SEPARATOR_ENV = 'HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR'
+_TRUSTED_GROUPS_PIPE_SEPARATOR_ENV = 'IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR'
 _TRUSTED_AUTH_WARNINGS_EMITTED: set[str] = set()
 
 
@@ -427,7 +427,7 @@ def get_password_hash() -> str | None:
         if _AUTH_HASH_COMPUTED:
             return _AUTH_HASH_CACHE
 
-        env_pw = os.getenv('HERMES_WEBUI_PASSWORD', '').strip()
+        env_pw = os.getenv('IRIS_WEBUI_PASSWORD', '').strip()
         if env_pw:
             result = _hash_password(env_pw)
         else:
@@ -451,13 +451,13 @@ def _passkey_feature_flag_enabled() -> bool:
     non-localhost hosts) can disable it entirely with no UI surface, no
     endpoints, no credential storage. To enable:
 
-      - Set ``HERMES_WEBUI_PASSKEY=1`` in the environment, OR
+      - Set ``IRIS_WEBUI_PASSKEY=1`` in the environment, OR
       - Set ``webui_passkey_enabled: true`` in the per-profile config.yaml
 
     With the flag off, ``are_passkeys_enabled()`` always returns False even if
     credentials were registered in the past, and ``/login`` shows password-only.
     """
-    env_value = os.getenv("HERMES_WEBUI_PASSKEY", "")
+    env_value = os.getenv("IRIS_WEBUI_PASSKEY", "")
     if env_value:
         return env_value.strip().lower() in {"1", "true", "yes", "on"}
     try:
@@ -516,10 +516,10 @@ def get_oidc_startup_warning() -> str | None:
         value = env_value if env_value is not None else raw.get(name)
         return str(value or "").strip()
 
-    issuer = bool(pick("issuer", "HERMES_WEBUI_OIDC_ISSUER"))
-    client_id = bool(pick("client_id", "HERMES_WEBUI_OIDC_CLIENT_ID"))
-    allow_claim = bool(pick("allow_claim", "HERMES_WEBUI_OIDC_ALLOW_CLAIM"))
-    raw_allow_env = os.getenv("HERMES_WEBUI_OIDC_ALLOW_VALUES")
+    issuer = bool(pick("issuer", "IRIS_WEBUI_OIDC_ISSUER"))
+    client_id = bool(pick("client_id", "IRIS_WEBUI_OIDC_CLIENT_ID"))
+    allow_claim = bool(pick("allow_claim", "IRIS_WEBUI_OIDC_ALLOW_CLAIM"))
+    raw_allow_env = os.getenv("IRIS_WEBUI_OIDC_ALLOW_VALUES")
     raw_allow = raw_allow_env if raw_allow_env is not None else raw.get("allow_values")
     normalized_allow_values = []
     allow_values_warning = None
@@ -597,7 +597,7 @@ def bind_security_error(host: str) -> str | None:
     return (
         f"Refusing to bind {host!r} with NO authentication configured. "
         "Anyone who can reach this port gets full access to sessions, files, "
-        "and the agent. Set a password (Settings or HERMES_WEBUI_PASSWORD), "
+        "and the agent. Set a password (Settings or IRIS_WEBUI_PASSWORD), "
         "bind to 127.0.0.1, or set auth_disabled_acknowledged=true in "
         "settings.json to accept the risk."
     )
@@ -761,7 +761,7 @@ def _trusted_groups_header_value(handler) -> list[str]:
     # "admins|developpeur"), which a comma-only split would treat as one
     # unmatched group name — silently dropping the session to the unbound
     # "default" profile despite a legitimate mapped membership. Pipe splitting
-    # is therefore available but OPT-IN (HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR),
+    # is therefore available but OPT-IN (IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR),
     # because a group NAME can legitimately contain a literal '|' and must not be
     # re-split by default — doing so unconditionally could change an existing
     # deployment's profile binding.
@@ -990,7 +990,7 @@ def sign_profile_cookie_value(profile_name: str, session_cookie_value: str | Non
     The active-profile cookie is client-controlled, so when auth is enabled it
     must not be trusted as a bare profile name. Binding the selected profile to
     the HttpOnly session token prevents a client from forging
-    ``hermes_profile=<other-profile>`` and bypassing profile visibility guards.
+    ``iris_profile=<other-profile>`` and bypassing profile visibility guards.
     """
     if not session_cookie_value or not verify_session(session_cookie_value):
         raise ValueError("active auth session is required to sign profile cookie")
@@ -1035,7 +1035,7 @@ def csrf_token_for_session(cookie_value: str) -> str | None:
     """Return the CSRF token bound to an authenticated WebUI session.
 
     The browser can read this token from the authenticated shell and echoes it
-    in ``X-Hermes-CSRF-Token`` on unsafe API requests. The token is derived
+    in ``X-Iris-CSRF-Token`` on unsafe API requests. The token is derived
     from the HttpOnly session cookie's server-side token, so it automatically
     rotates on login and is invalidated when the auth session expires or logs
     out. Callers must still verify the auth session before trusting it.
@@ -1289,19 +1289,19 @@ def _is_secure_context(handler=None) -> bool:
     """Return True if cookies should carry the Secure flag.
 
     Priority order:
-    1. ``HERMES_WEBUI_SECURE`` env var: 1/true/yes -> True; 0/false/no -> False.
+    1. ``IRIS_WEBUI_SECURE`` env var: 1/true/yes -> True; 0/false/no -> False.
     2. Direct TLS socket (handler.request.getpeercert present) -> True.
-    3. ``HERMES_WEBUI_TRUST_FORWARDED_PROTO=1`` opt-in: trust
+    3. ``IRIS_WEBUI_TRUST_FORWARDED_PROTO=1`` opt-in: trust
        ``X-Forwarded-Proto: https`` header from a known reverse proxy.
     4. Otherwise -> False (loopback or non-loopback, plain HTTP is not secure).
 
     .. warning::
        ``X-Forwarded-Proto`` is only trustworthy behind a reverse proxy.
-       It is ignored unless ``HERMES_WEBUI_TRUST_FORWARDED_PROTO=1`` is
+       It is ignored unless ``IRIS_WEBUI_TRUST_FORWARDED_PROTO=1`` is
        set explicitly, preventing header-injection attacks on plain-HTTP
        deployments.
     """
-    env = os.getenv('HERMES_WEBUI_SECURE', '').strip().lower()
+    env = os.getenv('IRIS_WEBUI_SECURE', '').strip().lower()
     if env in ('1', 'true', 'yes'):
         return True
     if env in ('0', 'false', 'no'):
@@ -1309,7 +1309,7 @@ def _is_secure_context(handler=None) -> bool:
     if handler is not None:
         if getattr(handler.request, 'getpeercert', None) is not None:
             return True
-        trust_fwd = os.getenv('HERMES_WEBUI_TRUST_FORWARDED_PROTO', '').strip().lower()
+        trust_fwd = os.getenv('IRIS_WEBUI_TRUST_FORWARDED_PROTO', '').strip().lower()
         if trust_fwd in ('1', 'true', 'yes'):
             if handler.headers.get('X-Forwarded-Proto', '') == 'https':
                 return True

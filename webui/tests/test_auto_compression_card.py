@@ -472,13 +472,13 @@ def test_agent_status_callback_emits_compressing_and_warning_events():
 
 
 def test_agent_compression_start_status_matches_real_emitters_only():
-    # Real start notices from hermes-agent emitters
+    # Real start notices from iris-agent emitters
     # Preflight compression is intentionally excluded — the later
         # authoritative ``Compacting context`` marker from
         # conversation_compression is the signal that compression
         # actually proceeded, and the preflight status can fire even
         # when compression exits before compaction (e.g. durable
-        # guard refresh, Codex-Hermes mode with no active thread).
+        # guard refresh, Codex-Iris mode with no active thread).
     assert not _is_agent_compression_start_status(
         "lifecycle",
         "📦 Preflight compression: ~101,000 tokens >= 96,000 threshold. This may take a moment.",
@@ -511,7 +511,7 @@ def test_agent_compression_start_status_matches_real_emitters_only():
     )
     assert not _is_agent_compression_start_status(
         "lifecycle",
-        "Skipping Hermes preflight compression for codex app-server (mode=native); Hermes will not start thread compaction here.",
+        "Skipping Iris preflight compression for codex app-server (mode=native); Iris will not start thread compaction here.",
     )
     assert not _is_agent_compression_start_status(
         "lifecycle",

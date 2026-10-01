@@ -116,19 +116,19 @@ def test_active_request_env_noop_for_default_profile(monkeypatch):
     monkeypatch.setattr(profiles, "_is_root_profile", lambda n: n in ("", "default"))
     monkeypatch.delenv("ISSUE_3957_PROBE", raising=False)
     with profiles.profile_env_for_active_request_readonly("test"):
-        # No env mutation, no HERMES_HOME change for the default profile.
+        # No env mutation, no IRIS_HOME change for the default profile.
         assert os.environ.get("ISSUE_3957_PROBE") is None
     assert os.environ.get("ISSUE_3957_PROBE") is None
 
 
 def test_active_request_env_applies_named_profile_env(monkeypatch, tmp_path):
     """A named profile's .env is bound to thread-local state, process env untouched."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_PROBE=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.delenv("ISSUE_3957_PROBE", raising=False)
 
     # Simulate the per-request cookie context (issue #798).
@@ -149,12 +149,12 @@ def test_active_request_env_applies_named_profile_env(monkeypatch, tmp_path):
 
 def test_active_request_env_restores_on_exception(monkeypatch, tmp_path):
     """Env is restored even if the wrapped read raises."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_PROBE=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.delenv("ISSUE_3957_PROBE", raising=False)
     monkeypatch.setenv("ISSUE_3957_PROBE", "from-process-env")
 
@@ -180,12 +180,12 @@ def test_active_request_scope_prefers_profile_key_over_process_env_for_custom_pr
     tmp_path,
 ):
     """Profile-scope thread env resolves custom-provider env vars before process env."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_CUSTOM_KEY=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_CUSTOM_KEY", "from-process-env")
     monkeypatch.setattr(
         config,
@@ -216,12 +216,12 @@ def test_active_request_scope_prefers_profile_key_over_process_env_for_custom_pr
         profiles.clear_request_profile()
 
 
-def test_active_request_scope_sets_context_local_hermes_home(monkeypatch, tmp_path):
-    """Request scope keeps agent-side Hermes-home readers on the active profile."""
-    base = tmp_path / ".hermes"
+def test_active_request_scope_sets_context_local_iris_home(monkeypatch, tmp_path):
+    """Request scope keeps agent-side Iris-home readers on the active profile."""
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     current_home = {"value": None}
 
     fake_constants = types.SimpleNamespace()
@@ -234,28 +234,28 @@ def test_active_request_scope_sets_context_local_hermes_home(monkeypatch, tmp_pa
     def _reset_override(token):
         current_home["value"] = token
 
-    fake_constants.set_hermes_home_override = _set_override
-    fake_constants.reset_hermes_home_override = _reset_override
-    fake_constants.get_hermes_home = lambda: current_home["value"]
-    monkeypatch.setitem(sys.modules, "hermes_constants", fake_constants)
+    fake_constants.set_iris_home_override = _set_override
+    fake_constants.reset_iris_home_override = _reset_override
+    fake_constants.get_iris_home = lambda: current_home["value"]
+    monkeypatch.setitem(sys.modules, "iris_constants", fake_constants)
 
     profiles.set_request_profile("work")
     try:
         with profiles.profile_env_for_active_request_readonly("test"):
-            assert fake_constants.get_hermes_home() == work_home
+            assert fake_constants.get_iris_home() == work_home
     finally:
         profiles.clear_request_profile()
 
 
 def test_active_request_scope_restores_state_when_home_reset_fails(monkeypatch, tmp_path):
-    """Readonly scope still clears thread-local state if Hermes-home reset raises."""
-    base = tmp_path / ".hermes"
+    """Readonly scope still clears thread-local state if Iris-home reset raises."""
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
     (work_home / ".env").write_text(
         "ISSUE_3957_PROBE=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_PROBE", "from-process-env")
     current_home = {"value": None}
 
@@ -270,16 +270,16 @@ def test_active_request_scope_restores_state_when_home_reset_fails(monkeypatch, 
         current_home["value"] = token
         raise RuntimeError("reset failed")
 
-    fake_constants.set_hermes_home_override = _set_override
-    fake_constants.reset_hermes_home_override = _reset_override
-    fake_constants.get_hermes_home = lambda: current_home["value"]
-    monkeypatch.setitem(sys.modules, "hermes_constants", fake_constants)
+    fake_constants.set_iris_home_override = _set_override
+    fake_constants.reset_iris_home_override = _reset_override
+    fake_constants.get_iris_home = lambda: current_home["value"]
+    monkeypatch.setitem(sys.modules, "iris_constants", fake_constants)
 
     profiles.set_request_profile("work")
     try:
         with profiles.profile_env_for_active_request_readonly("test"):
             assert config._thread_local_env_value("ISSUE_3957_PROBE") == "from-work-profile"
-            assert fake_constants.get_hermes_home() == work_home
+            assert fake_constants.get_iris_home() == work_home
         assert config._thread_local_env_value("ISSUE_3957_PROBE") == "from-process-env"
         assert getattr(config._thread_ctx, "block_process_env_fallback", False) is False
     finally:
@@ -288,12 +288,12 @@ def test_active_request_scope_restores_state_when_home_reset_fails(monkeypatch, 
 
 def test_active_request_legacy_scope_still_mirrors_process_env(monkeypatch, tmp_path):
     """Live-model request scope still mirrors env for agent-side readers."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_PROBE=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_PROBE", "from-process-env")
 
     profiles.set_request_profile("work")
@@ -309,9 +309,9 @@ def test_active_request_readonly_scope_blocks_process_env_fallback(monkeypatch, 
     """Named profiles without a key should not inherit the process-default key."""
     from api.providers import _provider_has_key
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("OPENAI_API_KEY", "from-process-env")
 
     profiles.set_request_profile("work")
@@ -327,23 +327,23 @@ def test_active_request_readonly_scope_blocks_pool_env_seed(monkeypatch, tmp_pat
     """Readonly profile reads must not let load_pool seed process-default keys."""
     from api.providers import _get_provider_api_key, _provider_has_key
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
-    # Point HERMES_HOME at this test's own tmp base too (#4740). The readonly scope
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
+    # Point IRIS_HOME at this test's own tmp base too (#4740). The readonly scope
     # blocks the process-env credential fallback correctly, but the credential pool's
     # global-root fallback (read_credential_pool -> _load_global_auth_store) resolves
-    # the root via get_default_hermes_root(), which reads os.environ["HERMES_HOME"]
+    # the root via get_default_iris_root(), which reads os.environ["IRIS_HOME"]
     # DIRECTLY — not the thread-local/scoped home. Under full-suite ordering that env
     # var points at the shared persistent test state dir, where an EARLIER test
     # persisted an openrouter credential_pool entry (source: env:OPENROUTER_API_KEY)
     # into auth.json. read_credential_pool then falls back to that global store, finds
     # the leaked openrouter entry, and _has_explicit_pool_credentials returns True —
     # an order-dependent false failure that doesn't reproduce in isolation. Pinning
-    # HERMES_HOME to this test's empty tmp base makes the global-root fallback resolve
+    # IRIS_HOME to this test's empty tmp base makes the global-root fallback resolve
     # to a clean dir with no leaked auth.json.
-    monkeypatch.setenv("HERMES_HOME", str(base))
+    monkeypatch.setenv("IRIS_HOME", str(base))
     monkeypatch.setenv("OPENROUTER_API_KEY", "from-process-env")
 
     profiles.set_request_profile("work")
@@ -366,7 +366,7 @@ def test_providers_and_models_routes_wrap_in_profile_env():
         profile_env_for_active_request_readonly.
       - /api/models/live stays on the mirrored profile_env_for_active_request
         path because provider_model_ids() still delegates into agent helpers
-        that read process env / HERMES_HOME directly.
+        that read process env / IRIS_HOME directly.
       - /api/models relies on get_available_models() using the mirrored request
         scope for the budget<=0 sync rebuild plus profile_scope_for_detached_worker
         for the detached rebuild worker (the request-thread wrapper cannot reach
@@ -385,12 +385,12 @@ def test_providers_and_models_routes_wrap_in_profile_env():
 
 def test_models_sync_rebuild_uses_legacy_mirrored_env(monkeypatch, tmp_path):
     """The budget<=0 sync rebuild still mirrors profile env into os.environ."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_PROBE=from-work-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_PROBE", "from-process-env")
     monkeypatch.setattr(config, "_LIVE_REBUILD_BUDGET_SECONDS", 0)
     monkeypatch.setattr(config, "_available_models_cache", None)
@@ -457,12 +457,12 @@ def test_detached_worker_scope_binds_profile_on_new_thread(monkeypatch, tmp_path
     """
     import threading
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_WPROBE=worker-env\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     # Point the default models cache at an isolated tmp file so the named path
     # derives from it (models_cache.work.json under the same dir).
     default_cache = tmp_path / "state" / "models_cache.json"
@@ -498,12 +498,12 @@ def test_detached_worker_prefers_profile_key_for_custom_provider(monkeypatch, tm
     """Detached worker scope resolves custom-provider env from thread profile, not process env."""
     import threading
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "work").mkdir(parents=True)
     (base / "profiles" / "work" / ".env").write_text(
         "ISSUE_3957_CUSTOM_KEY=from-worker-profile\n", encoding="utf-8"
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_CUSTOM_KEY", "from-process-env")
     monkeypatch.setattr(
         config,
@@ -529,10 +529,10 @@ def test_detached_worker_prefers_profile_key_for_custom_provider(monkeypatch, tm
 
 def test_detached_worker_scope_blocks_pool_env_seed(monkeypatch, tmp_path):
     """Detached worker scope must not let load_pool seed process-default keys."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("OPENROUTER_API_KEY", "from-process-env")
 
     with profiles.profile_scope_for_detached_worker("work", "test-worker"):
@@ -547,7 +547,7 @@ def test_detached_worker_scope_blocks_pool_env_seed(monkeypatch, tmp_path):
 
 def test_detached_worker_scope_scrubs_absent_custom_provider_key_env(monkeypatch, tmp_path):
     """Detached worker scope clears missing custom-provider key_env fallbacks too."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
     (work_home / "config.yaml").write_text(
@@ -557,7 +557,7 @@ def test_detached_worker_scope_scrubs_absent_custom_provider_key_env(monkeypatch
         "    key_env: ISSUE_3957_CUSTOM_KEY\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ISSUE_3957_CUSTOM_KEY", "from-process-env")
 
     with profiles.profile_scope_for_detached_worker("work", "test-worker"):
@@ -571,10 +571,10 @@ def test_account_usage_subprocess_env_blocks_process_default_key(monkeypatch, tm
     """Readonly quota probes must not inherit process-default provider keys."""
     from api.providers import _account_usage_subprocess_env
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("OPENAI_API_KEY", "from-process-env")
 
     profiles.set_request_profile("work")
@@ -584,7 +584,7 @@ def test_account_usage_subprocess_env_blocks_process_default_key(monkeypatch, tm
     finally:
         profiles.clear_request_profile()
 
-    assert env["HERMES_HOME"] == str(work_home)
+    assert env["IRIS_HOME"] == str(work_home)
     assert "OPENAI_API_KEY" not in env
 
 
@@ -592,10 +592,10 @@ def test_active_request_scope_installs_secret_scope(monkeypatch, tmp_path):
     """Inside readonly scope, agent.secret_scope sees profile env, not process env."""
     import types
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("OPENROUTER_API_KEY", "process-default-key")
 
     # Inject fake agent.secret_scope that records calls
@@ -635,7 +635,7 @@ def test_active_request_scope_installs_secret_scope(monkeypatch, tmp_path):
     # Verify the scope was set with profile env only
     assert "set_scope" in call_log
     assert "OPENROUTER_API_KEY" not in call_log["set_scope"]
-    assert "HERMES_HOME" in call_log["set_scope"]
+    assert "IRIS_HOME" in call_log["set_scope"]
     # Verify reset was called
     assert call_log.get("reset_called") is True
 
@@ -645,10 +645,10 @@ def test_detached_worker_scope_installs_secret_scope(monkeypatch, tmp_path):
     import threading
     import types
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("OPENROUTER_API_KEY", "process-default-key")
 
     # Inject fake agent.secret_scope that records calls
@@ -697,7 +697,7 @@ def test_detached_worker_scope_installs_secret_scope(monkeypatch, tmp_path):
     # Verify the scope was set with profile env only
     assert "set_scope" in call_log
     assert "OPENROUTER_API_KEY" not in call_log["set_scope"]
-    assert "HERMES_HOME" in call_log["set_scope"]
+    assert "IRIS_HOME" in call_log["set_scope"]
     # Verify reset was called
     assert call_log.get("reset_called") is True
 
@@ -706,10 +706,10 @@ def test_account_usage_subprocess_env_strips_bedrock_keys(monkeypatch, tmp_path)
     """Quota probes must not inherit AWS/Bedrock keys when block_process_env_fallback is set."""
     from api.providers import _account_usage_subprocess_env
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "aws-key-id")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "aws-secret")
 
@@ -720,7 +720,7 @@ def test_account_usage_subprocess_env_strips_bedrock_keys(monkeypatch, tmp_path)
     finally:
         profiles.clear_request_profile()
 
-    assert env["HERMES_HOME"] == str(work_home)
+    assert env["IRIS_HOME"] == str(work_home)
     assert "AWS_ACCESS_KEY_ID" not in env
     assert "AWS_SECRET_ACCESS_KEY" not in env
 
@@ -729,7 +729,7 @@ def test_account_usage_subprocess_env_strips_custom_key_env(monkeypatch, tmp_pat
     """Quota probes must strip custom provider key_env when block_process_env_fallback is set."""
     from api.providers import _account_usage_subprocess_env
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
 
@@ -742,7 +742,7 @@ custom_providers:
 """
     )
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("MY_CUSTOM_API_KEY", "custom-secret")
 
     profiles.set_request_profile("work")
@@ -752,7 +752,7 @@ custom_providers:
     finally:
         profiles.clear_request_profile()
 
-    assert env["HERMES_HOME"] == str(work_home)
+    assert env["IRIS_HOME"] == str(work_home)
     assert "MY_CUSTOM_API_KEY" not in env
 
 
@@ -766,10 +766,10 @@ def test_account_usage_subprocess_env_strips_anthropic_token_aliases(monkeypatch
     resolve_anthropic_token() and leaks the server-process credential (#3961)."""
     from api.providers import _account_usage_subprocess_env
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ANTHROPIC_TOKEN", "process-default-anthropic-token")
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "process-default-oauth-token")
 
@@ -780,7 +780,7 @@ def test_account_usage_subprocess_env_strips_anthropic_token_aliases(monkeypatch
     finally:
         profiles.clear_request_profile()
 
-    assert env["HERMES_HOME"] == str(work_home)
+    assert env["IRIS_HOME"] == str(work_home)
     assert "ANTHROPIC_TOKEN" not in env
     assert "CLAUDE_CODE_OAUTH_TOKEN" not in env
 
@@ -790,10 +790,10 @@ def test_detached_worker_scope_scrubs_anthropic_token_aliases(monkeypatch, tmp_p
     OAuth/token env vars too — verified agent model code can resolve Anthropic
     models through raw os.getenv() of these names, so an empty named profile
     must not see the server-process token (#3961 detached-worker leak)."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("ANTHROPIC_TOKEN", "process-default-anthropic-token")
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "process-default-oauth-token")
 
@@ -815,10 +815,10 @@ def test_account_usage_subprocess_env_strips_non_registry_agent_creds(monkeypatc
     to an empty named profile (#3961 residual leak class)."""
     from api.providers import _account_usage_subprocess_env
 
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("CUSTOM_API_KEY", "process-default-custom-key")
     monkeypatch.setenv("AWS_PROFILE", "process-default-aws-profile")
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "process-default-bedrock-token")
@@ -831,7 +831,7 @@ def test_account_usage_subprocess_env_strips_non_registry_agent_creds(monkeypatc
     finally:
         profiles.clear_request_profile()
 
-    assert env["HERMES_HOME"] == str(work_home)
+    assert env["IRIS_HOME"] == str(work_home)
     assert "CUSTOM_API_KEY" not in env
     assert "AWS_PROFILE" not in env
     assert "AWS_BEARER_TOKEN_BEDROCK" not in env
@@ -843,10 +843,10 @@ def test_detached_worker_scope_scrubs_non_registry_agent_creds(monkeypatch, tmp_
     credential env vars (CUSTOM_API_KEY, AWS/Bedrock family) too — the agent's
     custom-provider and bedrock-adapter paths resolve them via raw os.getenv(),
     so an empty named profile must not see the server-process value (#3961)."""
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     work_home = base / "profiles" / "work"
     work_home.mkdir(parents=True)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     monkeypatch.setenv("CUSTOM_API_KEY", "process-default-custom-key")
     monkeypatch.setenv("AWS_PROFILE", "process-default-aws-profile")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "process-default-aws-secret")

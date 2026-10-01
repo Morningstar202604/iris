@@ -25,7 +25,7 @@
 **处理**：用环境变量显式指定：
 
 ```bash
-HERMES_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
+IRIS_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
 ```
 
 ## 4. 每次请求都很慢（数秒延迟）
@@ -50,20 +50,20 @@ HERMES_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
 
 ## 7. 会话/历史突然只剩一部分
 
-**处理**：Iris 在上下文接近上限时会自动压缩历史并继续任务，这是正常的内存管理。完整会话文件仍在磁盘（`~/.hermes/sessions/`）。
+**处理**：Iris 在上下文接近上限时会自动压缩历史并继续任务，这是正常的内存管理。完整会话文件仍在磁盘（`~/.iris/sessions/`）。
 
 ## 8. 如何完全卸载
 
 ```bash
 # 删除状态与配置
-rm -rf ~/.hermes
+rm -rf ~/.iris
 # 删除项目
 rm -rf iris
 ```
 
 ## 9. 数据存在哪里？会不会上传？
 
-- 会话、记忆、知识库、任务全部在**本机**：`~/.hermes/`。
+- 会话、记忆、知识库、任务全部在**本机**：`~/.iris/`。
 - Iris 本身**无账号、无遥测**。只有你配置的模型服务商会收到对话请求（数据流向由你的 provider 决定）。
 - 知识库检索在本地完成，不上传你的文档。
 

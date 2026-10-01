@@ -1,16 +1,16 @@
 name: plan-mode
 title: Plan mode
-repo: https://github.com/100yenadmin/hermes-plan-mode
+repo: https://github.com/100yenadmin/iris-plan-mode
 sha: b2516184698d030131f6aec4020fe55ffb65cb56
-description: 'Enforced per-session plan mode: /planmode on blocks mutating Hermes tools dispatched through pre_tool_call (writes outside
-  .hermes/plans, terminal, code execution, delegation, MCP) until you /planmode approve the plan. Fails closed. Enforced in the classic CLI on
-  released Hermes (<= 0.21.4); gateway, TUI and Desktop need a build with hermes-agent commits 5943347a2a and 35fdb4608a (after v2026.9.21) and
+description: 'Enforced per-session plan mode: /planmode on blocks mutating Iris tools dispatched through pre_tool_call (writes outside
+  .iris/plans, terminal, code execution, delegation, MCP) until you /planmode approve the plan. Fails closed. Enforced in the classic CLI on
+  released Iris (<= 0.21.4); gateway, TUI and Desktop need a build with iris-agent commits 5943347a2a and 35fdb4608a (after v2026.9.21) and
   refuse /planmode on until then. Disclosure: Codex app-server native exec and TUI side agents bypass pre_tool_call and are not enforced.'
 maintainer: 100yenadmin
 tier: community
 category: tools
-requires_hermes: '>=0.21.2'
-docs_url: https://github.com/100yenadmin/hermes-plan-mode#readme
+requires_iris: '>=0.21.2'
+docs_url: https://github.com/100yenadmin/iris-plan-mode#readme
 version: "0.1.6"
 platforms: []
 capabilities:

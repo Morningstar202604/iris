@@ -1,6 +1,6 @@
-"""Fail-closed guard for in-process Hermes Agent source revisions.
+"""Fail-closed guard for in-process Iris Agent source revisions.
 
-Hermes WebUI currently imports ``run_agent.AIAgent`` into its long-lived server
+Iris WebUI currently imports ``run_agent.AIAgent`` into its long-lived server
 process. If the Agent checkout changes while that process is alive, Python may
 combine already-cached modules with newly-read source. Refuse to reuse that
 mixed runtime and require a clean WebUI restart instead.
@@ -28,12 +28,12 @@ from api.config import (
 from api.subprocess_utils import windows_hide_flags
 
 _RESTART_REQUIRED_MESSAGE = (
-    "Hermes Agent was updated while Hermes WebUI was running. "
+    "Iris Agent was updated while Iris WebUI was running. "
     "WebUI cannot verify that the Agent update completed safely. "
     "Check the Agent update outcome and environment first. "
-    "Restart Hermes WebUI manually before retrying this action."
+    "Restart Iris WebUI manually before retrying this action."
 )
-_AGENT_UPDATE_MARKER = ".hermes-update-in-progress"
+_AGENT_UPDATE_MARKER = ".iris-update-in-progress"
 _AGENT_RECOVERY_MARKERS = (".update-incomplete", ".lazy-refresh-incomplete")
 _AGENT_UPDATE_MAX_AGE_SECONDS = 20 * 60
 # The update marker holds a PID and a start timestamp (two short numeric lines).
@@ -54,7 +54,7 @@ _O_NONBLOCK = getattr(os, "O_NONBLOCK", 0)
 _MARKER_SAFE_OPEN_AVAILABLE = bool(getattr(os, "O_NOFOLLOW", 0)) and bool(
     getattr(os, "O_NONBLOCK", 0)
 )
-_HERMES_HOME = Path(_DEFAULT_STATE_HOME)
+_IRIS_HOME = Path(_DEFAULT_STATE_HOME)
 _AGENT_PYTHON = Path(PYTHON_EXE).expanduser() if PYTHON_EXE else None
 
 
@@ -346,7 +346,7 @@ def _agent_update_transaction_state() -> str:
     The Agent removes its active marker on failed/interrupted exits too. Neither
     its absence nor a stale PID proves the checkout or environment is healthy.
     """
-    live_state = _read_live_agent_update(_HERMES_HOME / _AGENT_UPDATE_MARKER)
+    live_state = _read_live_agent_update(_IRIS_HOME / _AGENT_UPDATE_MARKER)
     if live_state == "unknown":
         return "unknown"
 

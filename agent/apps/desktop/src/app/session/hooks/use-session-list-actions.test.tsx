@@ -2,7 +2,7 @@ import { act, render, renderHook } from '@testing-library/react'
 import { Suspense } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { SessionInfo, SidebarSessionsResponse } from '@/hermes'
+import type { SessionInfo, SidebarSessionsResponse } from '@/iris'
 import { $cronJobs, setCronJobs } from '@/store/cron'
 import {
   beginGatewaySwitch,
@@ -82,7 +82,7 @@ interface Deferred<T> {
 
 /** Create a promise whose completion order the stale-response tests control. */
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/iris', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getCronJobs: (...args: unknown[]) => getCronJobs(...args),
   listAllProfileSessions: (...args: unknown[]) => listAllProfileSessions(...args),

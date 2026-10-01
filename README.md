@@ -1,9 +1,12 @@
-# ✦ Iris — Your Personal AI Super-Assistant
+# ✦ Iris
 
-> **Fast. Lightweight. Fully yours.**
-> The Iris distribution of the open-source **Hermes** agent framework —
-> a fully rewritten, consumer-grade web UI on a lean local-first core.
-> 100% protocol-driven, no vendor lock-in, no bloat. Just you and your AI.
+> **Calm on the surface. Capable inside.**
+> *A local-first productivity assistant.*
+>
+> - ⚡ **Fast & lightweight** — seconds to boot, a trimmed runtime
+> - 🏠 **Local-first** — your sessions, memory and files never leave this machine
+> - 🔌 **Open, no lock-in** — any OpenAI-compatible endpoint; plugins installed on demand
+> - 🎯 **Outcome-first** — desktop and mobile browsers, voice-ready; leads with what gets done
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -39,14 +42,15 @@ sandbox permission limit along the way:
 
 ## 🌐 Official Repo · 👀 See it first
 
-**→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — the official home on GitCode: source, releases, issues, and the in-repo landing page (`docs/`).
+**→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — official home on GitCode: source, releases, issues, and the in-repo landing page (`docs/`).
+**→ [github.com/X33834/iris](https://github.com/X33834/iris)** — twin release host (CI + Releases). Both hosts publish the same `v*` tags; see [MIRROR.md](MIRROR.md).
 
 **→ [Live landing page](https://x33834.github.io/iris)** — interactive overview: screenshots, architecture tour & one-click download.
 
 | Download | Format | For |
 |---|---|---|
-| [⬇ Latest release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — recommended** |
-| [⬇ Latest release — TAR.GZ](https://gitcode.com/badhope/iris/releases) | TAR.GZ | Linux / servers — full source tree |
+| [⬇ Latest release — ZIP (GitCode)](https://gitcode.com/badhope/iris/releases) · [GitHub](https://github.com/X33834/iris/releases) | ZIP | **Windows / macOS — recommended** |
+| [⬇ Latest release — TAR.GZ (GitCode)](https://gitcode.com/badhope/iris/releases) · [GitHub](https://github.com/X33834/iris/releases) | TAR.GZ | Linux / servers — full source tree |
 
 > Building from source (`git clone` + `pip install -e ./agent`) always gives you the newest fixes.
 > Release archives track tagged versions; feature counts in this README intentionally stay
@@ -54,18 +58,44 @@ sandbox permission limit along the way:
 
 ---
 
-## 🚀 Quick Start — up & running in 3 steps
+## 🚀 Quick Start — up & running in 4 steps
 
 ```bash
-# 1. Clone
-git clone https://gitcode.com/badhope/iris.git && cd iris
+# 1. Clone (GitHub primary; GitCode mirror is faster in mainland China)
+git clone https://github.com/X33834/iris.git && cd iris
+# git clone https://gitcode.com/badhope/iris.git && cd iris
 
-# 2. Install the agent
-cd agent && pip install -e . && cd ..
+# 2. One shared venv for BOTH components (Python 3.11+)
+python3 -m venv .venv && source .venv/bin/activate
 
-# 3. Launch the Web UI
+# 3. Install the agent (editable — pulls the agent + its deps into this venv)
+pip install -e ./agent
+
+# 4. Install the WebUI deps into the SAME venv, then launch
+pip install -r ./webui/requirements.txt
 cd webui && python3 server.py
 # → open http://127.0.0.1:8787 in your browser
+```
+
+> **Why one venv?** The WebUI server process runs the agent in-process, so the Python
+> interpreter you launch `server.py` with needs **both** stacks installed in it: the agent
+> (step 3) and the WebUI's minimal deps (step 4: `pyyaml` + `cryptography`). Installing the
+> agent into system Python and then running `server.py` with a *different* interpreter is the
+> classic "server starts, then chat fails with `AIAgent not available`" trap.
+>
+> The WebUI auto-detects the agent checkout; if it can't find it, point it explicitly:
+> `export IRIS_WEBUI_AGENT_DIR=$PWD/agent`. Launcher env vars (port, host, state dir,
+> auth) are listed in [`webui/docs/environment-variables.md`](webui/docs/environment-variables.md);
+> bare-metal deployment notes live in [`webui/docs/DEPLOYING.md`](webui/docs/DEPLOYING.md).
+
+**Updating from source:**
+
+```bash
+git pull
+source .venv/bin/activate
+pip install -e ./agent --upgrade
+pip install -r ./webui/requirements.txt
+# restart the WebUI (Ctrl-C and rerun step 4, or ./webui/ctl.sh restart)
 ```
 
 **Done.** Pick a built-in model, or plug in *any* OpenAI-compatible endpoint:
@@ -107,7 +137,7 @@ while making the whole thing feel like a modern consumer AI app:
 ```mermaid
 flowchart LR
     U["🌐 Web UI<br/>chat · settings · plugins<br/>command palette"] --> S["🐍 Python Server<br/>api/routes.py · streaming"]
-    S --> A["⚙️ Hermes Agent Core<br/>tools · memory · skills · cron"]
+    S --> A["⚙️ Iris Agent Core<br/>tools · memory · skills · cron"]
     S --> KB[("📚 Knowledge Base<br/>SQLite FTS5 · CJK search")]
     S --> PM["🧩 Plugin Manager<br/>built-in catalog · on-demand"]
     S --> PL["🤖 Protocol Layer<br/>OpenAI-compatible"]
@@ -117,7 +147,7 @@ flowchart LR
 ```
 
 **Two components, one experience:**
-- `agent/` — the rebuilt Hermes core: tools, plugins, memory, skills, cron, protocol routing
+- `agent/` — the rebuilt Iris core: tools, plugins, memory, skills, cron, protocol routing
 - `webui/` — the modern control surface: chat, settings, plugin marketplace, knowledge base
 
 ---
@@ -138,7 +168,7 @@ flowchart LR
 
 ---
 
-## 🔄 Relationship to Hermes
+## 🔄 Relationship to upstream Hermes
 
 Iris is an **independent, deeply-customized distribution of [Hermes](https://github.com/NousResearch/hermes-agent)**
 (the open-source agent framework by **Nous Research**). We:

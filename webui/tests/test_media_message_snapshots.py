@@ -68,7 +68,7 @@ def media_allowed_root(tmp_path, monkeypatch):
 def snap_dir(tmp_path, monkeypatch):
     """Isolate the snapshot store per test and point it at tmp_path."""
     store = tmp_path / "media_snapshots"
-    monkeypatch.setenv("HERMES_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
+    monkeypatch.setenv("IRIS_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
     return store
 
 
@@ -211,7 +211,7 @@ def test_resolve_media_ref_handles_file_url_and_expands_home(tmp_path, monkeypat
     assert resolve_media_ref("") is None
 
 
-def test_media_capture_allowed_denies_hermes_state(tmp_path, monkeypatch):
+def test_media_capture_allowed_denies_iris_state(tmp_path, monkeypatch):
     from api.media_snapshots import media_capture_allowed
 
     # Files under an allowed root (tmp) are fine...
@@ -219,11 +219,11 @@ def test_media_capture_allowed_denies_hermes_state(tmp_path, monkeypatch):
     allowed.write_text("x")
     assert media_capture_allowed(allowed) is True
 
-    # ...but a deny-listed filename under a Hermes root is never snapshotted.
-    # Point HOME at the fake tree so <fake-home>/.hermes counts as a root.
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    secret = hermes_home / "settings.json"
+    # ...but a deny-listed filename under a Iris root is never snapshotted.
+    # Point HOME at the fake tree so <fake-home>/.iris counts as a root.
+    iris_home = tmp_path / ".iris"
+    iris_home.mkdir()
+    secret = iris_home / "settings.json"
     secret.write_text("{}")
     monkeypatch.setenv("HOME", str(tmp_path))
     assert media_capture_allowed(secret) is False
@@ -340,34 +340,34 @@ def test_handle_media_snap_does_not_bypass_deny(routes, monkeypatch, snap_dir, t
     even when a valid snapshot digest is supplied."""
     from api.media_snapshots import capture_snapshot
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    secret = hermes_home / "settings.json"
+    iris_home = tmp_path / ".iris"
+    iris_home.mkdir()
+    secret = iris_home / "settings.json"
     secret.write_text("{}")
     monkeypatch.setenv("HOME", str(tmp_path))
     digest = capture_snapshot(secret)  # capture itself may be blocked; if not...
 
     denied = _media_get(routes, monkeypatch, secret, query_extra=f"&snap={digest or '0'*64}")
-    # settings.json under a hermes root is denied by the #3234 deny list.
+    # settings.json under a iris root is denied by the #3234 deny list.
     assert denied.status == 403
 
 
 def test_handle_media_denies_direct_store_path(routes, monkeypatch, tmp_path):
     """The snapshot STORE directory itself is not a servable media path.
 
-    The store lives under STATE_DIR (a Hermes root) in production; the #3234
+    The store lives under STATE_DIR (a Iris root) in production; the #3234
     deny list must reject a bare path= fetch of a snapshot blob there, so the
     store is only reachable through the validated snap= parameter.
     """
     from api.media_snapshots import capture_snapshot
 
-    # Simulate the production layout: the store lives under a Hermes root, with
-    # HOME pointing at tmp_path so that directory counts as a Hermes root. The
-    # #3234 deny list denies <hermes_root>/media_snapshots.
-    hermes_home = tmp_path / ".hermes"
-    store = hermes_home / "media_snapshots"
+    # Simulate the production layout: the store lives under a Iris root, with
+    # HOME pointing at tmp_path so that directory counts as a Iris root. The
+    # #3234 deny list denies <iris_root>/media_snapshots.
+    iris_home = tmp_path / ".iris"
+    store = iris_home / "media_snapshots"
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
+    monkeypatch.setenv("IRIS_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
 
     target = tmp_path / "a.png"
     target.write_bytes(b"bytes")
@@ -416,7 +416,7 @@ def test_handle_media_snapshot_download_name_uses_original(routes, monkeypatch, 
 
 
 def test_media_capture_allowed_denies_default_webui_state_layout(tmp_path, monkeypatch):
-    """MUST-FIX 1 repro: default-layout <HERMES_HOME>/webui/sessions/victim.json
+    """MUST-FIX 1 repro: default-layout <IRIS_HOME>/webui/sessions/victim.json
     (== STATE_DIR/sessions) must NEVER be captured.
 
     Round 1 capture omitted STATE_DIR from its deny roots; the serve path
@@ -424,14 +424,14 @@ def test_media_capture_allowed_denies_default_webui_state_layout(tmp_path, monke
     """
     from api.media_snapshots import media_capture_allowed
 
-    hermes_home = tmp_path / ".hermes"
-    state_dir = hermes_home / "webui"
+    iris_home = tmp_path / ".iris"
+    state_dir = iris_home / "webui"
     (state_dir / "sessions").mkdir(parents=True)
     victim = state_dir / "sessions" / "victim.json"
     victim.write_text("{}")
 
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("IRIS_HOME", str(iris_home))
     monkeypatch.setattr("api.config.STATE_DIR", str(state_dir))
 
     assert media_capture_allowed(victim) is False
@@ -443,14 +443,14 @@ def test_annotate_never_captures_denied_state_file(snap_dir, tmp_path, monkeypat
     then acted as a bearer capability)."""
     from api.media_snapshots import annotate_media_snapshots
 
-    hermes_home = tmp_path / ".hermes"
-    state_dir = hermes_home / "webui"
+    iris_home = tmp_path / ".iris"
+    state_dir = iris_home / "webui"
     (state_dir / "sessions").mkdir(parents=True)
     victim = state_dir / "sessions" / "victim.json"
     victim.write_text('{"secret": 1}')
 
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("IRIS_HOME", str(iris_home))
     monkeypatch.setattr("api.config.STATE_DIR", str(state_dir))
 
     messages = [{"role": "assistant", "content": f"here it is: MEDIA:{victim}"}]
@@ -520,14 +520,14 @@ def test_handle_media_snap_dedup_binds_every_source_path(routes, monkeypatch, sn
 
 
 def test_handle_media_denies_custom_named_store_via_bare_path(routes, monkeypatch, tmp_path):
-    """MUST-FIX 2 repro: a custom-named snapshot store (HERMES_WEBUI_MEDIA_SNAPSHOT_DIR
+    """MUST-FIX 2 repro: a custom-named snapshot store (IRIS_WEBUI_MEDIA_SNAPSHOT_DIR
     pointing anywhere, e.g. /tmp/custom-store-name) must not be readable through
     a bare path= request. Round 1 only deny-listed the literal name
     'media_snapshots', so the blobs leaked with no snap= needed."""
     from api.media_snapshots import capture_snapshot
 
     store = tmp_path / "custom-store-name"
-    monkeypatch.setenv("HERMES_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
+    monkeypatch.setenv("IRIS_WEBUI_MEDIA_SNAPSHOT_DIR", str(store))
 
     target = tmp_path / "a.png"
     target.write_bytes(b"stored-bytes")
@@ -583,7 +583,7 @@ def test_quota_eviction_drops_source_binding_sidecar(snap_dir, tmp_path, monkeyp
     """Evicting a snapshot blob must also drop its source-binding sidecar."""
     from api.media_snapshots import _binding_path_for_digest, capture_snapshot
 
-    monkeypatch.setenv("HERMES_WEBUI_MEDIA_SNAPSHOT_CAP_BYTES", "64")
+    monkeypatch.setenv("IRIS_WEBUI_MEDIA_SNAPSHOT_CAP_BYTES", "64")
     old = tmp_path / "old.png"
     new = tmp_path / "new.png"
     old.write_bytes(b"x" * 64)

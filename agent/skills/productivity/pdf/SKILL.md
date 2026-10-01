@@ -2,11 +2,11 @@
 name: pdf
 description: "PDF files: create, read, merge, fill, OCR, edit text."
 version: 1.1.0
-author: Nous Research
+author: Nous Research (original Hermes bundler); Iris fork
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [pdf, documents, forms, ocr, text-extraction, reportlab, pypdf, pdfplumber, pymupdf, marker]
     category: productivity
     related_skills: [docx, xlsx, powerpoint]

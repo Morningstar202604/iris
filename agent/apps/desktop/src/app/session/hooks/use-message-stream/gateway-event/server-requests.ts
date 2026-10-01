@@ -377,7 +377,7 @@ const windowRead: Handler = ({ request }) => {
   // read_window_below tool: main owns native window enumeration. Empty =
   // unavailable (older shell without the handler, Wayland, …) — without an
   // answer the tool would stall its full 30s deadline.
-  const read = window.hermesDesktop?.readWindowBelow
+  const read = window.irisDesktop?.readWindowBelow
 
   void Promise.resolve(read ? read() : null).then(
     result => answerValue(request, result),

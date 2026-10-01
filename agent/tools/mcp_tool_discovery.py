@@ -32,7 +32,7 @@ def _discovery_connect_concurrency() -> int:
     """``mcp.discovery_concurrency`` from config (0 = unlimited); a non-integer or negative value
     warns and falls back to the default rather than silently running unbounded."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         raw = (load_config().get("mcp") or {}).get("discovery_concurrency", _DISCOVERY_CONNECT_CONCURRENCY)
     except Exception:
         return _DISCOVERY_CONNECT_CONCURRENCY
@@ -92,7 +92,7 @@ async def _install_owner_secret_scope():
     home = _owner_scope_home()
     if home is None:
         return None
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from iris_cli.env_loader import hydrate_profile_secret_sources
     # Off-loop: an external source runs a helper subprocess (once per home, then cached).
     await asyncio.to_thread(hydrate_profile_secret_sources, home)
     return set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
@@ -111,7 +111,7 @@ def _owner_secret_scope():
     if home is None:
         yield
         return
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from iris_cli.env_loader import hydrate_profile_secret_sources
     hydrate_profile_secret_sources(home)
     token = set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
     try:
@@ -555,7 +555,7 @@ def discover_mcp_tools(allowed_mcp_names: Optional[List[str]] = None) -> List[st
 
     ``allowed_mcp_names``: spawn only the MCP servers named in it (built-in toolset names in the
     list simply don't match); ``None`` spawns every configured server. Used by
-    ``hermes -z -t <toolsets>`` to skip cold-starting servers the caller doesn't need (10-60s
+    ``iris -z -t <toolsets>`` to skip cold-starting servers the caller doesn't need (10-60s
     each); it only affects which servers start, not which names ``-t`` validation can see."""
     with _owner_secret_scope():
         servers = _config._load_mcp_config()

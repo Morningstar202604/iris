@@ -1,5 +1,5 @@
 """DuckDuckGo search via the optional ``ddgs`` package (search only, no key). ``is_available()``
-reflects package importability; the plugin registers either way so ``hermes tools`` can offer to
+reflects package importability; the plugin registers either way so ``iris tools`` can offer to
 install it. Isolation: ``ddgs``/``primp`` can block inside native code while holding the GIL, so a
 thread-pool ``future.result(timeout=…)`` cap can never fire and Ctrl+C/SIGTERM freeze the process —
 each search runs in a disposable child process the parent can terminate/kill.
@@ -139,7 +139,7 @@ def _run_ddgs_search_bounded(query: str, safe_limit: int) -> list[dict[str, Any]
     env = _sanitize_subprocess_env(dict(os.environ))
     if _test_hook:
         request["test_hook"] = _test_hook
-        env["HERMES_DDGS_ALLOW_TEST_HOOKS"] = "1"
+        env["IRIS_DDGS_ALLOW_TEST_HOOKS"] = "1"
     proc = _last_worker_proc = _spawn_worker(env)
     # ``communicate`` runs in a side thread so the parent can poll interrupt /
     # deadline without blocking; killing the child unblocks it.
@@ -178,7 +178,7 @@ class DDGSWebSearchProvider(BaseWebSearchProvider):
 
     def is_available(self) -> bool:
         """True when ``ddgs`` is importable. Must NOT do network I/O — runs at
-        tool-registration time and on every ``hermes tools`` paint."""
+        tool-registration time and on every ``iris tools`` paint."""
         try:
             import ddgs  # noqa: F401
             return True
@@ -187,7 +187,7 @@ class DDGSWebSearchProvider(BaseWebSearchProvider):
 
     def search(self, query: str, limit: int = 5) -> Dict[str, Any]:
         """Run the search in a disposable child with a hard wall-clock timeout so a
-        hung native ``primp`` call cannot freeze the Hermes process.
+        hung native ``primp`` call cannot freeze the Iris process.
 
         See #36776, #68096.
         """
@@ -235,7 +235,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

@@ -1,4 +1,4 @@
-import { type GatewayEvent, registryBackendScopeKey } from '@hermes/shared'
+import { type GatewayEvent, registryBackendScopeKey } from '@iris/shared'
 import { useCallback, useEffect, useRef } from 'react'
 
 import type { GatewayEventPayload } from '@/lib/chat-messages'
@@ -91,13 +91,13 @@ const HANDLERS: GatewayEventHandler[] = [
 
 /** The gateway-event dispatcher, extracted from useMessageStream. */
 export function useGatewayEventHandler(deps: GatewayEventDeps) {
-  const { activeSessionIdRef, compactedTurnRef, refreshHermesConfig, sessionStateByRuntimeIdRef } = deps
+  const { activeSessionIdRef, compactedTurnRef, refreshIrisConfig, sessionStateByRuntimeIdRef } = deps
 
   const unscopedStreamSessionIdRef = useRef<string | null>(null)
 
   // session.info arrives in bursts (agent build ready + turn end + title /
   // MCP / compress edges within the same second). Each used to fire its own
-  // refreshHermesConfig — two REST calls (config + defaults) per event, per
+  // refreshIrisConfig — two REST calls (config + defaults) per event, per
   // turn, including for BACKGROUND sessions whose values the fetch can't even
   // apply. Coalesce to one trailing fetch per burst; the caller gates on
   // `apply` so background traffic doesn't schedule anything.
@@ -109,16 +109,16 @@ export function useGatewayEventHandler(deps: GatewayEventDeps) {
     }
 
     if (typeof window === 'undefined') {
-      void refreshHermesConfig()
+      void refreshIrisConfig()
 
       return
     }
 
     configRefreshTimerRef.current = window.setTimeout(() => {
       configRefreshTimerRef.current = null
-      void refreshHermesConfig()
+      void refreshIrisConfig()
     }, 300)
-  }, [refreshHermesConfig])
+  }, [refreshIrisConfig])
 
   useEffect(
     () => () => {

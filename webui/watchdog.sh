@@ -10,7 +10,7 @@
 #   ./watchdog.sh                  # poll every 10s forever (Ctrl+C to stop)
 #   ./watchdog.sh --interval 30    # poll every 30s
 #   ./watchdog.sh --once           # single health check, exit 0/1
-#   HERMES_WEBUI_PORT=8899 ./watchdog.sh   # non-default port
+#   IRIS_WEBUI_PORT=8899 ./watchdog.sh   # non-default port
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,15 +26,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-HOST="${HERMES_WEBUI_HOST:-127.0.0.1}"
-PORT="${HERMES_WEBUI_PORT:-8787}"
-LOG="${HERMES_WEBUI_WATCHDOG_LOG:-${HERMES_HOME:-${HOME}/.hermes}/webui.watchdog.log}"
+HOST="${IRIS_WEBUI_HOST:-127.0.0.1}"
+PORT="${IRIS_WEBUI_PORT:-8787}"
+LOG="${IRIS_WEBUI_WATCHDOG_LOG:-${IRIS_HOME:-${HOME}/.iris}/webui.watchdog.log}"
 
 # shellcheck source=scripts/lib/health_probe.sh
 . "${REPO_ROOT}/scripts/lib/health_probe.sh"
 
 is_healthy() {
-  if hermes_webui_probe_health "${HOST}" "${PORT}" "/health" 2 >/dev/null 2>&1; then
+  if iris_webui_probe_health "${HOST}" "${PORT}" "/health" 2 >/dev/null 2>&1; then
     return 0
   fi
   return 1

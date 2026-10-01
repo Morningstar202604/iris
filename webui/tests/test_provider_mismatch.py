@@ -76,14 +76,14 @@ class TestStreamingAuthErrorDetection:
             "'unauthorized' not in auth error detection block"
         )
 
-    def test_auth_error_hint_mentions_hermes_model(self):
-        """The auth_mismatch hint must mention 'hermes model' command."""
+    def test_auth_error_hint_mentions_iris_model(self):
+        """The auth_mismatch hint must mention 'iris model' command."""
         src = _read("api/streaming.py")
         # Find the auth_mismatch apperror block
         idx = src.find("auth_mismatch")
         block = src[idx:idx + 500]
-        assert "hermes model" in block, (
-            "auth_mismatch hint must mention 'hermes model' command "
+        assert "iris model" in block, (
+            "auth_mismatch hint must mention 'iris model' command "
             "so users know how to fix provider mismatch"
         )
 
@@ -365,7 +365,7 @@ def test_default_model_save_persists_codex_provider_for_qualified_model(tmp_path
     }
     config._cfg_mtime = config_file.stat().st_mtime
     try:
-        result = config.set_hermes_default_model("@openai-codex:gpt-5.5")
+        result = config.set_iris_default_model("@openai-codex:gpt-5.5")
         saved = yaml.safe_load(config_file.read_text(encoding="utf-8"))
     finally:
         config.cfg.clear()
@@ -406,7 +406,7 @@ def test_default_model_save_clears_stale_custom_base_url_on_provider_change(tmp_
     }
     config._cfg_mtime = config_file.stat().st_mtime
     try:
-        result = config.set_hermes_default_model("new-model", provider="custom:new-local")
+        result = config.set_iris_default_model("new-model", provider="custom:new-local")
         saved = yaml.safe_load(config_file.read_text(encoding="utf-8"))
     finally:
         config.cfg.clear()
@@ -1003,7 +1003,7 @@ def test_issue1734_chat_start_persists_repaired_codex_provider(monkeypatch):
 
     class DummySession:
         session_id = "issue1734_session"
-        workspace = "/tmp/hermes-webui-test"
+        workspace = "/tmp/iris-webui-test"
         model = "openai/gpt-5.4-mini"
         model_provider = None
         active_stream_id = None
@@ -1582,7 +1582,7 @@ class TestChatStartEffectiveModelRecovery:
             "send() must read effective_model from /api/chat/start so the UI can "
             "recover from stale persisted session models"
         )
-        assert "localStorage.setItem('hermes-webui-model', startData.effective_model)" in src, (
+        assert "localStorage.setItem('iris-webui-model', startData.effective_model)" in src, (
             "effective_model correction must update the saved model preference"
         )
         assert "startData.effective_model_provider" in src, (
@@ -1630,7 +1630,7 @@ class TestFrontendModelProviderState:
 
     def test_ui_has_json_model_state_storage(self):
         src = _read("static/ui.js")
-        assert "hermes-webui-model-state" in src
+        assert "iris-webui-model-state" in src
         assert "function _writePersistedModelState" in src
         assert "_providerQualifiedModelValueForSelect(sel, modelId)" in src
         assert "return _modelStateForSelect(sel,modelId).model" in src

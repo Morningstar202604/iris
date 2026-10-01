@@ -9,7 +9,7 @@ receives no events while a stream is live: chat appears frozen, then the
 client's watchdog kills it ("Connection interrupted"). Explicit chunked
 framing lets every event flush through each hop immediately.
 
-This is opt-in via the ``HERMES_WEBUI_SSE_CHUNKED`` environment variable so
+This is opt-in via the ``IRIS_WEBUI_SSE_CHUNKED`` environment variable so
 the default wire format is unchanged: directly-served deployments keep the
 historical unframed stream, and only deployments behind a buffering proxy
 need to set the flag. It sits alongside the existing ``X-Accel-Buffering: no``
@@ -26,8 +26,8 @@ _TRUTHY = {"1", "true", "yes", "on"}
 
 
 def chunked_sse_enabled() -> bool:
-    """True when ``HERMES_WEBUI_SSE_CHUNKED`` opts into chunked SSE framing."""
-    return os.getenv("HERMES_WEBUI_SSE_CHUNKED", "").strip().lower() in _TRUTHY
+    """True when ``IRIS_WEBUI_SSE_CHUNKED`` opts into chunked SSE framing."""
+    return os.getenv("IRIS_WEBUI_SSE_CHUNKED", "").strip().lower() in _TRUTHY
 
 
 class _ChunkedSSEWriter:
@@ -53,7 +53,7 @@ class _ChunkedSSEWriter:
 def end_sse_headers(handler):
     """Finish SSE response headers, optionally enabling chunked framing.
 
-    When ``HERMES_WEBUI_SSE_CHUNKED`` is set, send ``Transfer-Encoding: chunked``
+    When ``IRIS_WEBUI_SSE_CHUNKED`` is set, send ``Transfer-Encoding: chunked``
     and wrap ``wfile`` so each write is framed as one HTTP/1.1 chunk; otherwise
     behave exactly like ``handler.end_headers()`` so the default wire format is
     preserved. Chunked + ``Connection: close`` is legal and unambiguous on the

@@ -273,8 +273,8 @@ def test_workspace_panel_inline_width_is_desktop_only():
         "_syncWorkspacePanelInlineWidth() must exist to keep panel width mobile-safe"
     assert "_syncWorkspacePanelInlineWidth();" in boot_js, \
         "_syncWorkspacePanelInlineWidth() must be called when viewport changes"
-    assert "localStorage.getItem('hermes-panel-w')" in boot_js, \
-        "Panel width helper must source hermes-panel-w from localStorage"
+    assert "localStorage.getItem('iris-panel-w')" in boot_js, \
+        "Panel width helper must source iris-panel-w from localStorage"
     assert "_workspacePanelEls();" in boot_js and "style.removeProperty('width')" in boot_js, \
         "Panel helper must clear inline width while in compact/mobile viewport"
 

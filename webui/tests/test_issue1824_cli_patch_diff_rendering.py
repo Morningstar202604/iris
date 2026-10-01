@@ -239,12 +239,12 @@ def _make_state_db(path: Path) -> None:
 def test_cli_session_reader_preserves_apply_patch_metadata(tmp_path, monkeypatch):
     """The API payload should keep tool_calls/tool rows for the UI renderer."""
     _make_state_db(tmp_path / "state.db")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
 
     import api.profiles
     from api.models import get_cli_session_messages
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: str(tmp_path))
 
     messages = get_cli_session_messages("issue1824")
     assert [m["role"] for m in messages] == ["assistant", "tool"]

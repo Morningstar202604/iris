@@ -11,7 +11,7 @@ def test_agent_source_boundary_rfc_inventories_import_coupling():
     """The #2453 source-boundary work must keep a concrete import inventory.
 
     The risk in #2453 is not just a Docker mount mode; it is that WebUI behavior
-    still relies on Hermes Agent internals. Pinning these rows prevents the docs
+    still relies on Iris Agent internals. Pinning these rows prevents the docs
     from degrading into a vague security note without the follow-up task list.
     """
     doc = REPO / "docs" / "rfcs" / "agent-source-boundary.md"
@@ -20,12 +20,12 @@ def test_agent_source_boundary_rfc_inventories_import_coupling():
 
     required_terms = [
         "run_agent.AIAgent",
-        "hermes_cli.profiles",
-        "hermes_cli.goals",
-        "hermes_cli.commands",
-        "hermes_cli.plugins",
-        "hermes_cli.models",
-        "hermes_cli.auth",
+        "iris_cli.profiles",
+        "iris_cli.goals",
+        "iris_cli.commands",
+        "iris_cli.plugins",
+        "iris_cli.models",
+        "iris_cli.auth",
         "agent.credential_pool",
         "agent.redact.redact_sensitive_text",
         "state.db",

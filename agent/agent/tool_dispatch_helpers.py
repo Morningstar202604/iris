@@ -463,7 +463,7 @@ _ELISION_SCAN_MIN_CHARS = 1_000
 _ELISION_SCAN_MAX_CHARS = 65_536
 
 _UPSTREAM_ELISION_NOTICE = (
-    '\n[hermes note: this result contains provider-side elision markers '
+    '\n[iris note: this result contains provider-side elision markers '
     '(e.g. "...N more items" / has_more:true). The data shown is INCOMPLETE '
     '— page/fetch the remainder before treating any enumeration as complete.]'
 )

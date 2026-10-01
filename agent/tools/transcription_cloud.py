@@ -156,7 +156,7 @@ def _transcribe_openai(
                 create_kwargs["prompt"] = prompt
             with open(path, "rb") as audio_file:
                 return client.audio.transcriptions.create(file=audio_file, **create_kwargs)
-        with tempfile.TemporaryDirectory(prefix="hermes-stt-") as work_dir:
+        with tempfile.TemporaryDirectory(prefix="iris-stt-") as work_dir:
             try:
                 transcription = _create_transcription(file_path)
             except APIStatusError as exc:
@@ -244,7 +244,7 @@ def _transcribe_xai(
     file_path: str, model_name: str, *, language: Optional[str] = None, prompt: Optional[str] = None
 ) -> Dict[str, Any]:
     """Transcribe via xAI ``POST /v1/stt`` (multipart). Supports ITN, diarization, word timestamps."""
-    from hermes_cli.config import get_env_value
+    from iris_cli.config import get_env_value
     from tools.transcription_tools import _load_stt_config, _resolve_stt_language
     from tools.xai_http import resolve_xai_http_credentials
     if prompt:
@@ -257,7 +257,7 @@ def _transcribe_xai(
              } if direct_api_key else resolve_xai_http_credentials()
     api_key = str(creds.get("api_key") or "").strip()
     if not api_key:
-        return _error_result("No xAI credentials found. Configure xAI OAuth in `hermes model` or set XAI_API_KEY")
+        return _error_result("No xAI credentials found. Configure xAI OAuth in `iris model` or set XAI_API_KEY")
     stt_config = _load_stt_config()
     xai_config = stt_config.get("xai") or {}
 
@@ -272,13 +272,13 @@ def _transcribe_xai(
     language = language or _resolve_stt_language("xai", stt_config) or ""
 
     def _post() -> Any:
-        from tools.xai_http import hermes_xai_user_agent
+        from tools.xai_http import iris_xai_user_agent
         data: Dict[str, str] = {"language": language} if language else {}
         data.update({flag: "true" for flag, default in (("format", True), ("diarize", False))
                      if is_truthy_value(xai_config.get(flag, default))})
 
         def _post_transcription(bearer: str, endpoint_base_url: str):
-            headers = {"Authorization": f"Bearer {bearer}", "User-Agent": hermes_xai_user_agent()}
+            headers = {"Authorization": f"Bearer {bearer}", "User-Agent": iris_xai_user_agent()}
             return _post_audio_multipart(f"{endpoint_base_url}/stt", headers, file_path, data)
 
         response = _post_transcription(api_key, _resolve_base_url(creds))
@@ -313,7 +313,7 @@ def _transcribe_elevenlabs(
     file_path: str, model_name: str, *, language: Optional[str] = None, prompt: Optional[str] = None
 ) -> Dict[str, Any]:
     """Transcribe using ElevenLabs Scribe STT API."""
-    from hermes_cli.config import get_env_value
+    from iris_cli.config import get_env_value
     from tools.transcription_tools import _load_stt_config, _resolve_provider_key, _resolve_stt_language
     if prompt:
         _log_prompt_unsupported("STT provider 'elevenlabs'")
@@ -347,12 +347,12 @@ def _transcribe_elevenlabs(
 def _transcribe_deepinfra(
     file_path: str, model_name: str, *, language: Optional[str] = None, prompt: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Resolve DeepInfra credentials/model (shared ``hermes_cli.models`` helpers), then delegate to :func:`_transcribe_openai`."""
+    """Resolve DeepInfra credentials/model (shared ``iris_cli.models`` helpers), then delegate to :func:`_transcribe_openai`."""
     from tools.transcription_tools import _load_stt_config, _resolve_provider_key
     api_key = _resolve_provider_key("DEEPINFRA_API_KEY", "deepinfra")
     if not api_key:
         return _error_result("DEEPINFRA_API_KEY not set")
-    from hermes_cli.models import deepinfra_base_url, deepinfra_model_ids
+    from iris_cli.models import deepinfra_base_url, deepinfra_model_ids
     # ``stt.deepinfra: null`` in YAML yields None, not {} — coalesce.
     base_url = deepinfra_base_url(_get_stt_section(_load_stt_config(), "deepinfra"))
     model_name = model_name or next(iter(deepinfra_model_ids("stt")), None)

@@ -3,11 +3,11 @@
 Provides ``start_gateway()`` (start all configured adapters) and ``GatewayRunner`` (lifecycle).
 Run via ``python -m gateway.run`` or ``python cli.py --gateway``."""
 
-# hermes_bootstrap must be the very first import (UTF-8 stdio on Windows; no-op on POSIX).
+# iris_bootstrap must be the very first import (UTF-8 stdio on Windows; no-op on POSIX).
 try:
-    import hermes_bootstrap  # noqa: F401
+    import iris_bootstrap  # noqa: F401
 except ModuleNotFoundError:
-    pass  # a partial ``hermes update`` can leave the bootstrap unregistered; only Windows UTF-8 stdio suffers
+    pass  # a partial ``iris update`` can leave the bootstrap unregistered; only Windows UTF-8 stdio suffers
 
 import asyncio
 import concurrent.futures
@@ -39,8 +39,8 @@ from agent.conversation_loop import INTERRUPT_WAITING_FOR_MODEL_PREFIX
 from agent.interrupt_compat import request_hard_interrupt
 from agent.turn_context import compression_made_progress
 from agent.session_activity import ActivityProvenance
-from hermes_cli.config import _is_ssh_remote_tilde_cwd, cfg_get
-from hermes_cli.fallback_config import pre_agent_fallback_notice
+from iris_cli.config import _is_ssh_remote_tilde_cwd, cfg_get
+from iris_cli.fallback_config import pre_agent_fallback_notice
 
 # Per-session AIAgent cache bounds (agents are heavy); see _enforce_agent_cache_cap/_session_housekeeping_watcher.
 _AGENT_CACHE_MAX_SIZE = 128
@@ -195,14 +195,14 @@ def hygiene_compaction_recovered(
 def _hygiene_compression_timeout_message(
     *, total_exhausted: bool, elapsed: float, idle_timeout: float, progress_observed: bool) -> str:
     """Describe the host timeout that actually ended hygiene compression. Chat users cannot edit
-    model config, so the copy names /compress, /new and `hermes doctor`, never a config key or the
+    model config, so the copy names /compress, /new and `iris doctor`, never a config key or the
     raw second counts (those stay in the gateway log)."""
     lead = (
         "⚠️ Shortening the conversation history took too long, so I skipped it and kept "
         "everything as-is. Run /compress to try again or /new to start fresh.")
     if total_exhausted:
         return lead
-    return lead + " If this keeps happening, run `hermes doctor` on the host."
+    return lead + " If this keeps happening, run `iris doctor` on the host."
 
 
 def _cached_agent_for_hygiene(gateway, session_key: str):
@@ -231,13 +231,13 @@ async def run_codex_hygiene_compaction(
 
     See #73503.
     * Evicting the cached live agent afterwards destroys the only real context: the next turn spawns an
-    EMPTY thread and the model starts blank while Hermes still mirrors a full history (abrupt amnesia — the
+    EMPTY thread and the model starts blank while Iris still mirrors a full history (abrupt amnesia — the
     user-facing damage documented on #73503).
     """
     mode = str(auto_mode or "native").lower()
-    if mode not in {"native", "hermes", "off"}:
+    if mode not in {"native", "iris", "off"}:
         mode = "native"
-    if mode != "hermes":
+    if mode != "iris":
         # native = app-server compacts itself; off = operator disabled. Local fallback can't shrink the thread.
         return f"skipped:mode={mode}"
 
@@ -250,7 +250,7 @@ async def run_codex_hygiene_compaction(
 
     compressor = getattr(agent, "context_compressor", None)
     count_before = getattr(compressor, "compression_count", 0)
-    # copy_context carries profile secret scope / HERMES_HOME override (executors don't propagate ContextVars).
+    # copy_context carries profile secret scope / IRIS_HOME override (executors don't propagate ContextVars).
     worker_future = asyncio.get_running_loop().run_in_executor(
         None, copy_context().run,
         lambda: agent._compress_context(history, "", approx_tokens=approx_tokens, task_id=session_id or "default"))
@@ -419,7 +419,7 @@ _GATEWAY_ENDPOINT_UNREACHABLE_RE = re.compile(
     "(" + "|".join(_ENDPOINT_UNREACHABLE_MARKERS) + ")", re.IGNORECASE)
 
 def _ensure_windows_gateway_venv_imports() -> None:
-    """Make detached Windows gateway runs see the Hermes venv packages.
+    """Make detached Windows gateway runs see the Iris venv packages.
 
     Patched before MCP discovery so tool injection does not depend on launchers preserving PYTHONPATH."""
     if sys.platform != "win32":
@@ -622,17 +622,17 @@ def _format_exec_approval_fallback(
 _PROVIDER_ERROR_REPLIES = (
     (_GATEWAY_RATE_LIMIT_RE, "⏱️ The AI model service is rate-limiting requests. Wait a moment, then use /retry."),
     (_GATEWAY_AUTH_ERROR_RE, "⚠️ Sign-in to the AI model service failed. Use /login to sign in again, "
-                             "or ask whoever runs this bot to run `hermes doctor` on the host."),
+                             "or ask whoever runs this bot to run `iris doctor` on the host."),
     (_GATEWAY_PROVIDER_POLICY_RE, "⚠️ The AI model service rejected this request. Try rephrasing your "
                                   "message, or use /model to switch models."),
     (_GATEWAY_CONNECTION_INTERRUPTED_RE, "⚠️ The connection to the AI model service was interrupted mid-request — "
                                          "usually transient. Use /retry to try again; if it keeps happening, run "
-                                         "`hermes doctor` on the host."),
+                                         "`iris doctor` on the host."),
     (_GATEWAY_ENDPOINT_UNREACHABLE_RE, "⚠️ The AI model service isn't reachable right now — the configured model "
                                        "endpoint is not running or is unreachable. Wait a moment and use /retry; "
-                                       "if it persists, run `hermes doctor` on the host."),
-    (_GATEWAY_CONNECTION_ERROR_RE, "⚠️ Hermes could not reach the AI model service (no further detail from the "
-                                   "SDK). Use /retry to try again; if it persists, run `hermes doctor` on the host."))
+                                       "if it persists, run `iris doctor` on the host."),
+    (_GATEWAY_CONNECTION_ERROR_RE, "⚠️ Iris could not reach the AI model service (no further detail from the "
+                                   "SDK). Use /retry to try again; if it persists, run `iris doctor` on the host."))
 
 
 # Shared by the failed-turn normalizer and ``run_turn._hmwa_agent_error_reply``; canonical
@@ -661,7 +661,7 @@ def _gateway_provider_error_reply(text: str) -> str:
             return _rate_limit_reply(text) if pattern is _GATEWAY_RATE_LIMIT_RE else reply
     return (
         "⚠️ The AI model service kept failing. Use /retry to try again, or /model to switch "
-        "models. Details are in the gateway log (`hermes logs`).")
+        "models. Details are in the gateway log (`iris logs`).")
 
 
 # Provider/API failure envelope preambles (not ordinary assistant prose), anchored at line start.
@@ -886,7 +886,7 @@ def _telegramize_command_mentions(text: str, platform: Any) -> str:
     if platform_value != "telegram":
         return text
 
-    from hermes_cli.commands_platforms import _sanitize_telegram_name
+    from iris_cli.commands_platforms import _sanitize_telegram_name
 
     def _replace(match: re.Match[str]) -> str:
         sanitized = _sanitize_telegram_name(match.group(1))
@@ -918,7 +918,7 @@ def _coerce_gateway_timestamp(value: Any) -> Optional[float]:
     if isinstance(value, bool):  # bool is a subclass of int — skip it
         return None
     if isinstance(value, (int, float)):
-        # Some platform events use milliseconds; Hermes state rows use seconds.
+        # Some platform events use milliseconds; Iris state rows use seconds.
         return float(value) / 1000.0 if float(value) > 10_000_000_000 else float(value)
     if isinstance(value, str):
         text = value.strip()
@@ -949,14 +949,14 @@ def _startup_restore_drain_timeout_secs() -> float:
 
     Duplicate-agent safety does NOT depend on it: ``_schedule_resume_pending_sessions`` claims SYNCHRONOUSLY.
     """
-    return _float_env("HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
+    return _float_env("IRIS_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
 
 
 def _startup_warmup_timeout_secs() -> float:
     """Max seconds the boot warm-up (``_warm_turn_prerequisites``) may hold the inbound gate shut.
 
     On timeout the gate opens and the warm-up finishes in the background. Non-positive disables it."""
-    return _float_env("HERMES_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
+    return _float_env("IRIS_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
 
 
 def _warm_turn_machinery_sync() -> int:
@@ -970,7 +970,7 @@ def _warm_turn_machinery_sync() -> int:
     import model_tools
 
     tool_defs = model_tools.get_tool_definitions(quiet_mode=True)
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
 
     agent_cfg = load_config_readonly().get("agent")
     if not isinstance(agent_cfg, dict) or agent_cfg.get("environment_probe", True):
@@ -1239,7 +1239,7 @@ def _build_gateway_agent_history(
     """Convert stored gateway transcript rows into agent replay messages.
 
     Observed context stays out of ``conversation_history`` so consecutive-user repair can't merge it in."""
-    from hermes_time import get_timezone as _get_msg_tz
+    from iris_time import get_timezone as _get_msg_tz
     from gateway.message_timestamps import (
         render_user_content_with_timestamp as _render_msg_ts,
         strip_leading_message_timestamps as _strip_msg_ts,
@@ -1579,11 +1579,11 @@ def _home_thread_env_var(platform_name: str) -> str:
 
 def _restart_notification_pending() -> bool:
     """Return True when a /restart completion marker is waiting to be delivered."""
-    return (_hermes_home / ".restart_notify.json").exists()
+    return (_iris_home / ".restart_notify.json").exists()
 
 
 def _planned_restart_notification_path() -> Path:
-    return _hermes_home / ".restart_pending.json"
+    return _iris_home / ".restart_pending.json"
 
 
 def _planned_restart_notification_pending() -> bool:
@@ -1592,41 +1592,41 @@ def _planned_restart_notification_pending() -> bool:
 
 
 # Gateway marker so a lazily imported cli.py load_cli_config() doesn't clobber TERMINAL_CWD.
-os.environ["_HERMES_GATEWAY"] = "1"
+os.environ["_IRIS_GATEWAY"] = "1"
 
 _ensure_ssl_certs()
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from hermes_constants import get_hermes_home, get_hermes_home_override, get_process_hermes_home
-# The PROCESS's own home, never an import-time ContextVar: a multiplexed backend (``hermes serve``)
+from iris_constants import get_iris_home, get_iris_home_override, get_process_iris_home
+# The PROCESS's own home, never an import-time ContextVar: a multiplexed backend (``iris serve``)
 # first imports this module lazily from a session's agent build, under that session's routed profile
 # override, and the import-time config bridge below would then latch the secondary's terminal.* and
 # settings into the launch process env for every later launch-profile turn.
-_hermes_home = get_process_hermes_home()
+_iris_home = get_process_iris_home()
 
-# Load ~/.hermes/.env first: user-managed env files must override stale shell exports on restart.
-from hermes_cli.env_loader import load_hermes_dotenv
-_env_path = _hermes_home / '.env'
-load_hermes_dotenv(hermes_home=_hermes_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+# Load ~/.iris/.env first: user-managed env files must override stale shell exports on restart.
+from iris_cli.env_loader import load_iris_dotenv
+_env_path = _iris_home / '.env'
+load_iris_dotenv(iris_home=_iris_home, project_env=Path(__file__).resolve().parents[1] / '.env')
 
 
 def _reload_runtime_env_preserving_config_authority() -> None:
     """Reload .env per turn for rotated keys while config.yaml stays authoritative for budgets (else a
-    stale HERMES_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
+    stale IRIS_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
     per-turn ``set_secret_scope`` and mutating ``os.environ`` would leak the default profile's keys to
     every profile; it still honors the max_turns bridge."""
     from agent.secret_scope import is_multiplex_active
     if not is_multiplex_active():
-        load_hermes_dotenv(
-            hermes_home=_hermes_home, project_env=Path(__file__).resolve().parents[1] / '.env')
-    _bridge_max_turns_from_config(_hermes_home)
+        load_iris_dotenv(
+            iris_home=_iris_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+    _bridge_max_turns_from_config(_iris_home)
 
 
 def _bridge_max_turns_from_config(home: "Path") -> None:
     """Re-bridge agent.max_turns (+ sessions.*) per turn; managed overlay applies or it reverts.
     Skipped inside a served secondary's scope: the env slots are the launch profile's and
-    hermes_state reads the routed profile's ``sessions.*`` from its own config under scope."""
+    iris_state reads the routed profile's ``sessions.*`` from its own config under scope."""
     from gateway.platforms._shared import profile_scoped
     if profile_scoped():
         return
@@ -1644,12 +1644,12 @@ def _bridge_max_turns_from_config(home: "Path") -> None:
 def _current_max_iterations() -> int:
     """Return the per-turn iteration budget after runtime env refresh; ``resolve_turn_limit`` maps
     ``agent.max_turns: none``/``unlimited`` (bridged as a string) to the unlimited sentinel, not an
-    ``int()`` crash. A routed profile (HERMES_HOME override, multiplexed turns) reads ITS
-    ``agent.max_turns`` straight from config: the ``HERMES_MAX_ITERATIONS`` bridge is one process-wide
+    ``int()`` crash. A routed profile (IRIS_HOME override, multiplexed turns) reads ITS
+    ``agent.max_turns`` straight from config: the ``IRIS_MAX_ITERATIONS`` bridge is one process-wide
     slot holding the launch profile's value, so every secondary would inherit the default's budget."""
     _reload_runtime_env_preserving_config_authority()
-    from hermes_cli.config import resolve_turn_limit as _resolve_turn_limit
-    override = get_hermes_home_override()
+    from iris_cli.config import resolve_turn_limit as _resolve_turn_limit
+    override = get_iris_home_override()
     if override:
         config_path = Path(override) / 'config.yaml'
         try:
@@ -1658,7 +1658,7 @@ def _current_max_iterations() -> int:
             cfg = {}
         agent_cfg = cfg.get("agent")
         return _resolve_turn_limit(agent_cfg.get("max_turns") if isinstance(agent_cfg, dict) else None)
-    return _resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
+    return _resolve_turn_limit(os.getenv("IRIS_MAX_ITERATIONS"))
 
 
 from contextlib import asynccontextmanager as _asynccontextmanager, contextmanager as _contextmanager, suppress
@@ -1676,17 +1676,17 @@ class HygieneTurnHoldExceeded(Exception):
 
 def _multiplex_profile_homes(config: object) -> list[tuple[str, "Path"]]:
     """Return the authoritative profile set for one multiplex gateway config."""
-    from hermes_cli.profiles import profiles_to_serve
+    from iris_cli.profiles import profiles_to_serve
     return list(profiles_to_serve(multiplex=True))
 
 
 def _cron_tick_profile_homes(config: object) -> list[tuple[str, "Path"]]:
     """Profile homes the in-process ticker visits: the served set PLUS the process-active
     profile: ``profiles_to_serve`` lists default + every live named profile, but a ``--profile
-    <name>`` gateway's own profile may sit outside ``profiles/`` (custom HERMES_HOME). One host
+    <name>`` gateway's own profile may sit outside ``profiles/`` (custom IRIS_HOME). One host
     process ticks all of them regardless of ``gateway.multiplex_profiles``. Adapter startup
     already skips ``active``."""
-    from hermes_cli.profiles import get_active_profile_name, get_profile_dir
+    from iris_cli.profiles import get_active_profile_name, get_profile_dir
 
     homes = _multiplex_profile_homes(config)
     active = get_active_profile_name() or "default"  # launch profile, pre-identity (ticker boot)
@@ -1701,8 +1701,8 @@ def _cron_tick_profile_homes(config: object) -> list[tuple[str, "Path"]]:
 def _cron_profile_gate(name: str, home: "Path") -> bool:
     """Tick ``home`` this cycle unless ANOTHER gateway process owns it.
 
-    Same stand-down the serve/Desktop ticker applies (``hermes_cli/web_server.py``): a host that
-    has not finished converging onto the one host gateway (``hermes gateway migrate --multiplex``)
+    Same stand-down the serve/Desktop ticker applies (``iris_cli/web_server.py``): a host that
+    has not finished converging onto the one host gateway (``iris gateway migrate --multiplex``)
     may still run profile B's own gateway, and without this both it and this process race B's
     ``cron/.tick.lock``. The lock stops a simultaneous double-run but not the race: when this
     process wins, B's delivery leaves through ``SharedRouteAdapters``/fail-closed instead of B's
@@ -1737,7 +1737,7 @@ def _enable_multiplex_log_routing(config: object) -> bool:
     if not getattr(config, "multiplex_profiles", False):
         return False
     try:
-        from hermes_logging import enable_profile_log_routing
+        from iris_logging import enable_profile_log_routing
         return enable_profile_log_routing([home for _name, home in _multiplex_profile_homes(config)])
     except Exception:
         logger.debug("could not enable per-profile log routing", exc_info=True)
@@ -1793,17 +1793,17 @@ def _terminal_scope_cwd(default: str = "") -> str:
 
 def _load_profile_secret_scope(profile_home: "Path") -> dict:
     """Hydrate and load one profile's secrets under its home override."""
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from iris_constants import set_iris_home_override, reset_iris_home_override
     # Caller already hydrated external sources off-loop (#99519).
     from agent.secret_scope import build_profile_secret_scope
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from iris_cli.env_loader import hydrate_profile_secret_sources
 
-    home_token = set_hermes_home_override(str(profile_home))
+    home_token = set_iris_home_override(str(profile_home))
     try:
         hydrate_profile_secret_sources(Path(profile_home))
         return build_profile_secret_scope(Path(profile_home))
     finally:
-        reset_hermes_home_override(home_token)
+        reset_iris_home_override(home_token)
 
 
 @_contextmanager
@@ -1811,15 +1811,15 @@ def _profile_runtime_scope(
     profile_home: "Path", prepared_secret_scope: Optional[dict] = None, *,
     hydrate_secrets: bool = True):
     """Scope config/skills/memory AND credentials to a profile for one turn (multiplexed path only).
-    ``set_hermes_home_override`` is a contextvar (reaches the agent worker via ``copy_context()``);
+    ``set_iris_home_override`` is a contextvar (reaches the agent worker via ``copy_context()``);
     ``set_secret_scope`` makes the profile ``.env`` the credential source without mutating
     ``os.environ``, so subprocesses never inherit cross-profile secrets."""
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from iris_constants import set_iris_home_override, reset_iris_home_override
     from agent.secret_scope import set_secret_scope, reset_secret_scope
 
     home_token = secret_token = None
     try:
-        home_token = set_hermes_home_override(str(profile_home))
+        home_token = set_iris_home_override(str(profile_home))
         if prepared_secret_scope is not None:
             secrets = prepared_secret_scope
         elif hydrate_secrets:
@@ -1839,7 +1839,7 @@ def _profile_runtime_scope(
         if secret_token is not None:
             reset_secret_scope(secret_token)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_iris_home_override(home_token)
 
 
 @_asynccontextmanager
@@ -1860,13 +1860,13 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
 
     See #64674.
     """
-    from hermes_cli.gateway_multiplex_mode import log_multiplex_decision, resolve_multiplex_mode
+    from iris_cli.gateway_multiplex_mode import log_multiplex_decision, resolve_multiplex_mode
     cfg = load_gateway_config()
     log_multiplex_decision(resolve_multiplex_mode(cfg))
     if not cfg.multiplex_profiles:
         return cfg
     try:
-        home = get_hermes_home()
+        home = get_iris_home()
     except Exception:
         return cfg
     try:
@@ -1881,7 +1881,7 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
 
 async def _discover_gateway_mcp_tools(config: object) -> None:
     """Run startup MCP discovery for every profile this gateway serves: ``discover_mcp_tools`` reads
-    ``mcp_servers`` from ``get_hermes_home()``'s config, so an unscoped call only connects the launch
+    ``mcp_servers`` from ``get_iris_home()``'s config, so an unscoped call only connects the launch
     profile's servers (single-profile gateways keep the unscoped call).
 
     Under multiplex, run it once per served profile inside that profile's ``_profile_runtime_scope`` and
@@ -1891,7 +1891,7 @@ async def _discover_gateway_mcp_tools(config: object) -> None:
     No gateway run can complete a browser OAuth flow (nobody watches its stdout; on Windows its
     DEVNULL stdin even passes ``isatty``), so discovery runs with interactive OAuth suppressed — the
     same gate the CLI's background discovery uses. An expired token then parks the server with an
-    actionable ``hermes mcp login`` warning instead of opening an authorize tab.
+    actionable ``iris mcp login`` warning instead of opening an authorize tab.
     """
     from tools.mcp_oauth import suppress_interactive_oauth
     from tools.mcp_tool_discovery import discover_mcp_tools
@@ -1925,7 +1925,7 @@ def _platform_has_bot_credential(platform: "Platform", platform_config: "Platfor
     # transient failure — after which it stays down until the gateway is restarted by hand. Mirror the
     # adapter's own gate: homeserver + user_id + password. Read ONLY from extra, never os.getenv:
     # build_config() already copies all three env vars onto extra, and importing this module loads
-    # ~/.hermes/.env, so an env fallback would report "has credential" for every Matrix config on the box —
+    # ~/.iris/.env, so an env fallback would report "has credential" for every Matrix config on the box —
     # including the empty-primary multiplex case (#64674) this check exists to evict.
     if platform is not Platform.MATRIX:
         return False
@@ -1938,28 +1938,28 @@ _DOCKER_MEDIA_OUTPUT_CONTAINER_PATHS = {"/output", "/outputs"}
 
 # Internal bridge, not a config source: seed from the canonical default after dotenv so an ambient
 # process/.env value can never control lease safety.
-from hermes_cli.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
-os.environ["HERMES_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
+from iris_cli.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
+os.environ["IRIS_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
 
 # Bridge config.yaml values into env so os.getenv() picks them up. config.yaml unconditionally wins
 # over .env for these keys; a `not in os.environ` guard would let stale .env entries shadow config.
 _AGENT_ENV_BRIDGE = {
-    "gateway_timeout": "HERMES_AGENT_TIMEOUT",
-    "gateway_turn_lease_timeout": "HERMES_TURN_LEASE_TIMEOUT",
-    "gateway_timeout_warning": "HERMES_AGENT_TIMEOUT_WARNING",
-    "gateway_notify_interval": "HERMES_AGENT_NOTIFY_INTERVAL",
-    "session_stall_timeout": "HERMES_SESSION_STALL_TIMEOUT",
-    "restart_drain_timeout": "HERMES_RESTART_DRAIN_TIMEOUT",
-    "cron_drain_timeout": "HERMES_CRON_DRAIN_TIMEOUT",
-    "gateway_auto_continue_freshness": "HERMES_AUTO_CONTINUE_FRESHNESS",
-    "gateway_startup_restore_drain_timeout": "HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT",
-    "gateway_startup_warmup_timeout": "HERMES_STARTUP_WARMUP_TIMEOUT"}
+    "gateway_timeout": "IRIS_AGENT_TIMEOUT",
+    "gateway_turn_lease_timeout": "IRIS_TURN_LEASE_TIMEOUT",
+    "gateway_timeout_warning": "IRIS_AGENT_TIMEOUT_WARNING",
+    "gateway_notify_interval": "IRIS_AGENT_NOTIFY_INTERVAL",
+    "session_stall_timeout": "IRIS_SESSION_STALL_TIMEOUT",
+    "restart_drain_timeout": "IRIS_RESTART_DRAIN_TIMEOUT",
+    "cron_drain_timeout": "IRIS_CRON_DRAIN_TIMEOUT",
+    "gateway_auto_continue_freshness": "IRIS_AUTO_CONTINUE_FRESHNESS",
+    "gateway_startup_restore_drain_timeout": "IRIS_STARTUP_RESTORE_DRAIN_TIMEOUT",
+    "gateway_startup_warmup_timeout": "IRIS_STARTUP_WARMUP_TIMEOUT"}
 # config-authoritative knobs for the session-search index (env stays the cross-process carrier).
-_SESSIONS_ENV_BRIDGE = {"cjk_fts": "HERMES_CJK_FTS", "search_slow_ms": "HERMES_SEARCH_SLOW_MS"}
+_SESSIONS_ENV_BRIDGE = {"cjk_fts": "IRIS_CJK_FTS", "search_slow_ms": "IRIS_SEARCH_SLOW_MS"}
 _DISPLAY_ENV_BRIDGE = {
-    "busy_input_mode": "HERMES_GATEWAY_BUSY_INPUT_MODE",
-    "busy_text_mode": "HERMES_GATEWAY_BUSY_TEXT_MODE",
-    "busy_ack_enabled": "HERMES_GATEWAY_BUSY_ACK_ENABLED"}
+    "busy_input_mode": "IRIS_GATEWAY_BUSY_INPUT_MODE",
+    "busy_text_mode": "IRIS_GATEWAY_BUSY_TEXT_MODE",
+    "busy_ack_enabled": "IRIS_GATEWAY_BUSY_ACK_ENABLED"}
 
 
 def _bridge_section_to_env(section: Any, mapping: Dict[str, str]) -> None:
@@ -1978,9 +1978,9 @@ def _bridge_max_turns_to_env(agent_cfg: Any) -> None:
         return
     raw = agent_cfg["max_turns"]
     if raw is not None:
-        os.environ["HERMES_MAX_ITERATIONS"] = str(raw)
-    elif "HERMES_MAX_ITERATIONS" in os.environ:
-        del os.environ["HERMES_MAX_ITERATIONS"]
+        os.environ["IRIS_MAX_ITERATIONS"] = str(raw)
+    elif "IRIS_MAX_ITERATIONS" in os.environ:
+        del os.environ["IRIS_MAX_ITERATIONS"]
 
 
 def _bridge_terminal_config_to_env(_terminal_cfg: dict) -> None:
@@ -2040,7 +2040,7 @@ def _bridge_auxiliary_config_to_env(_auxiliary_cfg: dict) -> None:
     """Bridge auxiliary model/endpoint overrides (vision, approval, plugins); compression reads yaml."""
     _aux_bridged_keys = {"vision", "approval"}
     try:
-        from hermes_cli.plugins import get_plugin_auxiliary_tasks
+        from iris_cli.plugins import get_plugin_auxiliary_tasks
         for _entry in get_plugin_auxiliary_tasks():
             _aux_bridged_keys.add(_entry["key"])
     except Exception:
@@ -2072,7 +2072,7 @@ def _bridge_config_to_env(_cfg: dict) -> None:
         _bridge_auxiliary_config_to_env(_auxiliary_cfg)
     # config.yaml is the documented, authoritative source for these settings — it unconditionally wins over
     # .env values. Previously the guards below read `if X not in os.environ` and let stale .env entries
-    # (e.g. HERMES_MAX_ITERATIONS=60 written by an old `hermes setup` run) silently shadow the user's
+    # (e.g. IRIS_MAX_ITERATIONS=60 written by an old `iris setup` run) silently shadow the user's
     # current config. See PR #18413 / the 60-vs-500 max_turns incident.
     _agent_cfg = _cfg.get("agent", {})
     _bridge_max_turns_to_env(_agent_cfg)
@@ -2082,36 +2082,36 @@ def _bridge_config_to_env(_cfg: dict) -> None:
     _bridge_section_to_env(_display_cfg, _DISPLAY_ENV_BRIDGE)
     # Documented service-manager override: env wins when set (other display bridges stay config-first).
     if (isinstance(_display_cfg, dict) and "busy_steer_ack_enabled" in _display_cfg
-            and "HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
-        os.environ["HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
+            and "IRIS_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
+        os.environ["IRIS_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
     _tz_cfg = _cfg.get("timezone", "")
     if _tz_cfg and isinstance(_tz_cfg, str):
-        os.environ["HERMES_TIMEZONE"] = _tz_cfg.strip()
+        os.environ["IRIS_TIMEZONE"] = _tz_cfg.strip()
     _security_cfg = _cfg.get("security", {})
     if isinstance(_security_cfg, dict) and _security_cfg.get("redact_secrets") is not None:
-        os.environ["HERMES_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
-    # Media policy uses the shared bridge so standalone entrypoints (`hermes cron run`) match.
+        os.environ["IRIS_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
+    # Media policy uses the shared bridge so standalone entrypoints (`iris cron run`) match.
     _gateway_cfg = _cfg.get("gateway", {})
     if isinstance(_gateway_cfg, dict):
         from gateway.media_policy import apply_media_policy_env
         apply_media_policy_env(_cfg)
         _trust_recent_seconds = _gateway_cfg.get("trust_recent_files_seconds")
         if _trust_recent_seconds is not None:
-            os.environ["HERMES_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
+            os.environ["IRIS_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
         # platform_connect_timeout is an escape hatch, unlike the bridges above: env WINS if already set.
         if ("platform_connect_timeout" in _gateway_cfg
-                and not os.environ.get("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
-            os.environ["HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
+                and not os.environ.get("IRIS_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
+            os.environ["IRIS_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
 
 
 def _load_bridge_config(config_path: Path) -> dict:
     """Effective USER config (no defaults) for the presence-sensitive env bridge: only keys the user
     or the managed layer wrote get bridged, else all of DEFAULT_CONFIG would be exported."""
-    from hermes_cli.config_effective import load_user_config_effective
+    from iris_cli.config_effective import load_user_config_effective
     return load_user_config_effective(config_path)
 
 
-_config_path = _hermes_home / 'config.yaml'
+_config_path = _iris_home / 'config.yaml'
 _cfg: dict = {}
 if _config_path.exists():
     try:
@@ -2124,12 +2124,12 @@ if _config_path.exists():
             file=sys.stderr)
         print(
             "  Gateway will fall back to .env values, which may not match "
-            "your current config.yaml. Run `hermes doctor` to investigate.",
+            "your current config.yaml. Run `iris doctor` to investigate.",
             file=sys.stderr)
 
 # IPv4 preference must apply before any HTTP clients are created.
 try:
-    from hermes_constants import apply_ipv4_preference
+    from iris_constants import apply_ipv4_preference
     _network_cfg = _cfg.get("network", {})
     if isinstance(_network_cfg, dict) and _network_cfg.get("force_ipv4"):
         apply_ipv4_preference(force=True)
@@ -2137,20 +2137,20 @@ except Exception as _bootstrap_exc:
     print(f"  Warning: IPv4 preference application failed: {_bootstrap_exc}", file=sys.stderr)
 
 try:
-    from hermes_cli.config import print_config_warnings
+    from iris_cli.config import print_config_warnings
     print_config_warnings()
 except Exception as _bootstrap_exc:
     print(f"  Warning: config validation failed: {_bootstrap_exc}", file=sys.stderr)
 
 try:
-    from hermes_cli.config import warn_deprecated_cwd_env_vars
+    from iris_cli.config import warn_deprecated_cwd_env_vars
     warn_deprecated_cwd_env_vars()
 except Exception as _bootstrap_exc:
     print(f"  Warning: deprecation check failed: {_bootstrap_exc}", file=sys.stderr)
 
-os.environ["HERMES_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
+os.environ["IRIS_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
 
-# HERMES_EXEC_ASK is set in start_gateway(), NOT at import: CLI tools importing this module must not
+# IRIS_EXEC_ASK is set in start_gateway(), NOT at import: CLI tools importing this module must not
 # flip interactive sessions into ask-mode (approval prompts would become silent pending_approval).
 
 # Terminal cwd: config.yaml terminal.cwd is canonical (bridged above); MESSAGING_CWD is legacy fallback.
@@ -2307,7 +2307,7 @@ def _resolve_runtime_agent_kwargs() -> dict:
     ``resolve_runtime_provider()`` may fall back to env vars; behavioral config is config.yaml only.
     An ``AuthError`` from the primary walks the configured fallback chain through the shared
     ``resolve_runtime_with_fallback`` (the gateway keeps no resolver loop of its own)."""
-    from hermes_cli.runtime_provider import (
+    from iris_cli.runtime_provider import (
         resolve_runtime_with_fallback, format_runtime_provider_error, _get_model_config)
 
     # Capture primary provider/model from config before the try block so we
@@ -2398,7 +2398,7 @@ def _resolve_gateway_model_context(
             configured_provider = provider = model_cfg.get("provider") or None
             configured_base_url = base_url = model_cfg.get("base_url") or None
         try:
-            from hermes_cli.config import get_compatible_custom_providers
+            from iris_cli.config import get_compatible_custom_providers
             custom_providers = get_compatible_custom_providers(data)
         except Exception:
             custom_providers = data.get("custom_providers")
@@ -2420,12 +2420,12 @@ def _resolve_gateway_model_context(
 
     def _pin_still_applies() -> bool:
         # Drop a configured context_length pin when the effective route no longer matches (or on error).
-        from hermes_cli.route_identity import should_clear_context_pin
+        from iris_cli.route_identity import should_clear_context_pin
         return not should_clear_context_pin(
             configured_model, resolved_model, configured_base_url, base_url, configured_provider, provider)
 
     def _custom_ctx() -> Optional[int]:
-        from hermes_cli.config import get_custom_provider_context_length
+        from iris_cli.config import get_custom_provider_context_length
         return get_custom_provider_context_length(
             model=resolved_model, base_url=base_url, custom_providers=custom_providers)
 
@@ -2455,7 +2455,7 @@ def _resolve_runtime_agent_kwargs_for_provider(provider: str, target_model: Opti
     ``target_model`` is the model the override will actually send: the ladder's model-keyed rungs
     (Zen/Go relay + api_mode) must see it rather than config's ``default``, or a Go-only override
     resolves an api_mode/base_url the sent model cannot use (#112600)."""
-    from hermes_cli.runtime_provider import resolve_runtime_provider, format_runtime_provider_error
+    from iris_cli.runtime_provider import resolve_runtime_provider, format_runtime_provider_error
     try:
         runtime = resolve_runtime_provider(requested=provider, target_model=target_model or None)
     except Exception as exc:
@@ -2468,7 +2468,7 @@ def _resolve_runtime_agent_kwargs_for_provider(provider: str, target_model: Opti
 
 def _deep_merge_request_overrides(base: Optional[dict], override: Optional[dict]) -> dict:
     """Merge request_overrides dicts, deep-merging nested dictionaries."""
-    from hermes_cli.config import _deep_merge
+    from iris_cli.config import _deep_merge
     base_dict = dict(base or {})
     override_dict = dict(override or {})
     if not base_dict:
@@ -2843,10 +2843,10 @@ def _check_unavailable_skill(command_name: str) -> str | None:
                 if slug == normalized and declared_name in disabled:
                     return (
                         f"The **{command_name}** skill is installed but disabled.\n"
-                        f"Enable it with: `hermes skills config`")
+                        f"Enable it with: `iris skills config`")
 
         # Check optional skills (shipped with repo but not installed)
-        from hermes_constants import get_optional_skills_dir
+        from iris_constants import get_optional_skills_dir
         repo_root = Path(__file__).resolve().parent.parent
         optional_dir = get_optional_skills_dir(repo_root / "optional-skills")
         if optional_dir.exists():
@@ -2861,7 +2861,7 @@ def _check_unavailable_skill(command_name: str) -> str | None:
                 install_path = f"official/{'/'.join(rel.parts)}"
                 return (
                     f"The **{command_name}** skill is available but not installed.\n"
-                    f"Install it with: `hermes skills install {install_path}`")
+                    f"Install it with: `iris skills install {install_path}`")
     except Exception:
         pass
     return None
@@ -2879,20 +2879,20 @@ def _teams_pipeline_plugin_enabled() -> bool:
 
 
 def _gateway_config_home() -> Path:
-    """Return the Hermes home that gateway config reads should use."""
-    override = get_hermes_home_override()
-    return Path(override) if override else _hermes_home
+    """Return the Iris home that gateway config reads should use."""
+    override = get_iris_home_override()
+    return Path(override) if override else _iris_home
 
 
 def _load_gateway_config(config_path: "Path | None" = None) -> dict:
     """The effective user config.yaml (managed overlay, ``${VAR}`` expansion, model-key canon; no
     DEFAULT_CONFIG merge) — ``{}`` on any error (fail-open). Defaults to the active gateway home
-    (``_hermes_home`` monkeypatches apply); multiplexers pass a path.
+    (``_iris_home`` monkeypatches apply); multiplexers pass a path.
     """
     if config_path is None:
         config_path = _gateway_config_home() / 'config.yaml'
     try:
-        from hermes_cli.config_effective import load_user_config_effective
+        from iris_cli.config_effective import load_user_config_effective
         return load_user_config_effective(config_path)
     except Exception:
         logger.debug("Could not load gateway config from %s", config_path, exc_info=True)
@@ -2907,7 +2907,7 @@ def _checkpoint_agent_kwargs(config: dict | None) -> dict:
         cp_cfg = {"enabled": cp_cfg}
     elif not isinstance(cp_cfg, dict):
         cp_cfg = {}
-    from hermes_cli.config import DEFAULT_CONFIG
+    from iris_cli.config import DEFAULT_CONFIG
     defaults = DEFAULT_CONFIG["checkpoints"]
     return {
         "checkpoints_enabled": cp_cfg.get("enabled", defaults["enabled"]),
@@ -2953,21 +2953,21 @@ def _get_channel_override(
     return None
 
 
-def _resolve_hermes_bin() -> Optional[list[str]]:
-    """Hermes update/restart argv: the running interpreter's ``python -m hermes_cli.main``
-    (exactly this install), else ``hermes`` on PATH, else None. The module argv must win: a
-    PATH-first lookup lets an attacker-planted ``hermes`` shadow the running install when
+def _resolve_iris_bin() -> Optional[list[str]]:
+    """Iris update/restart argv: the running interpreter's ``python -m iris_cli.main``
+    (exactly this install), else ``iris`` on PATH, else None. The module argv must win: a
+    PATH-first lookup lets an attacker-planted ``iris`` shadow the running install when
     /update or /restart re-execs it (#111569)."""
     try:
         import importlib.util
-        if importlib.util.find_spec("hermes_cli") is not None:
-            return [sys.executable, "-m", "hermes_cli.main"]
+        if importlib.util.find_spec("iris_cli") is not None:
+            return [sys.executable, "-m", "iris_cli.main"]
     except Exception:
         pass
     import shutil
-    hermes_bin = shutil.which("hermes")
-    if hermes_bin:
-        return [hermes_bin]
+    iris_bin = shutil.which("iris")
+    if iris_bin:
+        return [iris_bin]
     return None
 
 
@@ -3143,7 +3143,7 @@ def _normalize_empty_agent_response(
         return (
             "⚠️ Something went wrong and I couldn't finish this reply. Use /retry to try again, "
             "or /new to start a fresh conversation. Technical details are in the gateway log "
-            "(`hermes logs`).")
+            "(`iris logs`).")
 
     api_calls = int(agent_result.get("api_calls", 0) or 0)
     if agent_result.get("interrupted"):
@@ -3284,7 +3284,7 @@ def _reconnect_attention_after_secs() -> float:
     never stops (transient outages must self-heal), this only makes a permanently-failing loop loud.
     Non-positive disables. Read per call, never cached: one process serves many profiles and a config
     edit must not need a gateway restart (#115635)."""
-    from hermes_cli.config import load_config_readonly
+    from iris_cli.config import load_config_readonly
     agent_cfg = load_config_readonly().get("agent")
     raw = agent_cfg.get("reconnect_attention_after") if isinstance(agent_cfg, dict) else None
     try:
@@ -3482,7 +3482,7 @@ class GatewayRunner(
         # standalone opt-out: --config must not turn that profile into a host multiplexer.
         self.config = config if config is not None else load_gateway_config_for_runner()
         if config is not None:
-            from hermes_cli.gateway_multiplex_mode import standalone_launcher_decision, log_multiplex_decision
+            from iris_cli.gateway_multiplex_mode import standalone_launcher_decision, log_multiplex_decision
             decision = standalone_launcher_decision(self.config)
             if decision is not None:
                 log_multiplex_decision(decision)
@@ -3669,7 +3669,7 @@ class GatewayRunner(
         # Manual approvals with no automated assessor (tirith off AND no auxiliary.approval) fail closed
         # on unattended gateways — surface it so operators knowingly enable one.
         try:
-            from hermes_cli.config import load_config as _load_full_config
+            from iris_cli.config import load_config as _load_full_config
             # Startup heads-up (#30882): a gateway in manual approval mode with no automated risk assessor
             # (tirith disabled AND no auxiliary.approval model) can only gate dangerous commands /
             # execute_code scripts via live in-chat approval.
@@ -3707,7 +3707,7 @@ class GatewayRunner(
         try:
             self._open_session_db_for_active_scope(raise_on_error=True)
         except Exception as e:
-            # WARNING (not DEBUG) so it lands in errors.log; else an NFS HERMES_HOME silently loses /resume etc.
+            # WARNING (not DEBUG) so it lands in errors.log; else an NFS IRIS_HOME silently loses /resume etc.
             logger.warning("SQLite session store not available: %s", e)
             self._session_db_init_error = str(e)  # surfaced on the home channel(s) once connected
 
@@ -3731,7 +3731,7 @@ class GatewayRunner(
         # Checkpoint store pruning is a housekeeping chore (``_housekeeping_checkpoint_prune``), not a
         # constructor step: its ``git gc`` repacks the whole store (tens of seconds on a GB store) and
         # here it ran before the control socket, adapters and the code_sha stamp — so the first
-        # restart of the day (the ``hermes update`` one) looked hung and failed fleet verification.
+        # restart of the day (the ``iris update`` one) looked hung and failed fleet verification.
 
     def _init_registries_and_clocks(self) -> None:
         """Pairing stores, hook registry, voice modes, background-task set, liveness and idle clocks."""
@@ -3766,11 +3766,11 @@ class GatewayRunner(
 
     def _open_session_db_for_active_scope(self, raise_on_error: bool = False) -> Any:
         """AsyncSessionDB for the active profile scope, resolved per access (not in ``__init__``) since
-        ``SessionDB()`` reads the context-local HERMES_HOME; one handle cached per path. Construction
+        ``SessionDB()`` reads the context-local IRIS_HOME; one handle cached per path. Construction
         failure enters bounded backoff; ``raise_on_error=True`` (priming) propagates it.
 
         Same per-path cache as ``SessionStore._open_session_db_for_active_scope`` (#88532): ``SessionDB()``
-        resolves ``_default_db_path()`` at call time through the context-local HERMES_HOME override
+        resolves ``_default_db_path()`` at call time through the context-local IRIS_HOME override
         installed by ``_profile_runtime_scope``, so resolving per access — instead of once in ``__init__`` —
         is what lets /resume, /title, /history and session search on a multiplexed gateway read the *serving
         profile's* store rather than the root one.
@@ -3781,8 +3781,8 @@ class GatewayRunner(
         after recording that recoverable state so ``__init__`` can record ``_session_db_init_error`` for the
         #88235 broadcast.
         """
-        from hermes_state import AsyncSessionDB, _default_db_path
-        from hermes_state_registry import acquire
+        from iris_state import AsyncSessionDB, _default_db_path
+        from iris_state_registry import acquire
         from gateway.session_db_recovery import RecoverableHandleCache
         path = Path(_default_db_path())
         cache = getattr(self, "_session_db_handle_cache", None)
@@ -3806,7 +3806,7 @@ class GatewayRunner(
             if borrowed is not None:
                 wrapper = AsyncSessionDB(borrowed)
                 # close_all_session_db_handles() must not close what the store owns (its sweep runs first).
-                wrapper.__dict__["_hermes_borrowed_handle"] = True
+                wrapper.__dict__["_iris_borrowed_handle"] = True
                 return wrapper
             if store is not None:
                 # Store handle unavailable: opening our own would resurrect the duplicate borrowed away.
@@ -3844,14 +3844,14 @@ class GatewayRunner(
         See #98573.
         """
         def _close(db) -> None:
-            if getattr(db, "__dict__", {}).get("_hermes_borrowed_handle"):
+            if getattr(db, "__dict__", {}).get("_iris_borrowed_handle"):
                 return
             inner = getattr(db, "_db", db)
             if inner is None or not hasattr(inner, "close"):
                 return
             # Shared instances no-op on close() (the registry owns the lifecycle). Release the refcount
             # instead (#90837).
-            from hermes_state_registry import release_or_close
+            from iris_state_registry import release_or_close
             try:
                 release_or_close(inner)
             except Exception as exc:
@@ -3908,11 +3908,11 @@ class GatewayRunner(
                 return
         logger.warning(
             "Docker backend is enabled for the messaging gateway but no explicit host-visible "
-            "output mount (for example '/home/user/.hermes/cache/documents:/output') is configured. "
+            "output mount (for example '/home/user/.iris/cache/documents:/output') is configured. "
             "This is fine if the model already emits host-visible paths, but MEDIA file delivery can fail "
             "for container-local paths like '/workspace/...' or '/output/...'.")
 
-    _VOICE_MODE_PATH = _hermes_home / "gateway_voice_mode.json"
+    _VOICE_MODE_PATH = _iris_home / "gateway_voice_mode.json"
 
     should_exit_cleanly = property(lambda self: self._exit_cleanly)
     should_exit_with_failure = property(lambda self: self._exit_with_failure)
@@ -3942,7 +3942,7 @@ class GatewayRunner(
                 _profile = source.profile
             else:
                 try:
-                    from hermes_cli.profiles import get_active_profile_name
+                    from iris_cli.profiles import get_active_profile_name
                     _profile = get_active_profile_name() or "default"
                 except Exception:
                     _profile = None
@@ -3993,7 +3993,7 @@ class GatewayRunner(
         return "restarting" if self._restart_requested else "shutting down"
 
     def _update_runtime_status(self, gateway_state: Optional[str] = None, exit_reason: Optional[str] = None) -> None:
-        # ``active_work`` names each unit only while draining — that is when an observer (``hermes
+        # ``active_work`` names each unit only while draining — that is when an observer (``iris
         # update``) needs to know WHAT holds the gateway open; a per-turn write would be wasted I/O.
         active_work = self._describe_active_work() if gateway_state == "draining" else None
         _write_runtime_status_quiet(
@@ -4065,7 +4065,7 @@ class GatewayRunner(
     def _active_profile_name(self) -> str:
         """Return the profile name this gateway represents."""
         try:
-            from hermes_cli.profiles import get_active_profile_name
+            from iris_cli.profiles import get_active_profile_name
             return get_active_profile_name() or "default"
         except Exception:
             return "default"
@@ -4197,7 +4197,7 @@ class GatewayRunner(
         profile = str(getattr(source, "profile", None) or "").strip()
         if profile and metadata is not None:
             metadata = dict(metadata)
-            metadata["hermes_profile"] = profile
+            metadata["iris_profile"] = profile
         return metadata
 
     def _thread_metadata_for_target(
@@ -4334,11 +4334,11 @@ class GatewayRunner(
 
     def _get_executor(self) -> concurrent.futures.ThreadPoolExecutor:
         """Return the gateway-owned executor for blocking agent work."""
-        return GatewayRunner._get_or_create_pool(self, "_executor", _TURN_MAX_WORKERS, "hermes-gateway")
+        return GatewayRunner._get_or_create_pool(self, "_executor", _TURN_MAX_WORKERS, "iris-gateway")
 
     def _get_housekeeping_executor(self) -> concurrent.futures.ThreadPoolExecutor:
         """Return the gateway-owned executor for best-effort session housekeeping."""
-        return GatewayRunner._get_or_create_pool(self, "_housekeeping_executor", _HOUSEKEEPING_MAX_WORKERS, "hermes-gateway-hk")
+        return GatewayRunner._get_or_create_pool(self, "_housekeeping_executor", _HOUSEKEEPING_MAX_WORKERS, "iris-gateway-hk")
 
     @staticmethod
     def _stop_pool(executor) -> list:
@@ -4476,13 +4476,13 @@ class GatewayRunner(
         return None
 
     def _resolve_profile_home_for_source(self, source: SessionSource) -> "Path":
-        """Resolve which profile's HERMES_HOME serves this source: the pinned identity's runtime
+        """Resolve which profile's IRIS_HOME serves this source: the pinned identity's runtime
         home, else ``source.profile``, then ``_profile_name_for_source`` (sources bypassing
         ``build_source``), then the active profile."""
         from gateway.profile_routing import ProfileRouteRejected
         from gateway.session_identity import identity_of
-        from hermes_cli.profiles import get_active_profile_name, get_profile_dir, profile_exists
-        from hermes_constants import get_hermes_home
+        from iris_cli.profiles import get_active_profile_name, get_profile_dir, profile_exists
+        from iris_constants import get_iris_home
         identity = identity_of(source)
         if identity is not None:
             return identity.runtime_home
@@ -4496,20 +4496,20 @@ class GatewayRunner(
             if explicit_profile and not profile_exists(name):
                 logger.warning(
                     "Profile %r does not exist for source %s/%s (guild_id=%s), "
-                    "falling back to global HERMES_HOME",
+                    "falling back to global IRIS_HOME",
                     explicit_profile, source.platform.value, source.chat_id,
                     getattr(source, "guild_id", None))
-                return get_hermes_home()
+                return get_iris_home()
             return profile_dir
         except ProfileRouteRejected:
             raise
         except Exception:
             logger.warning(
                 "Failed to resolve profile directory for source %s/%s (guild_id=%s), "
-                "falling back to global HERMES_HOME: %s",
+                "falling back to global IRIS_HOME: %s",
                 source.platform.value, source.chat_id, getattr(source, "guild_id", None),
                 explicit_profile or "(no profile)", exc_info=True)
-            return get_hermes_home()
+            return get_iris_home()
 
     @dataclasses.dataclass
     class _RunAgentDisplay:
@@ -4551,11 +4551,11 @@ def _run_planned_stop_watcher(
     stop_event: threading.Event, runner, loop: asyncio.AbstractEventLoop, shutdown_handler, *,
     poll_interval: float = 0.5) -> None:
     """Poll for the planned-stop marker and trigger graceful shutdown (Windows lacks
-    ``add_signal_handler``, so ``hermes gateway stop`` would never drain). Runs everywhere; on POSIX
+    ``add_signal_handler``, so ``iris gateway stop`` would never drain). Runs everywhere; on POSIX
     the signal handler consumes the marker first and ``_running``/``_draining`` guard re-triggers.
 
     On Windows, ``asyncio.add_signal_handler`` raises NotImplementedError for SIGTERM/SIGINT, so the
-    standard signal-driven shutdown path never runs when ``hermes gateway stop`` signals the gateway. The
+    standard signal-driven shutdown path never runs when ``iris gateway stop`` signals the gateway. The
     consequence is that the drain loop is skipped — in-flight agent sessions are killed mid-turn and
     ``resume_pending`` is never set, so the next gateway boot has no idea those sessions need to be
     auto-resumed (issue #33778, v0.13.0 session-resume feature broken on native Windows).
@@ -4637,7 +4637,7 @@ def _housekeeping_media_caches() -> None:
 
 
 def _housekeeping_paste_sweep() -> None:
-    from hermes_cli.debug import _sweep_expired_pastes
+    from iris_cli.debug import _sweep_expired_pastes
     deleted, remaining = _sweep_expired_pastes()
     if deleted:
         logger.info("Paste sweep: deleted %d expired paste(s), %d pending", deleted, remaining)
@@ -4673,13 +4673,13 @@ def _housekeeping_org_skill_sync() -> None:
 def _launch_sessions_dir(config) -> Optional[Tuple[Path, Path]]:
     """``(launch home, its configured transcript dir)``, or ``None`` when the gateway carries none.
 
-    MUST be called outside any profile scope — ``get_hermes_home()`` is what identifies the launch
+    MUST be called outside any profile scope — ``get_iris_home()`` is what identifies the launch
     home. Consumed by :func:`_profile_sessions_dir`.
     """
     sessions_dir = getattr(config, "sessions_dir", None)
     if sessions_dir is None:
         return None
-    return get_hermes_home(), Path(sessions_dir)
+    return get_iris_home(), Path(sessions_dir)
 
 
 def _profile_sessions_dir(launch: Optional[Tuple[Path, Path]]) -> Path:
@@ -4690,7 +4690,7 @@ def _profile_sessions_dir(launch: Optional[Tuple[Path, Path]]) -> Path:
     transcripts to the configured dir while the prune unlinked under the default one, orphaning
     every pruned session's ``.json``/``.jsonl``/``request_dump_*`` forever.
     """
-    home = get_hermes_home()
+    home = get_iris_home()
     if launch is not None and Path(launch[0]) == home:
         return Path(launch[1])
     return home / "sessions"
@@ -4701,14 +4701,14 @@ def _housekeeping_state_db_maintenance(launch: Optional[Tuple[Path, Path]] = Non
     by sessions.min_interval_hours (VACUUM additionally by its own throttles). Opens its own
     SessionDB — SQLite connections are thread-bound.
 
-    Profile-scoped by its caller: ``acquire()``, ``get_hermes_home()`` and ``load_config()`` all
+    Profile-scoped by its caller: ``acquire()``, ``get_iris_home()`` and ``load_config()`` all
     resolve through the active scope, so an unscoped run swept only the LAUNCH profile's store with
     the LAUNCH profile's retention settings and a multiplexed secondary was never archived, pruned
     or vacuumed by anyone — the dashboard/serve trigger defers to the gateway for every profile a
     gateway owns (``web_server_sessions``). *launch* carries the launch home's configured transcript
     dir (:func:`_launch_sessions_dir`) so its override still governs its own profile."""
-    from hermes_cli.config import load_config as _load_full_config
-    from hermes_state_registry import acquire, release_or_close
+    from iris_cli.config import load_config as _load_full_config
+    from iris_state_registry import acquire, release_or_close
     _sess_cfg = (_load_full_config().get("sessions") or {})
     if not (_sess_cfg.get("auto_archive", False) or _sess_cfg.get("auto_prune", False)):
         return
@@ -4735,7 +4735,7 @@ def _housekeeping_deferred_fts_retry() -> None:
     # Retry here, on the existing tick, against the shared instances this process already holds:
     # non-blocking admission, no new thread, rate-limited inside SessionDB. No-op when nothing is stale (one
     # attribute read per instance). See #100108.
-    from hermes_state_registry import borrow_live_shared_session_dbs
+    from iris_state_registry import borrow_live_shared_session_dbs
     with borrow_live_shared_session_dbs() as _session_dbs:
         for _sdb in _session_dbs:
             _retry = getattr(_sdb, "retry_deferred_fts_recovery", None)
@@ -4747,7 +4747,7 @@ def _housekeeping_deferred_fts_retry() -> None:
 
 def _housekeeping_memory_trim() -> None:
     """Messaging-gateway counterpart to the TUI idle reaper; config-gated and rate-limited inside."""
-    from hermes_cli.mem_trim import trim_memory
+    from iris_cli.mem_trim import trim_memory
     trim_memory(reason="messaging gateway housekeeping")
 
 
@@ -4776,7 +4776,7 @@ def _drain_restart_safe_cron_deliveries(adapters, loop, runner=None) -> None:
             profile_adapters = getattr(runner, "_profile_adapters", {}).get(profile_name)
         if profile_adapters is None:
             continue
-        with _profile_runtime_scope(profile_home or get_hermes_home()):
+        with _profile_runtime_scope(profile_home or get_iris_home()):
             if profile_name is not None and not profile_adapters and adapters:
                 routes = sched_preflight._primary_profile_routes_for_current_home()
                 if routes:
@@ -4795,7 +4795,7 @@ def _start_gateway_housekeeping(
     from gateway.run_profile_reconcile import _mcp_config_reconciler, profile_scoped_chore
     chores: list[tuple[int, str, Any]] = [
         # First every tick: re-stamp ``updated_at`` in gateway_state.json so it is a real heartbeat.
-        # ``hermes gateway status`` / ``/api/status`` warn when it ages past 2x ``interval`` with the
+        # ``iris gateway status`` / ``/api/status`` warn when it ages past 2x ``interval`` with the
         # PID alive — the thread (or a chore blocked on the loop) wedged (#113372). Runs first so a
         # wedged chore stops the NEXT stamp instead of a slow one delaying this tick's.
         (1, "Runtime heartbeat", _write_runtime_status_quiet)]
@@ -4970,11 +4970,11 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     """Return True when ``--replace`` must refuse to signal ``existing_pid``.
     A poisoned/stale PID record can point at another profile's LIVE gateway (cross-profile SIGTERM
     restart loop). Ownership is decided by the persisted identity record ALONE, bound to the live target
-    by exact PID + start-time; live argv can never PROVE ownership (no HERMES_HOME), it is only a
+    by exact PID + start-time; live argv can never PROVE ownership (no IRIS_HOME), it is only a
     consistency check. Missing, legacy, conflicting or unprovable identity → refuse (fail closed)."""
     # Multiplex-only: the ONE host gateway serving this profile IS this profile's gateway, whatever
-    # home launched it — `hermes -p X gateway run --replace` means "replace the process serving X".
-    # Argv and HERMES_HOME can never prove that (the host singleton runs one home's argv while
+    # home launched it — `iris -p X gateway run --replace` means "replace the process serving X".
+    # Argv and IRIS_HOME can never prove that (the host singleton runs one home's argv while
     # serving every profile), so the live served set answers first; everything below stays the
     # fail-closed rule for a host with no usable record.
     try:
@@ -4982,7 +4982,7 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
 
         owner = host_gateway()
         if owner is not None and owner.pid == existing_pid and owner.serves(
-                profile_name_for_home(get_hermes_home())):
+                profile_name_for_home(get_iris_home())):
             logger.warning(
                 "--replace target PID %s is the host gateway serving %d profile(s) (%s); "
                 "replacing it restarts the host process for all of them.",
@@ -5000,7 +5000,7 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     # Exclusion evidence comes from the RAW registration record, not the liveness-validated probe.
     # ``get_running_pid`` (any flags) returns None whenever a record fails validation — start-time mismatch
     # after PID-reuse checks, argv drift, lock hiccups — which is exactly when a healthy standalone gateway
-    # (no service supervisor — e.g. `hermes gateway run` on Windows) is at risk: its PID never joins the
+    # (no service supervisor — e.g. `iris gateway run` on Windows) is at risk: its PID never joins the
     # exclusion set and the sweep hard-kills it. On Windows SIGTERM is TerminateProcess, so the gateway's
     # planned-stop watcher never gets a chance to drain. Reading the raw pidfile + lock records (no
     # validation, no unlink side effects) is strictly safer for a KILL exclusion list: a stale recorded PID
@@ -5009,9 +5009,9 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     # pidfile exists.
     try:
         from gateway.status import (
-            _get_pid_path, _get_process_hermes_home, _get_process_start_time, _pid_from_record,
-            _read_pid_record, _record_looks_like_gateway, _read_process_cmdline, _same_hermes_home)
-        our_home = _get_process_hermes_home()
+            _get_pid_path, _get_process_iris_home, _get_process_start_time, _pid_from_record,
+            _read_pid_record, _record_looks_like_gateway, _read_process_cmdline, _same_iris_home)
+        our_home = _get_process_iris_home()
 
         def refuse(msg: str, *args, level=logging.WARNING) -> bool:
             logger.log(level, "Refusing --replace: " + msg, *args)
@@ -5030,19 +5030,19 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
         if _get_process_start_time(existing_pid) != recorded_start:
             return refuse("pid record start-time does not match the live process %s (stale/PID-reuse record).",
                           existing_pid)
-        recorded_home = record.get("hermes_home")
+        recorded_home = record.get("iris_home")
         if not isinstance(recorded_home, str) or not recorded_home.strip():
-            return refuse("pid record predates hermes_home stampings; ownership of PID %s unprovable.",
+            return refuse("pid record predates iris_home stampings; ownership of PID %s unprovable.",
                           existing_pid)
-        if not _same_hermes_home(recorded_home, our_home):
-            return refuse("pid record belongs to a different HERMES_HOME (%s, ours %s). Remove the stale PID "
+        if not _same_iris_home(recorded_home, our_home):
+            return refuse("pid record belongs to a different IRIS_HOME (%s, ours %s). Remove the stale PID "
                           "record or stop the owning profile explicitly.", recorded_home, our_home,
                           level=logging.ERROR)
-        # Argv never proves ownership; an explicit contradicting --profile / HERMES_HOME= still refuses.
+        # Argv never proves ownership; an explicit contradicting --profile / IRIS_HOME= still refuses.
         live_cmdline = _best_effort(lambda: _read_process_cmdline(existing_pid))
         if live_cmdline and _looks_like_profile_conflict_from_cmdline(live_cmdline, our_home):
             return refuse("target PID %s command line explicitly advertises a different profile than "
-                          "HERMES_HOME %s.", existing_pid, our_home, level=logging.ERROR)
+                          "IRIS_HOME %s.", existing_pid, our_home, level=logging.ERROR)
         return False
     except Exception:
         # Destructive action + unknown ownership => fail closed.
@@ -5078,8 +5078,8 @@ def _looks_like_profile_conflict_from_cmdline(command: str, our_home) -> bool:
         return values[-1] if values else None
 
     def _env_home_value() -> Optional[str]:
-        """HERMES_HOME=<path> env-style assignment on the argv, token-exact."""
-        prefix = "HERMES_HOME="
+        """IRIS_HOME=<path> env-style assignment on the argv, token-exact."""
+        prefix = "IRIS_HOME="
         for tok in reversed(tokens):
             if tok.startswith(prefix):
                 return tok[len(prefix):]
@@ -5096,7 +5096,7 @@ def _looks_like_profile_conflict_from_cmdline(command: str, our_home) -> bool:
         # profile flags). Default/root home: ANY explicit named-profile flag contradicts it.
         if profile_name is None or profile_name == "default" or value != profile_name:
             return True
-    home_value = _flag_value("--hermes-home") or _env_home_value()
+    home_value = _flag_value("--iris-home") or _env_home_value()
     return bool(home_value is not None and _norm(home_value) != _norm(str(our_home)))
 
 
@@ -5121,32 +5121,32 @@ async def _wait_for_pid_exit(pid: int, attempts: int, delay: float) -> bool:
 
 
 async def _start_gateway_replace_existing_instance(existing_pid: int, replace: bool) -> bool:
-    """Handle a live gateway PID under this HERMES_HOME: replace it (``--replace``) or refuse.
+    """Handle a live gateway PID under this IRIS_HOME: replace it (``--replace``) or refuse.
     Returns False when startup must abort (refused, permission denied, target still alive)."""
     from gateway.status import get_process_start_time, remove_pid_file, terminate_pid
     if not replace:
-        hermes_home = str(get_hermes_home())
+        iris_home = str(get_iris_home())
         logger.error(
-            "Another gateway instance is already running (PID %d, HERMES_HOME=%s) and did not "
+            "Another gateway instance is already running (PID %d, IRIS_HOME=%s) and did not "
             "publish a host record this process could attach to.",
-            existing_pid, hermes_home)
+            existing_pid, iris_home)
         print(
             f"\n❌ A gateway already owns this host (PID {existing_pid}).\n"
             f"   One gateway per host serves every profile, so there is nothing to start here.\n"
             f"   Attach is impossible: PID {existing_pid} published no usable host record\n"
             f"   (an older build, or an unwritable lock directory).\n"
-            f"   Take the host over:  hermes gateway run --replace\n"
-            f"   Or stop it first:    hermes gateway stop\n")
+            f"   Take the host over:  iris gateway run --replace\n"
+            f"   Or stop it first:    iris gateway stop\n")
         return False
 
     # Never signal a process not provably ours (a poisoned PID record → cross-profile restart loop).
     if _replace_target_belongs_to_other_profile(existing_pid):
-        from gateway.status import _get_process_hermes_home
+        from gateway.status import _get_process_iris_home
         logger.error(
             "Refusing --replace: PID %d cannot be proven to belong "
-            "to this profile's gateway (HERMES_HOME %s). Remove the "
+            "to this profile's gateway (IRIS_HOME %s). Remove the "
             "stale PID record or stop the owning profile explicitly.",
-            existing_pid, _get_process_hermes_home())
+            existing_pid, _get_process_iris_home())
         return False
     existing_start_time = get_process_start_time(existing_pid)
     logger.info("Replacing existing gateway instance (PID %d) with --replace.", existing_pid)
@@ -5196,7 +5196,7 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
     remove_pid_file()
     # remove_pid_file() is a no-op when the PID doesn't match; force-unlink covers a crashed old process.
     with suppress(Exception):
-        (get_hermes_home() / "gateway.pid").unlink(missing_ok=True)
+        (get_iris_home() / "gateway.pid").unlink(missing_ok=True)
     # The old process may not have consumed the marker (SIGKILL'd before its handler read it).
     _clear_takeover_marker_quiet()
     # Stopped (Ctrl+Z) processes don't release scoped locks on exit; stale lock files block the new gateway.
@@ -5219,18 +5219,18 @@ def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
     _best_effort(_sync_skills)
 
     # Centralized logging (agent.log INFO+, errors.log WARNING+, gateway.log gateway-only); idempotent.
-    from hermes_logging import setup_logging, _safe_stderr
-    setup_logging(hermes_home=_hermes_home, mode="gateway")
+    from iris_logging import setup_logging, _safe_stderr
+    setup_logging(iris_home=_iris_home, mode="gateway")
 
     def _security_audit() -> None:
         # Warn-on-load, never blocks: surfaces root / weak-SSH / unauthenticated-listener exposure.
-        from hermes_cli.security_audit_startup import log_startup_security_warnings
+        from iris_cli.security_audit_startup import log_startup_security_warnings
 
         def _raw_cfg():
-            from hermes_cli.config import read_raw_config
+            from iris_cli.config import read_raw_config
             return read_raw_config()
 
-        log_startup_security_warnings(hermes_home=_hermes_home, config=_best_effort(_raw_cfg))
+        log_startup_security_warnings(iris_home=_iris_home, config=_best_effort(_raw_cfg))
 
     _best_effort(_security_audit, "Startup security audit failed (non-fatal): %s")
 
@@ -5252,7 +5252,7 @@ def _start_gateway_make_restart_signal_handler(runner):
         # systemd's `reload` verb (ExecReload=kill -USR1) lands here too; say so, because operators
         # expect `reload` to mean an in-process config reload, not a drain-and-relaunch (#117267).
         logger.info(
-            "SIGUSR1 received (systemctl reload / hermes gateway restart): performing a graceful "
+            "SIGUSR1 received (systemctl reload / iris gateway restart): performing a graceful "
             "gateway restart — drain active turns, exit, supervisor relaunches. Not an in-process "
             "config reload.")
         runner.request_restart(detached=False, via_service=True)
@@ -5282,7 +5282,7 @@ def _start_gateway_make_shutdown_signal_handler(runner, _signal_initiated_shutdo
         planned_takeover = bool(_best_effort(_takeover, "Takeover marker check failed: %s"))
         planned_stop = received_signal == signal.SIGINT or (
             not planned_takeover and bool(_best_effort(_planned_stop, "Planned stop marker check failed: %s")))
-        # `hermes gateway stop` writes the marker, THEN signals: the planned-stop watcher can consume
+        # `iris gateway stop` writes the marker, THEN signals: the planned-stop watcher can consume
         # the marker in between, and the CLI's own SIGTERM must not then read as an external kill.
         if planned_stop:
             planned_stop_seen[0] = True
@@ -5312,7 +5312,7 @@ def _start_gateway_make_shutdown_signal_handler(runner, _signal_initiated_shutdo
                 # down; bounded by an internal timeout, never blocks.
                 from gateway.shutdown_forensics import spawn_async_diagnostic
                 spawn_async_diagnostic(
-                    _hermes_home / "logs" / "gateway-shutdown-diag.log", _shutdown_ctx["signal"], timeout_seconds=5.0)
+                    _iris_home / "logs" / "gateway-shutdown-diag.log", _shutdown_ctx["signal"], timeout_seconds=5.0)
 
             _best_effort(_log_context, "format_context_for_log failed: %s")
             _best_effort(_diagnostic, "spawn_async_diagnostic failed: %s")
@@ -5375,7 +5375,7 @@ def _claim_host_gateway_role(force: bool = False) -> None:
     # multiplexer remains live. Its per-home channel still governs our opt-out.
     if not force:
         from gateway.host_attach import REFUSE, standalone_attach_decision
-        decision = standalone_attach_decision(get_hermes_home(), None)
+        decision = standalone_attach_decision(get_iris_home(), None)
         if decision is not None and decision.outcome == REFUSE:
             from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE
             print(decision.message)
@@ -5388,7 +5388,7 @@ def _claim_host_gateway_role(force: bool = False) -> None:
             # Publishing a guessed set here parked a second profile's supervised unit against
             # profiles this process may never serve; _refresh_host_gateway_record() fills it in
             # once the control socket answers.
-            hr.publish_record(hr.ROLE_GATEWAY, profiles=(), home=str(get_hermes_home()))
+            hr.publish_record(hr.ROLE_GATEWAY, profiles=(), home=str(get_iris_home()))
             # SIGTERM (systemd stop, docker stop, the update relaunch) does not run atexit.
             hr.cleanup_on_exit(hr.ROLE_GATEWAY)
             return
@@ -5416,12 +5416,12 @@ def _claim_host_gateway_role(force: bool = False) -> None:
     from gateway.host_attach import (
         ATTACH_CHANNEL_WAIT_S, START, host_gateway, standalone_attach_decision,
     )
-    from hermes_cli.profiles import profile_is_standalone
-    if profile_is_standalone(get_hermes_home()):
+    from iris_cli.profiles import profile_is_standalone
+    if profile_is_standalone(get_iris_home()):
         # Recheck after losing the atomic lock: the pre-lock served set may be stale.
         live_owner = host_gateway(wait_for_channel=ATTACH_CHANNEL_WAIT_S)
         if live_owner is not None:
-            decision = standalone_attach_decision(get_hermes_home(), live_owner)
+            decision = standalone_attach_decision(get_iris_home(), live_owner)
             if decision is not None:
                 if decision.outcome == START:
                     return
@@ -5445,7 +5445,7 @@ def _claim_host_gateway_role(force: bool = False) -> None:
 
 
 def _migrate_command() -> str:
-    from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+    from iris_cli.gateway_migrate import MIGRATE_COMMAND
 
     return MIGRATE_COMMAND
 
@@ -5462,7 +5462,7 @@ def _owner_is_standalone() -> bool:
         owner = host_gateway()
         if owner is None or owner.pid == os.getpid():
             return False
-        answered = request_serve_profile(profile_name_for_home(get_hermes_home()), owner=owner)
+        answered = request_serve_profile(profile_name_for_home(get_iris_home()), owner=owner)
         return bool(answered is not None and answered.standalone)
     except Exception:
         logger.debug("standalone-owner probe failed; keeping the second-gateway refusal",
@@ -5474,7 +5474,7 @@ def _refuse_second_host_gateway(owner) -> None:
     """Print the named refusal and exit 75 so a supervisor retries instead of parking the unit."""
     from gateway import host_rendezvous as hr
     from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE
-    from hermes_cli.gateway_migrate import MIGRATE_COMMAND
+    from iris_cli.gateway_migrate import MIGRATE_COMMAND
 
     who = hr.describe(owner) if owner else "owner unknown (its record is gone)"
     message = (
@@ -5482,8 +5482,8 @@ def _refuse_second_host_gateway(owner) -> None:
         f"   Exactly one gateway per host serves every profile, so this process will not start a\n"
         f"   second one (it would double-bind this profile's platforms).\n"
         f"   Fold every profile onto the owner:  {MIGRATE_COMMAND}\n"
-        f"   Or take the host over:              hermes gateway run --replace\n"
-        f"   Or start one anyway:                hermes gateway run --force")
+        f"   Or take the host over:              iris gateway run --replace\n"
+        f"   Or start one anyway:                iris gateway run --force")
     logger.error("Refusing to start a second gateway on this host: %s", who)
     print(message)
     raise SystemExit(GATEWAY_SERVICE_RESTART_EXIT_CODE)
@@ -5498,8 +5498,8 @@ def _log_standalone_profiles_at_boot(runner) -> None:
     try:
         if not getattr(runner.config, "multiplex_profiles", False):
             return
-        from hermes_cli.profiles import profiles_to_serve, profile_is_standalone
-        from hermes_cli.gateway_multiplex_mode import STANDALONE_DEPRECATION_NOTICE
+        from iris_cli.profiles import profiles_to_serve, profile_is_standalone
+        from iris_cli.gateway_multiplex_mode import STANDALONE_DEPRECATION_NOTICE
         served = set(runner.served_profile_names())
         for name, home in profiles_to_serve(True, include_standalone=True, include_parked=True):
             if name != "default" and name not in served and profile_is_standalone(home):
@@ -5522,7 +5522,7 @@ def _refresh_host_gateway_record(runner) -> None:
     try:
         if not hr.owns_host_lock(hr.ROLE_GATEWAY):
             return
-        home = get_hermes_home()
+        home = get_iris_home()
         if getattr(runner.config, "multiplex_profiles", False):
             served = tuple(runner.served_profile_names())
         else:
@@ -5550,7 +5550,7 @@ async def _host_attach_or_none(replace: bool, force: bool = False) -> Optional[b
 
     from gateway.host_attach import ATTACH, REFUSE, REPLACE_HOST, decide
 
-    decision = decide(get_hermes_home(), replace=replace)
+    decision = decide(get_iris_home(), replace=replace)
     if decision.outcome == ATTACH:
         logger.info("Attaching to the host gateway instead of starting a second one: %s",
                     decision.owner.describe() if decision.owner else "unknown")
@@ -5574,7 +5574,7 @@ async def _start_gateway_start_control_socket(runner):
     _control_server = None
     try:
         # Started immediately after the PID-file claim: winning that O_EXCL race is the moment this process
-        # becomes the authoritative gateway for its HERMES_HOME, so from here on "does a socket answer?" is
+        # becomes the authoritative gateway for its IRIS_HOME, so from here on "does a socket answer?" is
         # a truthful liveness/identity query for updater and fleet consumers. Strictly non-fatal: a bind
         # failure only means consumers fall back to the process-scan/state-file layer, exactly as before
         # this feature. See #92091.
@@ -5594,7 +5594,7 @@ async def _start_gateway_start_control_socket(runner):
 
         def _pause_for_update_handler() -> dict:
             try:
-                from hermes_cli.gateway import _get_restart_drain_timeout
+                from iris_cli.gateway import _get_restart_drain_timeout
                 _drain = float(_get_restart_drain_timeout())
             except Exception:
                 _drain = 30.0
@@ -5615,7 +5615,7 @@ async def _start_gateway_start_control_socket(runner):
                 "pid": os.getpid(), "drain_timeout": _drain}
 
         def _rescan_profiles_handler() -> dict:
-            """``hermes profile create/delete`` asks the multiplexer to reconcile ``profiles/`` now
+            """``iris profile create/delete`` asks the multiplexer to reconcile ``profiles/`` now
             (the watcher also rescans periodically). Runs on the socket executor: marshal onto the loop
             and wait briefly so the caller learns whether the profile is served."""
             if not getattr(runner.config, "multiplex_profiles", False):
@@ -5712,7 +5712,7 @@ def _start_gateway_start_cron_and_housekeeping(runner):
                 "loopback HTTP and will all fail (jobs only run when "
                 "triggered manually). Most common cause: API_SERVER_KEY is "
                 "missing from this gateway process's environment. Restart "
-                "the gateway through its supervisor (`hermes gateway "
+                "the gateway through its supervisor (`iris gateway "
                 "restart`) so the profile env loads.",
                 getattr(cron_provider, "name", "external"))
 
@@ -5741,7 +5741,7 @@ async def _start_gateway_shutdown_tail(
             logger.debug("Control socket stop failed (non-fatal)", exc_info=True)
 
     def _stop_keepalive() -> None:
-        from hermes_cli.nous_auth_keepalive import stop_nous_auth_keepalive
+        from iris_cli.nous_auth_keepalive import stop_nous_auth_keepalive
         stop_nous_auth_keepalive()
 
     _best_effort(_stop_keepalive)
@@ -5782,9 +5782,9 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     systemd can auto-restart). ``replace`` kills any existing instance first (avoids restart-loop
     deadlocks); ``force`` starts without consulting the host owner at all."""
     # Set here (not at import) so incidental gateway.run imports from CLI code don't poison it.
-    os.environ["HERMES_EXEC_ASK"] = "1"
+    os.environ["IRIS_EXEC_ASK"] = "1"
 
-    from hermes_cli.resource_limits import apply_nofile_soft_limit
+    from iris_cli.resource_limits import apply_nofile_soft_limit
     apply_nofile_soft_limit()
 
     # Snapshot the revision while sys.modules matches disk so a later `git pull` is detected safely.
@@ -5797,7 +5797,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     if _host_decision is not None:
         return _host_decision
 
-    # Duplicate-instance guard scoped to HERMES_HOME (the host record is absent or unusable here).
+    # Duplicate-instance guard scoped to IRIS_HOME (the host record is absent or unusable here).
     from gateway.status import get_running_pid
     existing_pid = get_running_pid()
     if (existing_pid is not None and existing_pid != os.getpid()
@@ -5845,12 +5845,12 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     else:
         logger.info("Skipping signal handlers (not running in main thread).")
 
-    # Windows has no add_signal_handler, so `hermes gateway stop`'s SIGTERM would never drain; poll the
+    # Windows has no add_signal_handler, so `iris gateway stop`'s SIGTERM would never drain; poll the
     # planned-stop marker (written BEFORE the kill) instead. Runs everywhere so masked-SIGTERM drains.
-    # Windows fallback: asyncio.add_signal_handler raises NotImplementedError on Windows, so `hermes gateway
+    # Windows fallback: asyncio.add_signal_handler raises NotImplementedError on Windows, so `iris gateway
     # stop`'s SIGTERM (which Python maps to TerminateProcess on Windows) never invokes
     # shutdown_signal_handler. That means the drain loop never runs, mark_resume_pending never fires, and
-    # sessions are silently lost across restarts (issue #33778). The fix is a marker-polling thread: `hermes
+    # sessions are silently lost across restarts (issue #33778). The fix is a marker-polling thread: `iris
     # gateway stop` writes the planned-stop marker BEFORE killing, and this thread notices it and drives the
     # same shutdown path the signal handler would have. Runs on every platform (cheap, defensive) so
     # non-signal-bearing environments (Windows native, sandboxed CI runners that mask SIGTERM) still get a
@@ -5882,7 +5882,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         record_startup()
 
     def _start_keepalive() -> None:
-        from hermes_cli.nous_auth_keepalive import start_nous_auth_keepalive
+        from iris_cli.nous_auth_keepalive import start_nous_auth_keepalive
         start_nous_auth_keepalive()
 
     _best_effort(_lifecycle_record_startup, "Lifecycle ledger startup record failed: %s")
@@ -5953,8 +5953,8 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
 def _guard_corrupt_user_config() -> None:
     """Fail closed when the active profile's config.yaml cannot be parsed: nobody can repair it on this
     surface, and defaults would let provider auto-detection adopt ``.env`` credentials the config never
-    named. Same policy and escape hatch (``HERMES_IGNORE_USER_CONFIG=1``) as ``hermes_cli/main.py``."""
-    from hermes_cli.config import InvalidUserConfigError, require_parseable_user_config
+    named. Same policy and escape hatch (``IRIS_IGNORE_USER_CONFIG=1``) as ``iris_cli/main.py``."""
+    from iris_cli.config import InvalidUserConfigError, require_parseable_user_config
 
     try:
         require_parseable_user_config()
@@ -5972,33 +5972,33 @@ def main():
     from tools.event_loop import install_uvloop_if_available
     install_uvloop_if_available()
 
-    # Advertise the harness to children (mirrors _advertise_agent_env in hermes_cli/main.py, inlined to
-    # avoid its startup side effects). Value must equal registry id ``hermes-agent`` exactly.
-    os.environ.setdefault("AI_AGENT", "hermes-agent")
-    os.environ.setdefault("HERMES_AGENT", "true")
+    # Advertise the harness to children (mirrors _advertise_agent_env in iris_cli/main.py, inlined to
+    # avoid its startup side effects). Value must equal registry id ``iris-agent`` exactly.
+    os.environ.setdefault("AI_AGENT", "iris-agent")
+    os.environ.setdefault("IRIS_AGENT", "true")
 
     def _register_identity() -> None:
         # Ledger registration + Windows job-object attach so update-time reapers can identify this gateway.
-        from hermes_cli.process_identity import attach_self_to_kill_on_close_job, register_self
+        from iris_cli.process_identity import attach_self_to_kill_on_close_job, register_self
         register_self("gateway")
         attach_self_to_kill_on_close_job()
 
     def _arm_watchdog() -> None:
         # Armed before config load / DB opens so a pre-loop deadlock is respawned by the supervisor instead
         # of wedging as a live-PID zombie. GatewayRunner disarms it.
-        from hermes_startup_watchdog import arm_startup_watchdog
+        from iris_startup_watchdog import arm_startup_watchdog
         arm_startup_watchdog()
 
     def _utf8_stdio() -> None:
         # Windows: gateway logs and banner would UnicodeEncodeError on cp1252 consoles. No-op on POSIX.
-        from hermes_cli.stdio import configure_windows_stdio
+        from iris_cli.stdio import configure_windows_stdio
         configure_windows_stdio()
 
     for _step in (_register_identity, _arm_watchdog, _utf8_stdio):
         _best_effort(_step)
 
     import argparse
-    parser = argparse.ArgumentParser(description="Hermes Gateway - Multi-platform messaging")
+    parser = argparse.ArgumentParser(description="Iris Gateway - Multi-platform messaging")
     parser.add_argument("--config", "-c", help="Path to gateway config file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     args = parser.parse_args()
@@ -6009,7 +6009,7 @@ def main():
         with open(args.config, encoding="utf-8") as f:
             config = GatewayConfig.from_dict(yaml.safe_load(f) or {})
         # Same boot-time verdict the loaded config gets when the file leaves the flag unset.
-        from hermes_cli.gateway_multiplex_mode import log_multiplex_decision, resolve_multiplex_mode
+        from iris_cli.gateway_multiplex_mode import log_multiplex_decision, resolve_multiplex_mode
         log_multiplex_decision(resolve_multiplex_mode(config))
 
     # start_gateway() completes teardown before returning/raising SystemExit; force-exit after so a
@@ -6069,7 +6069,7 @@ def _exit_after_graceful_shutdown(exit_code: int) -> None:
     def _drain_logs() -> None:
         # os._exit bypasses the listener's atexit drain. Bounded, no restart — NOT flush_log_queue():
         # a listener wedged on the rotation lock would re-freeze shutdown in an unbounded stop() join.
-        from hermes_logging import drain_log_queue
+        from iris_logging import drain_log_queue
         drain_log_queue(timeout=1.0)
 
     for _step in (_release_locks, _mark_exited, _drain_logs):
@@ -6147,7 +6147,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

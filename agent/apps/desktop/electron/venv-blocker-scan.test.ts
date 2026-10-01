@@ -30,7 +30,7 @@ import {
 
 describe('resolveVenvPython', () => {
   it('returns a real path when a temp venv python file exists', () => {
-    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-vt-'))
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-vt-'))
 
     try {
       const scriptsDir = process.platform === 'win32' ? 'Scripts' : 'bin'
@@ -46,7 +46,7 @@ describe('resolveVenvPython', () => {
   })
 
   it('resolves a uv-default .venv python when legacy venv is absent', () => {
-    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-vt-'))
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-vt-'))
 
     try {
       const scriptsDir = process.platform === 'win32' ? 'Scripts' : 'bin'
@@ -62,7 +62,7 @@ describe('resolveVenvPython', () => {
   })
 
   it('keeps legacy venv precedence when both supported layouts exist', () => {
-    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-vt-'))
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'iris-vt-'))
 
     try {
       fs.mkdirSync(path.join(sandbox, 'venv'), { recursive: true })
@@ -172,7 +172,7 @@ describe('parseVenvBlockerScanOutput', () => {
           {
             pid: 47484,
             name: 'python.exe',
-            cmdline: 'C:\\Hermes\\venv\\Scripts\\python.exe -m http.server 8766 --directory C',
+            cmdline: 'C:\\Iris\\venv\\Scripts\\python.exe -m http.server 8766 --directory C',
             kind: 'local-preview',
             safeToStop: true,
             label: 'Example Preview',
@@ -192,7 +192,7 @@ describe('parseVenvBlockerScanOutput', () => {
     assert.deepEqual(o.result.processes[0], {
       pid: 47484,
       name: 'python.exe',
-      cmdline: 'C:\\Hermes\\venv\\Scripts\\python.exe -m http.server 8766 --directory C',
+      cmdline: 'C:\\Iris\\venv\\Scripts\\python.exe -m http.server 8766 --directory C',
       kind: 'local-preview',
       safeToStop: true,
       label: 'Example Preview',
@@ -394,13 +394,13 @@ describe('stopSafeVenvBlockers', () => {
         ]
       },
       exec,
-      () => 'C:\\Hermes\\venv\\Scripts\\python.exe'
+      () => 'C:\\Iris\\venv\\Scripts\\python.exe'
     )
 
     assert.deepEqual(calls, [
       {
-        command: 'C:\\Hermes\\venv\\Scripts\\python.exe',
-        args: ['-m', 'hermes_cli._scan_venv_blockers', '--terminate-safe', '47484', '1722798000.25']
+        command: 'C:\\Iris\\venv\\Scripts\\python.exe',
+        args: ['-m', 'iris_cli._scan_venv_blockers', '--terminate-safe', '47484', '1722798000.25']
       }
     ])
     assert.deepEqual(outcome, { stopped: [47484], failed: [] })

@@ -2,7 +2,7 @@
 
 Sends REAL packages through the REAL sender to the REAL staging ingest
 service, then reports what the service acknowledged. Uses a throwaway
-HERMES_HOME so the operator's own telemetry state is untouched.
+IRIS_HOME so the operator's own telemetry state is untouched.
 
 Usage:
     .venv/bin/python scripts/e2e_shared_metrics_staging.py
@@ -25,8 +25,8 @@ STAGING = "https://telemetry.staging-nousresearch.com/v1/telemetry"
 
 
 def main() -> int:
-    scratch = Path(tempfile.mkdtemp(prefix="hermes-telemetry-e2e-"))
-    os.environ["HERMES_HOME"] = str(scratch)
+    scratch = Path(tempfile.mkdtemp(prefix="iris-telemetry-e2e-"))
+    os.environ["IRIS_HOME"] = str(scratch)
 
     # Staging is selected by writing config into the THROWAWAY profile, not by
     # an environment override: a runtime env var that can retarget consented
@@ -40,11 +40,11 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
-    from hermes_cli.observability.shared_metrics_send_config import (
+    from iris_cli.observability.shared_metrics import SharedMetricsStore
+    from iris_cli.observability.shared_metrics_send_config import (
         resolve_send_config,
     )
-    from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
+    from iris_cli.observability.shared_metrics_sender import SharedMetricsSender
 
     # Resolve through the real config path so this exercises what a user gets.
     import yaml
@@ -74,10 +74,10 @@ def main() -> int:
 
     # Open the consent window before the period, confirm it after — exactly
     # what the runtime reconciler does across two days of hook fires.
-    from hermes_cli.observability.shared_metrics_sender import (
+    from iris_cli.observability.shared_metrics_sender import (
         reconcile_send_consent,
     )
-    from hermes_cli.sqlite_util import write_txn
+    from iris_cli.sqlite_util import write_txn
 
     with store._connection() as connection:
         with write_txn(connection):
@@ -96,7 +96,7 @@ def main() -> int:
     for index, metric_count in ((0, 3), (1, 140)):
         package_id = str(uuid.uuid4())
         payload = {
-            "schema_version": "hermes.shared_metrics.v2",
+            "schema_version": "iris.shared_metrics.v2",
             "package_id": package_id,
             "install_id": real_install_id,
             "generated_at": datetime.now(timezone.utc).isoformat().replace(
@@ -105,14 +105,14 @@ def main() -> int:
             "period_start": f"{period_day}T00:00:00Z",
             "period_end": f"{period_day}T23:59:59Z",
             "resource": {
-                "hermes_version": "e2e-test",
+                "iris_version": "e2e-test",
                 "os_family": "macos",
                 "architecture": "arm64",
                 "install_method": "git",
             },
             "metrics": [
                 {
-                    "name": f"hermes.e2e.metric.{i}",
+                    "name": f"iris.e2e.metric.{i}",
                     "type": "counter",
                     "dimensions": {"outcome": "ok", "surface": "e2e"},
                     "value": i + 1,
@@ -139,7 +139,7 @@ def main() -> int:
             )
         packages.append((package_id, metric_count))
 
-    print(f"scratch HERMES_HOME : {scratch}")
+    print(f"scratch IRIS_HOME : {scratch}")
     print(f"endpoint            : {STAGING}")
     print(f"local install_id    : {real_install_id}")
     print(f"packages queued     : {len(packages)}")
@@ -189,7 +189,7 @@ def main() -> int:
     print()
     print("Verify the objects in S3 with the package ids above:")
     print("  aws s3 ls --recursive "
-          "s3://hermes-agent-telemetry-staging-767397871023-us-west-2-an/raw/ "
+          "s3://iris-agent-telemetry-staging-767397871023-us-west-2-an/raw/ "
           "| tail -20")
     return 0
 

@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   getMcpCatalog,
-  type HermesGateway,
+  type IrisGateway,
   type McpCatalogEntry,
   type McpCatalogResponse,
   type McpTestResult,
   type ProfileScope,
   profileScopeKey,
   saveMcpServers
-} from '@/hermes'
+} from '@/iris'
 import { useI18n } from '@/i18n'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
 import { probeCache, probeKey } from '@/lib/mcp-probe-cache'
@@ -20,9 +20,9 @@ import { setDisabledTools, toggleToolInServer } from '@/lib/mcp-tool-filter'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 import { $activeSessionId } from '@/store/session'
-import type { HermesConfigRecord } from '@/types/hermes'
+import type { IrisConfigRecord } from '@/types/iris'
 
-import { hermesConfigCacheWriter, useHermesConfigRecord } from '../../hooks/use-config-record'
+import { irisConfigCacheWriter, useIrisConfigRecord } from '../../hooks/use-config-record'
 import { useOnProfileSwitch } from '../../hooks/use-on-profile-switch'
 import { useProfileSwitchLatch } from '../../hooks/use-profile-switch-latch'
 import { seedOptions } from '../connectors/data/persist'
@@ -41,7 +41,7 @@ export interface McpServersController extends McpDraft, PublishedProbes {
   availableCatalog: McpCatalogEntry[]
   catalog: McpCatalogEntry[]
   catalogLoading: boolean
-  config: HermesConfigRecord | null
+  config: IrisConfigRecord | null
   configError: unknown
   configFailed: boolean
   configLoading: boolean
@@ -61,7 +61,7 @@ export interface McpServersController extends McpDraft, PublishedProbes {
 }
 
 export interface UseMcpServersOptions {
-  gateway: HermesGateway | null
+  gateway: IrisGateway | null
   profile?: ProfileScope
 }
 
@@ -81,9 +81,9 @@ export function useMcpServers({ gateway, profile }: UseMcpServersOptions): McpSe
     refetch: refetchConfigQuery,
     dataUpdatedAt: configUpdatedAt,
     errorUpdatedAt: configErroredAt
-  } = useHermesConfigRecord(profile)
+  } = useIrisConfigRecord(profile)
 
-  const setConfig = hermesConfigCacheWriter(profile)
+  const setConfig = irisConfigCacheWriter(profile)
 
   const { arm: armProfileLatch, pending: profilePending } = useProfileSwitchLatch({
     dataUpdatedAt: configUpdatedAt,

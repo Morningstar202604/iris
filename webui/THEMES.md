@@ -1,6 +1,6 @@
-# Hermes Web UI — Themes
+# Iris Web UI — Themes
 
-Hermes Web UI splits **appearance** into two independent pickers:
+Iris Web UI splits **appearance** into two independent pickers:
 
 - **Theme** — the mode: `System`, `Dark`, or `Light`. Drives the background,
   text, surface, and chrome colors.
@@ -47,7 +47,7 @@ absent for light. System mode tracks the OS preference at runtime.
 
 | Skin | Description |
 |------|-------------|
-| **Default** | The original Hermes gold accent. Warm and understated. |
+| **Default** | The original Iris gold accent. Warm and understated. |
 | **Ares** | Fiery red. High-energy and assertive. |
 | **Mono** | Neutral gray. Distraction-free, for deep focus. |
 | **Slate** | Slate blue-gray. Subtle and grown-up. |
@@ -98,11 +98,11 @@ Two ways to ship it:
    list (`static/commands.js`), then open a PR.
 
 2. **Self-hosted (no fork):** use the WebUI extensions surface — see
-   `docs/EXTENSIONS.md`. Drop your CSS in `HERMES_WEBUI_EXTENSION_DIR` and
-   declare it in `HERMES_WEBUI_EXTENSION_STYLESHEET_URLS`. No code changes
+   `docs/EXTENSIONS.md`. Drop your CSS in `IRIS_WEBUI_EXTENSION_DIR` and
+   declare it in `IRIS_WEBUI_EXTENSION_STYLESHEET_URLS`. No code changes
    needed; the skin attribute can be set from your own JS.
 
-   Extensions that register a skin through `window.registerHermesSkin()` may
+   Extensions that register a skin through `window.registerIrisSkin()` may
    also set `scheme: "light"` or `scheme: "dark"` for light-only or dark-only
    skins. The saved Theme preference stays unchanged, but WebUI applies the
    matching effective base class while that skin is selected so System/Light or
@@ -163,7 +163,7 @@ By default:
 For CSS-based custom skins and extension stylesheets/scripts, override the three
 font tokens directly (`--font-ui`, `--font-conversation`, `--font-mono`) on the
 skin root (`:root[data-skin="..."]`), including any mode-specific variant.
-`window.registerHermesSkin()` currently accepts only the documented design-token
+`window.registerIrisSkin()` currently accepts only the documented design-token
 allowlist (no `--font-*` tokens), so custom font families should be supplied via
 CSS rather than skin registration.
 

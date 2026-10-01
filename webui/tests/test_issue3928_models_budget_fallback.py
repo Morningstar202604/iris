@@ -18,9 +18,9 @@ def isolate_models_catalog_state(monkeypatch, tmp_path):
     config_path.write_text("model: {}\n", encoding="utf-8")
     auth_store_path = tmp_path / "auth.json"
     auth_store_path.write_text("{}", encoding="utf-8")
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_text("", encoding="utf-8")
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    (iris_home / ".env").write_text("", encoding="utf-8")
 
     monkeypatch.setattr(cfg, "_get_config_path", lambda: config_path)
     monkeypatch.setattr(cfg, "_cfg_path", config_path, raising=False)
@@ -52,7 +52,7 @@ def isolate_models_catalog_state(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(cfg, "_cache_build_in_progress", False, raising=False)
     monkeypatch.setattr(cfg, "cfg", {}, raising=False)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: hermes_home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: iris_home)
     monkeypatch.setattr(cfg.os, "getenv", lambda key, default=None: default or "")
 
     return {

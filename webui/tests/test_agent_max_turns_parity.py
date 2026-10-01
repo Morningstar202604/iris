@@ -1,9 +1,9 @@
 """Regression checks for WebUI AIAgent iteration-budget parity.
 
-WebUI streaming agents must honor Hermes' configured agent.max_turns. Otherwise
+WebUI streaming agents must honor Iris' configured agent.max_turns. Otherwise
 browser-originated long-running tasks silently fall back to AIAgent's constructor
 default and hit the "maximum number of tool-calling iterations" summary path even
-when the operator raised the global Hermes budget.
+when the operator raised the global Iris budget.
 """
 
 from pathlib import Path

@@ -2,7 +2,7 @@ import { type DragEvent as ReactDragEvent, useRef, useState } from 'react'
 
 import { triggerHaptic } from '@/lib/haptics'
 
-import { extractDroppedFiles, HERMES_PATHS_MIME, partitionDroppedFiles } from '../../hooks/use-composer-actions'
+import { extractDroppedFiles, IRIS_PATHS_MIME, partitionDroppedFiles } from '../../hooks/use-composer-actions'
 import { dragHasAttachments, droppedFileInlineRefs, type InlineRefInput } from '../inline-refs'
 import type { ChatBarProps } from '../types'
 
@@ -37,7 +37,7 @@ export function useComposerDrop({
   }
 
   const handleDragEnter = (event: ReactDragEvent<HTMLFormElement>) => {
-    if (!onAttachDroppedItems || !dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!onAttachDroppedItems || !dragHasAttachments(event.dataTransfer, IRIS_PATHS_MIME)) {
       return
     }
 
@@ -50,7 +50,7 @@ export function useComposerDrop({
   }
 
   const handleDragOver = (event: ReactDragEvent<HTMLFormElement>) => {
-    if (!onAttachDroppedItems || !dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!onAttachDroppedItems || !dragHasAttachments(event.dataTransfer, IRIS_PATHS_MIME)) {
       return
     }
 
@@ -107,7 +107,7 @@ export function useComposerDrop({
   }
 
   const handleInputDragOver = (event: ReactDragEvent<HTMLDivElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, IRIS_PATHS_MIME)) {
       return
     }
 
@@ -117,7 +117,7 @@ export function useComposerDrop({
   }
 
   const handleInputDrop = (event: ReactDragEvent<HTMLDivElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, IRIS_PATHS_MIME)) {
       // A plain text drag within the editor mutates the DOM without a
       // React-visible beforeinput (insertFromDrop), so the undo snapshot has
       // to be banked here — before Chromium applies the move.

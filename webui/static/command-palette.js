@@ -47,7 +47,7 @@
       out.push({group:tr('cmd_palette_group_actions'), title:tr('cmd_palette_font_size').replace('{0}',tr(FONT_SIZE_KEYS[size]||'font_size_default')), hint:'', run:function(){
         var d=document.documentElement;
         if(size==='default') delete d.dataset.fontSize; else d.dataset.fontSize=size;
-        try{ localStorage.setItem('hermes-font-size',size); }catch(e){}
+        try{ localStorage.setItem('iris-font-size',size); }catch(e){}
         close();
       }});
     });

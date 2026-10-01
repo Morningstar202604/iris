@@ -39,22 +39,22 @@ import api.config as config
 import api.profiles as profiles
 
 
-def _install_fake_hermes_cli(monkeypatch):
-    """Stub hermes_cli modules so tests are deterministic and offline.
+def _install_fake_iris_cli(monkeypatch):
+    """Stub iris_cli modules so tests are deterministic and offline.
 
     Mirrors the helper in test_provider_management.py — kept inline so this
     regression test stays self-contained.
     """
-    fake_pkg = types.ModuleType("hermes_cli")
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda pid: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {}
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
 
 
 def _isolate_onboarding_writes(monkeypatch, tmp_path):
@@ -63,14 +63,14 @@ def _isolate_onboarding_writes(monkeypatch, tmp_path):
 
     Pattern from webui-onboarding-provider-readiness skill — without this,
     tests that call ``apply_onboarding_setup`` directly write to the real
-    ``~/.hermes`` and clobber the developer's actual config.
+    ``~/.iris`` and clobber the developer's actual config.
     """
     from api import onboarding as ob
-    monkeypatch.setattr(ob, "_get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(ob, "_get_active_iris_home", lambda: tmp_path)
     cfg_path = tmp_path / "config.yaml"
     monkeypatch.setattr(ob, "_get_config_path", lambda: cfg_path)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_WEBUI_SKIP_ONBOARDING", raising=False)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+    monkeypatch.delenv("IRIS_WEBUI_SKIP_ONBOARDING", raising=False)
     for var in (
         "LM_API_KEY", "LMSTUDIO_API_KEY", "OLLAMA_API_KEY", "OPENAI_API_KEY",
         "OPENROUTER_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY",
@@ -134,7 +134,7 @@ class TestKeylessOnboarding:
 
     def test_lmstudio_empty_api_key_accepted(self, monkeypatch, tmp_path):
         """Pre-fix this raised; post-fix it succeeds and writes no .env entry."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         cfg_path = _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -164,7 +164,7 @@ class TestKeylessOnboarding:
             assert "LMSTUDIO_API_KEY=" not in env_text
 
     def test_ollama_empty_api_key_accepted(self, monkeypatch, tmp_path):
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -179,7 +179,7 @@ class TestKeylessOnboarding:
             assert "OLLAMA_API_KEY=" not in env_path.read_text(encoding="utf-8")
 
     def test_custom_empty_api_key_accepted(self, monkeypatch, tmp_path):
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -195,7 +195,7 @@ class TestKeylessOnboarding:
 
     def test_openrouter_empty_api_key_still_rejected(self, monkeypatch, tmp_path):
         """Cloud providers must still reject empty api_key (regression defense)."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -208,7 +208,7 @@ class TestKeylessOnboarding:
             })
 
     def test_anthropic_empty_api_key_still_rejected(self, monkeypatch, tmp_path):
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -225,7 +225,7 @@ class TestKeylessOnboarding:
         Regression-defense for the keyless path: when the user DOES supply a
         key, we still write it under the canonical name (LM_API_KEY, post-#1500).
         """
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -249,7 +249,7 @@ class TestKeylessChatReady:
         self, monkeypatch, tmp_path,
     ):
         """``_status_from_runtime`` returns provider_ready=True with no api_key."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -270,7 +270,7 @@ class TestKeylessChatReady:
     def test_ollama_keyless_provider_ready_via_status_runtime(
         self, monkeypatch, tmp_path,
     ):
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -288,7 +288,7 @@ class TestKeylessChatReady:
         self, monkeypatch, tmp_path,
     ):
         """custom is key_optional but still requires base_url."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -317,7 +317,7 @@ class TestKeylessChatReady:
 
     def test_openrouter_keyless_provider_ready_is_false(self, monkeypatch, tmp_path):
         """Cloud provider with no key → provider_ready=False (regression defense)."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -335,7 +335,7 @@ class TestKeylessChatReady:
 
     def test_lmstudio_keyless_chat_ready_via_full_status(self, monkeypatch, tmp_path):
         """End-to-end: get_onboarding_status reports chat_ready=True after keyless save."""
-        _install_fake_hermes_cli(monkeypatch)
+        _install_fake_iris_cli(monkeypatch)
         cfg_path = _isolate_onboarding_writes(monkeypatch, tmp_path)
 
         from api import onboarding as ob
@@ -369,9 +369,9 @@ class TestKeylessChatReady:
                 f"True. Got: provider_ready={system.get('provider_ready')!r}, "
                 f"chat_ready={system.get('chat_ready')!r}."
             )
-            # chat_ready additionally requires _HERMES_FOUND + imports_ok which
+            # chat_ready additionally requires _IRIS_FOUND + imports_ok which
             # depend on the test environment; provider_ready is the bit this
-            # PR's fix actually controls.  But if hermes is importable, it
+            # PR's fix actually controls.  But if iris is importable, it
             # should also be chat_ready.
             if system.get("imports_ok"):
                 assert system.get("chat_ready") is True

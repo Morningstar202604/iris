@@ -1,4 +1,4 @@
-"""Extension theme-registration capability (window.registerHermesSkin).
+"""Extension theme-registration capability (window.registerIrisSkin).
 
 Two layers:
   1. Structural — the public API + sanitizer + reserved-key guard exist in boot.js.
@@ -24,11 +24,11 @@ BOOT_JS = (REPO / "static" / "boot.js").read_text(encoding="utf-8")
 # ── Layer 1: structural ──────────────────────────────────────────────────────
 
 def test_register_api_exposed_on_window():
-    assert "function registerHermesSkin(descriptor)" in BOOT_JS, (
-        "registerHermesSkin API missing from boot.js"
+    assert "function registerIrisSkin(descriptor)" in BOOT_JS, (
+        "registerIrisSkin API missing from boot.js"
     )
-    assert "window.registerHermesSkin=registerHermesSkin" in BOOT_JS, (
-        "registerHermesSkin must be exposed on window for extensions to call"
+    assert "window.registerIrisSkin=registerIrisSkin" in BOOT_JS, (
+        "registerIrisSkin must be exposed on window for extensions to call"
     )
 
 
@@ -143,7 +143,7 @@ global.window = {};
 // Pull the exact constants + functions out of boot.js by evaluating just the
 // region from `const _EXT_SKIN_STYLE_ID` through the window assignment line.
 const startMarker = "const _EXT_SKIN_STYLE_ID";
-const endMarker = "window.registerHermesSkin=registerHermesSkin;";
+const endMarker = "window.registerIrisSkin=registerIrisSkin;";
 const a = src.indexOf(startMarker);
 const b = src.indexOf(endMarker);
 if (a < 0 || b < 0) { console.log(JSON.stringify({error: 'markers not found'})); process.exit(0); }
@@ -160,54 +160,54 @@ const prelude = `
   function _syncSkinPicker(){}
 `;
 eval(prelude + region);
-// In non-strict eval, `function registerHermesSkin` leaks into this scope.
+// In non-strict eval, `function registerIrisSkin` leaks into this scope.
 
 const results = {};
 
 // 1. valid skin registers
-results.valid = registerHermesSkin({
+results.valid = registerIrisSkin({
   name: 'E-Ink', value: 'e-ink', colors: ['#000','#fff','#555'],
   tokens: { '--bg':'#ffffff', '--text':'#000000', '--accent':'#000000' }
 });
 
 // 2. unsafe token value (CSS injection attempt) is dropped → registration fails
 //    because no valid tokens remain
-results.injection = registerHermesSkin({
+results.injection = registerIrisSkin({
   name: 'Evil', value: 'evil',
   tokens: { '--bg': 'red;} body{display:none}', '--text': 'url(http://x/a.png)' }
 });
 
 // 3. partially-unsafe: keeps safe token, drops unsafe one
-results.partial = registerHermesSkin({
+results.partial = registerIrisSkin({
   name: 'Partial', value: 'partial',
   tokens: { '--bg':'#123456', '--text':'expression(alert(1))', '--accent':'rgb(1,2,3)' }
 });
 
 // 4. cannot overwrite a reserved core skin
-results.reserved = registerHermesSkin({
+results.reserved = registerIrisSkin({
   name: 'Default', value: 'default', tokens: { '--bg':'#000000' }
 });
 
 // 5. unknown token name is dropped (not in allowlist) → fails (nothing valid)
-results.unknownToken = registerHermesSkin({
+results.unknownToken = registerIrisSkin({
   name: 'Unknown', value: 'unknown', tokens: { '--evil-prop':'#fff' }
 });
 
 // 6. idempotent re-register of same key returns true again
-results.idempotent = registerHermesSkin({
+results.idempotent = registerIrisSkin({
   name: 'E-Ink', value: 'e-ink', tokens: { '--bg':'#fefefe' }
 });
 
 // 7. garbage input rejected
-results.garbage = registerHermesSkin(null);
-results.noTokens = registerHermesSkin({ name: 'X', value: 'x' });
+results.garbage = registerIrisSkin(null);
+results.noTokens = registerIrisSkin({ name: 'X', value: 'x' });
 
 // 8. optional scheme is restricted to light/dark and stored on the skin entry
-results.darkScheme = registerHermesSkin({
+results.darkScheme = registerIrisSkin({
   name: 'Tokyo Night', value: 'tokyo-night', scheme: 'dark',
   tokens: { '--bg':'#1a1b26', '--text':'#c0caf5', '--accent':'#7aa2f7' }
 });
-results.invalidScheme = registerHermesSkin({
+results.invalidScheme = registerIrisSkin({
   name: 'Bad Scheme', value: 'bad-scheme', scheme: 'dark;body{display:none}',
   tokens: { '--bg':'#111111', '--text':'#eeeeee' }
 });

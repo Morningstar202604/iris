@@ -30,7 +30,7 @@ def _read(relative_path: str) -> str:
 class TestMcpToolInventoryApi:
     @patch("api.routes._mcp_runtime_status_by_name")
     @patch("api.routes.get_config_for_profile_home")
-    @patch("api.routes.get_active_hermes_home")
+    @patch("api.routes.get_active_iris_home")
     def test_endpoint_returns_sanitized_registered_mcp_tools(self, mock_home, mock_cfg, mock_runtime):
         mock_home.return_value = sentinel_home = object()
         mock_cfg.return_value = {

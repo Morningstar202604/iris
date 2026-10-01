@@ -5,9 +5,9 @@ import type {
   ToolsetConfig,
   ToolsetInfo,
   ToolsetModelsResponse
-} from '@/types/hermes'
+} from '@/types/iris'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
+import { capabilityScoped, irisApi, type ProfileScope, profileScoped } from './client'
 
 // The optional trailing `profile` on every capability fetcher below is the
 // Capabilities view's profile-scope override: it lets the Skills/Tools/MCP
@@ -15,7 +15,7 @@ import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from '.
 // Omitting it (every pre-existing caller) means `profileScoped(undefined)`
 // falls back to the app-wide `_apiProfile`, so behavior is byte-identical.
 export function getToolsets(profile?: ProfileScope): Promise<ToolsetInfo[]> {
-  return window.hermesDesktop.api<ToolsetInfo[]>({
+  return window.irisDesktop.api<ToolsetInfo[]>({
     ...capabilityScoped(profile),
     path: '/api/tools/toolsets'
   })
@@ -26,7 +26,7 @@ export function setToolsetEnabled(
   enabled: boolean,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; enabled: boolean }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
+  return window.irisDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}`,
     method: 'PUT',
@@ -35,7 +35,7 @@ export function setToolsetEnabled(
 }
 
 export function getToolsetConfig(name: string, profile?: ProfileScope): Promise<ToolsetConfig> {
-  return window.hermesDesktop.api<ToolsetConfig>({
+  return window.irisDesktop.api<ToolsetConfig>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/config`
   })
@@ -48,7 +48,7 @@ export function getToolsetModels(
 ): Promise<ToolsetModelsResponse> {
   const suffix = provider ? `?provider=${encodeURIComponent(provider)}` : ''
 
-  return window.hermesDesktop.api<ToolsetModelsResponse>({
+  return window.irisDesktop.api<ToolsetModelsResponse>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/models${suffix}`
   })
@@ -60,7 +60,7 @@ export function selectToolsetModel(
   provider?: string,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; model: string }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; model: string }>({
+  return window.irisDesktop.api<{ ok: boolean; name: string; model: string }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/model`,
     method: 'PUT',
@@ -88,7 +88,7 @@ export function selectToolsetProvider(
   capability?: 'search' | 'extract',
   profile?: ProfileScope
 ): Promise<SelectToolsetProviderResponse> {
-  return window.hermesDesktop.api<SelectToolsetProviderResponse>({
+  return window.irisDesktop.api<SelectToolsetProviderResponse>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/provider`,
     method: 'PUT',
@@ -101,7 +101,7 @@ export function runToolsetPostSetup(
   key: string,
   profile?: ProfileScope
 ): Promise<ActionResponse & { key: string }> {
-  return window.hermesDesktop.api<ActionResponse & { key: string }>({
+  return window.irisDesktop.api<ActionResponse & { key: string }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/post-setup`,
     method: 'POST',
@@ -110,14 +110,14 @@ export function runToolsetPostSetup(
 }
 
 export function getTerminalBackends(): Promise<TerminalBackendsResponse> {
-  return hermesApi<TerminalBackendsResponse>({
+  return irisApi<TerminalBackendsResponse>({
     ...profileScoped(),
     path: '/api/tools/terminal/backends'
   })
 }
 
 export function selectTerminalBackend(backend: string): Promise<{ ok: boolean; backend: string }> {
-  return hermesApi<{ ok: boolean; backend: string }>({
+  return irisApi<{ ok: boolean; backend: string }>({
     ...profileScoped(),
     path: '/api/tools/terminal/backend',
     method: 'PUT',
@@ -126,14 +126,14 @@ export function selectTerminalBackend(backend: string): Promise<{ ok: boolean; b
 }
 
 export function getComputerUseStatus(): Promise<ComputerUseStatus> {
-  return hermesApi<ComputerUseStatus>({
+  return irisApi<ComputerUseStatus>({
     ...profileScoped(),
     path: '/api/tools/computer-use/status'
   })
 }
 
 export function grantComputerUsePermissions(): Promise<ActionResponse> {
-  return hermesApi<ActionResponse>({
+  return irisApi<ActionResponse>({
     ...profileScoped(),
     path: '/api/tools/computer-use/permissions/grant',
     method: 'POST'

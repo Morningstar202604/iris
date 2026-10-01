@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { en } from '@/i18n/en'
 import { $freeTierStatus, freeTierSetupFailure } from '@/store/free-tier'
 import type { OnboardingContext } from '@/store/onboarding'
-import type { FreeTierStatus } from '@/types/hermes'
+import type { FreeTierStatus } from '@/types/iris'
 
 import { FreeTierSetupNotice, setupFailureCopy } from './free-tier-setup-notice'
 

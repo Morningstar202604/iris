@@ -46,9 +46,9 @@ def collect_disk_status(home: Optional[Path] = None) -> Dict[str, Any]:
     status: Dict[str, Any] = {"pressure": "unknown", "total_mb": None, "free_mb": None, "used_percent": None}
     try:
         if home is None:
-            from hermes_constants import get_hermes_home
+            from iris_constants import get_iris_home
 
-            home = get_hermes_home()
+            home = get_iris_home()
         usage = shutil.disk_usage(home)
     except Exception:
         return status
@@ -77,7 +77,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

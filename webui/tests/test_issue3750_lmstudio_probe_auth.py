@@ -109,7 +109,7 @@ def _isolate_config(monkeypatch, tmp_path):
     old_mtime = config._cfg_mtime
     old_path = config._cfg_path
     old_fp = config._cfg_fingerprint
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.setenv("BROWSER", "echo")
     for var in _API_KEY_ENV_VARS:
         monkeypatch.delenv(var, raising=False)
@@ -209,7 +209,7 @@ display:
     }
 
 
-def test_reasoning_probe_falls_back_without_hermes_cli(
+def test_reasoning_probe_falls_back_without_iris_cli(
     tmp_path,
     monkeypatch,
     lmstudio_probe_server,
@@ -217,19 +217,19 @@ def test_reasoning_probe_falls_back_without_hermes_cli(
     blocked_modules = [
         name
         for name in list(sys.modules)
-        if name == "hermes_cli" or name.startswith("hermes_cli.")
+        if name == "iris_cli" or name.startswith("iris_cli.")
     ]
     for name in blocked_modules:
         monkeypatch.delitem(sys.modules, name, raising=False)
 
     class _Blocker:
         def find_module(self, name, path=None):
-            if name == "hermes_cli" or name.startswith("hermes_cli."):
+            if name == "iris_cli" or name.startswith("iris_cli."):
                 return self
             return None
 
         def load_module(self, name):
-            raise ImportError(f"hermes_cli blocked for test: {name}")
+            raise ImportError(f"iris_cli blocked for test: {name}")
 
     blocker = _Blocker()
     sys.meta_path.insert(0, blocker)
@@ -313,13 +313,13 @@ def test_onboarding_probe_remains_authorized_control(
     }
 
 
-def test_credentialed_probe_never_calls_hermes_cli(
+def test_credentialed_probe_never_calls_iris_cli(
     tmp_path,
     monkeypatch,
     lmstudio_probe_server,
 ):
     """When a credential is configured, the probe must use the built-in
-    no-redirect fallback and NEVER the bundled hermes_cli probe (which follows
+    no-redirect fallback and NEVER the bundled iris_cli probe (which follows
     redirects and could forward the key). (#3837 security review)
     """
     _write_config(
@@ -348,8 +348,8 @@ display:
             cli_calls.append((model, base_url, api_key))
             return ["low", "medium", "high"]
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", type("HermesCli", (), {})())
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", _CliModule)
+    monkeypatch.setitem(sys.modules, "iris_cli", type("IrisCli", (), {})())
+    monkeypatch.setitem(sys.modules, "iris_cli.models", _CliModule)
 
     status = config.get_reasoning_status()
 
@@ -360,8 +360,8 @@ display:
         "path": "/api/v1/models",
         "authorization": "Bearer config-token",
     }
-    # … and the redirect-following hermes_cli probe was never invoked.
-    assert cli_calls == [], "credentialed probe must bypass hermes_cli"
+    # … and the redirect-following iris_cli probe was never invoked.
+    assert cli_calls == [], "credentialed probe must bypass iris_cli"
 
 
 def test_keyless_probe_logs_signature_mismatch_before_fallback(
@@ -369,7 +369,7 @@ def test_keyless_probe_logs_signature_mismatch_before_fallback(
     monkeypatch,
     lmstudio_probe_server,
 ):
-    """Keyless probes still prefer hermes_cli; an incompatible CLI signature
+    """Keyless probes still prefer iris_cli; an incompatible CLI signature
     logs a warning and degrades to the built-in probe. (#3750)
     """
     _write_config(
@@ -394,8 +394,8 @@ display:
         def lmstudio_model_reasoning_options(model, base_url):
             raise TypeError("unexpected keyword argument: api_key")
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", type("HermesCli", (), {})())
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", _CliModule)
+    monkeypatch.setitem(sys.modules, "iris_cli", type("IrisCli", (), {})())
+    monkeypatch.setitem(sys.modules, "iris_cli.models", _CliModule)
     monkeypatch.setattr(
         config.logger,
         "warning",
@@ -528,9 +528,9 @@ def test_credentialed_probe_does_not_follow_redirects_end_to_end(
     monkeypatch,
 ):
     """End-to-end through resolve_model_reasoning_efforts() with the REAL
-    hermes_cli importable: when the CONFIGURED LM Studio endpoint returns a 302,
+    iris_cli importable: when the CONFIGURED LM Studio endpoint returns a 302,
     the credentialed probe must not forward the key to the redirect target.
-    This is the production path (hermes_cli present) — credentialed probes route
+    This is the production path (iris_cli present) — credentialed probes route
     through the built-in no-redirect probe, so the redirect is refused.
     (#3837 security review)
     """
@@ -583,7 +583,7 @@ def test_credentialed_probe_does_not_follow_redirects_end_to_end(
     redir_thread = threading.Thread(target=redir.serve_forever, daemon=True)
     redir_thread.start()
 
-    # Sanity: this test only proves the redirect guard if hermes_cli is
+    # Sanity: this test only proves the redirect guard if iris_cli is
     # importable (the production path). If it isn't, the keyless/credentialed
     # split still routes credentialed probes through the no-redirect fallback,
     # so the assertion holds either way.

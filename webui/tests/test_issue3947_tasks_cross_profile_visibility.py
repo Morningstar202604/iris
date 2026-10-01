@@ -125,7 +125,7 @@ def test_crons_route_hides_other_profiles_by_default_but_reports_count(monkeypat
     ])
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: Path({"alpha": "alpha-home", "beta": "beta-home", "default": "default-home"}[name]),
     )
     monkeypatch.setattr(profiles, "cron_profile_context_for_home", _Ctx)
@@ -200,7 +200,7 @@ def test_crons_route_dedupes_root_aliases_by_resolved_home(monkeypatch):
     ])
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: Path({
             "rootalias": "base-home",
             "default": "base-home",
@@ -250,7 +250,7 @@ def test_crons_route_skips_hidden_default_profile_when_inactive(monkeypatch):
     ])
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: Path({"alpha": "alpha-home", "default": "default-home"}[name]),
     )
     monkeypatch.setattr(profiles, "cron_profile_context_for_home", _Ctx)
@@ -295,7 +295,7 @@ def test_crons_route_ignores_all_profiles_toggle_in_isolated_mode(monkeypatch):
     monkeypatch.setattr(profiles, "list_profiles_api", lambda: [{"name": "alpha", "visible": True}])
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: lookups.append(name) or Path("alpha-home"),
     )
     monkeypatch.setattr(profiles, "cron_profile_context_for_home", _Ctx)
@@ -358,7 +358,7 @@ def test_cron_jobs_cross_profile_skips_foreign_failures_but_reraises_active_fail
     ])
     monkeypatch.setattr(
         profiles,
-        "get_hermes_home_for_profile",
+        "get_iris_home_for_profile",
         lambda name: Path({
             "alpha": "alpha-home",
             "beta": "beta-home",

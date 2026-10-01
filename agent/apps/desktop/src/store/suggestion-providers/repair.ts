@@ -1,4 +1,4 @@
-import { listMcpServers } from '@/hermes'
+import { listMcpServers } from '@/iris'
 import { translateNow } from '@/i18n'
 import { completeMcpDesktopOAuth, McpOAuthCancelled } from '@/lib/mcp-dashboard-oauth'
 import { prettyName } from '@/lib/text'

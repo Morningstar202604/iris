@@ -116,27 +116,27 @@ def test_lifecycle_dict_is_bounded_under_churn():
 
 def test_env_int_reads_valid_override(monkeypatch):
     cfg = importlib.import_module("api.config")
-    monkeypatch.setenv("HERMES_TEST_CAP", "12")
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 12
+    monkeypatch.setenv("IRIS_TEST_CAP", "12")
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 12
 
 
 def test_env_int_falls_back_on_bad_input(monkeypatch):
     cfg = importlib.import_module("api.config")
-    monkeypatch.setenv("HERMES_TEST_CAP", "not-a-number")
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 99
-    monkeypatch.setenv("HERMES_TEST_CAP", "")
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 99
-    monkeypatch.delenv("HERMES_TEST_CAP", raising=False)
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 99
+    monkeypatch.setenv("IRIS_TEST_CAP", "not-a-number")
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 99
+    monkeypatch.setenv("IRIS_TEST_CAP", "")
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 99
+    monkeypatch.delenv("IRIS_TEST_CAP", raising=False)
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 99
 
 
 def test_env_int_rejects_below_minimum(monkeypatch):
     cfg = importlib.import_module("api.config")
-    monkeypatch.setenv("HERMES_TEST_CAP", "0")
+    monkeypatch.setenv("IRIS_TEST_CAP", "0")
     # A 0 or negative cap would disable the bound entirely — must fall back.
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 99
-    monkeypatch.setenv("HERMES_TEST_CAP", "-5")
-    assert cfg._env_int("HERMES_TEST_CAP", 99) == 99
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 99
+    monkeypatch.setenv("IRIS_TEST_CAP", "-5")
+    assert cfg._env_int("IRIS_TEST_CAP", 99) == 99
 
 
 def test_agent_cache_max_default_is_bounded():

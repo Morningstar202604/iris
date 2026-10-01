@@ -8,19 +8,19 @@ test('a live primary keeps answering for its booted profile after the preference
   const pin = new PrimaryProfilePin()
   let preference: null | string = 'default'
 
-  // startHermes() boots the primary as the preference at that moment.
+  // startIris() boots the primary as the preference at that moment.
   assert.equal(pin.pin(preference), 'default')
   assert.equal(
     pin.resolve(() => preference),
     'default'
   )
 
-  // hermes:profile:remember rewrites active-profile.json without re-homing.
+  // iris:profile:remember rewrites active-profile.json without re-homing.
   preference = 'claude'
 
   // Routing must still see the running primary as "default": otherwise a
   // request for "default" falls through to the pool and a second backend is
-  // spawned for the same HERMES_HOME.
+  // spawned for the same IRIS_HOME.
   assert.equal(
     pin.resolve(() => preference),
     'default'

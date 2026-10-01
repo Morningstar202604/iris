@@ -1,7 +1,7 @@
 """Regression: an interrupted turn's notice — and any turn-final answer — is
 displayed twice (#6948 / #2051).
 
-A ``hermes chat`` run killed mid tool-call persists a single assistant message
+A ``iris chat`` run killed mid tool-call persists a single assistant message
 ``Operation interrupted.``; the WebUI renders that notice twice. The same
 doubling was reported for a long tool run's final answer and for an image reply
 carrying a ``MEDIA:`` line. The stored data is clean in every case — one message

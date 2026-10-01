@@ -1,4 +1,4 @@
-"""Passkey/WebAuthn helpers for Hermes WebUI.
+"""Passkey/WebAuthn helpers for Iris WebUI.
 
 Default-off: passkeys are only advertised after an authenticated user registers
 one from Settings. Password auth remains the bootstrap/recovery mechanism.
@@ -34,7 +34,7 @@ _CHALLENGE_TTL = 90
 _MAX_CHALLENGES = 128
 _MAX_CHALLENGES_PER_CONTEXT = 8
 _CHALLENGES_LOCK = threading.Lock()
-_RP_NAME = "Hermes WebUI"
+_RP_NAME = "Iris WebUI"
 
 
 class PasskeyError(ValueError):
@@ -235,7 +235,7 @@ def registration_options(handler) -> dict[str, Any]:
     return {
         "challenge": challenge,
         "rp": {"name": _RP_NAME, "id": rp_id},
-        "user": {"id": _b64u(hashlib.sha256(rp_id.encode()).digest()[:16]), "name": "Hermes WebUI", "displayName": "Hermes WebUI"},
+        "user": {"id": _b64u(hashlib.sha256(rp_id.encode()).digest()[:16]), "name": "Iris WebUI", "displayName": "Iris WebUI"},
         "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
         "authenticatorSelection": {"residentKey": "preferred", "userVerification": "preferred"},
         "timeout": 60000,

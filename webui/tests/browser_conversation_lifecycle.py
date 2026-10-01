@@ -3,7 +3,7 @@
 
 This test boots the real WebUI server with isolated state, drives the real chat
 composer in Chromium, and supplies deterministic runtime events through the
-existing Hermes Gateway Runs API. It proves that one assistant turn keeps the
+existing Iris Gateway Runs API. It proves that one assistant turn keeps the
 same semantic activity across live streaming, settlement, and a hard reload.
 
 Proposed in #6247; first implementation slice merged as #6251.
@@ -173,7 +173,7 @@ def _anchor_projection_snapshot(page) -> dict:
           const registry = streamId && registries && typeof registries.get === 'function'
             ? registries.get(streamId)
             : null;
-          const api = window.HermesAssistantTurnAnchors;
+          const api = window.IrisAssistantTurnAnchors;
           const canProject = Boolean(
             registry && api && typeof api.projectAssistantTurnAnchorActivityScene === 'function'
           );
@@ -216,7 +216,7 @@ def _wait_for_live_anchor_projection(page) -> dict:
               const registry = streamId && registries && typeof registries.get === 'function'
                 ? registries.get(streamId)
                 : null;
-              const api = window.HermesAssistantTurnAnchors;
+              const api = window.IrisAssistantTurnAnchors;
               if (!registry || !api || typeof api.projectAssistantTurnAnchorActivityScene !== 'function') {
                 return false;
               }
@@ -264,12 +264,12 @@ def _start_webui_server(repo_root: Path, env: dict, artifact_dir: Path):
         last_port = port
         base_url = f"http://127.0.0.1:{port}"
         run_env = dict(env)
-        run_env["HERMES_WEBUI_PORT"] = str(port)
+        run_env["IRIS_WEBUI_PORT"] = str(port)
         suffix = "" if attempts == 1 else f"-attempt-{attempt + 1}"
         log_path = artifact_dir / f"server{suffix}.log"
         log = log_path.open("w", encoding="utf-8")
         command = [sys.executable, str(repo_root / "server.py")]
-        barrier_dir = env.get("HERMES_TEST_TERMINAL_BARRIER_DIR")
+        barrier_dir = env.get("IRIS_TEST_TERMINAL_BARRIER_DIR")
         if barrier_dir:
             command = [
                 sys.executable,
@@ -768,12 +768,12 @@ def main() -> int:
         return 2
 
     repo_root = Path(__file__).resolve().parent.parent
-    state_tmp = tempfile.TemporaryDirectory(prefix="hermes-lifecycle-gate-")
+    state_tmp = tempfile.TemporaryDirectory(prefix="iris-lifecycle-gate-")
     state_dir = Path(state_tmp.name)
     artifact_env = str(os.environ.get("LIFECYCLE_ARTIFACT_DIR") or "").strip()
     artifact_dir_owned = not bool(artifact_env)
     artifact_dir = Path(artifact_env) if artifact_env else Path(
-        tempfile.mkdtemp(prefix="hermes-lifecycle-artifacts-")
+        tempfile.mkdtemp(prefix="iris-lifecycle-artifacts-")
     )
     artifact_dir.mkdir(parents=True, exist_ok=True)
     scenario = SCENARIO
@@ -817,32 +817,32 @@ def main() -> int:
             env.pop(key, None)
     for key in (
         "API_SERVER_KEY",
-        "HERMES_WEBUI_PASSWORD",
-        "HERMES_WEBUI_EXTENSION_DIR",
-        "HERMES_WEBUI_EXTENSION_MANIFEST",
+        "IRIS_WEBUI_PASSWORD",
+        "IRIS_WEBUI_EXTENSION_DIR",
+        "IRIS_WEBUI_EXTENSION_MANIFEST",
     ):
         env.pop(key, None)
     env.update({
-        "HERMES_WEBUI_HOST": "127.0.0.1",
-        "HERMES_WEBUI_STATE_DIR": str(state_dir / "webui-state"),
-        "HERMES_HOME": str(state_dir / "hermes-home"),
-        "HERMES_BASE_HOME": str(state_dir / "hermes-home"),
-        "HERMES_CONFIG_PATH": str(state_dir / "hermes-home" / "config.yaml"),
-        "HERMES_WEBUI_SKIP_ONBOARDING": "1",
-        "HERMES_WEBUI_AGENT_DIR": str(agent_dir),
-        "HERMES_WEBUI_DEFAULT_WORKSPACE": str(workspace_dir),
-        "HERMES_WEBUI_CHAT_BACKEND": "gateway",
-        "HERMES_WEBUI_GATEWAY_BASE_URL": gateway.base_url,
-        "HERMES_WEBUI_GATEWAY_USE_RUNS_API": "1",
+        "IRIS_WEBUI_HOST": "127.0.0.1",
+        "IRIS_WEBUI_STATE_DIR": str(state_dir / "webui-state"),
+        "IRIS_HOME": str(state_dir / "iris-home"),
+        "IRIS_BASE_HOME": str(state_dir / "iris-home"),
+        "IRIS_CONFIG_PATH": str(state_dir / "iris-home" / "config.yaml"),
+        "IRIS_WEBUI_SKIP_ONBOARDING": "1",
+        "IRIS_WEBUI_AGENT_DIR": str(agent_dir),
+        "IRIS_WEBUI_DEFAULT_WORKSPACE": str(workspace_dir),
+        "IRIS_WEBUI_CHAT_BACKEND": "gateway",
+        "IRIS_WEBUI_GATEWAY_BASE_URL": gateway.base_url,
+        "IRIS_WEBUI_GATEWAY_USE_RUNS_API": "1",
         "NO_PROXY": "127.0.0.1,localhost",
         "no_proxy": "127.0.0.1,localhost",
     })
-    env.pop("HERMES_TEST_TERMINAL_BARRIER_DIR", None)
+    env.pop("IRIS_TEST_TERMINAL_BARRIER_DIR", None)
     terminal_barrier_dir = None
     if TEST_BITE in _FRAME_PROOF_BITES and scenario == "normal":
         terminal_barrier_dir = state_dir / "terminal-barrier"
         terminal_barrier_dir.mkdir()
-        env["HERMES_TEST_TERMINAL_BARRIER_DIR"] = str(terminal_barrier_dir)
+        env["IRIS_TEST_TERMINAL_BARRIER_DIR"] = str(terminal_barrier_dir)
     proc = None
     log = None
     log_path = None

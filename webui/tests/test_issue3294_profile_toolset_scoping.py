@@ -8,7 +8,7 @@ profile.
 
 Root cause: the streaming agent runs on a detached ``threading.Thread`` that
 does NOT inherit the per-request thread-local profile context (set from the
-``hermes_profile`` cookie on the HTTP handler thread). On that worker the
+``iris_profile`` cookie on the HTTP handler thread). On that worker the
 ambient ``get_config()`` resolves through ``get_active_profile_name()`` which
 falls back to the process-global ``_active_profile`` (usually ``default``). A
 profile B with an empty ``platform_toolsets.cli`` would therefore load the
@@ -54,7 +54,7 @@ def _two_profiles(tmp_path, monkeypatch):
 
     # Point the ambient resolver at the DEFAULT profile, simulating a worker
     # thread that fell back to the process-global default profile.
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(default_home / "config.yaml"))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(default_home / "config.yaml"))
     cfg.reload_config()
     yield cfg, default_home, profile_b_home
 
@@ -109,7 +109,7 @@ def test_matching_home_defers_to_get_config(_two_profiles):
 
 
 def test_active_home_with_external_config_override_defers_to_get_config(_two_profiles, monkeypatch, tmp_path):
-    """The active home still honors HERMES_CONFIG_PATH when the override lives
+    """The active home still honors IRIS_CONFIG_PATH when the override lives
     outside that home."""
     cfg, default_home, profile_b_home = _two_profiles
     from api import profiles
@@ -125,8 +125,8 @@ def test_active_home_with_external_config_override_defers_to_get_config(_two_pro
         yaml.safe_dump({"platform_toolsets": {"cli": ["override-config"]}}, sort_keys=False),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(override_path))
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: active_home)
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(override_path))
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: active_home)
     cfg.reload_config()
 
     same = cfg.get_config_for_profile_home(active_home)
@@ -140,7 +140,7 @@ def test_matching_ambient_home_that_does_not_exist_still_defers_to_get_config(_t
     cfg with no dir on disk) must still defer to get_config() — NOT return {}."""
     cfg, default_home, profile_b_home = _two_profiles
     ghost_ambient = tmp_path / "ghost-ambient"
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(ghost_ambient / "config.yaml"))
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(ghost_ambient / "config.yaml"))
     cfg.reload_config()
     assert not ghost_ambient.exists()
     # The requested home matches the (nonexistent) ambient home → must defer to

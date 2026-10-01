@@ -1,8 +1,8 @@
 (function(){
   'use strict';
 
-  const SETTINGS_PREFIX='hermes.ext.settings.';
-  const STORAGE_PREFIX='hermes.ext.storage.';
+  const SETTINGS_PREFIX='iris.ext.settings.';
+  const STORAGE_PREFIX='iris.ext.storage.';
   const FIELD_TYPES=new Set(['boolean','string','number','integer','enum']);
   const TURN_LIFECYCLE_TYPES=new Set(['turn:start','turn:complete','turn:error','turn:cancel']);
   const TURN_LIFECYCLE_STATE_LIMIT=512;
@@ -389,7 +389,7 @@
         listener(change);
       }catch(error){
         if(typeof console!=='undefined'&&typeof console.error==='function'){
-          try{console.error('[Hermes extensions] Configure change listener failed:',error);}catch(_loggingError){}
+          try{console.error('[Iris extensions] Configure change listener failed:',error);}catch(_loggingError){}
         }
       }
     }
@@ -476,12 +476,12 @@
 
   function reportConfigureFailure(clean,error,onError){
     if(typeof console!=='undefined'&&typeof console.error==='function'){
-      try{console.error(`[Hermes extensions] ${clean} Configure handler failed:`,error);}catch(_loggingError){}
+      try{console.error(`[Iris extensions] ${clean} Configure handler failed:`,error);}catch(_loggingError){}
     }
     if(typeof onError==='function'){
       try{onError(error);}catch(callbackError){
         if(typeof console!=='undefined'&&typeof console.error==='function'){
-          try{console.error(`[Hermes extensions] ${clean} Configure failure reporter failed:`,callbackError);}catch(_loggingError){}
+          try{console.error(`[Iris extensions] ${clean} Configure failure reporter failed:`,callbackError);}catch(_loggingError){}
         }
       }
     }
@@ -588,7 +588,7 @@
         }catch(error){
           if(typeof console!=='undefined'&&typeof console.error==='function'){
             try{
-              console.error(`[Hermes extensions] ${extensionId} ${type} listener failed:`,error);
+              console.error(`[Iris extensions] ${extensionId} ${type} listener failed:`,error);
             }catch(_loggingError){ }
           }
         }
@@ -629,12 +629,12 @@
     clearStorageForExtension(id){return storageForExtension(id).clear();},
   };
 
-  window.HermesExtensionSettings=api;
-  window.hermesExt=window.hermesExt||{};
-  window.hermesExt.settings=window.hermesExt.settings||{};
-  window.hermesExt.storage=window.hermesExt.storage||{};
-  window.hermesExt.settings.forExtension=settingsForExtension;
-  window.hermesExt.storage.forExtension=storageForExtension;
-  window.hermesExt.register=registerExtension;
-  primeFromStatus(window.__HERMES_EXTENSION_CONFIG__||{});
+  window.IrisExtensionSettings=api;
+  window.irisExt=window.irisExt||{};
+  window.irisExt.settings=window.irisExt.settings||{};
+  window.irisExt.storage=window.irisExt.storage||{};
+  window.irisExt.settings.forExtension=settingsForExtension;
+  window.irisExt.storage.forExtension=storageForExtension;
+  window.irisExt.register=registerExtension;
+  primeFromStatus(window.__IRIS_EXTENSION_CONFIG__||{});
 })();

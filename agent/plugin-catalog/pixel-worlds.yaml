@@ -1,7 +1,7 @@
 name: pixel-worlds
 repo: https://github.com/cygnostik/pd-pixel-worlds
 sha: 778928b5881fbcc558d04b476c7013b5823bd7fc
-description: Watch your agents inhabit pixel-art realms in Hermes Desktop, with imported scenes and a minimal PW Agents display.
+description: Watch your agents inhabit pixel-art realms in Iris Desktop, with imported scenes and a minimal PW Agents display.
 maintainer: cygnostik
 tier: community
 category: desktop

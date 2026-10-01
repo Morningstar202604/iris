@@ -86,7 +86,7 @@ global.document = { baseURI: 'https://example.test/app/' };
 console.warn = (...args) => { throw new Error('unexpected warn: ' + args.join(' ')); };
 applyUrl('/app/?profile=vops&q=hello&prompt=hi&send=1&keep=1#frag');
 global.localStorage = {
-  store: { 'hermes-webui-session': 'saved-local' },
+  store: { 'iris-webui-session': 'saved-local' },
   getItem(key) {
     return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
   },
@@ -109,11 +109,11 @@ global.switchToProfile = async (name) => {
   switched.push(name);
   S.activeProfile = name;
   S.activeProfileIsDefault = false;
-  localStorage.setItem('hermes-webui-session', 'fresh-local');
+  localStorage.setItem('iris-webui-session', 'fresh-local');
   return true;
 };
 (async () => {
-  const savedLocalBefore = localStorage.getItem('hermes-webui-session');
+  const savedLocalBefore = localStorage.getItem('iris-webui-session');
   const profileSwitchProfileBefore = S.activeProfile || 'default';
   const profileSwitchIsDefaultBefore = !!S.activeProfileIsDefault;
   let profileSwitchCompleted = false;
@@ -136,9 +136,9 @@ global.switchToProfile = async (name) => {
     }
   }
   const blocksSavedLocal = _profileQueryBlocksSavedLocalRestore(intent, null);
-  if (blocksSavedLocal && profileSwitchCompleted && profileSwitchChangedProfile && localStorage.getItem('hermes-webui-session') === savedLocalBefore) localStorage.removeItem('hermes-webui-session');
-  const savedLocalAfterSuppress = localStorage.getItem('hermes-webui-session');
-  const savedLocalAfterReload = localStorage.getItem('hermes-webui-session');
+  if (blocksSavedLocal && profileSwitchCompleted && profileSwitchChangedProfile && localStorage.getItem('iris-webui-session') === savedLocalBefore) localStorage.removeItem('iris-webui-session');
+  const savedLocalAfterSuppress = localStorage.getItem('iris-webui-session');
+  const savedLocalAfterReload = localStorage.getItem('iris-webui-session');
   const keepsExplicitSession = _profileQueryBlocksSavedLocalRestore(intent, 'session-123');
   const afterProfile = window.location.pathname + window.location.search + window.location.hash;
   const promoted = _sessionUrlForSid('abc 123');
@@ -208,7 +208,7 @@ global.document = { baseURI: 'https://example.test/app/' };
 applyUrl('/app/?profile=default&q=hello&keep=1#frag');
 global.S = { activeProfile: 'default', activeProfileIsDefault: true };
 global.localStorage = {
-  store: { 'hermes-webui-session': 'saved-local' },
+  store: { 'iris-webui-session': 'saved-local' },
   getItem(key) {
     return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
   },
@@ -224,7 +224,7 @@ evalBoot('_profileQueryBlocksSavedLocalRestore');
 const intent = _profileQueryIntentFromLocation();
 global.switchToProfile = async () => true;
 (async () => {
-  const savedLocalBefore = localStorage.getItem('hermes-webui-session');
+  const savedLocalBefore = localStorage.getItem('iris-webui-session');
   const profileSwitchProfileBefore = S.activeProfile || 'default';
   const profileSwitchIsDefaultBefore = !!S.activeProfileIsDefault;
   let profileSwitchCompleted = false;
@@ -247,7 +247,7 @@ global.switchToProfile = async () => true;
     }
   }
   const blocksSavedLocal = _profileQueryBlocksSavedLocalRestore(intent, null);
-  if (blocksSavedLocal && profileSwitchCompleted && profileSwitchChangedProfile && localStorage.getItem('hermes-webui-session') === savedLocalBefore) localStorage.removeItem('hermes-webui-session');
+  if (blocksSavedLocal && profileSwitchCompleted && profileSwitchChangedProfile && localStorage.getItem('iris-webui-session') === savedLocalBefore) localStorage.removeItem('iris-webui-session');
   const cleanupGuardPos = bootSrc.indexOf("if(_profileQueryBlocksSavedLocal&&_profileSwitchCompleted&&_profileSwitchChangedProfile){", bootSrc.indexOf("const profileIntent=(typeof _profileQueryIntentFromLocation==='function')?_profileQueryIntentFromLocation():null;"));
   console.log(JSON.stringify({
     intent,
@@ -255,7 +255,7 @@ global.switchToProfile = async () => true;
     profileSwitchCompleted,
     profileSwitchChangedProfile,
     savedLocalBefore,
-    savedLocalAfter: localStorage.getItem('hermes-webui-session'),
+    savedLocalAfter: localStorage.getItem('iris-webui-session'),
     cleanupGuardPos,
   }));
 })().catch(err => {
@@ -299,7 +299,7 @@ const warns = [];
 console.warn = (...args) => { warns.push(args.map(String)); };
 applyUrl('/app/?profile=vops&q=hello&keep=1#frag');
 global.localStorage = {
-  store: { 'hermes-webui-session': 'saved-local' },
+  store: { 'iris-webui-session': 'saved-local' },
   getItem(key) {
     return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
   },
@@ -315,7 +315,7 @@ evalBoot('_profileQueryBlocksSavedLocalRestore');
 const intent = _profileQueryIntentFromLocation();
 global.switchToProfile = async () => { throw new Error('boom'); };
 (async () => {
-  const savedLocalBefore = localStorage.getItem('hermes-webui-session');
+  const savedLocalBefore = localStorage.getItem('iris-webui-session');
   let profileSwitchCompleted = false;
   if (intent && intent.hasParam) {
     try {
@@ -333,7 +333,7 @@ global.switchToProfile = async () => { throw new Error('boom'); };
     }
   }
   const blocksSavedLocal = _profileQueryBlocksSavedLocalRestore(intent, null);
-  if (blocksSavedLocal && profileSwitchCompleted && localStorage.getItem('hermes-webui-session') === savedLocalBefore) localStorage.removeItem('hermes-webui-session');
+  if (blocksSavedLocal && profileSwitchCompleted && localStorage.getItem('iris-webui-session') === savedLocalBefore) localStorage.removeItem('iris-webui-session');
   const afterBoot = window.location.pathname + window.location.search + window.location.hash;
   _consumeComposerPrefillParamsFromLocation();
   const afterPrefill = window.location.pathname + window.location.search + window.location.hash;
@@ -341,7 +341,7 @@ global.switchToProfile = async () => { throw new Error('boom'); };
   console.log(JSON.stringify({
     blocksSavedLocal,
     profileSwitchCompleted,
-    savedLocalAfter: localStorage.getItem('hermes-webui-session'),
+    savedLocalAfter: localStorage.getItem('iris-webui-session'),
     afterBoot,
     afterPrefill,
     promoted,
@@ -388,7 +388,7 @@ const warns = [];
 console.warn = (...args) => { warns.push(args.map(String)); };
 applyUrl('/app/?profile=vops&q=hello&keep=1#frag');
 global.localStorage = {
-  store: { 'hermes-webui-session': 'saved-local' },
+  store: { 'iris-webui-session': 'saved-local' },
   getItem(key) {
     return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
   },
@@ -402,7 +402,7 @@ evalBoot('_profileQueryBlocksSavedLocalRestore');
 const intent = _profileQueryIntentFromLocation();
 global.switchToProfile = async () => false;
 (async () => {
-  const savedLocalBefore = localStorage.getItem('hermes-webui-session');
+  const savedLocalBefore = localStorage.getItem('iris-webui-session');
   let profileSwitchCompleted = false;
   if (intent && intent.hasParam) {
     try {
@@ -420,11 +420,11 @@ global.switchToProfile = async () => false;
     }
   }
   const blocksSavedLocal = _profileQueryBlocksSavedLocalRestore(intent, null);
-  if (blocksSavedLocal && profileSwitchCompleted && localStorage.getItem('hermes-webui-session') === savedLocalBefore) localStorage.removeItem('hermes-webui-session');
+  if (blocksSavedLocal && profileSwitchCompleted && localStorage.getItem('iris-webui-session') === savedLocalBefore) localStorage.removeItem('iris-webui-session');
   console.log(JSON.stringify({
     blocksSavedLocal,
     profileSwitchCompleted,
-    savedLocalAfter: localStorage.getItem('hermes-webui-session'),
+    savedLocalAfter: localStorage.getItem('iris-webui-session'),
     url: window.location.pathname + window.location.search + window.location.hash,
     historyCalls: window.history.calls,
     warns,
@@ -545,7 +545,7 @@ def test_profile_query_blocks_only_implicit_saved_local_restore():
     source = _node_prelude() + """
 evalBoot('_profileQueryBlocksSavedLocalRestore');
 global.localStorage = {
-  store: { 'hermes-webui-session': 'saved-local' },
+  store: { 'iris-webui-session': 'saved-local' },
   getItem(key) {
     return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
   },
@@ -559,12 +559,12 @@ global.localStorage = {
 const validProfile = { hasParam: true, valid: true };
 const invalidProfile = { hasParam: true, valid: false };
 const blocksImplicit = _profileQueryBlocksSavedLocalRestore(validProfile, null);
-if (blocksImplicit) localStorage.removeItem('hermes-webui-session');
-const implicitAfter = localStorage.getItem('hermes-webui-session');
-localStorage.setItem('hermes-webui-session', 'saved-local');
+if (blocksImplicit) localStorage.removeItem('iris-webui-session');
+const implicitAfter = localStorage.getItem('iris-webui-session');
+localStorage.setItem('iris-webui-session', 'saved-local');
 const allowsExplicit = _profileQueryBlocksSavedLocalRestore(validProfile, 'session-123');
-if (allowsExplicit) localStorage.removeItem('hermes-webui-session');
-const explicitAfter = localStorage.getItem('hermes-webui-session');
+if (allowsExplicit) localStorage.removeItem('iris-webui-session');
+const explicitAfter = localStorage.getItem('iris-webui-session');
 console.log(JSON.stringify({
   blocksImplicit,
   allowsExplicit,
@@ -697,7 +697,7 @@ global.renderSessionList = async () => {{}};
 global.startGatewaySSE = () => {{}};
 global.showToast = () => {{}};
 global.t = value => value;
-global.assistantDisplayName = () => 'Hermes';
+global.assistantDisplayName = () => 'Iris';
 global._profileSwitchPanelLoad = async () => {{}};
 global._refreshProfileSwitchBackground = () => {{}};
 var _profileSwitchGeneration = 0;

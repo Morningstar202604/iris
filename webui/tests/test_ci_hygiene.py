@@ -37,7 +37,7 @@ def test_local_test_runner_uses_supported_venv_before_pytest_collection():
 
     assert "python3.13 python3.12 python3.11 python3" in runner
     assert "requirements-dev.txt" in runner
-    assert 'HERMES_WEBUI_TEST_PYTHON' in runner
+    assert 'IRIS_WEBUI_TEST_PYTHON' in runner
     assert "resolve_venv_python()" in runner
     assert '"$VENV_DIR/bin/python" "$VENV_DIR/Scripts/python.exe"' in runner
     assert 'if [[ -x "$candidate" ]]; then' in resolve_body
@@ -46,7 +46,7 @@ def test_local_test_runner_uses_supported_venv_before_pytest_collection():
     # Destructive-fs guard: never create/clear a virtualenv through a symlinked .venv
     # (`python -m venv --clear` would empty the symlink's target).
     assert '-L "$VENV_DIR"' in runner
-    assert "Hermes WebUI tests require Python 3.11, 3.12, or 3.13" in conftest
+    assert "Iris WebUI tests require Python 3.11, 3.12, or 3.13" in conftest
     assert "Run ./scripts/test.sh" in conftest
 
 
@@ -131,7 +131,7 @@ def test_local_test_runner_accepts_windows_layout_venv_from_base_python(tmp_path
 
     proof = repo / "pytest-proof.txt"
     env = os.environ.copy()
-    env["HERMES_WEBUI_TEST_PYTHON"] = "./fake-python"
+    env["IRIS_WEBUI_TEST_PYTHON"] = "./fake-python"
     env["FAKE_VENV_PY_SOURCE"] = "./fake-venv-python-source"
     env["PYTEST_PROOF_FILE"] = str(proof)
 
@@ -186,7 +186,7 @@ def test_local_test_runner_rejects_venv_without_accepted_python_path(tmp_path):
 
     proof = repo / "pytest-proof.txt"
     env = os.environ.copy()
-    env["HERMES_WEBUI_TEST_PYTHON"] = "./fake-python"
+    env["IRIS_WEBUI_TEST_PYTHON"] = "./fake-python"
     env["PYTEST_PROOF_FILE"] = str(proof)
 
     result = subprocess.run(
@@ -207,5 +207,5 @@ def test_local_test_runner_rejects_venv_without_accepted_python_path(tmp_path):
 def test_live_model_success_log_is_debug_not_default_console_log():
     ui = (ROOT / "static" / "ui.js").read_text(encoding="utf-8")
 
-    assert "console.debug('[hermes] Live models loaded" in ui
-    assert "console.log('[hermes] Live models loaded" not in ui
+    assert "console.debug('[iris] Live models loaded" in ui
+    assert "console.log('[iris] Live models loaded" not in ui

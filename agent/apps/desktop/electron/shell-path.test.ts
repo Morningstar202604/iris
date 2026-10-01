@@ -12,8 +12,8 @@ import {
   resetLoginShellPathForTests
 } from './shell-path'
 
-const START = '__HERMES_LOGIN_PATH_START__'
-const END = '__HERMES_LOGIN_PATH_END__'
+const START = '__IRIS_LOGIN_PATH_START__'
+const END = '__IRIS_LOGIN_PATH_END__'
 
 function fakeExecFile(outputsByFlags, { error = null, calls = [] }: any = {}) {
   return (file, args, _options, callback) => {

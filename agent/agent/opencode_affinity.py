@@ -11,7 +11,7 @@ Two sources, one merge point:
   a ``tool_result`` as a new conversation and replay the whole history upstream (#86241, #104449).
 
 The value only has to be opaque and consistent per conversation, so it is derived the same way as
-the other affinity hints Hermes already sends (OpenRouter's sticky ``session_id``, xAI's
+the other affinity hints Iris already sends (OpenRouter's sticky ``session_id``, xAI's
 ``x-grok-conv-id``): the host-declared routing scope first (a host that names its own conversation,
 #96811), then the ambient conversation ROOT (stable across compaction rotation and delegate trees),
 then the physical session id — normalized through ``_cache_scope_from_session_id`` so cron fires of
@@ -36,13 +36,13 @@ def opencode_transport(provider: Optional[str], model: Optional[str], base_url: 
     OpenCode Zen/Go serve Responses-only (``gpt-*``, ``grok-*``, ``muse-spark``), Anthropic-wire
     (``minimax-*``, ``qwen*``, ``claude-*``) and chat/completions models behind one provider, so a
     provider-level or persisted ``api_mode`` is wrong for every model but the one it was saved for.
-    The main runtime (``hermes_cli/runtime_provider.py``) always re-derives from the effective model;
+    The main runtime (``iris_cli/runtime_provider.py``) always re-derives from the effective model;
     auxiliary resolution must agree or ``gpt-5.6-luna`` compression 500s on /chat/completions (#98799).
     Built-in families, custom entries named after one (``opencode-go-bridge``, #85589) and opencode.ai
     hosts all count.
     """
-    from hermes_cli.models import normalize_opencode_base_url, normalize_opencode_model_id, opencode_model_api_mode
-    from hermes_cli.runtime_provider_custom import _get_named_custom_provider, _opencode_family_for_custom
+    from iris_cli.models import normalize_opencode_base_url, normalize_opencode_model_id, opencode_model_api_mode
+    from iris_cli.runtime_provider_custom import _get_named_custom_provider, _opencode_family_for_custom
 
     url = str(base_url or "")
     family = _opencode_family_for_custom(str(provider or ""), url)
@@ -64,7 +64,7 @@ def is_opencode_target(provider: Optional[str], base_url: Optional[str]) -> bool
     ``opencode-<family>-*`` providers, and any base_url hosted on opencode.ai.
     """
     try:
-        from hermes_cli.models import opencode_provider_family
+        from iris_cli.models import opencode_provider_family
 
         if opencode_provider_family(provider) is not None:
             return True
@@ -117,7 +117,7 @@ def custom_provider_session_affinity_headers(
 ) -> dict[str, str]:
     """Return ``{<session_affinity_header>: <key>}`` when the route's provider entry declares one, else ``{}``."""
     try:
-        from hermes_cli.config import get_custom_provider_session_affinity_header
+        from iris_cli.config import get_custom_provider_session_affinity_header
 
         header = get_custom_provider_session_affinity_header(str(base_url or ""))
     except Exception:

@@ -47,8 +47,8 @@ def test_settings_get_returns_defaults():
     assert 'default_model' in d
     assert 'default_workspace' in d
 
-def test_default_model_updates_hermes_config():
-    """POST /api/default-model updates the effective Hermes default model.
+def test_default_model_updates_iris_config():
+    """POST /api/default-model updates the effective Iris default model.
 
     As of #895 the endpoint returns a lightweight ack {ok, model} rather than
     the full model catalog, to avoid triggering a blocking live-provider fetch

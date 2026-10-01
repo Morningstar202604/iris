@@ -94,7 +94,7 @@ def _run_helper(host: str, port: int, env: dict[str, str]) -> subprocess.Complet
 
 
 def _load_bootstrap():
-    spec = importlib.util.spec_from_file_location("hermes_bootstrap_probe", BOOTSTRAP)
+    spec = importlib.util.spec_from_file_location("iris_bootstrap_probe", BOOTSTRAP)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -104,19 +104,19 @@ def _load_bootstrap():
 
 def test_helper_scheme_http_without_tls():
     out = subprocess.run(
-        ["bash", "-c", f". {HEALTH_PROBE}; hermes_webui_probe_scheme"],
+        ["bash", "-c", f". {HEALTH_PROBE}; iris_webui_probe_scheme"],
         capture_output=True, text=True, env={**os.environ,
-                                             "HERMES_WEBUI_TLS_CERT": "",
-                                             "HERMES_WEBUI_TLS_KEY": ""},
+                                             "IRIS_WEBUI_TLS_CERT": "",
+                                             "IRIS_WEBUI_TLS_KEY": ""},
     )
     assert out.stdout == "http"
 
 
 def test_helper_scheme_https_with_tls():
     out = subprocess.run(
-        ["bash", "-c", f". {HEALTH_PROBE}; hermes_webui_probe_scheme"],
+        ["bash", "-c", f". {HEALTH_PROBE}; iris_webui_probe_scheme"],
         capture_output=True, text=True,
-        env={**os.environ, "HERMES_WEBUI_TLS_CERT": "/c", "HERMES_WEBUI_TLS_KEY": "/k"},
+        env={**os.environ, "IRIS_WEBUI_TLS_CERT": "/c", "IRIS_WEBUI_TLS_KEY": "/k"},
     )
     assert out.stdout == "https"
 
@@ -124,7 +124,7 @@ def test_helper_scheme_https_with_tls():
 def test_helper_plain_http_probe():
     with _Server() as srv:
         res = _run_helper("127.0.0.1", srv.port,
-                          {"HERMES_WEBUI_TLS_CERT": "", "HERMES_WEBUI_TLS_KEY": ""})
+                          {"IRIS_WEBUI_TLS_CERT": "", "IRIS_WEBUI_TLS_KEY": ""})
     assert res.returncode == 0
     assert '"status": "ok"' in res.stdout
 
@@ -133,7 +133,7 @@ def test_helper_self_signed_warns_and_succeeds(self_signed_cert):
     cert, key = self_signed_cert
     with _Server(cert, key) as srv:
         res = _run_helper("127.0.0.1", srv.port,
-                          {"HERMES_WEBUI_TLS_CERT": cert, "HERMES_WEBUI_TLS_KEY": key})
+                          {"IRIS_WEBUI_TLS_CERT": cert, "IRIS_WEBUI_TLS_KEY": key})
     assert res.returncode == 0, res.stderr
     assert '"status": "ok"' in res.stdout
     assert "self-signed" in res.stderr.lower()
@@ -143,9 +143,9 @@ def test_helper_insecure_optin_is_silent(self_signed_cert):
     cert, key = self_signed_cert
     with _Server(cert, key) as srv:
         res = _run_helper("127.0.0.1", srv.port, {
-            "HERMES_WEBUI_TLS_CERT": cert,
-            "HERMES_WEBUI_TLS_KEY": key,
-            "HERMES_WEBUI_TLS_INSECURE_PROBE": "1",
+            "IRIS_WEBUI_TLS_CERT": cert,
+            "IRIS_WEBUI_TLS_KEY": key,
+            "IRIS_WEBUI_TLS_INSECURE_PROBE": "1",
         })
     assert res.returncode == 0, res.stderr
     assert '"status": "ok"' in res.stdout
@@ -159,7 +159,7 @@ def test_helper_https_falls_back_to_http_when_server_is_plain_http(self_signed_c
     cert, key = self_signed_cert
     with _Server() as srv:  # plain HTTP server
         res = _run_helper("127.0.0.1", srv.port,
-                          {"HERMES_WEBUI_TLS_CERT": cert, "HERMES_WEBUI_TLS_KEY": key})
+                          {"IRIS_WEBUI_TLS_CERT": cert, "IRIS_WEBUI_TLS_KEY": key})
     assert res.returncode == 0, res.stderr
     assert '"status": "ok"' in res.stdout
 
@@ -170,9 +170,9 @@ def test_helper_insecure_optin_falls_back_to_http(self_signed_cert):
     cert, key = self_signed_cert
     with _Server() as srv:  # plain HTTP
         res = _run_helper("127.0.0.1", srv.port, {
-            "HERMES_WEBUI_TLS_CERT": cert,
-            "HERMES_WEBUI_TLS_KEY": key,
-            "HERMES_WEBUI_TLS_INSECURE_PROBE": "1",
+            "IRIS_WEBUI_TLS_CERT": cert,
+            "IRIS_WEBUI_TLS_KEY": key,
+            "IRIS_WEBUI_TLS_INSECURE_PROBE": "1",
         })
     assert res.returncode == 0, res.stderr
     assert '"status": "ok"' in res.stdout
@@ -183,9 +183,9 @@ def test_helper_insecure_optin_falls_back_to_http(self_signed_cert):
 
 def test_bootstrap_probe_self_signed(monkeypatch, self_signed_cert):
     cert, key = self_signed_cert
-    monkeypatch.setenv("HERMES_WEBUI_TLS_CERT", cert)
-    monkeypatch.setenv("HERMES_WEBUI_TLS_KEY", key)
-    monkeypatch.delenv("HERMES_WEBUI_TLS_INSECURE_PROBE", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_CERT", cert)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_KEY", key)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_INSECURE_PROBE", raising=False)
     bs = _load_bootstrap()
     with _Server(cert, key) as srv:
         assert bs.wait_for_health(f"https://127.0.0.1:{srv.port}/health", timeout=8)
@@ -195,8 +195,8 @@ def test_bootstrap_probe_http_fallback(monkeypatch, self_signed_cert):
     """TLS env set but server serves HTTP -> must succeed via HTTP fallback,
     not poll HTTPS forever (regression for server.py's fallback contract)."""
     cert, key = self_signed_cert
-    monkeypatch.setenv("HERMES_WEBUI_TLS_CERT", cert)
-    monkeypatch.setenv("HERMES_WEBUI_TLS_KEY", key)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_CERT", cert)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_KEY", key)
     bs = _load_bootstrap()
     with _Server() as srv:  # plain HTTP
         # The returned scheme must reflect the ACTUAL successful scheme (http),
@@ -209,15 +209,15 @@ def test_bootstrap_probe_returns_scheme_actually_used(monkeypatch, self_signed_c
     """wait_for_health returns the scheme that answered, truthy on success."""
     cert, key = self_signed_cert
     # HTTPS server with self-signed cert -> answered over https.
-    monkeypatch.setenv("HERMES_WEBUI_TLS_CERT", cert)
-    monkeypatch.setenv("HERMES_WEBUI_TLS_KEY", key)
-    monkeypatch.delenv("HERMES_WEBUI_TLS_INSECURE_PROBE", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_CERT", cert)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_KEY", key)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_INSECURE_PROBE", raising=False)
     bs = _load_bootstrap()
     with _Server(cert, key) as srv:
         assert bs.wait_for_health(f"https://127.0.0.1:{srv.port}/health", timeout=8) == "https"
     # Plain-HTTP, no TLS env -> answered over http.
-    monkeypatch.delenv("HERMES_WEBUI_TLS_CERT", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TLS_KEY", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_CERT", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_KEY", raising=False)
     bs = _load_bootstrap()
     with _Server() as srv:
         assert bs.wait_for_health(f"http://127.0.0.1:{srv.port}/health", timeout=8) == "http"
@@ -234,17 +234,17 @@ def test_bootstrap_probe_insecure_optin_http_fallback(monkeypatch, self_signed_c
     that moves the fallback under the non-opt-in ``else``).
     """
     cert, key = self_signed_cert
-    monkeypatch.setenv("HERMES_WEBUI_TLS_CERT", cert)
-    monkeypatch.setenv("HERMES_WEBUI_TLS_KEY", key)
-    monkeypatch.setenv("HERMES_WEBUI_TLS_INSECURE_PROBE", "1")
+    monkeypatch.setenv("IRIS_WEBUI_TLS_CERT", cert)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_KEY", key)
+    monkeypatch.setenv("IRIS_WEBUI_TLS_INSECURE_PROBE", "1")
     bs = _load_bootstrap()
     with _Server() as srv:  # plain HTTP server, no TLS
         assert bs.wait_for_health(f"https://127.0.0.1:{srv.port}/health", timeout=8)
 
 
 def test_bootstrap_probe_plain_http(monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_TLS_CERT", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TLS_KEY", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_CERT", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TLS_KEY", raising=False)
     bs = _load_bootstrap()
     with _Server() as srv:
         assert bs.wait_for_health(f"http://127.0.0.1:{srv.port}/health", timeout=8)
@@ -264,14 +264,14 @@ def test_ctl_status_survives_readonly_env_vars(tmp_path: Path):
     (repo / "scripts" / "lib").mkdir(parents=True)
     (repo / "ctl.sh").write_bytes(CTL.read_bytes())
     (repo / "scripts" / "lib" / "health_probe.sh").write_bytes(HEALTH_PROBE.read_bytes())
-    (repo / ".env").write_text("UID=1000\nGID=1000\nHERMES_WEBUI_PORT=8787\n",
+    (repo / ".env").write_text("UID=1000\nGID=1000\nIRIS_WEBUI_PORT=8787\n",
                                encoding="utf-8")
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(tmp_path / ".hermes")
+    env["IRIS_HOME"] = str(tmp_path / ".iris")
     res = subprocess.run(
         ["bash", str(repo / "ctl.sh"), "status"],
         capture_output=True, text=True, env=env, timeout=30,
     )
     assert res.returncode == 0, res.stderr
-    assert "hermes-webui" in res.stdout
+    assert "iris-webui" in res.stdout
     assert "readonly variable" not in res.stderr

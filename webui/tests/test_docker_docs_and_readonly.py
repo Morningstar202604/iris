@@ -2,7 +2,7 @@
 
 Pins three invariants:
 
-1. The `hermes-agent-src` named volume is mounted READ-ONLY on the WebUI
+1. The `iris-agent-src` named volume is mounted READ-ONLY on the WebUI
    service in both multi-container compose files. The WebUI only reads it to
    install agent Python deps at startup; this is defence-in-depth against a
    compromised WebUI writing into the agent's source tree (Concern raised by
@@ -14,7 +14,7 @@ Pins three invariants:
    Docker Desktop on Windows.
 
 3. `docs/docker.md` documents the agent-image upgrade procedure (`docker volume
-   rm hermes-agent-src`) — the root cause of #1416.
+   rm iris-agent-src`) — the root cause of #1416.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 
 
-# ── 1: hermes-agent-src must be read-only on the WebUI mount ────────────────
+# ── 1: iris-agent-src must be read-only on the WebUI mount ────────────────
 
 
 def test_two_container_webui_mounts_agent_src_readonly():
@@ -34,9 +34,9 @@ def test_two_container_webui_mounts_agent_src_readonly():
     cannot rewrite the agent source it then imports."""
     src = (REPO / "docker-compose.two-container.yml").read_text(encoding="utf-8")
     assert (
-        "hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent:ro" in src
+        "iris-agent-src:/home/iriswebui/.iris/iris-agent:ro" in src
     ), (
-        "two-container: the WebUI must mount hermes-agent-src with :ro. "
+        "two-container: the WebUI must mount iris-agent-src with :ro. "
         "Without :ro, a compromised WebUI process can rewrite the agent's "
         "Python source tree."
     )
@@ -45,9 +45,9 @@ def test_two_container_webui_mounts_agent_src_readonly():
 def test_three_container_webui_mounts_agent_src_readonly():
     src = (REPO / "docker-compose.three-container.yml").read_text(encoding="utf-8")
     assert (
-        "hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent:ro" in src
+        "iris-agent-src:/home/iriswebui/.iris/iris-agent:ro" in src
     ), (
-        "three-container: the WebUI must mount hermes-agent-src with :ro."
+        "three-container: the WebUI must mount iris-agent-src with :ro."
     )
 
 
@@ -56,17 +56,17 @@ def test_agent_service_keeps_writable_agent_src_mount():
     It must stay read-write — only the WebUI side is read-only."""
     for fn in ("docker-compose.two-container.yml", "docker-compose.three-container.yml"):
         src = (REPO / fn).read_text(encoding="utf-8")
-        # The agent's mount is `hermes-agent-src:/opt/hermes` (no :ro suffix).
-        # Look for the line that has /opt/hermes without :ro.
+        # The agent's mount is `iris-agent-src:/opt/iris` (no :ro suffix).
+        # Look for the line that has /opt/iris without :ro.
         agent_lines = [
             line for line in src.splitlines()
-            if "hermes-agent-src:/opt/hermes" in line
+            if "iris-agent-src:/opt/iris" in line
         ]
-        assert agent_lines, f"{fn}: agent must mount hermes-agent-src at /opt/hermes"
+        assert agent_lines, f"{fn}: agent must mount iris-agent-src at /opt/iris"
         for line in agent_lines:
             assert not line.rstrip().endswith(":ro"), (
-                f"{fn}: agent's hermes-agent-src mount must be writable "
-                f"(it populates /opt/hermes on first run): {line!r}"
+                f"{fn}: agent's iris-agent-src mount must be writable "
+                f"(it populates /opt/iris on first run): {line!r}"
             )
 
 
@@ -78,35 +78,35 @@ def test_two_container_workspace_uses_home_env_var():
     Desktop on Windows, and on some NAS appliances. Use `${HOME}` to match the
     single-container `docker-compose.yml` and avoid platform drift."""
     src = (REPO / "docker-compose.two-container.yml").read_text(encoding="utf-8")
-    assert "${HERMES_WORKSPACE:-${HOME}/workspace}:/workspace" in src, (
+    assert "${IRIS_WORKSPACE:-${HOME}/workspace}:/workspace" in src, (
         "two-container: workspace default must use ${HOME}/workspace, not ~/workspace, "
         "to match docker-compose.yml's single-container convention."
     )
-    assert "${HERMES_WORKSPACE:-~/workspace}" not in src, (
+    assert "${IRIS_WORKSPACE:-~/workspace}" not in src, (
         "two-container: tilde-form workspace default still present — change to ${HOME}/workspace."
     )
 
 
 def test_three_container_workspace_uses_home_env_var():
     src = (REPO / "docker-compose.three-container.yml").read_text(encoding="utf-8")
-    assert "${HERMES_WORKSPACE:-${HOME}/workspace}:/workspace" in src, (
+    assert "${IRIS_WORKSPACE:-${HOME}/workspace}:/workspace" in src, (
         "three-container: workspace default must use ${HOME}/workspace, not ~/workspace."
     )
-    assert "${HERMES_WORKSPACE:-~/workspace}" not in src
+    assert "${IRIS_WORKSPACE:-~/workspace}" not in src
 
 
 def test_single_container_workspace_already_uses_home_env_var():
     """Sanity: the single-container file has used ${HOME} all along; pin it
     so it doesn't drift back."""
     src = (REPO / "docker-compose.yml").read_text(encoding="utf-8")
-    assert "${HERMES_WORKSPACE:-${HOME}/workspace}:/workspace" in src
+    assert "${IRIS_WORKSPACE:-${HOME}/workspace}:/workspace" in src
 
 
 # ── 3: docs/docker.md documents the agent-image upgrade procedure ──────────
 
 
 def test_docker_md_documents_agent_image_upgrade():
-    """The `hermes-agent-src` named volume caches the agent source on first
+    """The `iris-agent-src` named volume caches the agent source on first
     `up` and is reused verbatim on every subsequent `up`, even after a fresh
     `docker pull` of the agent image. This is the root cause of #1416. The
     docs must give users the explicit `docker volume rm` recipe so they don't
@@ -118,7 +118,7 @@ def test_docker_md_documents_agent_image_upgrade():
     assert "docker volume rm" in docs, (
         "docs/docker.md must show the `docker volume rm` step in the upgrade recipe."
     )
-    assert "hermes-agent-src" in docs
+    assert "iris-agent-src" in docs
     # Cross-reference to the original issue so users searching for the
     # symptom land in the right place
     assert "#1416" in docs
@@ -159,10 +159,10 @@ def test_docker_md_documents_isolation_model():
 #
 # The :ro mount fixed in PR #2470 broke a second, less obvious surface:
 # `uv pip install "$_agent_src[all]"` invokes setuptools' egg_info build step,
-# which touches `hermes_agent.egg-info/` *inside the source tree* even under
+# which touches `iris_agent.egg-info/` *inside the source tree* even under
 # PEP 517 build isolation. On a `:ro` mount this returns `EROFS` and (under
 # `set -e`) kills container startup. The fix: copy the source tree into a
-# writable persistent directory (/app/hermes-agent-src) and run an editable
+# writable persistent directory (/app/iris-agent-src) and run an editable
 # install against it. The staged copy shares the venv's lifecycle — both
 # survive restarts and are lost together on container recreation.
 #
@@ -183,7 +183,7 @@ def test_docker_init_stages_agent_source_for_writable_install():
     assert "_stage_src=" in src, (
         "docker_init.bash must declare a _stage_src writable build dir "
         "before invoking `uv pip install` against the (potentially :ro) "
-        "hermes-agent source."
+        "iris-agent source."
     )
 
     # The install line must reference the staged path, NOT the raw _agent_src
@@ -199,7 +199,7 @@ def test_docker_init_stages_agent_source_for_writable_install():
     for line in install_lines:
         assert '"$_agent_src[all]"' not in line, (
             "docker_init.bash invokes `uv pip install $_agent_src[all]` "
-            "directly — this fails with EROFS when the hermes-agent volume "
+            "directly — this fails with EROFS when the iris-agent volume "
             "is mounted :ro (the production multi-container default). "
             "Use the writable $_stage_src path instead. "
             f"Offending line: {line!r}"
@@ -267,12 +267,12 @@ def test_docker_init_excludes_egg_info_during_staging():
 
 
 def test_docker_init_makes_staged_dir_writable_after_ro_mount_copy():
-    """Regression test for the docker-init "could not create hermes_agent.egg-info:
+    """Regression test for the docker-init "could not create iris_agent.egg-info:
     Permission denied" failure on :ro multi-container mounts.
 
-    `rsync -a` / `cp -a` preserve the source tree's mode bits, so a hermes-agent
+    `rsync -a` / `cp -a` preserve the source tree's mode bits, so a iris-agent
     source mounted mode 555 leaves the staged copy also mode 555 even though the
-    staging dir itself was created writable by hermeswebui. setuptools then can't
+    staging dir itself was created writable by iriswebui. setuptools then can't
     create `<pkg>.egg-info/` next to the package and dies with "Permission denied"
     during `uv pip install`. The fix is a `chmod -R u+w` on the staged tree AFTER
     both copy paths and BEFORE the install. This test pins that ordering and the
@@ -290,9 +290,9 @@ def test_docker_init_makes_staged_dir_writable_after_ro_mount_copy():
     # docker-init.bash style (never widen perms beyond what the operator needs).
     assert re.search(r"chmod\s+-R\s+u\+w\s+\"?\\?\$?_stage_src\"?", stage_block), (
         "docker_init.bash staging block must `chmod -R u+w \"$_stage_src\"` "
-        "after the rsync/cp copy. Without it, a :ro hermes-agent mount leaves "
+        "after the rsync/cp copy. Without it, a :ro iris-agent mount leaves "
         "the staged tree mode 555 and `uv pip install` fails with "
-        "'could not create hermes_agent.egg-info: Permission denied' under "
+        "'could not create iris_agent.egg-info: Permission denied' under "
         "PEP 517 build isolation."
     )
 
@@ -317,16 +317,16 @@ def test_docker_init_makes_staged_dir_writable_after_ro_mount_copy():
 
 # ── 6: docker_init.bash editable install with persistent staging ─────────────
 #
-# The upstream hermes-agent setup.py build guard blocks bdist_wheel outside Nix
+# The upstream iris-agent setup.py build guard blocks bdist_wheel outside Nix
 # builds. The WebUI uses an editable install (`uv pip install -e`) to bypass
-# this. The staged source lives at /app/hermes-agent-src (persistent, same
+# this. The staged source lives at /app/iris-agent-src (persistent, same
 # lifecycle as the venv) so the editable .pth link remains valid across
 # container restarts without sentinel files or state machines.
 
 
 def test_docker_init_uses_editable_install():
     """docker_init.bash must use `uv pip install -e` (editable) for the
-    hermes-agent staged source. The upstream setup.py build guard blocks
+    iris-agent staged source. The upstream setup.py build guard blocks
     bdist_wheel outside Nix builds. Editable installs use build_editable
     which bypasses the guard entirely."""
     src = (REPO / "docker_init.bash").read_text(encoding="utf-8")
@@ -339,7 +339,7 @@ def test_docker_init_uses_editable_install():
     for line in install_lines:
         assert re.search(r"uv\s+pip\s+install\s+-e\b", line), (
             "docker_init.bash must use editable install (`uv pip install -e`) "
-            "for hermes-agent. The upstream setup.py build guard blocks "
+            "for iris-agent. The upstream setup.py build guard blocks "
             "bdist_wheel outside Nix builds, causing container startup failure. "
             f"Offending line: {line!r}"
         )

@@ -26,8 +26,8 @@ from gateway.restart import (
 )
 from gateway.session import SessionSource
 from gateway.session_state import SERVICE_TIER_UNSET as _SERVICE_TIER_UNSET
-from hermes_cli.config import cfg_get, resolve_ephemeral_system_prompt_from_config
-from hermes_cli.fallback_config import get_fallback_chain
+from iris_cli.config import cfg_get, resolve_ephemeral_system_prompt_from_config
+from iris_cli.fallback_config import get_fallback_chain
 from utils import is_truthy_value
 
 if TYPE_CHECKING:  # string annotations only; never imported at runtime (cycle)
@@ -60,11 +60,11 @@ class GatewayConfigLoadersMixin:
     def _load_prefill_messages() -> List[Dict[str, Any]]:
         """Load ephemeral prefill messages from config or env var.
 
-        HERMES_PREFILL_MESSAGES_FILE env wins, then top-level prefill_messages_file in config.yaml,
-        then legacy agent.prefill_messages_file. Relative paths resolve from ~/.hermes/.
+        IRIS_PREFILL_MESSAGES_FILE env wins, then top-level prefill_messages_file in config.yaml,
+        then legacy agent.prefill_messages_file. Relative paths resolve from ~/.iris/.
         """
         from gateway.run import _gateway_config_home, _load_gateway_config
-        file_path = os.getenv("HERMES_PREFILL_MESSAGES_FILE", "")
+        file_path = os.getenv("IRIS_PREFILL_MESSAGES_FILE", "")
         if not file_path:
             cfg = _load_gateway_config()
             file_path = str(
@@ -91,9 +91,9 @@ class GatewayConfigLoadersMixin:
 
     @staticmethod
     def _load_ephemeral_system_prompt() -> str:
-        """HERMES_EPHEMERAL_SYSTEM_PROMPT env first, then ``display.personality`` / ``agent.system_prompt``."""
+        """IRIS_EPHEMERAL_SYSTEM_PROMPT env first, then ``display.personality`` / ``agent.system_prompt``."""
         from gateway.run import _load_gateway_config
-        prompt = os.getenv("HERMES_EPHEMERAL_SYSTEM_PROMPT", "")
+        prompt = os.getenv("IRIS_EPHEMERAL_SYSTEM_PROMPT", "")
         if prompt:
             return prompt
         return resolve_ephemeral_system_prompt_from_config(_load_gateway_config())
@@ -112,12 +112,12 @@ class GatewayConfigLoadersMixin:
     ) -> str:
         """Resolve model for this channel: channel_overrides else global default.
 
-        Precedence lives in :func:`hermes_cli.model_switch.resolve_effective_model` (shared with the
+        Precedence lives in :func:`iris_cli.model_switch.resolve_effective_model` (shared with the
         API server so the surfaces cannot diverge). No session tier here: session /model overrides
         are applied later by ``_apply_session_model_override``.
         """
         from gateway.run import _resolve_gateway_model
-        from hermes_cli.model_switch import resolve_effective_model
+        from iris_cli.model_switch import resolve_effective_model
         return resolve_effective_model(
             None,  # session tier applied downstream (_apply_session_model_override)
             self._channel_override(platform, chat_id, thread_id, parent_id),
@@ -147,7 +147,7 @@ class GatewayConfigLoadersMixin:
 
     @staticmethod
     def _load_reasoning_config(model: str = "") -> dict | None:
-        """Reasoning effort from config.yaml via :func:`hermes_constants.resolve_reasoning_config`.
+        """Reasoning effort from config.yaml via :func:`iris_constants.resolve_reasoning_config`.
 
         Per-model override > global ``agent.reasoning_effort``; YAML False = disabled. Empty
         ``model`` uses ``model.default``.
@@ -155,7 +155,7 @@ class GatewayConfigLoadersMixin:
         Closes #21256.
         """
         from gateway.run import _load_gateway_config
-        from hermes_constants import resolve_reasoning_config
+        from iris_constants import resolve_reasoning_config
         return resolve_reasoning_config(_load_gateway_config(), model)
 
     @staticmethod
@@ -243,7 +243,7 @@ class GatewayConfigLoadersMixin:
     @classmethod
     def _load_busy_input_mode(cls) -> str:
         """Gateway drain-time busy-input behavior from env/config (default ``interrupt``)."""
-        mode = cls._env_or_cfg_str("HERMES_GATEWAY_BUSY_INPUT_MODE", "display", "busy_input_mode").lower()
+        mode = cls._env_or_cfg_str("IRIS_GATEWAY_BUSY_INPUT_MODE", "display", "busy_input_mode").lower()
         return mode if mode in {"queue", "steer"} else "interrupt"
 
     @classmethod
@@ -254,7 +254,7 @@ class GatewayConfigLoadersMixin:
         is honored only when explicitly set so existing queue setups keep working.
         """
         from gateway.run import GatewayRunner
-        legacy = cls._env_or_cfg_str("HERMES_GATEWAY_BUSY_TEXT_MODE", "display", "busy_text_mode").lower()
+        legacy = cls._env_or_cfg_str("IRIS_GATEWAY_BUSY_TEXT_MODE", "display", "busy_text_mode").lower()
         if legacy in {"interrupt", "queue"}:
             return legacy
         return "queue" if GatewayRunner._load_busy_input_mode() == "queue" else "interrupt"
@@ -380,7 +380,7 @@ class GatewayConfigLoadersMixin:
     @classmethod
     def _load_restart_drain_timeout(cls) -> float:
         """Graceful gateway restart/stop drain timeout in seconds."""
-        raw = cls._env_or_cfg_str("HERMES_RESTART_DRAIN_TIMEOUT", "agent", "restart_drain_timeout")
+        raw = cls._env_or_cfg_str("IRIS_RESTART_DRAIN_TIMEOUT", "agent", "restart_drain_timeout")
         value = parse_restart_drain_timeout(raw)
         if raw and value == DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT:
             cls._warn_unparsable_timeout("restart_drain_timeout", raw, DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT)
@@ -439,7 +439,7 @@ class GatewayConfigLoadersMixin:
     def _load_restart_after_turn_timeout(cls) -> float:
         """In-band restart wait-for-idle timeout in seconds."""
         return cls._load_env_or_agent_cfg_timeout(
-            "HERMES_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout",
+            "IRIS_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout",
             parse_restart_after_turn_timeout, DEFAULT_GATEWAY_RESTART_AFTER_TURN_TIMEOUT,
         )
 
@@ -450,7 +450,7 @@ class GatewayConfigLoadersMixin:
         See #82161.
         """
         return cls._load_env_or_agent_cfg_timeout(
-            "HERMES_CRON_DRAIN_TIMEOUT", "cron_drain_timeout",
+            "IRIS_CRON_DRAIN_TIMEOUT", "cron_drain_timeout",
             parse_cron_drain_timeout, DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT,
         )
 
@@ -481,7 +481,7 @@ class GatewayConfigLoadersMixin:
         secondary sees its own ``.env`` value, not the launch profile's ``os.environ``."""
         from gateway.run import _load_gateway_config
         from gateway.platforms._shared import platform_gate_env as _platform_gate_env
-        mode = _platform_gate_env("HERMES_BACKGROUND_NOTIFICATIONS")
+        mode = _platform_gate_env("IRIS_BACKGROUND_NOTIFICATIONS")
         if not mode:
             raw = cfg_get(_load_gateway_config(), "display", "background_process_notifications")
             if raw is False:
@@ -521,7 +521,7 @@ class GatewayConfigLoadersMixin:
         chain; only a successful read that genuinely lacks the key clears it.
 
         Cron already does this per job via ``get_fallback_chain``; the gateway previously froze
-        ``self._fallback_model`` at process start, so a chain configured (or changed) after ``hermes
+        ``self._fallback_model`` at process start, so a chain configured (or changed) after ``iris
         gateway`` was running never reached messaging sessions even though the same process's cron jobs fell
         back correctly. Fixes #60955.
 
@@ -530,14 +530,14 @@ class GatewayConfigLoadersMixin:
         home handed every secondary profile the default profile's fallback chain.
         """
         from gateway.run import _gateway_config_home
-        from hermes_constants import hermes_home_key
+        from iris_constants import iris_home_key
         home = _gateway_config_home()
         by_home = getattr(self, "_fallback_model_by_home", None)
         if by_home is None:
             by_home = self._fallback_model_by_home = {}
-        home_key = hermes_home_key(home)
+        home_key = iris_home_key(home)
         try:
-            from hermes_cli.config_effective import load_user_config_effective
+            from iris_cli.config_effective import load_user_config_effective
             cfg_path = home / "config.yaml"
             if not cfg_path.exists():
                 by_home[home_key] = self._fallback_model = None

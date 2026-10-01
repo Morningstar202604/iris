@@ -27,7 +27,7 @@ def _run_commands_js(script_body: str) -> dict:
           localStorage: {{ getItem(){{return null;}}, setItem(){{}}, removeItem(){{}} }},
           t: (key) => key,
           api: async (path) => {{
-            const url = new URL('http://hermes.local' + path);
+            const url = new URL('http://iris.local' + path);
             if (url.pathname !== '/api/workspaces/suggest') {{
               throw new Error('unexpected api path: ' + path);
             }}

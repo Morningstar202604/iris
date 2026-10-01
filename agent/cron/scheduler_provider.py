@@ -56,7 +56,7 @@ def _guarded_store_write(action, description, *args, **kwargs):
 
     The gateway runs the provider on an unsupervised daemon thread: one escaping exception
     there stops cron silently while the gateway keeps serving (#111010). Heartbeat/error
-    markers are diagnostics for ``hermes cron status`` — losing one write to a broken store
+    markers are diagnostics for ``iris cron status`` — losing one write to a broken store
     must degrade to a logged warning, not thread death.
     """
     try:
@@ -77,7 +77,7 @@ def _existing_profile_homes(profile_homes: list) -> list:
 
     Ticking or heartbeating a deleted home recreates its ``cron/`` workspace (``record_ticker_heartbeat`` ->
     ``ensure_dirs`` -> ``mkdir(parents=True)``) on every 60s cycle, so the "deleted" profile silently comes
-    back on disk and in ``hermes profile list`` (#47368). Filtering on directory existence leaves a deleted
+    back on disk and in ``iris profile list`` (#47368). Filtering on directory existence leaves a deleted
     profile's home untouched, which is the correct invariant: a home that does not exist cannot hold jobs to
     fire.
     """
@@ -96,18 +96,18 @@ def _existing_profile_homes(profile_homes: list) -> list:
 def _profile_cron_scope(home):
     """Scope the calling thread to one profile's home + cron store for the block."""
     from cron.jobs import use_cron_store
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from iris_constants import set_iris_home_override, reset_iris_home_override
 
     # Record per-profile heartbeat after each tick cycle. Distinguish a COMPLETED cycle (``_tick_error``
     # unset) — where each profile's beat reflects its own outcome, so a yielding profile does not darken
     # healthy siblings — from an aborted one (exception), where no profile completed and all beats are
     # unsuccessful (#32612).
-    home_token = set_hermes_home_override(str(home))
+    home_token = set_iris_home_override(str(home))
     try:
         with use_cron_store(home):
             yield
     finally:
-        reset_hermes_home_override(home_token)
+        reset_iris_home_override(home_token)
 
 
 class CronScheduler(ABC):
@@ -257,7 +257,7 @@ def provider_supports_split_fire(provider: Any) -> bool:
 def _misfire_grace_minutes() -> float:
     """``cron.misfire_grace_minutes`` from config; non-positive disables the catch-up sweep."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from iris_cli.config import cfg_get, load_config
 
         config = load_config()
         return float(
@@ -276,8 +276,8 @@ def fire_overdue_jobs(
     concurrent late external retry is de-duplicated by the store CAS; waits out
     ``cron.misfire_grace_minutes`` so the external retry gets first right. Returns jobs dispatched.
     """
-    # `hermes pause` ESTOP: skip the sweep entirely. No state to unwind — the
-    # next housekeeping pass after `hermes resume` catches overdue work up
+    # `iris pause` ESTOP: skip the sweep entirely. No state to unwind — the
+    # next housekeeping pass after `iris resume` catches overdue work up
     # through the existing claim_fire path. Distinct component name from the
     # ticker's "cron" so the log-once mechanism fires independently.
     with contextlib.suppress(ImportError):
@@ -295,12 +295,12 @@ def fire_overdue_jobs(
         return 0
 
     from cron.jobs import (
-        ONESHOT_GRACE_SECONDS, _elapsed_seconds, _ensure_aware, _hermes_now,
+        ONESHOT_GRACE_SECONDS, _elapsed_seconds, _ensure_aware, _iris_now,
         is_job_runnable, load_jobs,
     )
 
     if now is None:
-        now = _hermes_now()
+        now = _iris_now()
 
     fired = 0
     for job in load_jobs():
@@ -366,7 +366,7 @@ def resolve_cron_scheduler() -> "CronScheduler":
     with a warning — cron must never be left without a trigger."""
     name = ""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from iris_cli.config import cfg_get, load_config
         name = (cfg_get(load_config(), "cron", "provider", default="") or "").strip()
     except Exception:
         pass
@@ -420,7 +420,7 @@ class InProcessCronScheduler(CronScheduler):
         from cron.scheduler import tick as cron_tick
         from cron.jobs import clear_ticker_error, record_ticker_error, record_ticker_heartbeat
         from cron.scheduler_ownership import register_ticked_homes
-        from hermes_constants import get_process_hermes_home
+        from iris_constants import get_process_iris_home
 
         logger.info("In-process cron scheduler started (interval=%ds)", interval)
 
@@ -428,8 +428,8 @@ class InProcessCronScheduler(CronScheduler):
         # ── Multiplex profiles ──────────────────────────────────────────── When profile_homes is set
         # (multiplex_profiles on), tick EACH profile's cron store on every tick cycle so secondary-profile
         # jobs actually fire instead of languishing in a store no ticker owns (#69377). Without this, only
-        # the process-global HERMES_HOME (the default profile) is ticked. Heartbeats and recovery are also
-        # scoped per profile so `hermes cron status` reflects liveness for every profile independently.
+        # the process-global IRIS_HOME (the default profile) is ticked. Heartbeats and recovery are also
+        # scoped per profile so `iris cron status` reflects liveness for every profile independently.
         if profile_homes is not None and (callable(profile_homes) or profile_homes):
             self._start_multiplex(
                 stop_event, profile_homes=profile_homes, adapters=adapters, loop=loop,
@@ -439,7 +439,7 @@ class InProcessCronScheduler(CronScheduler):
             return
 
         # Single-profile ticker: the launch home is the only home this process owns cron for.
-        register_ticked_homes([get_process_hermes_home()])
+        register_ticked_homes([get_process_iris_home()])
 
         # Startup recovery and the initial heartbeat run before the guarded loop; a broken
         # store here must not take the whole ticker thread down (#111010) — the loop's own
@@ -450,7 +450,7 @@ class InProcessCronScheduler(CronScheduler):
                 logger.warning(
                     "Marked %d interrupted cron execution(s) unknown after restart", recovered
                 )
-            # Heartbeat before the first sleep so `hermes cron status` sees a live ticker
+            # Heartbeat before the first sleep so `iris cron status` sees a live ticker
             # immediately.
             record_ticker_heartbeat()
         except BaseException as e:
@@ -485,7 +485,7 @@ class InProcessCronScheduler(CronScheduler):
                     logger.info("Cron tick yielded: %s", e)
                 else:
                     logger.error("Cron tick error: %s", e, exc_info=True)
-                # Persist the reason so `hermes cron status` (separate process) shows WHY.
+                # Persist the reason so `iris cron status` (separate process) shows WHY.
                 _guarded_store_write(
                     record_ticker_error, "tick error", f"{type(e).__name__}: {e}"
                 )

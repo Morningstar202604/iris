@@ -1,5 +1,5 @@
 name: bridge-adapter
-repo: https://github.com/Kesuek/hermes-bridge-adapter
+repo: https://github.com/Kesuek/iris-bridge-adapter
 sha: 073f2e8275680ef66515cbf78296b94081b51689
 description: Generic JSON-file-based bridge adapter. Bridges self-register via a registry/ manifest (presence
   = registered, rm = unregistered). Polls inbox/ for incoming messages, writes outgoing to outbox/. External
@@ -7,7 +7,7 @@ description: Generic JSON-file-based bridge adapter. Bridges self-register via a
 maintainer: Kesuek
 tier: community
 category: platform
-docs_url: https://github.com/Kesuek/hermes-bridge-adapter#readme
+docs_url: https://github.com/Kesuek/iris-bridge-adapter#readme
 capabilities:
   provides_tools: []
   provides_hooks: []

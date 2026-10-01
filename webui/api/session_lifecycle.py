@@ -1,5 +1,5 @@
 """
-Hermes WebUI memory-provider session lifecycle.
+Iris WebUI memory-provider session lifecycle.
 
 Batch-extraction memory providers (OpenViking, Holographic) only extract memories
 when AIAgent.commit_memory_session() invokes provider on_session_end(). WebUI
@@ -13,7 +13,7 @@ sessions can be reopened and continued many times, so the lifecycle must guarant
 
 CLI-parity semantics — post-turn marking, boundary extraction/commit:
 
-- Completed turn: Hermes core still mirrors the exchange through
+- Completed turn: Iris core still mirrors the exchange through
   run_agent.py::_sync_external_memory_for_turn(), MemoryManager sync_all(), and
   provider sync_turn() WITHOUT triggering extraction.  WebUI then calls
   mark_turn_completed() after the saved/completed-turn boundary so later drains

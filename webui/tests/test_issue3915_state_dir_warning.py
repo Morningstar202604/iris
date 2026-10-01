@@ -1,7 +1,7 @@
 """Tests for STATE_DIR divergence warning (issue #3915).
 
 When a user switches launch methods (bootstrap.py / ctl.sh / systemd), the
-HERMES_WEBUI_STATE_DIR env var may differ from the previous run, leaving
+IRIS_WEBUI_STATE_DIR env var may differ from the previous run, leaving
 the current state directory empty while session data exists in a sibling.
 
 This test suite verifies that _warn_state_dir_divergence() detects this
@@ -44,7 +44,7 @@ def test_warn_when_session_dir_empty_and_sibling_has_data(capsys):
         assert "STATE_DIR is empty but a sibling state directory has session data" in captured.out
         assert str(current_state) in captured.out
         assert str(sibling_state) in captured.out
-        assert "HERMES_WEBUI_STATE_DIR" in captured.out
+        assert "IRIS_WEBUI_STATE_DIR" in captured.out
 
 
 def test_no_warn_when_session_dir_has_files(capsys):

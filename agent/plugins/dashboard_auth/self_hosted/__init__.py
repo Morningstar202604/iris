@@ -5,7 +5,7 @@ endpoints from ``{issuer}/.well-known/openid-configuration``, builds the PKCE (S
 URL, exchanges the code, and verifies the **ID token** (the access token is opaque per spec)
 against the discovered ``jwks_uri`` with ``iss``/``aud`` pinned. Public and confidential
 (``client_secret`` layered on top of PKCE, never replacing it) clients both work. Config:
-``dashboard.oauth.self_hosted.{issuer,client_id,scopes,client_secret}`` or ``HERMES_DASHBOARD_OIDC_*``.
+``dashboard.oauth.self_hosted.{issuer,client_id,scopes,client_secret}`` or ``IRIS_DASHBOARD_OIDC_*``.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from hermes_cli.dashboard_auth import LoginStart, ProviderError, Session
+from iris_cli.dashboard_auth import LoginStart, ProviderError, Session
 from plugins.dashboard_auth._shared import (
     JSON_HEADERS,
     TOKEN_ENDPOINT_TIMEOUT_SEC as _TOKEN_ENDPOINT_TIMEOUT_SEC,
@@ -285,21 +285,21 @@ def _settings() -> dict:
     def setting(env_name: str, cfg_key: str) -> str:
         return resolve_env_or_cfg(env_name, oidc_cfg.get(cfg_key))
 
-    issuer = setting("HERMES_DASHBOARD_OIDC_ISSUER", "issuer")
-    client_id = setting("HERMES_DASHBOARD_OIDC_CLIENT_ID", "client_id")
+    issuer = setting("IRIS_DASHBOARD_OIDC_ISSUER", "issuer")
+    client_id = setting("IRIS_DASHBOARD_OIDC_CLIENT_ID", "client_id")
     if not issuer or not client_id:
         raise SkipRegistration(
             "Self-hosted OIDC dashboard auth is not configured. Set both an issuer and "
-            "a client_id — either as env vars (HERMES_DASHBOARD_OIDC_ISSUER + "
-            "HERMES_DASHBOARD_OIDC_CLIENT_ID) or under "
+            "a client_id — either as env vars (IRIS_DASHBOARD_OIDC_ISSUER + "
+            "IRIS_DASHBOARD_OIDC_CLIENT_ID) or under "
             "dashboard.oauth.self_hosted.{issuer,client_id} in config.yaml — or pass "
             "--insecure to skip the OAuth gate entirely. (issuer set: %s; client_id set: %s)"
             % (bool(issuer), bool(client_id)))
     return {
         "issuer": issuer, "client_id": client_id,
-        "scopes": setting("HERMES_DASHBOARD_OIDC_SCOPES", "scopes") or _DEFAULT_SCOPES,
-        # Credential: canonical home is the env var / ~/.hermes/.env. Empty ⇒ public client.
-        "client_secret": setting("HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "client_secret")}
+        "scopes": setting("IRIS_DASHBOARD_OIDC_SCOPES", "scopes") or _DEFAULT_SCOPES,
+        # Credential: canonical home is the env var / ~/.iris/.env. Empty ⇒ public client.
+        "client_secret": setting("IRIS_DASHBOARD_OIDC_CLIENT_SECRET", "client_secret")}
 
 
 def register(ctx) -> None:
@@ -323,10 +323,10 @@ import secrets  # noqa: F401,E402
 
 
 _PLUGIN_COMPAT_LAZY = {
-    'DashboardAuthProvider': ('hermes_cli.dashboard_auth', 'DashboardAuthProvider'),
-    'InvalidCodeError': ('hermes_cli.dashboard_auth', 'InvalidCodeError'),
-    'RefreshExpiredError': ('hermes_cli.dashboard_auth', 'RefreshExpiredError'),
-    'classify_jwks_lookup_error': ('hermes_cli.dashboard_auth', 'classify_jwks_lookup_error'),
+    'DashboardAuthProvider': ('iris_cli.dashboard_auth', 'DashboardAuthProvider'),
+    'InvalidCodeError': ('iris_cli.dashboard_auth', 'InvalidCodeError'),
+    'RefreshExpiredError': ('iris_cli.dashboard_auth', 'RefreshExpiredError'),
+    'classify_jwks_lookup_error': ('iris_cli.dashboard_auth', 'classify_jwks_lookup_error'),
 }
 
 
@@ -335,7 +335,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

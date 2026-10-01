@@ -111,7 +111,7 @@ def test_check_repo_does_not_report_git_not_found_via_launchd_fallback(tmp_path)
         if git_args == ['remote', 'get-url', 'origin']:
             return MagicMock(
                 returncode=0,
-                stdout='https://github.com/nesquena/hermes-webui.git\n',
+                stdout='https://github.com/nesquena/iris-webui.git\n',
                 stderr='',
             )
         if git_args == ['diff-index', '--quiet', 'HEAD', '--']:

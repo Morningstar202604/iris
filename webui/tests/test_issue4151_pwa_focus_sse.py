@@ -52,7 +52,7 @@ def test_focus_hook_closes_both_global_sidebar_streams():
     start = SESSIONS_JS.find("function _installSidebarSseFocusHook()")
     block = SESSIONS_JS[start:start + 1700]
     # Installed once.
-    assert "_hermesSidebarSseFocusHook" in block
+    assert "_irisSidebarSseFocusHook" in block
     # Blur listener tears down both global streams.
     assert "window.addEventListener('blur'" in block
     assert "_closeSessionEventsSSE()" in block
@@ -157,7 +157,7 @@ def test_per_session_stream_NOT_closed_on_blur():
 
 def test_per_session_stream_still_visibility_gated():
     """Sanity: the per-session stream keeps its existing visibility hook untouched."""
-    assert "_hermesSessionStreamVisibilityHook" in MESSAGES_JS
+    assert "_irisSessionStreamVisibilityHook" in MESSAGES_JS
     start = MESSAGES_JS.find("function startSessionStream(sid)")
     block = MESSAGES_JS[start:start + 1700]
     assert "visibilitychange" in block

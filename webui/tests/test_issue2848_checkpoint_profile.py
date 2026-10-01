@@ -21,11 +21,11 @@ def test_checkpoint_save_uses_session_profile_env(monkeypatch, tmp_path):
     profile_home.mkdir(parents=True)
     captured = {}
 
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda profile: profile_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda profile: profile_home)
     monkeypatch.setattr(
         profiles,
         "get_profile_runtime_env",
-        lambda home: {"HERMES_CONFIG_PATH": str(Path(home) / "config.yaml")},
+        lambda home: {"IRIS_CONFIG_PATH": str(Path(home) / "config.yaml")},
     )
 
     def fake_save(self, *args, **kwargs):
@@ -39,8 +39,8 @@ def test_checkpoint_save_uses_session_profile_env(monkeypatch, tmp_path):
     _save_streaming_checkpoint(session)
 
     assert captured["kwargs"] == {"skip_index": True}
-    assert captured["thread_env"]["HERMES_HOME"] == str(profile_home)
-    assert captured["thread_env"]["HERMES_CONFIG_PATH"] == str(profile_home / "config.yaml")
+    assert captured["thread_env"]["IRIS_HOME"] == str(profile_home)
+    assert captured["thread_env"]["IRIS_CONFIG_PATH"] == str(profile_home / "config.yaml")
 
 
 def test_checkpoint_save_completes_without_skill_lock(monkeypatch, tmp_path):
@@ -55,20 +55,20 @@ def test_checkpoint_save_completes_without_skill_lock(monkeypatch, tmp_path):
     profile_home.mkdir(parents=True)
     captured = {}
 
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", lambda profile: profile_home)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", lambda profile: profile_home)
     monkeypatch.setattr(
         profiles,
         "get_profile_runtime_env",
-        lambda home: {"HERMES_CONFIG_PATH": str(Path(home) / "config.yaml")},
+        lambda home: {"IRIS_CONFIG_PATH": str(Path(home) / "config.yaml")},
     )
-    monkeypatch.setattr(profiles, "_resolve_hermes_home_override", lambda: None)
+    monkeypatch.setattr(profiles, "_resolve_iris_home_override", lambda: None)
 
     patch_calls: list[dict] = []
 
     def fake_save(self, *args, **kwargs):
         captured["kwargs"] = kwargs
         captured["thread_env"] = dict(getattr(config._thread_ctx, "env", {}) or {})
-        captured["env_hermes_home"] = os.environ.get("HERMES_HOME")
+        captured["env_iris_home"] = os.environ.get("IRIS_HOME")
 
     def patch_skill_home_modules(*_):
         patch_calls.append({"patched": True})
@@ -103,11 +103,11 @@ def test_checkpoint_save_completes_without_skill_lock(monkeypatch, tmp_path):
         worker.join(timeout=1)
 
     assert captured.get("kwargs") == {"skip_index": True}
-    assert captured.get("thread_env", {}).get("HERMES_HOME") == str(profile_home)
+    assert captured.get("thread_env", {}).get("IRIS_HOME") == str(profile_home)
     assert (
-        captured.get("thread_env", {}).get("HERMES_CONFIG_PATH")
+        captured.get("thread_env", {}).get("IRIS_CONFIG_PATH")
         == str(profile_home / "config.yaml")
     )
-    assert captured.get("env_hermes_home") == str(profile_home)
+    assert captured.get("env_iris_home") == str(profile_home)
     assert not patch_calls
     assert "error" not in captured

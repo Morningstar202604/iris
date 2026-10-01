@@ -7,7 +7,7 @@ import { runPrimaryBackendStartup } from './primary-backend-startup'
 
 const LEDGER = JSON.stringify([
   {
-    argv: 'hermes serve --host 127.0.0.1 --port 0',
+    argv: 'iris serve --host 127.0.0.1 --port 0',
     create_time: 1_000,
     host: '127.0.0.1',
     install: 'abc',

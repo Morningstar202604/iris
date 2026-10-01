@@ -1,6 +1,6 @@
 import { Codecs, persistentAtom } from '@/lib/persisted'
 
-const STORAGE_KEY = 'hermes.desktop.collapsed-providers'
+const STORAGE_KEY = 'iris.desktop.collapsed-providers'
 
 /** Set of provider slugs whose model groups are currently collapsed in the
  *  model picker dropdown. Persisted to localStorage globally — this is a

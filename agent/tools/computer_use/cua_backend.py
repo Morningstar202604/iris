@@ -1,7 +1,7 @@
 """Cua-driver backend (macOS, Windows, Linux): MCP over stdio to `cua-driver`. The async `mcp` SDK runs on a
 background loop (``cua_backend_session``); the same tool surface works on all three platforms, and per-host gaps
-(no DISPLAY, missing AT-SPI, TCC) surface via `hermes computer-use doctor` instead of failing silently. Install
-with `hermes computer-use install`. The macOS path uses private SkyLight SPIs that can break on OS updates.
+(no DISPLAY, missing AT-SPI, TCC) surface via `iris computer-use doctor` instead of failing silently. Install
+with `iris computer-use install`. The macOS path uses private SkyLight SPIs that can break on OS updates.
 Siblings: ``cua_backend_driver`` (binary/contract/update), ``cua_backend_capture`` + ``cua_backend_input``
 (mixins), ``cua_backend_parse``, ``cua_backend_session`` (bridge + session + CLI fallback), ``cua_backend_daemon``
 (private daemon + macOS app identity). Siblings look this module's config/policy helpers up lazily."""
@@ -18,8 +18,8 @@ import threading
 import uuid
 from typing import Any, Dict, List, Optional
 
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_platform.host.runtime import is_wsl
+from iris_cli._subprocess_compat import windows_hide_flags
+from iris_platform.host.runtime import is_wsl
 from tools.computer_use.backend import ActionResult, ComputerUseBackend
 from tools.computer_use.cua_backend_capture import _CaptureMixin
 from tools.computer_use.cua_backend_daemon import _EmbeddedCuaDaemon
@@ -39,7 +39,7 @@ _CUA_NATIVE_WAYLAND_ENV_VAR = "CUA_DRIVER_RS_ENABLE_WAYLAND"
 def _computer_use_cfg() -> Dict[str, Any]:
     """The ``computer_use`` config block, or ``{}`` when config is unreadable."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         return (load_config() or {}).get("computer_use") or {}
     return {}
 
@@ -150,7 +150,7 @@ def cua_driver_child_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str,
     return env
 
 def sanitized_cua_driver_env() -> Dict[str, str]:
-    """``cua_driver_child_env()`` with Hermes provider secrets stripped — cua-driver is a third-party binary and must
+    """``cua_driver_child_env()`` with Iris provider secrets stripped — cua-driver is a third-party binary and must
     never inherit API keys. Falls back to the unsanitized telemetry env if the sanitizer can't import."""
     env = cua_driver_child_env()
     with contextlib.suppress(Exception):
@@ -219,8 +219,8 @@ def _empty_discovery_reason() -> str:
         return "no DISPLAY is set — X11/XWayland is not reachable from this process"
     if sys.platform == "darwin":  # headless Mac / asleep panel: ScreenCaptureKit has 0 shareable displays while TCC looks fine
         return ("window discovery returned no windows; on macOS this usually means no shareable display (headless Mac or "
-                "panel asleep) — wake the display or attach a monitor/HDMI dummy, then run `hermes computer-use doctor`")
-    return "window discovery returned no windows; run `hermes computer-use doctor` (display reachability, AX capability)"
+                "panel asleep) — wake the display or attach a monitor/HDMI dummy, then run `iris computer-use doctor`")
+    return "window discovery returned no windows; run `iris computer-use doctor` (display reachability, AX capability)"
 
 _update_checked = False
 # One auto-repair attempt per process: when the runtime-contract gate fails for something a reinstall fixes
@@ -230,7 +230,7 @@ _contract_repair_attempted = False
 
 def _maybe_repair_runtime_contract(contract: Dict[str, Any]) -> Dict[str, Any]:
     """Try one automatic driver repair; return the post-repair contract (or the original when no repair was
-    attempted / it failed). Never raises. An explicit ``HERMES_CUA_DRIVER_CMD`` override is authoritative even
+    attempted / it failed). Never raises. An explicit ``IRIS_CUA_DRIVER_CMD`` override is authoritative even
     when broken, and a missing binary means installation was never requested."""
     global _contract_repair_attempted
     if contract.get("ready") or _contract_repair_attempted or os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() or not contract.get("binary"):
@@ -239,7 +239,7 @@ def _maybe_repair_runtime_contract(contract: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("computer_use: installed cua-driver is not usable (%s); attempting automatic repair",
                 contract.get("reason") or "runtime contract is incomplete")
     try:
-        from hermes_cli.tools_config import install_cua_driver
+        from iris_cli.tools_config import install_cua_driver
         repaired = install_cua_driver(upgrade=False, show_installer_progress=False)
     except Exception as exc:
         logger.warning("computer_use: automatic cua-driver repair failed: %s", exc)
@@ -286,9 +286,9 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
         # windows all say Qt6Application), `_snapshot_tokens` (element_index -> element_token, attached to actions so
         # cua-driver reports "stale" instead of silently re-resolving).
         self._clear_active_target()
-        # Public session label (one per Hermes run) sent as `session` on every call: owns the cursor color and
+        # Public session label (one per Iris run) sent as `session` on every call: owns the cursor color and
         # gives config/recording state a stable owner across transport restarts. Part of the 0.20 runtime contract.
-        self._session_id: str = f"hermes-{uuid.uuid4().hex[:12]}"
+        self._session_id: str = f"iris-{uuid.uuid4().hex[:12]}"
         self._session.set_transport_reset_callback(self._handle_transport_reset)
 
     def _handle_transport_reset(self) -> None:
@@ -301,8 +301,8 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
             contract = _maybe_repair_runtime_contract(contract)
         if not contract.get("ready"):
             raise RuntimeError(f"cua-driver is not ready: {contract.get('reason') or 'runtime contract is incomplete'}. "
-                               + ("Update the binary selected by HERMES_CUA_DRIVER_CMD or remove that override."
-                                  if os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() else "Run `hermes computer-use install` to repair it."))
+                               + ("Update the binary selected by IRIS_CUA_DRIVER_CMD or remove that override."
+                                  if os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() else "Run `iris computer-use install` to repair it."))
         _maybe_nudge_update()
         # `mcp` is an optional extra: lazy-install on first use (gated by `security.allow_lazy_installs`); failure
         # raises FeatureUnavailable with the exact `uv pip install` hint.
@@ -462,7 +462,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

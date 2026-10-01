@@ -2,9 +2,9 @@
 
 Provider profiles can live in three places:
 
-1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with hermes-agent)
-2. User plugins: ``$HERMES_HOME/plugins/model-providers/<name>/``
-3. Pip-installed plugins: distributions exposing a ``hermes_agent.plugins``
+1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with iris-agent)
+2. User plugins: ``$IRIS_HOME/plugins/model-providers/<name>/``
+3. Pip-installed plugins: distributions exposing a ``iris_agent.plugins``
    entry point (``module:func`` callable or a self-registering ``module``)
 
 Each plugin directory contains:
@@ -13,7 +13,7 @@ Each plugin directory contains:
 
 Discovery is lazy: the first call to ``get_provider_profile()`` or
 ``list_providers()`` imports the bundled and pip-installed plugins once per
-process; the ``$HERMES_HOME`` plugins of the profile home bound at lookup time
+process; the ``$IRIS_HOME`` plugins of the profile home bound at lookup time
 load into that home's own layer, so one process serving several profiles
 (multiplex gateway, Desktop ``serve``) resolves each profile's installs. User
 plugins override bundled plugins on name collision, so third parties can
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 _REGISTRY: dict[str, ProviderProfile] = {}
 _ALIASES: dict[str, str] = {}
 # Where the CURRENT registration of each name came from: "bundled" / "user" (a
-# ``$HERMES_HOME`` plugin dir) / "runtime" (entry point, legacy module, direct call).
+# ``$IRIS_HOME`` plugin dir) / "runtime" (entry point, legacy module, direct call).
 _SOURCES: dict[str, str] = {}
 _current_source: str | None = None
 _PROVIDER_LIST_CACHE: list[ProviderProfile] | None = None
@@ -65,13 +65,13 @@ _PLUGIN_DIR_STAMP_TTL_SECONDS = 1.0
 
 @dataclass
 class _HomeLayer:
-    """The ``$HERMES_HOME/plugins`` providers of ONE profile home.
+    """The ``$IRIS_HOME/plugins`` providers of ONE profile home.
 
     One process serves many profiles (multiplex gateway, Desktop ``serve``) and each profile installs
     its own plugins, so user plugins are keyed by the home bound at lookup time instead of the home
     that happened to be bound at first discovery — that made a plugin installed in a secondary
     profile ``Unknown provider`` in Desktop while the same profile worked in a terminal (#88143).
-    ``stamps`` are the plugin dirs' mtimes: a directory added by ``hermes plugins install`` while the
+    ``stamps`` are the plugin dirs' mtimes: a directory added by ``iris plugins install`` while the
     process runs changes them, and the next lookup imports it without a restart.
     """
     registry: dict[str, ProviderProfile] = field(default_factory=dict)
@@ -82,9 +82,9 @@ class _HomeLayer:
 
 _HOME_LAYERS: dict[str, _HomeLayer] = {}
 _HOME_LAYERS_LOCK = threading.Lock()
-# The layer a ``$HERMES_HOME`` plugin import registers into. A ContextVar, not a module global:
+# The layer a ``$IRIS_HOME`` plugin import registers into. A ContextVar, not a module global:
 # two turn threads scanning two profile homes at once must not cross-register. Never a lock held
-# across the import itself — a thread mid-``import hermes_cli.auth`` (whose import calls
+# across the import itself — a thread mid-``import iris_cli.auth`` (whose import calls
 # ``list_providers()``) would block on it while the scanning thread waits on that module's import lock.
 _REGISTRATION_TARGET: ContextVar[_HomeLayer | None] = ContextVar("_provider_registration_target", default=None)
 
@@ -95,17 +95,17 @@ _BUNDLED_PLUGINS_DIR = (
 
 
 def _sync_auth_registry() -> None:
-    """Mirror profiles into ``hermes_cli.auth.PROVIDER_REGISTRY`` if that module is loaded.
+    """Mirror profiles into ``iris_cli.auth.PROVIDER_REGISTRY`` if that module is loaded.
 
-    ``hermes_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
+    ``iris_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
     plugin's imports pull that module in while :func:`_discover_providers` is still running, the
     snapshot is partial and later plugins never reach the auth registry ("Unknown provider",
     #102123). Calling back into auth once discovery is complete closes that window. Looked up via
-    ``sys.modules`` on purpose: this layer must never import ``hermes_cli`` (that would run auth's
+    ``sys.modules`` on purpose: this layer must never import ``iris_cli`` (that would run auth's
     top-level code mid-scan and risk a circular import). Never raises: registration must not fail
     because of the auth mirror.
     """
-    sync = getattr(sys.modules.get("hermes_cli.auth"), "sync_plugin_provider_registry", None)
+    sync = getattr(sys.modules.get("iris_cli.auth"), "sync_plugin_provider_registry", None)
     if sync is None:
         return
     try:
@@ -118,9 +118,9 @@ def register_provider(profile: ProviderProfile) -> None:
     """Register a provider profile by name and aliases.
 
     Later registrations with the same name replace earlier ones — so user
-    plugins under ``$HERMES_HOME/plugins/model-providers/`` can override
+    plugins under ``$IRIS_HOME/plugins/model-providers/`` can override
     bundled profiles without editing repo code. A registration made while a
-    ``$HERMES_HOME`` plugin is being imported lands in that home's layer.
+    ``$IRIS_HOME`` plugin is being imported lands in that home's layer.
     """
     global _PROVIDER_LIST_CACHE
     layer = _REGISTRATION_TARGET.get()
@@ -141,8 +141,8 @@ def register_provider(profile: ProviderProfile) -> None:
 def provider_source(name: str) -> str | None:
     """Discovery source of the profile currently registered under *name* (see ``_SOURCES``), or None.
 
-    ``"user"`` is what lets a ``$HERMES_HOME`` plugin re-registering a bundled name win in
-    ``hermes_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
+    ``"user"`` is what lets a ``$IRIS_HOME`` plugin re-registering a bundled name win in
+    ``iris_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
     """
     layer = _home_layer()
     canonical = layer.aliases.get(name) or _ALIASES.get(name, name)
@@ -197,7 +197,7 @@ def routed_model_rejects_vision_tool_messages(provider: str, model: str) -> bool
     # Routing aggregators accept a ``vendor/model`` identifier while the request is sent
     # to the aggregator; the target provider can have stricter message-shape support than
     # the aggregator's generic OpenAI-compatible transport profile.
-    from hermes_cli.providers import is_routing_aggregator
+    from iris_cli.providers import is_routing_aggregator
     if not is_routing_aggregator(provider_name):
         return False
 
@@ -210,7 +210,7 @@ def routed_model_rejects_vision_tool_messages(provider: str, model: str) -> bool
 
 def list_providers() -> list[ProviderProfile]:
     """Return all registered provider profiles (one per canonical name); the bound home's
-    ``$HERMES_HOME`` plugins shadow process-wide profiles of the same name."""
+    ``$IRIS_HOME`` plugins shadow process-wide profiles of the same name."""
     global _PROVIDER_LIST_CACHE
     if not _discovered:
         _discover_providers()
@@ -238,10 +238,10 @@ def _home_layer(*, force_stamp_check: bool = False) -> _HomeLayer:
 
 def _bound_home_layer() -> tuple[_HomeLayer, Path | None, str]:
     try:
-        from hermes_constants import get_hermes_home, hermes_home_key
+        from iris_constants import get_iris_home, iris_home_key
 
-        home = get_hermes_home()
-        key = hermes_home_key(home)
+        home = get_iris_home()
+        key = iris_home_key(home)
     except Exception:
         home, key = None, ""
     with _HOME_LAYERS_LOCK:
@@ -284,27 +284,27 @@ def _plugin_dir_stamps(home: Path) -> tuple:
 
 
 def _user_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/model-providers/`` if it exists."""
+    """Return ``$IRIS_HOME/plugins/model-providers/`` if it exists."""
     try:
-        from hermes_constants import get_hermes_home
+        from iris_constants import get_iris_home
 
-        d = get_hermes_home() / "plugins" / "model-providers"
+        d = get_iris_home() / "plugins" / "model-providers"
         return d if d.is_dir() else None
     except Exception:
         return None
 
 
 def _installed_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/`` if it exists.
+    """Return ``$IRIS_HOME/plugins/`` if it exists.
 
-    This is where ``hermes plugins install`` clones a plugin — flat, one
+    This is where ``iris plugins install`` clones a plugin — flat, one
     directory per plugin, NOT under ``model-providers/``. See
     :func:`_discover_installed_provider_plugins`.
     """
     try:
-        from hermes_constants import get_hermes_home
+        from iris_constants import get_iris_home
 
-        d = get_hermes_home() / "plugins"
+        d = get_iris_home() / "plugins"
         return d if d.is_dir() else None
     except Exception:
         return None
@@ -348,8 +348,8 @@ def _declares_model_provider_kind(plugin_dir: Path) -> bool:
 def _scan_home_layer(layer: _HomeLayer, key: str) -> None:
     """Import the bound home's not-yet-imported provider plugins into *layer*.
 
-    ``$HERMES_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
-    ``hermes plugins install`` into ``$HERMES_HOME/plugins/<name>/`` that declare
+    ``$IRIS_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
+    ``iris plugins install`` into ``$IRIS_HOME/plugins/<name>/`` that declare
     ``kind: model-provider`` (PluginManager owns every other kind there). Per-home module names
     let two profiles carry the same plugin without aliasing each other's registrations.
     """
@@ -378,7 +378,7 @@ def _scan_home_layer(layer: _HomeLayer, key: str) -> None:
 
 def _user_module_name(plugin_dir: Path, home_key: str) -> str:
     digest = hashlib.sha1(home_key.encode("utf-8")).hexdigest()[:10]
-    return f"_hermes_user_provider_{digest}_{plugin_dir.name.replace('-', '_')}"
+    return f"_iris_user_provider_{digest}_{plugin_dir.name.replace('-', '_')}"
 
 
 def _import_plugin_dir(plugin_dir: Path, source: str, *, home_key: str = "") -> None:
@@ -394,7 +394,7 @@ def _import_plugin_dir(plugin_dir: Path, source: str, *, home_key: str = "") -> 
     # Give bundled plugins a stable import path (``plugins.model_providers.<name>``)
     # so relative imports within the plugin work. User plugins load via
     # ``importlib.util.spec_from_file_location`` under a per-home module name so
-    # multiple HERMES_HOME profiles don't alias each other.
+    # multiple IRIS_HOME profiles don't alias each other.
     if source == "bundled":
         module_name = f"plugins.model_providers.{plugin_dir.name.replace('-', '_')}"
     else:
@@ -423,13 +423,13 @@ def _import_plugin_dir(plugin_dir: Path, source: str, *, home_key: str = "") -> 
 
 
 def _discover_entry_point_providers() -> None:
-    """Import pip-installed provider plugins via the ``hermes_agent.plugins``
+    """Import pip-installed provider plugins via the ``iris_agent.plugins``
     entry-point group so they self-register.
 
     A distribution ships::
 
-        [project.entry-points."hermes_agent.plugins"]
-        acme-inference = "acme_hermes_plugin:register"
+        [project.entry-points."iris_agent.plugins"]
+        acme-inference = "acme_iris_plugin:register"
 
     The target may be either a **callable** (``module:func`` — invoked with no
     args; typically calls ``register_provider(profile)``) or a **module**
@@ -443,14 +443,14 @@ def _discover_entry_point_providers() -> None:
       general PluginManager enforces — a pip package is never imported just
       because it is installed. An entry point whose name is not enabled is
       skipped without loading.
-    * **Provider targets only.** The ``hermes_agent.plugins`` group is shared
+    * **Provider targets only.** The ``iris_agent.plugins`` group is shared
       with general plugins whose target is ``register(ctx)``. Callables that
       require arguments are skipped here (the PluginManager owns them);
       provider registration hooks take no arguments by contract.
 
     Failures are swallowed per-entry (a broken third-party package must not
     break provider discovery) and logged at warning level. This scan runs
-    first, so filesystem plugins (bundled + ``$HERMES_HOME``) keep their
+    first, so filesystem plugins (bundled + ``$IRIS_HOME``) keep their
     documented override precedence via last-writer-wins in
     ``register_provider()`` — a pip package cannot hijack a first-party
     provider name.
@@ -463,7 +463,7 @@ def _discover_entry_point_providers() -> None:
     # Same opt-in gate as the general PluginManager: only entry points named
     # in ``plugins.enabled`` load, and ``plugins.disabled`` always wins.
     try:
-        from hermes_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
+        from iris_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
 
         enabled = _get_enabled_plugins()  # None = nothing enabled yet (opt-in default)
         disabled = _get_disabled_plugins()
@@ -472,7 +472,7 @@ def _discover_entry_point_providers() -> None:
     if not enabled:
         return
 
-    group = "hermes_agent.plugins"
+    group = "iris_agent.plugins"
     try:
         eps = _md.entry_points()
         # Python 3.10+ exposes .select(); older returns a dict-like mapping.
@@ -552,7 +552,7 @@ def _discover_providers() -> None:
       2. Legacy per-file modules at ``providers/<name>.py`` (back-compat)
 
     Each step imports its plugins, which call ``register_provider()`` at
-    module-level. Later steps win on name collision. ``$HERMES_HOME`` plugins are
+    module-level. Later steps win on name collision. ``$IRIS_HOME`` plugins are
     per profile home and load through :func:`_home_layer` at lookup time.
     """
     global _discovered, _discovering
@@ -564,14 +564,14 @@ def _discover_providers() -> None:
         _run_discovery_steps()
     finally:
         _discovering = False
-        # hermes_cli.auth may have been imported by a plugin during discovery and snapshotted a
+        # iris_cli.auth may have been imported by a plugin during discovery and snapshotted a
         # partial profile list — hand it the complete one (no-op unless auth is already loaded).
         _sync_auth_registry()
 
 
 def _run_discovery_steps() -> None:
     """The discovery passes, in precedence order (see :func:`_discover_providers`)."""
-    # 0. Pip-installed plugins — entry points in the ``hermes_agent.plugins``
+    # 0. Pip-installed plugins — entry points in the ``iris_agent.plugins``
     #    group (the same group the general PluginManager uses). The manager
     #    records model-provider manifests for introspection but deliberately
     #    does NOT import them — provider lifecycle is owned here — so without
@@ -580,14 +580,14 @@ def _run_discovery_steps() -> None:
     #
     #    Discovered FIRST, i.e. lowest precedence: because
     #    ``register_provider()`` is last-writer-wins, running this before the
-    #    filesystem steps means a bundled or ``$HERMES_HOME`` profile of the
+    #    filesystem steps means a bundled or ``$IRIS_HOME`` profile of the
     #    same name always overrides a pip-installed one. That prevents a
     #    third-party package from silently hijacking a first-party provider
     #    name (e.g. ``openrouter``) while still letting pip packages add
     #    genuinely new providers.
     _discover_entry_point_providers()
 
-    # 1. Bundled plugins — shipped with hermes-agent.
+    # 1. Bundled plugins — shipped with iris-agent.
     if _BUNDLED_PLUGINS_DIR.is_dir():
         for child in sorted(_BUNDLED_PLUGINS_DIR.iterdir()):
             if not child.is_dir() or child.name.startswith(("_", ".")):
@@ -635,7 +635,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

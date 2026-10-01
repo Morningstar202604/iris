@@ -41,7 +41,7 @@ def pairing_code_reply(platform_name: str, code: str, profile_arg: str = "") -> 
     whether they are the owner or a guest, and that they must message again after approval."""
     hours = max(1, CODE_TTL_SECONDS // 3600)
     validity = f"{hours} hour" if hours == 1 else f"{hours} hours"
-    approve_cmd = f"hermes {profile_arg}pairing approve {platform_name} {code}"
+    approve_cmd = f"iris {profile_arg}pairing approve {platform_name} {code}"
     return (
         "Hi! I don't recognize you yet, so I can't reply until the person running this bot "
         "approves you.\n\n"
@@ -56,7 +56,7 @@ PAIRING_RATE_LIMITED_REPLY = (
 
 
 def unauthorized_owner_hint(
-    platform_name: str, user_id: str, user_name: str = "", *, hermes_home: str,
+    platform_name: str, user_id: str, user_name: str = "", *, iris_home: str,
 ) -> str:
     """One-line hint for the owner (log + home channel): who was dropped and how to let them in.
     No pairing request is minted for an ignored sender (a configured allowlist means the owner chose
@@ -71,14 +71,14 @@ def unauthorized_owner_hint(
     who = f"{safe_name} ({user_id})" if safe_name else str(user_id)
     env_var = _allowlist_env_for_platform(platform_name)
     allowlist = (
-        f"add the ID to {env_var} in {hermes_home}/.env and restart the gateway"
+        f"add the ID to {env_var} in {iris_home}/.env and restart the gateway"
         if env_var else "add the ID to this platform's allowed-users list and restart the gateway"
     )
     return (
         f"Dropped a message from unrecognized {platform_name} user {who}. If that is you or someone "
         f"you trust, {allowlist}; or set `unauthorized_dm_behavior: pair` for {platform_name} in "
-        f"{hermes_home}/config.yaml so unknown senders receive a pairing code you can approve with "
-        f"`hermes pairing approve {platform_name} <code>`."
+        f"{iris_home}/config.yaml so unknown senders receive a pairing code you can approve with "
+        f"`iris pairing approve {platform_name} <code>`."
     )
 
 

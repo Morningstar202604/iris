@@ -38,7 +38,7 @@ _PROSE_KEEPS_FULL_SEVERITY_IDS = {
     "context_exfil", "send_to_url", "md_image_exfil", "md_link_exfil", "ssh_backdoor",
     "curl_pipe_shell", "wget_pipe_shell", "curl_pipe_python",
     "agent_config_mod", "agent_config_mod_shell", "agent_config_contract", "agent_config_ref",
-    "hermes_config_mod", "hermes_config_mod_shell", "hermes_config_ref",
+    "iris_config_mod", "iris_config_mod_shell", "iris_config_ref",
     "other_agent_config_mod", "other_agent_config_mod_shell", "other_agent_config_ref",
 }
 # Agent instruction surfaces inside a plugin — a bundled skill tree and the post-install note
@@ -82,14 +82,14 @@ def prose_cap(finding: Finding) -> Optional[str]:
 
 
 # A README "Uninstall" section removing the plugin's OWN install directory
-# (``rm -rf "$HOME/.hermes/plugins/<name>"``) is the one destructive shape that is harmless by
-# construction: one ``rm``, one argument rooted at ``$HOME/.hermes/plugins/`` or ``skills/``
+# (``rm -rf "$HOME/.iris/plugins/<name>"``) is the one destructive shape that is harmless by
+# construction: one ``rm``, one argument rooted at ``$HOME/.iris/plugins/`` or ``skills/``
 # with a plain leaf — no glob, no ``..``, nothing chained. It lands at medium (a note). Any
-# wider target (``$HOME``, ``$HOME/.hermes``, ``$HOME/.hermes/plugins/*``) only gets the
+# wider target (``$HOME``, ``$HOME/.iris``, ``$HOME/.iris/plugins/*``) only gets the
 # generic prose step (high, caution) and the same line in a ``.sh`` stays critical (#115353).
 _SELF_UNINSTALL_RM = re.compile(
     r'^(?:\$\s*)?rm\s+(?:-[a-zA-Z]+\s+)*'
-    r'(?P<q>["\']?)\$HOME/\.hermes/(?:plugins|skills)/[A-Za-z0-9][A-Za-z0-9._-]*/?(?P=q)'
+    r'(?P<q>["\']?)\$HOME/\.iris/(?:plugins|skills)/[A-Za-z0-9][A-Za-z0-9._-]*/?(?P=q)'
     r'\s*(?:#.*)?$'
 )
 

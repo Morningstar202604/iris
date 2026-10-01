@@ -1,7 +1,7 @@
 """Bitwarden Secrets Manager (`bws` CLI) integration.
 
-Pulls API keys from BSM at startup so they need not live in ``~/.hermes/.env``.
-``bws`` is auto-installed into ``<hermes_home>/bin/bws`` (one pinned version,
+Pulls API keys from BSM at startup so they need not live in ``~/.iris/.env``.
+``bws`` is auto-installed into ``<iris_home>/bin/bws`` (one pinned version,
 SHA-256-verified against the published checksum). The one bootstrap secret is
 the access token in ``.env``; every other key can live in BSM. One
 ``bws secret list <project_id>`` call per fetch, cached in-process and on disk
@@ -47,13 +47,13 @@ _BWS_CHECKSUM_NAME = f"bws-sha256-checksums-{_BWS_VERSION}.txt"
 _BWS_DOWNLOAD_TIMEOUT = 60
 _BWS_RUN_TIMEOUT = 30
 
-# <hermes_home>/cache/bws_cache.json holds only secret VALUES (never the access
+# <iris_home>/cache/bws_cache.json holds only secret VALUES (never the access
 # token); kept out of .env so users editing .env don't commit BSM-sourced secrets.
 _CacheKey = Tuple[str, str, str]  # (access_token_fingerprint, project_id, server_url)
 _DISK_CACHE_BASENAME = "bws_cache.json"
 _ENCRYPTED_CACHE_BASENAME = "bws_cache.enc.json"
 _ENCRYPTED_CACHE_VERSION = 1
-_ENCRYPTED_CACHE_INFO = b"hermes-bws-encrypted-cache-v1"
+_ENCRYPTED_CACHE_INFO = b"iris-bws-encrypted-cache-v1"
 
 
 def _cache_key_str(cache_key: _CacheKey) -> str:
@@ -90,16 +90,16 @@ def _classify_bws_error(message: str) -> ErrorKind:
 # --- Binary discovery + lazy install ----------------------------------------
 
 
-def _hermes_bin_dir() -> Path:
-    """Where Hermes stores its managed binaries. Profile-aware."""
-    from hermes_constants import get_hermes_home
+def _iris_bin_dir() -> Path:
+    """Where Iris stores its managed binaries. Profile-aware."""
+    from iris_constants import get_iris_home
 
-    return get_hermes_home() / "bin"
+    return get_iris_home() / "bin"
 
 
 def find_bws(*, install_if_missing: bool = False) -> Optional[Path]:
-    """Managed ``<hermes_home>/bin/bws`` first, then PATH, then optional auto-install."""
-    managed = _hermes_bin_dir() / _platform_binary_name()
+    """Managed ``<iris_home>/bin/bws`` first, then PATH, then optional auto-install."""
+    managed = _iris_bin_dir() / _platform_binary_name()
     if managed.exists() and os.access(managed, os.X_OK):
         return managed
     system = shutil.which("bws")
@@ -145,14 +145,14 @@ def _platform_asset_name() -> str:
 def install_bws(*, force: bool = False) -> Path:
     """Download, verify, and install the pinned ``bws`` binary; raises on any failure
     (the auto-install path catches; the setup wizard shows the error)."""
-    bin_dir = _hermes_bin_dir()
+    bin_dir = _iris_bin_dir()
     bin_dir.mkdir(parents=True, exist_ok=True)
     target = bin_dir / _platform_binary_name()
     if target.exists() and not force:
         return target
 
     asset_name = _platform_asset_name()
-    with tempfile.TemporaryDirectory(prefix="hermes-bws-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="iris-bws-") as tmpdir:
         tmp = Path(tmpdir)
         zip_path = tmp / asset_name
         checksum_path = tmp / _BWS_CHECKSUM_NAME
@@ -182,7 +182,7 @@ def install_bws(*, force: bool = False) -> Path:
 
 
 def _http_download(url: str, dest: Path) -> None:
-    req = urllib.request.Request(url, headers={"User-Agent": "hermes-agent"})
+    req = urllib.request.Request(url, headers={"User-Agent": "iris-agent"})
     try:
         with urllib.request.urlopen(req, timeout=_BWS_DOWNLOAD_TIMEOUT) as resp, open(dest, "wb") as f:  # noqa: S310
             shutil.copyfileobj(resp, f)
@@ -346,7 +346,7 @@ def fetch_bitwarden_secrets(
         raise RuntimeError("bws binary not available — auto-install failed and `bws` is "
                            "not on PATH.  Install manually from "
                            "https://github.com/bitwarden/sdk-sm/releases or re-run "
-                           "`hermes secrets bitwarden setup`.")
+                           "`iris secrets bitwarden setup`.")
 
     try:
         secrets, warnings = _run_bws_list(bws, access_token, project_id, server_url)
@@ -451,10 +451,10 @@ class BitwardenSource(SecretSource):
     # — a stale .env line must not have the final say.
     override_existing_default = True
     _AUTH_HINT = (
-        "Run `hermes secrets bitwarden token` to paste a fresh access "
+        "Run `iris secrets bitwarden token` to paste a fresh access "
         "token (create one in the Bitwarden web app: Secrets Manager → "
         "Machine accounts → Access tokens).  Wrong region?  Re-run "
-        "`hermes secrets bitwarden setup` and pick EU/self-hosted."
+        "`iris secrets bitwarden setup` and pick EU/self-hosted."
     )
     remediation_hints = {ErrorKind.AUTH_FAILED: _AUTH_HINT, ErrorKind.AUTH_EXPIRED: _AUTH_HINT}
 
@@ -481,16 +481,16 @@ class BitwardenSource(SecretSource):
         access_token = get_source_environment().get(access_token_env, "").strip()
         if not access_token:
             return result.fail(f"secrets.bitwarden.enabled is true but {access_token_env} is "
-                               "not set.  Run `hermes secrets bitwarden setup`.", ErrorKind.NOT_CONFIGURED)
+                               "not set.  Run `iris secrets bitwarden setup`.", ErrorKind.NOT_CONFIGURED)
         project_id = str(cfg.get("project_id") or "")
         if not project_id:
-            return result.fail("secrets.bitwarden.project_id is empty.  Run `hermes secrets bitwarden setup`.",
+            return result.fail("secrets.bitwarden.project_id is empty.  Run `iris secrets bitwarden setup`.",
                                ErrorKind.NOT_CONFIGURED)
         binary = find_bws(install_if_missing=bool(cfg.get("auto_install", True)))
         result.binary_path = binary
         if binary is None:
             return result.fail("bws binary not available and auto-install is disabled.  "
-                               "Run `hermes secrets bitwarden setup` to install.", ErrorKind.BINARY_MISSING)
+                               "Run `iris secrets bitwarden setup` to install.", ErrorKind.BINARY_MISSING)
 
         encrypted_cfg = cfg.get("encrypted_cache")
         encrypted_cfg = encrypted_cfg if isinstance(encrypted_cfg, dict) else {}
@@ -549,7 +549,7 @@ def apply_bitwarden_secrets(
 ) -> FetchResult:
     """Pull secrets from BSM and set them on ``os.environ``.
 
-    This is the function ``load_hermes_dotenv()`` calls after the .env
+    This is the function ``load_iris_dotenv()`` calls after the .env
     files have loaded.  It is intentionally defensive — any failure
     returns a :class:`FetchResult` with ``error`` set; it never raises.
 
@@ -569,14 +569,14 @@ def apply_bitwarden_secrets(
     if not access_token:
         result.error = (
             f"secrets.bitwarden.enabled is true but {access_token_env} is "
-            "not set.  Run `hermes secrets bitwarden setup`."
+            "not set.  Run `iris secrets bitwarden setup`."
         )
         return result
 
     if not project_id:
         result.error = (
             "secrets.bitwarden.project_id is empty.  "
-            "Run `hermes secrets bitwarden setup`."
+            "Run `iris secrets bitwarden setup`."
         )
         return result
 
@@ -585,7 +585,7 @@ def apply_bitwarden_secrets(
     if binary is None:
         result.error = (
             "bws binary not available and auto-install is disabled.  "
-            "Run `hermes secrets bitwarden setup` to install."
+            "Run `iris secrets bitwarden setup` to install."
         )
         return result
 
@@ -633,7 +633,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

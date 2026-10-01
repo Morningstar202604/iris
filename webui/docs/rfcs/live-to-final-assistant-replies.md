@@ -35,7 +35,7 @@ supporting activity, terminal outcome, and final answer.
 
 ## Product Problem
 
-Hermes WebUI currently uses one chat surface to represent several different
+Iris WebUI currently uses one chat surface to represent several different
 meanings:
 
 - the assistant's live process text while work is still running,
@@ -333,7 +333,7 @@ Expected behavior:
 - Internal continuation or control prompts used by the runtime must not persist
   as ordinary user-authored transcript content.
 - The product state should not depend on whether the limit came from provider
-  policy, Hermes Agent iteration budget, or WebUI adapter/runtime policy.
+  policy, Iris Agent iteration budget, or WebUI adapter/runtime policy.
 
 ### No-final answer and provider failure
 
@@ -532,7 +532,7 @@ for current open/merged/superseded status.
 | Early-cancel startup race | Backend cancel should still interrupt the worker when the SSE registry detached before startup fully settled. | [#3475](https://github.com/nesquena/hermes-webui/issues/3475), [#3476](https://github.com/nesquena/hermes-webui/pull/3476). |
 | Pending-intent control surface | Queue, Steer, Stop-and-send, Interrupt, delivered/applied/leftover semantics. | [#3058](https://github.com/nesquena/hermes-webui/issues/3058), [#3061](https://github.com/nesquena/hermes-webui/pull/3061). |
 | Reattach and replay polish | Slow rebuild degraded state, replay/body timing, native cursor support, same lifecycle through replay. | Follow-up issue/PR or child RFC if protocol semantics expand. |
-| Tool-limit and max-iteration terminal state | Limit reached state, control prompt visibility, no fake final answer. | Follow-up issue/PR; may involve Hermes Agent if the runtime owns the limit signal. |
+| Tool-limit and max-iteration terminal state | Limit reached state, control prompt visibility, no fake final answer. | Follow-up issue/PR; may involve Iris Agent if the runtime owns the limit signal. |
 | Artifact handoff and recoverability | Preserve the link between final/terminal replies and workspace artifacts created or edited during the turn. | Existing Artifacts and `workspace://` surfaces; follow-up issue/PR when replay, cancel, or terminal paths lose artifact metadata. |
 | Sidebar/session ownership | Active/terminal state in session rows, stale spinner repair, session-list disappearance, background terminal feedback. | Follow-up issue/PR under session/runtime contracts. |
 | Very long final answer ergonomics | Optional navigation/outline/preview affordances that preserve the final answer as normal prose. | Open product discussion; no implementation vehicle yet. |
@@ -549,7 +549,7 @@ This RFC sits above the current runtime, recovery, and adapter contracts:
   to one visible session target.
 - [`turn-journal.md`](turn-journal.md) defines crash-safe submitted-turn and
   interrupted-turn recovery semantics.
-- [`hermes-run-adapter-contract.md`](hermes-run-adapter-contract.md) defines
+- [`iris-run-adapter-contract.md`](iris-run-adapter-contract.md) defines
   longer-term event/control ownership and migration gates.
 
 This RFC defines the product meaning those lower-level contracts need to

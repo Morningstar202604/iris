@@ -14,18 +14,18 @@ import path from 'node:path'
 import { test } from 'vitest'
 
 import {
-  canImportHermesCli,
+  canImportIrisCli,
   DEFAULT_PROBE_TIMEOUT_MS,
   execProbe,
   resolveProbeTimeoutMs,
-  shouldTrustHermesOverride,
-  verifyHermesCli
+  shouldTrustIrisOverride,
+  verifyIrisCli
 } from './backend-probes'
 
 // Resolve the host's own Node binary -- guaranteed to be on disk and
 // runnable. We use it as both a stand-in for "a python that doesn't
-// have hermes_cli" (since `node -c "import hermes_cli"` will exit
-// non-zero) and as a way to script verifyHermesCli's success path
+// have iris_cli" (since `node -c "import iris_cli"` will exit
+// non-zero) and as a way to script verifyIrisCli's success path
 // (a tiny script we write to disk that exits 0 on --version).
 const NODE_BIN = process.execPath
 
@@ -76,51 +76,51 @@ test('execProbe keeps the parent event loop available to the child', async () =>
   assert.ifError(unexpectedSocketError)
 })
 
-test('canImportHermesCli returns false when path is falsy', async () => {
-  assert.equal(await canImportHermesCli(''), false)
-  assert.equal(await canImportHermesCli(null), false)
-  assert.equal(await canImportHermesCli(undefined), false)
+test('canImportIrisCli returns false when path is falsy', async () => {
+  assert.equal(await canImportIrisCli(''), false)
+  assert.equal(await canImportIrisCli(null), false)
+  assert.equal(await canImportIrisCli(undefined), false)
 })
 
-test('canImportHermesCli returns false when interpreter cannot run -c', async () => {
-  // node IS an interpreter, but `node -c "import hermes_cli"` is a
+test('canImportIrisCli returns false when interpreter cannot run -c', async () => {
+  // node IS an interpreter, but `node -c "import iris_cli"` is a
   // SyntaxError -- different exit reason from a real Python's
   // ModuleNotFoundError, but the predicate is "exit 0 or not" and
   // both land on "not", which is exactly what we want for the
   // resolver fall-through.
-  assert.equal(await canImportHermesCli(NODE_BIN), false)
+  assert.equal(await canImportIrisCli(NODE_BIN), false)
 })
 
-test('canImportHermesCli returns false when binary does not exist', async () => {
-  const ghost = path.join(os.tmpdir(), 'hermes-probes-ghost-' + Date.now() + '.exe')
-  assert.equal(await canImportHermesCli(ghost), false)
+test('canImportIrisCli returns false when binary does not exist', async () => {
+  const ghost = path.join(os.tmpdir(), 'iris-probes-ghost-' + Date.now() + '.exe')
+  assert.equal(await canImportIrisCli(ghost), false)
 })
 
-test('explicit Hermes override is authoritative', () => {
-  assert.equal(shouldTrustHermesOverride('/nix/store/abc/bin/hermes'), true)
+test('explicit Iris override is authoritative', () => {
+  assert.equal(shouldTrustIrisOverride('/nix/store/abc/bin/iris'), true)
 })
 
-test('empty Hermes override is not authoritative', () => {
-  assert.equal(shouldTrustHermesOverride(''), false)
-  assert.equal(shouldTrustHermesOverride(undefined), false)
+test('empty Iris override is not authoritative', () => {
+  assert.equal(shouldTrustIrisOverride(''), false)
+  assert.equal(shouldTrustIrisOverride(undefined), false)
 })
 
-test('verifyHermesCli returns false when command is falsy', async () => {
-  assert.equal(await verifyHermesCli(''), false)
-  assert.equal(await verifyHermesCli(null), false)
-  assert.equal(await verifyHermesCli(undefined), false)
+test('verifyIrisCli returns false when command is falsy', async () => {
+  assert.equal(await verifyIrisCli(''), false)
+  assert.equal(await verifyIrisCli(null), false)
+  assert.equal(await verifyIrisCli(undefined), false)
 })
 
-test('verifyHermesCli returns false when binary does not exist', async () => {
-  const ghost = path.join(os.tmpdir(), 'hermes-probes-ghost-' + Date.now() + '.exe')
-  assert.equal(await verifyHermesCli(ghost), false)
+test('verifyIrisCli returns false when binary does not exist', async () => {
+  const ghost = path.join(os.tmpdir(), 'iris-probes-ghost-' + Date.now() + '.exe')
+  assert.equal(await verifyIrisCli(ghost), false)
 })
 
-test('verifyHermesCli returns true when --version exits 0', async () => {
+test('verifyIrisCli returns true when --version exits 0', async () => {
   // Write a tiny script that exits 0 regardless of args, then invoke
-  // it through node. This stands in for a working hermes binary --
-  // verifyHermesCli only cares about the exit code.
-  const scriptPath = path.join(os.tmpdir(), `hermes-probes-ok-${Date.now()}-${process.pid}.cjs`)
+  // it through node. This stands in for a working iris binary --
+  // verifyIrisCli only cares about the exit code.
+  const scriptPath = path.join(os.tmpdir(), `iris-probes-ok-${Date.now()}-${process.pid}.cjs`)
   fs.writeFileSync(scriptPath, 'process.exit(0)\n')
 
   try {
@@ -129,7 +129,7 @@ test('verifyHermesCli returns true when --version exits 0', async () => {
     // execFileSync passes ['--version'] as args, which node ignores
     // gracefully (well, it prints its version and exits 0, which is
     // perfect -- exit code 0 is the only signal we read).
-    assert.equal(await verifyHermesCli(NODE_BIN), true)
+    assert.equal(await verifyIrisCli(NODE_BIN), true)
   } finally {
     try {
       fs.unlinkSync(scriptPath)
@@ -139,11 +139,11 @@ test('verifyHermesCli returns true when --version exits 0', async () => {
   }
 })
 
-test('resolveProbeTimeoutMs honours HERMES_PROBE_TIMEOUT_MS', () => {
+test('resolveProbeTimeoutMs honours IRIS_PROBE_TIMEOUT_MS', () => {
   assert.equal(resolveProbeTimeoutMs({}), DEFAULT_PROBE_TIMEOUT_MS)
-  assert.equal(resolveProbeTimeoutMs({ HERMES_PROBE_TIMEOUT_MS: '30000' }), 30_000)
-  assert.equal(resolveProbeTimeoutMs({ HERMES_PROBE_TIMEOUT_MS: '0' }), DEFAULT_PROBE_TIMEOUT_MS)
-  assert.equal(resolveProbeTimeoutMs({ HERMES_PROBE_TIMEOUT_MS: 'nope' }), DEFAULT_PROBE_TIMEOUT_MS)
+  assert.equal(resolveProbeTimeoutMs({ IRIS_PROBE_TIMEOUT_MS: '30000' }), 30_000)
+  assert.equal(resolveProbeTimeoutMs({ IRIS_PROBE_TIMEOUT_MS: '0' }), DEFAULT_PROBE_TIMEOUT_MS)
+  assert.equal(resolveProbeTimeoutMs({ IRIS_PROBE_TIMEOUT_MS: 'nope' }), DEFAULT_PROBE_TIMEOUT_MS)
   // Cap runaway values
-  assert.equal(resolveProbeTimeoutMs({ HERMES_PROBE_TIMEOUT_MS: '999999' }), 120_000)
+  assert.equal(resolveProbeTimeoutMs({ IRIS_PROBE_TIMEOUT_MS: '999999' }), 120_000)
 })

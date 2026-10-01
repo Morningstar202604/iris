@@ -6,7 +6,7 @@ import { abbreviateHomePath, workspaceOptions } from "@/lib/chat-workspaces";
 const base: ChatWorkspacesResponse = {
   projects: [],
   repos: [],
-  default_cwd: "/home/u/.hermes",
+  default_cwd: "/home/u/.iris",
   home: "/home/u",
   scan_enabled: true,
 };

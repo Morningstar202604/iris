@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatRefValue, hermesDirectiveFormatter } from './directive-text'
+import { formatRefValue, irisDirectiveFormatter } from './directive-text'
 
 describe('formatRefValue', () => {
   it('leaves simple paths untouched', () => {
@@ -17,9 +17,9 @@ describe('formatRefValue', () => {
   })
 })
 
-describe('hermesDirectiveFormatter.parse', () => {
+describe('irisDirectiveFormatter.parse', () => {
   it('keeps quoted file paths whole when parsing', () => {
-    const segments = hermesDirectiveFormatter.parse('see @image:`apple-touch-icon (1).png` for the icon')
+    const segments = irisDirectiveFormatter.parse('see @image:`apple-touch-icon (1).png` for the icon')
 
     expect(segments).toEqual([
       { kind: 'text', text: 'see ' },
@@ -29,7 +29,7 @@ describe('hermesDirectiveFormatter.parse', () => {
   })
 
   it('still parses unquoted paths', () => {
-    const segments = hermesDirectiveFormatter.parse('@file:src/main.tsx the entry point')
+    const segments = irisDirectiveFormatter.parse('@file:src/main.tsx the entry point')
 
     // The label keeps its directory: it's the same string the `@` popover row
     // showed, and a bare `main.tsx` can't tell two files apart.
@@ -40,7 +40,7 @@ describe('hermesDirectiveFormatter.parse', () => {
   })
 
   it('parses session links with profile/id values', () => {
-    const segments = hermesDirectiveFormatter.parse('see @session:work/20260101_abc123 next')
+    const segments = irisDirectiveFormatter.parse('see @session:work/20260101_abc123 next')
 
     expect(segments).toEqual([
       { kind: 'text', text: 'see ' },
@@ -52,7 +52,7 @@ describe('hermesDirectiveFormatter.parse', () => {
 
 describe('inline skill references', () => {
   const skills = (text: string) =>
-    [...hermesDirectiveFormatter.parse(text)]
+    [...irisDirectiveFormatter.parse(text)]
       .filter(segment => segment.kind === 'mention' && segment.type === 'skill')
       .map(segment => (segment.kind === 'mention' ? segment.id : ''))
 
@@ -61,7 +61,7 @@ describe('inline skill references', () => {
   })
 
   it('keeps the surrounding prose as text around the chip', () => {
-    const segments = hermesDirectiveFormatter.parse('tidy this with /clean thanks')
+    const segments = irisDirectiveFormatter.parse('tidy this with /clean thanks')
 
     expect(segments).toEqual([
       { kind: 'text', text: 'tidy this with ' },
@@ -87,7 +87,7 @@ describe('inline skill references', () => {
   })
 
   it('parses a skill chip alongside an @ reference', () => {
-    const mentions = [...hermesDirectiveFormatter.parse('run /clean on @file:`src/a.ts`')].filter(
+    const mentions = [...irisDirectiveFormatter.parse('run /clean on @file:`src/a.ts`')].filter(
       segment => segment.kind === 'mention'
     )
 

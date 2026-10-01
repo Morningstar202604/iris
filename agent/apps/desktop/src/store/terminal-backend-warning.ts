@@ -1,8 +1,8 @@
-import { getTerminalBackends, selectTerminalBackend } from '@/hermes'
+import { getTerminalBackends, selectTerminalBackend } from '@/iris'
 import { translateNow } from '@/i18n'
 import { notify, notifyError } from '@/store/notifications'
 import { requestRoute } from '@/store/recovery-requests'
-import type { TerminalBackendInfo } from '@/types/hermes'
+import type { TerminalBackendInfo } from '@/types/iris'
 
 /**
  * Proactive warning when the selected terminal backend (Docker, SSH, …)

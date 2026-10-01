@@ -1,9 +1,9 @@
 """disk_cleanup — ephemeral file cleanup library behind the disk-cleanup plugin.
 
 Rules: test files delete at task end (age >= 0); temp after 7 days; cron-output
-after 14 days; empty dirs under HERMES_HOME always. Prompt-only: research
+after 14 days; empty dirs under IRIS_HOME always. Prompt-only: research
 (keep 10 newest, > 30 days), chrome-profile > 14 days, any file > 500 MB.
-Scope: strictly HERMES_HOME and /tmp/hermes-*; never ~/.hermes/logs/ or system dirs.
+Scope: strictly IRIS_HOME and /tmp/iris-*; never ~/.iris/logs/ or system dirs.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +25,17 @@ _LARGE_FILE_BYTES = 500 * 1024 * 1024
 
 
 def _state_file(name: str) -> Path:
-    """``$HERMES_HOME/disk-cleanup/<name>`` — deliberately outside ``$HERMES_HOME/logs/``."""
-    return get_hermes_home() / "disk-cleanup" / name
+    """``$IRIS_HOME/disk-cleanup/<name>`` — deliberately outside ``$IRIS_HOME/logs/``."""
+    return get_iris_home() / "disk-cleanup" / name
 
 
 def is_safe_path(path: Path) -> bool:
-    """Accept only paths under HERMES_HOME or ``/tmp/hermes-*`` (rejects /mnt/c etc.)."""
+    """Accept only paths under IRIS_HOME or ``/tmp/iris-*`` (rejects /mnt/c etc.)."""
     with contextlib.suppress(ValueError, OSError):
-        path.resolve().relative_to(get_hermes_home())
+        path.resolve().relative_to(get_iris_home())
         return True
     parts = path.parts
-    return len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("hermes-")
+    return len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("iris-")
 
 
 def _log(message: str) -> None:
@@ -80,11 +80,11 @@ def save_tracked(tracked: List[Dict[str, Any]]) -> None:
 ALLOWED_CATEGORIES = {
     "temp", "test", "research", "download", "chrome-profile", "cron-output", "other"}
 
-# Top-level HERMES_HOME dirs whose empty subdirs are never swept (last row: user project trees).
+# Top-level IRIS_HOME dirs whose empty subdirs are never swept (last row: user project trees).
 _EMPTY_DIR_PROTECTED_TOP_LEVEL = frozenset({
     "logs", "memories", "sessions", "cron", "cronjobs",
     "cache", "skills", "plugins", "disk-cleanup", "optional-skills",
-    "hermes-agent", "backups", "profiles", ".worktrees",
+    "iris-agent", "backups", "profiles", ".worktrees",
     "patches", "projects", "skins", "themes", "contributors",
     # Per-profile user trees bootstrapped by ``profiles.py::_PROFILE_DIRS`` (#112859).
     "workspace", "plans", "home",
@@ -94,12 +94,12 @@ _EMPTY_DIR_PROTECTED_TOP_LEVEL = frozenset({
 _EMPTY_DIR_SWEEP_PRUNE_DIRS = frozenset({
     ".git", "node_modules", "venv", ".venv", "site-packages", "__pycache__"})
 
-# Top-level HERMES_HOME entries guess_category() never auto-tracks: state, logs, memory,
+# Top-level IRIS_HOME entries guess_category() never auto-tracks: state, logs, memory,
 # sessions, config/secrets, and user project trees (test_* inside projects/ is not disposable).
 _NEVER_TRACK_TOP_LEVEL = frozenset({
     "disk-cleanup", "logs", "memories", "sessions", "config.yaml",
     "skills", "plugins", ".env", "USER.md", "MEMORY.md", "SOUL.md",
-    "auth.json", "hermes-agent",
+    "auth.json", "iris-agent",
     # User-authored project trees — never sweep empty directories inside these (#75403).
     # User-authored and project trees — never auto-delete files inside these just because they happen to be
     # named test_* or tmp_* (#75403, also #32164, #37721). ``workspace``, ``plans`` and ``home`` are the
@@ -112,12 +112,12 @@ _NEVER_TRACK_TOP_LEVEL = frozenset({
 
 
 def _is_protected_dir(p: Path) -> bool:
-    """A tracked DIRECTORY that is HERMES_HOME itself or lives under a protected top-level tree
+    """A tracked DIRECTORY that is IRIS_HOME itself or lives under a protected top-level tree
     (``cache/terminal`` holds terminal snapshots) is never rmtree'd; only its files age out."""
     if not p.is_dir():
         return False
     with contextlib.suppress(ValueError, OSError):
-        rel = p.resolve().relative_to(get_hermes_home())
+        rel = p.resolve().relative_to(get_iris_home())
         return not rel.parts or rel.parts[0] in _EMPTY_DIR_PROTECTED_TOP_LEVEL
     return False
 
@@ -131,10 +131,10 @@ def _protected_cron_paths(home: Path) -> frozenset:
                      for x in (base, base / "output", base / "jobs.json", base / ".tick.lock"))
 
 
-# Paths under $HERMES_HOME that must NEVER be deleted by quick(), regardless of what the stored category
+# Paths under $IRIS_HOME that must NEVER be deleted by quick(), regardless of what the stored category
 # says. This is a defense-in-depth guard against stale tracked.json entries from before #34840.
 def _is_protected_cron_path(p: Path) -> bool:
-    return str(p.resolve()) in _protected_cron_paths(get_hermes_home())
+    return str(p.resolve()) in _protected_cron_paths(get_iris_home())
 
 
 def fmt_size(n: float) -> str:
@@ -155,7 +155,7 @@ def track(path_str: str, category: str, silent: bool = False) -> bool:
         _log(f"SKIP: {path} (does not exist)")
         return False
     if not is_safe_path(path):
-        _log(f"REJECT: {path} (outside HERMES_HOME)")
+        _log(f"REJECT: {path} (outside IRIS_HOME)")
         return False
     size = path.stat().st_size if path.is_file() else 0
     tracked = load_tracked()
@@ -269,7 +269,7 @@ def quick() -> Dict[str, Any]:
         else:
             errors.append(err)
             new_tracked.append(item)
-    empty_removed = _sweep_empty_dirs(get_hermes_home())
+    empty_removed = _sweep_empty_dirs(get_iris_home())
     save_tracked(new_tracked)
     _log(f"QUICK_SUMMARY: {deleted} files, {empty_removed} dirs, {fmt_size(freed)}")
     return {"deleted": deleted, "empty_dirs": empty_removed, "freed": freed, "errors": errors}
@@ -282,13 +282,13 @@ def _subdirs(dirpath: Path, exclude: frozenset) -> List[Path]:
         return []
 
 
-def _sweep_empty_dirs(hermes_home: Path) -> int:
-    """Remove empty dirs under HERMES_HOME without recursing into durable/heavy trees (a full
-    rglob over a checkout+venv under HERMES_HOME can stall the gateway loop for minutes).
+def _sweep_empty_dirs(iris_home: Path) -> int:
+    """Remove empty dirs under IRIS_HOME without recursing into durable/heavy trees (a full
+    rglob over a checkout+venv under IRIS_HOME can stall the gateway loop for minutes).
     Iterative post-order so parents emptied by child removal are caught."""
     removed = 0
     stack: List[Tuple[Path, bool]] = [
-        (top, False) for top in _subdirs(hermes_home, _EMPTY_DIR_PROTECTED_TOP_LEVEL | _EMPTY_DIR_SWEEP_PRUNE_DIRS)]
+        (top, False) for top in _subdirs(iris_home, _EMPTY_DIR_PROTECTED_TOP_LEVEL | _EMPTY_DIR_SWEEP_PRUNE_DIRS)]
     while stack:
         dirpath, visited = stack.pop()
         if visited:
@@ -342,11 +342,11 @@ def _inside_git_worktree(path: Path) -> bool:
     Files there are Git-owned — a ``test_*`` file in a worktree is typically a committed
     regression test, not session scratch (#115295).
 
-    Only ``.git`` entries strictly BELOW ``HERMES_HOME`` count for in-home paths: a home kept
+    Only ``.git`` entries strictly BELOW ``IRIS_HOME`` count for in-home paths: a home kept
     in a dotfiles repo (``~/.git``) would otherwise make every scratch file look Git-owned."""
     parents = list(path.resolve().parents)
     with contextlib.suppress(ValueError):
-        parents = parents[: parents.index(get_hermes_home())]
+        parents = parents[: parents.index(get_iris_home())]
     return any((parent / ".git").exists() for parent in parents)
 
 
@@ -354,8 +354,8 @@ def guess_category(path: Path) -> Optional[str]:
     """Category label for *path*, or None if we shouldn't track it (``post_tool_call`` hook)."""
     if not is_safe_path(path):
         return None
-    with contextlib.suppress(ValueError):  # not under HERMES_HOME (/tmp/hermes-*) — name rules only
-        rel = path.resolve().relative_to(get_hermes_home())
+    with contextlib.suppress(ValueError):  # not under IRIS_HOME (/tmp/iris-*) — name rules only
+        rel = path.resolve().relative_to(get_iris_home())
         top = rel.parts[0] if rel.parts else ""
         if top in _NEVER_TRACK_TOP_LEVEL or _is_protected_dir(path):
             return None

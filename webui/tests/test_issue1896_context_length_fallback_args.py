@@ -42,7 +42,7 @@ def _both_callsites():
 
     Yields the literal text of each primary callsite. The two intentional
     legacy 2-arg fallback callsites (gated under `except TypeError:`) are
-    excluded because they exist precisely to support older hermes-agent
+    excluded because they exist precisely to support older iris-agent
     builds where the new kwargs aren't accepted yet.
     """
     out = []
@@ -155,13 +155,13 @@ def test_config_context_length_parsed_safely():
 
 
 def test_legacy_signature_fallback_present():
-    """Older hermes-agent builds may not yet have config_context_length on
+    """Older iris-agent builds may not yet have config_context_length on
     get_model_context_length(). The fix must catch TypeError and retry with
     the legacy 2-arg form so the indicator still resolves *something*."""
     # The except TypeError clause should mention the legacy retry comment OR
     # contain a 2-arg fallback call.
     assert "except TypeError:" in STREAMING_PY, (
-        "Both callsites must catch TypeError to support older hermes-agent "
+        "Both callsites must catch TypeError to support older iris-agent "
         "builds whose get_model_context_length signature pre-dates the new "
         "kwargs. Without this fallback, an older agent build would crash "
         "the save/SSE path instead of degrading to a 2-arg call."
@@ -234,10 +234,10 @@ def test_routes_session_load_fallback_passes_config_overrides():
         "session-load fallback in api/routes.py must pass custom_providers= "
         "so the per-model override path applies. See #1896."
     )
-    # Legacy fallback for older hermes-agent builds that pre-date the kwargs.
+    # Legacy fallback for older iris-agent builds that pre-date the kwargs.
     assert "except TypeError:" in helper, (
         "session-load fallback must catch TypeError to support older "
-        "hermes-agent builds without the new kwargs."
+        "iris-agent builds without the new kwargs."
     )
 
 

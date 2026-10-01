@@ -159,7 +159,7 @@ test('buildNativeAuthorizeUrl encodes params and honours a path prefix', () => {
 })
 
 test('buildNativeAuthorizeUrl omits provider when not given and preserves prefix', () => {
-  const url = buildNativeAuthorizeUrl('https://gw.example.com/hermes', {
+  const url = buildNativeAuthorizeUrl('https://gw.example.com/iris', {
     challenge: 'C',
     redirectUri: 'http://127.0.0.1:1/cb',
     state: 'S'
@@ -167,13 +167,13 @@ test('buildNativeAuthorizeUrl omits provider when not given and preserves prefix
 
   const parsed = new URL(url)
 
-  assert.equal(parsed.pathname, '/hermes/auth/native/authorize')
+  assert.equal(parsed.pathname, '/iris/auth/native/authorize')
   assert.equal(parsed.searchParams.get('provider'), null)
 })
 
 test('nativeTokenUrl / nativeRefreshUrl build the right endpoints', () => {
   assert.equal(nativeTokenUrl('https://gw.example.com'), 'https://gw.example.com/auth/native/token')
-  assert.equal(nativeRefreshUrl('https://gw.example.com/hermes'), 'https://gw.example.com/hermes/auth/native/refresh')
+  assert.equal(nativeRefreshUrl('https://gw.example.com/iris'), 'https://gw.example.com/iris/auth/native/refresh')
 })
 
 // --- loopback callback parsing ---

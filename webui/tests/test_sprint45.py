@@ -16,12 +16,12 @@ import os
 
 from tests._pytest_port import BASE, TEST_STATE_DIR
 REPO = pathlib.Path(__file__).parent.parent
-# Use HERMES_WEBUI_TEST_STATE_DIR if available (set by conftest for the test process),
-# falling back to the shared isolated TEST_STATE_DIR (temp-rooted, never ~/.hermes).
+# Use IRIS_WEBUI_TEST_STATE_DIR if available (set by conftest for the test process),
+# falling back to the shared isolated TEST_STATE_DIR (temp-rooted, never ~/.iris).
 def _get_settings_file() -> pathlib.Path:
     """Resolve SETTINGS_FILE at call time (env var set by conftest after module import)."""
     state_dir = pathlib.Path(
-        os.environ.get("HERMES_WEBUI_TEST_STATE_DIR", str(TEST_STATE_DIR))
+        os.environ.get("IRIS_WEBUI_TEST_STATE_DIR", str(TEST_STATE_DIR))
     )
     return state_dir / "settings.json"
 
@@ -76,7 +76,7 @@ def test_first_password_enablement_returns_cookie_and_keeps_browser_logged_in():
         assert saved["auth_just_enabled"] is True
 
         set_cookie = headers.get("Set-Cookie", "")
-        assert "hermes_session=" in set_cookie
+        assert "iris_session=" in set_cookie
         cookie_header = set_cookie.split(";", 1)[0]
 
         auth, auth_status, _ = get("/api/auth/status", headers={"Cookie": cookie_header})

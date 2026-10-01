@@ -1,14 +1,14 @@
 /**
  * Desktop-only color helpers: the naive light/dark bucketer, the VS Code hex
  * normaliser, and the OKLCH toolkit. The sRGB primitives (parse/mix/measure/
- * ensureContrast) live in `@hermes/shared/color` and are shared with the TUI.
+ * ensureContrast) live in `@iris/shared/color` and are shared with the TUI.
  *
  * Everything works in 6-digit `#rrggbb`. `normalizeHex` is the front door for
  * untrusted input (VS Code themes use `#rgb`, `#rgba`, `#rrggbbaa`, and named
  * tokens), flattening alpha over a backdrop so downstream math stays simple.
  */
 
-import { contrastRatio, parseColor, readableOn, relativeLuminance, toHex } from '@hermes/shared/color'
+import { contrastRatio, parseColor, readableOn, relativeLuminance, toHex } from '@iris/shared/color'
 
 /** The desktop's ink pair: its near-black text colour, not pure black. */
 const DESKTOP_INKS = ['#161616', '#ffffff'] as const

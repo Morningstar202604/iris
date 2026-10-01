@@ -25,7 +25,7 @@ def _run_pet_js(
     if hook_throws:
         hook_setup += textwrap.dedent(
             """
-            ctx.window.__hermesHandlePetSlashCommand = async payload => {
+            ctx.window.__irisHandlePetSlashCommand = async payload => {
               hookCalls.push(payload);
               throw new Error('hook failed');
             };
@@ -34,7 +34,7 @@ def _run_pet_js(
     elif hook_result is not None:
         hook_setup += textwrap.dedent(
             f"""
-            ctx.window.__hermesHandlePetSlashCommand = async payload => {{
+            ctx.window.__irisHandlePetSlashCommand = async payload => {{
               hookCalls.push(payload);
               return {json.dumps(hook_result)};
             }};
@@ -53,7 +53,7 @@ def _run_pet_js(
           }},
         }};
         const window = {{
-          __HERMES_WEBUI_DESKTOP_COMPANION_STATUS__: {json.dumps(adapter_status)},
+          __IRIS_WEBUI_DESKTOP_COMPANION_STATUS__: {json.dumps(adapter_status)},
         }};
         window.window = window;
         const ctx = {{
@@ -96,7 +96,7 @@ def _run_send_js(*, command, status, adapter_status=None, hook_result=None, hook
     if hook_throws:
         hook_setup += textwrap.dedent(
             """
-            ctx.window.__hermesHandlePetSlashCommand = async payload => {
+            ctx.window.__irisHandlePetSlashCommand = async payload => {
               throw new Error('hook failed');
             };
             """
@@ -104,7 +104,7 @@ def _run_send_js(*, command, status, adapter_status=None, hook_result=None, hook
     elif hook_result is not None:
         hook_setup += textwrap.dedent(
             f"""
-            ctx.window.__hermesHandlePetSlashCommand = async payload => {{
+            ctx.window.__irisHandlePetSlashCommand = async payload => {{
               return {json.dumps(hook_result)};
             }};
             """
@@ -136,7 +136,7 @@ def _run_send_js(*, command, status, adapter_status=None, hook_result=None, hook
         const ctx = {{
           console,
           window: {{
-            __HERMES_WEBUI_DESKTOP_COMPANION_STATUS__: {json.dumps(adapter_status)},
+            __IRIS_WEBUI_DESKTOP_COMPANION_STATUS__: {json.dumps(adapter_status)},
             addEventListener(){{}},
             requestAnimationFrame(cb){{ return 1; }},
           }},
@@ -253,7 +253,7 @@ def test_pet_help_routes_to_install_guidance_when_companion_is_missing():
     message = result["result"]["message"]
     assert "Desktop Companion is not installed yet." in message
     assert "Settings -> Extensions -> Gallery -> Desktop Companion" in message
-    assert "https://github.com/franksong2702/hermes-webui-desktop-companion#after-gallery-install" in message
+    assert "https://github.com/franksong2702/iris-webui-desktop-companion#after-gallery-install" in message
     assert "Desktop Companion app" in message
 
 
@@ -279,7 +279,7 @@ def test_pet_help_routes_to_enable_guidance_when_companion_is_disabled():
     assert "Desktop Companion is installed but disabled." in message
     assert "Enable it in Settings -> Extensions" in message
     assert "Desktop Companion app" in message
-    assert "https://github.com/franksong2702/hermes-webui-desktop-companion#after-gallery-install" in message
+    assert "https://github.com/franksong2702/iris-webui-desktop-companion#after-gallery-install" in message
 
 
 def test_pet_help_routes_to_reload_and_start_guidance_when_adapter_status_is_missing():
@@ -456,7 +456,7 @@ def test_pet_help_falls_back_to_unavailable_guidance_when_hook_is_missing():
     assert "Desktop Companion is installed and connected" in message
     assert "/pet is not available yet in this Desktop Companion version" in message
     assert "Update the Desktop Companion app" in message
-    assert "https://github.com/franksong2702/hermes-webui-desktop-companion#after-gallery-install" in message
+    assert "https://github.com/franksong2702/iris-webui-desktop-companion#after-gallery-install" in message
 
 
 def test_pet_help_routes_to_hook_error_guidance_when_hook_throws():
@@ -500,7 +500,7 @@ def test_pet_slash_intercept_bypasses_generic_agent_execution():
 
     assert [item["role"] for item in pet["messages"]] == ["user", "assistant"]
     assert "Desktop Companion is not installed yet." in pet["messages"][1]["content"]
-    assert "Hermes CLI-only command" not in pet["messages"][1]["content"]
+    assert "Iris CLI-only command" not in pet["messages"][1]["content"]
     assert pet["commandExecCalls"] == []
     assert pet["remainingInput"] == ""
 

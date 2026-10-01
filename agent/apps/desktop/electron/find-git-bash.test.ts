@@ -7,10 +7,10 @@ import { findGitBash } from './find-git-bash'
 const yes = () => true
 const no = () => false
 
-test('HERMES_GIT_BASH_PATH override takes precedence', () => {
+test('IRIS_GIT_BASH_PATH override takes precedence', () => {
   const result = findGitBash({
     isWindows: true,
-    env: { HERMES_GIT_BASH_PATH: 'D:\\CustomGit\\bin\\bash.exe' },
+    env: { IRIS_GIT_BASH_PATH: 'D:\\CustomGit\\bin\\bash.exe' },
     fileExists: yes,
     findOnPath: () => null
   })
@@ -18,9 +18,9 @@ test('HERMES_GIT_BASH_PATH override takes precedence', () => {
   assert.equal(result, 'D:\\CustomGit\\bin\\bash.exe')
 })
 
-test('HERMES_GIT_BASH_PATH invalid path falls through to candidates', () => {
+test('IRIS_GIT_BASH_PATH invalid path falls through to candidates', () => {
   const env = {
-    HERMES_GIT_BASH_PATH: 'X:\\Missing\\bash.exe',
+    IRIS_GIT_BASH_PATH: 'X:\\Missing\\bash.exe',
     LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local',
     ProgramFiles: 'C:\\Program Files',
     'ProgramFiles(x86)': 'C:\\Program Files (x86)'
@@ -31,10 +31,10 @@ test('HERMES_GIT_BASH_PATH invalid path falls through to candidates', () => {
   assert.equal(result, 'C:\\Program Files\\Git\\bin\\bash.exe')
 })
 
-test('HERMES_GIT_BASH_PATH empty string is ignored', () => {
+test('IRIS_GIT_BASH_PATH empty string is ignored', () => {
   const result = findGitBash({
     isWindows: true,
-    env: { HERMES_GIT_BASH_PATH: '', LOCALAPPDATA: '' },
+    env: { IRIS_GIT_BASH_PATH: '', LOCALAPPDATA: '' },
     fileExists: no,
     findOnPath: () => 'C:\\msys64\\usr\\bin\\bash.exe'
   })

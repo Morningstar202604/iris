@@ -12,7 +12,7 @@ def _force_env_fallback(monkeypatch):
     real_import = builtins.__import__
 
     def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        if name in ("hermes_cli.models", "hermes_cli.auth"):
+        if name in ("iris_cli.models", "iris_cli.auth"):
             raise ImportError(name)
         return real_import(name, globals, locals, fromlist, level)
 
@@ -25,7 +25,7 @@ def _run_available_models_with_cfg(monkeypatch, tmp_path, cfg):
     old_cfg_path = config._cfg_path
     monkeypatch.setattr(config, "_models_cache_path", tmp_path / "models_cache.json")
     monkeypatch.setattr(config, "_get_config_path", lambda: tmp_path / "missing-config.yaml")
-    monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: tmp_path, raising=False)
     config.cfg.clear()
     config.cfg.update(cfg)
     config._cfg_mtime = 0.0
@@ -73,7 +73,7 @@ def test_bedrock_static_models_have_required_fields():
 
 
 def test_bedrock_aws_credentials_detected_in_env_fallback(monkeypatch, tmp_path):
-    """AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY must trigger bedrock group (no hermes_cli)."""
+    """AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY must trigger bedrock group (no iris_cli)."""
     _force_env_fallback(monkeypatch)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIAIOSFODNN7EXAMPLE")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")

@@ -96,7 +96,7 @@ test('output tail interleaves stdout and stderr attached from spawn time', () =>
 
   tail.attach(child)
   child.stdout.emit('data', Buffer.from('booting\n'))
-  child.stderr.emit('data', Buffer.from("ModuleNotFoundError: No module named 'hermes_cli'\n"))
+  child.stderr.emit('data', Buffer.from("ModuleNotFoundError: No module named 'iris_cli'\n"))
 
   assert.match(tail.text(), /booting/)
   assert.match(tail.text(), /ModuleNotFoundError/)
@@ -116,19 +116,19 @@ test('exit line carries the buffered tail next to the exit code, preferring the 
   tail.append('Traceback (most recent call last):\n')
 
   assert.equal(
-    formatBackendExitLine('Ignoring stale Hermes backend exit', 1, null, tail),
-    'Ignoring stale Hermes backend exit (1)\nRecent backend output:\nTraceback (most recent call last):'
+    formatBackendExitLine('Ignoring stale Iris backend exit', 1, null, tail),
+    'Ignoring stale Iris backend exit (1)\nRecent backend output:\nTraceback (most recent call last):'
   )
   assert.equal(
-    formatBackendExitLine('Hermes backend exited', null, 'SIGTERM', tail),
-    'Hermes backend exited (SIGTERM)\nRecent backend output:\nTraceback (most recent call last):'
+    formatBackendExitLine('Iris backend exited', null, 'SIGTERM', tail),
+    'Iris backend exited (SIGTERM)\nRecent backend output:\nTraceback (most recent call last):'
   )
 })
 
 test('exit line stays byte-identical to the legacy shape when the tail is empty or missing', () => {
   assert.equal(
-    formatBackendExitLine('Hermes backend exited', 0, null, createBackendOutputTail(64)),
-    'Hermes backend exited (0)'
+    formatBackendExitLine('Iris backend exited', 0, null, createBackendOutputTail(64)),
+    'Iris backend exited (0)'
   )
-  assert.equal(formatBackendExitLine('Hermes backend exited', 1, null, null), 'Hermes backend exited (1)')
+  assert.equal(formatBackendExitLine('Iris backend exited', 1, null, null), 'Iris backend exited (1)')
 })

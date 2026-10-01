@@ -68,7 +68,7 @@ def test_settings_bot_name_special_chars():
 
 # ── Server-side sanitization ──────────────────────────────────────────────
 
-def test_settings_empty_bot_name_defaults_to_hermes():
+def test_settings_empty_bot_name_defaults_to_iris():
     """Posting an empty bot_name should default to 'Iris' server-side."""
     try:
         d, status = post("/api/settings", {"bot_name": ""})
@@ -80,7 +80,7 @@ def test_settings_empty_bot_name_defaults_to_hermes():
         post("/api/settings", {"bot_name": "Iris"})
 
 
-def test_settings_whitespace_bot_name_defaults_to_hermes():
+def test_settings_whitespace_bot_name_defaults_to_iris():
     """Posting a whitespace-only bot_name should default to 'Iris'."""
     try:
         d, status = post("/api/settings", {"bot_name": "   "})

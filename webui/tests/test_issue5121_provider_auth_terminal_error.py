@@ -62,8 +62,8 @@ def _neutralize_credential_self_heal(monkeypatch):
     The terminal-auth-failure tests assert that an unrecoverable 401 surfaces
     an ``apperror`` / persisted ``_error`` turn. The streaming settlement path
     first tries ``_attempt_credential_self_heal`` (#1401), which calls
-    ``read_auth_json()``. On a host with a populated ``~/.hermes/auth.json``
-    (e.g. a developer's real Hermes box) self-heal can succeed and silently
+    ``read_auth_json()``. On a host with a populated ``~/.iris/auth.json``
+    (e.g. a developer's real Iris box) self-heal can succeed and silently
     retry the mock agent, swallowing the error the test expects — so the
     outcome would depend on host credentials. CI / Windows boxes have no such
     credentials, which is why the tests pass there but fail on a live agent
@@ -76,22 +76,22 @@ def _neutralize_credential_self_heal(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _mock_hermes_modules(monkeypatch):
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+def _mock_iris_modules(monkeypatch):
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None, **_kw: {
         "provider": requested or "test-provider",
         "api_key": "synthetic-key",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=None)
 
     injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     missing = object()
     saved = {k: sys.modules.get(k, missing) for k in injected}

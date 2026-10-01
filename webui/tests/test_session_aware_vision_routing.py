@@ -24,7 +24,7 @@ from api.streaming import (
 
 # The capability-based routing under test delegates to
 # ``agent.image_routing.decide_image_input_mode`` (the single source of truth).
-# In the WebUI standalone CI environment the ``hermes-agent`` package is NOT
+# In the WebUI standalone CI environment the ``iris-agent`` package is NOT
 # installed, so that import fails and ``_resolve_image_input_mode`` falls back to
 # the historical "forward native, rely on strip-and-retry" behaviour. Tests that
 # assert a capability-derived ``text`` verdict can therefore only run where the
@@ -39,7 +39,7 @@ except Exception:  # pragma: no cover
 
 requires_agent_routing = pytest.mark.skipif(
     not _HAS_AGENT_ROUTING,
-    reason="hermes-agent not installed (capability-based routing unavailable)",
+    reason="iris-agent not installed (capability-based routing unavailable)",
 )
 
 

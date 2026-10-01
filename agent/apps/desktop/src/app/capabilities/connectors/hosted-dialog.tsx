@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/iris'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 
 import type { McpServersController } from '../mcp/use-mcp-servers'

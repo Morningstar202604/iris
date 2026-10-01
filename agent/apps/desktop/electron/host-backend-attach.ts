@@ -1,4 +1,4 @@
-// Attach to the host's running Hermes backend (multiplex-only, Desktop half).
+// Attach to the host's running Iris backend (multiplex-only, Desktop half).
 //
 // `backend-discovery.ts` owns the pure decision; this module performs the IO
 // ladder around it: read the machine-root ledger, validate a candidate at the
@@ -40,8 +40,8 @@ export interface HostBackendAttachDeps {
   log: (message: string) => void
 }
 
-export function spawnLedgerPath(hermesHomeRoot: string, join: (...parts: string[]) => string): string {
-  return join(hermesHomeRoot, SPAWN_LEDGER_FILENAME)
+export function spawnLedgerPath(irisHomeRoot: string, join: (...parts: string[]) => string): string {
+  return join(irisHomeRoot, SPAWN_LEDGER_FILENAME)
 }
 
 function wsUrlFor(baseUrl: string, token: string): string {
@@ -101,7 +101,7 @@ export async function attachToHostBackend(
 
   if (decision.action === 'spawn') {
     if (decision.reason === 'isolated') {
-      deps.log('[attach] HERMES_DESKTOP_ISOLATED_BACKEND is set; spawning a dedicated backend')
+      deps.log('[attach] IRIS_DESKTOP_ISOLATED_BACKEND is set; spawning a dedicated backend')
     }
 
     return null
@@ -115,7 +115,7 @@ export async function attachToHostBackend(
 
     if (attached) {
       deps.log(
-        `[attach] attached to the running Hermes backend on ${attached.baseUrl} ` +
+        `[attach] attached to the running Iris backend on ${attached.baseUrl} ` +
           `(pid ${attached.pid}, registered by profile "${record.profile || 'default'}"); spawning nothing`
       )
 

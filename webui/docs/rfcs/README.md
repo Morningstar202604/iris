@@ -1,6 +1,6 @@
 # RFCs
 
-This directory holds design documents for hermes-webui features that are
+This directory holds design documents for iris-webui features that are
 worth thinking through in writing before (or alongside) implementation —
 typically when the change touches durability, recovery, schema, or cross-
 cutting infrastructure.
@@ -38,7 +38,7 @@ First-time contributor RFCs should be discussed in an issue before opening a PR.
 
 ## Current RFCs
 
-- [`hermes-run-adapter-contract.md`](hermes-run-adapter-contract.md) — #1925
+- [`iris-run-adapter-contract.md`](iris-run-adapter-contract.md) — #1925
   event/control contract, runtime-state ownership matrix, acceptance catalog,
   and reversible migration gates for moving WebUI execution behind an explicit
   adapter boundary.

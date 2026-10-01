@@ -10,8 +10,8 @@ import {
   openSessionInNewWindow
 } from './windows'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const desktopWindow = window as unknown as { irisDesktop?: Window['irisDesktop'] }
+const initialIrisDesktop = desktopWindow.irisDesktop
 
 const notifyError = vi.fn()
 
@@ -20,15 +20,15 @@ vi.mock('./notifications', () => ({
 }))
 
 function installBridge(
-  openSessionWindow?: Window['hermesDesktop']['openSessionWindow'],
-  openWindow?: Window['hermesDesktop']['openWindow'],
-  openBrowserWindow?: Window['hermesDesktop']['openBrowserWindow']
+  openSessionWindow?: Window['irisDesktop']['openSessionWindow'],
+  openWindow?: Window['irisDesktop']['openWindow'],
+  openBrowserWindow?: Window['irisDesktop']['openBrowserWindow']
 ) {
-  desktopWindow.hermesDesktop = {
+  desktopWindow.irisDesktop = {
     ...(openSessionWindow ? { openSessionWindow } : {}),
     ...(openWindow ? { openWindow } : {}),
     ...(openBrowserWindow ? { openBrowserWindow } : {})
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['irisDesktop']
 }
 
 beforeEach(() => {
@@ -36,10 +36,10 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialIrisDesktop) {
+    desktopWindow.irisDesktop = initialIrisDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.irisDesktop
   }
 })
 
@@ -73,7 +73,7 @@ describe('openSessionInNewWindow', () => {
   })
 
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.irisDesktop
 
     await openSessionInNewWindow('s1')
 
@@ -113,7 +113,7 @@ describe('openSessionInNewWindow', () => {
 
 describe('openNewWindow', () => {
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.irisDesktop
 
     await openNewWindow()
 
@@ -140,7 +140,7 @@ describe('openBrowserInNewWindow', () => {
   })
 
   it('returns false when the bridge is absent', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.irisDesktop
 
     expect(await openBrowserInNewWindow('tab-1')).toBe(false)
     expect(notifyError).not.toHaveBeenCalled()

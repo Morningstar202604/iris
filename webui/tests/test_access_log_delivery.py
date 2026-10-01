@@ -71,9 +71,9 @@ def test_successful_chat_start_delivers_access_record(tmp_path, capture):
     env = {
         "PATH": os.environ["PATH"],
         "HOME": str(tmp_path),
-        "HERMES_HOME": str(tmp_path / "home"),
-        "HERMES_WEBUI_STATE_DIR": str(tmp_path / "state"),
-        "HERMES_WEBUI_TEST_NETWORK_BLOCK": "1",
+        "IRIS_HOME": str(tmp_path / "home"),
+        "IRIS_WEBUI_STATE_DIR": str(tmp_path / "state"),
+        "IRIS_WEBUI_TEST_NETWORK_BLOCK": "1",
     }
     result = subprocess.run(
         [sys.executable, "-c", script, capture],

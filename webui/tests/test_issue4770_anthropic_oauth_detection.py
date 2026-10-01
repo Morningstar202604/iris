@@ -9,11 +9,11 @@ import api.config as config
 def _force_env_fallback(monkeypatch):
     """Force get_available_models() into the env-based fallback branch."""
     real_import = builtins.__import__
-    monkeypatch.delitem(sys.modules, "hermes_cli.auth", raising=False)
-    monkeypatch.delitem(sys.modules, "hermes_cli", raising=False)
+    monkeypatch.delitem(sys.modules, "iris_cli.auth", raising=False)
+    monkeypatch.delitem(sys.modules, "iris_cli", raising=False)
 
     def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        if name in ("hermes_cli.models", "hermes_cli.auth"):
+        if name in ("iris_cli.models", "iris_cli.auth"):
             raise ImportError(name)
         return real_import(name, globals, locals, fromlist, level)
 
@@ -56,7 +56,7 @@ def _run_available_models_with_cfg(monkeypatch, tmp_path, cfg):
 
     monkeypatch.setattr(config, "_models_cache_path", tmp_path / "models_cache.json")
     monkeypatch.setattr(config, "_get_config_path", lambda: tmp_path / "missing-config.yaml")
-    monkeypatch.setattr("api.profiles.get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr("api.profiles.get_active_iris_home", lambda: tmp_path, raising=False)
     config.cfg.clear()
     config.cfg.update(cfg)
     config._cfg_mtime = 0.0
@@ -86,7 +86,7 @@ def test_anthropic_token_env_var_surfaces_anthropic_models(monkeypatch, tmp_path
     groups = _provider_groups(result)
     assert "anthropic" in groups, (
         "ANTHROPIC_TOKEN should surface the Anthropic picker provider when the "
-        "hermes_cli path is unavailable."
+        "iris_cli path is unavailable."
     )
     assert groups["anthropic"]["provider"] == "Anthropic"
     assert groups["anthropic"]["models"], "Anthropic fallback should include model entries"
@@ -118,7 +118,7 @@ def test_claude_code_oauth_token_env_var_surfaces_anthropic_models(monkeypatch, 
     groups = _provider_groups(result)
     assert "anthropic" in groups, (
         "CLAUDE_CODE_OAUTH_TOKEN should surface the Anthropic picker provider when "
-        "the hermes_cli path is unavailable."
+        "the iris_cli path is unavailable."
     )
     assert groups["anthropic"]["provider"] == "Anthropic"
     assert groups["anthropic"]["models"], "Anthropic fallback should include model entries"

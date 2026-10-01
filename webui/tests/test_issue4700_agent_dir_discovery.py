@@ -1,6 +1,6 @@
 """Regression tests for issue #4700.
 
-Discovery of a pip-style hermes-agent checkout must accept ``cron/jobs.py``
+Discovery of a pip-style iris-agent checkout must accept ``cron/jobs.py``
 with core markers even when ``run_agent.py`` is missing.
 """
 
@@ -13,17 +13,17 @@ from pathlib import Path
 
 def _isolate_discovery_inputs(config, monkeypatch, tmp_path: Path) -> None:
     """Force `_discover_agent_dir()` to only use test-controlled candidates."""
-    monkeypatch.delenv("HERMES_WEBUI_AGENT_DIR", raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.delenv("IRIS_WEBUI_AGENT_DIR", raising=False)
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path / "iris-home"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg-data"))
     monkeypatch.setattr(config, "HOME", tmp_path / "home")
-    monkeypatch.setattr(config, "_DEFAULT_HERMES_HOME", tmp_path / "default-hermes-home")
+    monkeypatch.setattr(config, "_DEFAULT_IRIS_HOME", tmp_path / "default-iris-home")
     monkeypatch.setattr(config, "REPO_ROOT", tmp_path / "webui-repo")
 
 
 def _make_pip_style_agent_root(root: Path) -> Path:
     """Create a pip-style root with cron/jobs.py and a core marker."""
-    marker = root / "hermes"
+    marker = root / "iris"
     cron_jobs = root / "cron" / "jobs.py"
     marker.mkdir(parents=True)
     cron_jobs.parent.mkdir(parents=True)
@@ -63,7 +63,7 @@ def test_discover_agent_dir_accepts_pip_style_root_without_run_agent(monkeypatch
 
     pip_root = _make_pip_style_agent_root(tmp_path / "pip-style-agent")
     _isolate_discovery_inputs(config, monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_AGENT_DIR", str(pip_root))
+    monkeypatch.setenv("IRIS_WEBUI_AGENT_DIR", str(pip_root))
 
     assert config._discover_agent_dir() == pip_root
 
@@ -76,7 +76,7 @@ def test_discover_agent_dir_rejects_cron_only_directory_without_agent_markers(
 
     cron_only = _make_plugins_lookalike_root(tmp_path / "cron-only")
     _isolate_discovery_inputs(config, monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_AGENT_DIR", str(cron_only))
+    monkeypatch.setenv("IRIS_WEBUI_AGENT_DIR", str(cron_only))
 
     assert config._discover_agent_dir() is None
 
@@ -87,8 +87,8 @@ def test_discover_agent_dir_prefers_later_run_agent_root_over_earlier_pip_lookal
     """A real source checkout must beat an earlier pip-style lookalike candidate."""
     import api.config as config
 
-    _make_plugins_lookalike_root(tmp_path / "hermes-home" / "hermes-agent")
-    later_legacy = _make_legacy_agent_root(tmp_path / "hermes-agent")
+    _make_plugins_lookalike_root(tmp_path / "iris-home" / "iris-agent")
+    later_legacy = _make_legacy_agent_root(tmp_path / "iris-agent")
     _isolate_discovery_inputs(config, monkeypatch, tmp_path)
 
     assert config._discover_agent_dir() == later_legacy
@@ -103,9 +103,9 @@ def test_explicit_legacy_agent_dir_override_still_beats_pip_style_fallback(
     legacy = _make_legacy_agent_root(tmp_path / "legacy-agent")
     _make_pip_style_agent_root(tmp_path / "fallback-pip-agent")
     _isolate_discovery_inputs(config, monkeypatch, tmp_path)
-    monkeypatch.setenv("HERMES_WEBUI_AGENT_DIR", str(legacy))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
-    _make_pip_style_agent_root(tmp_path / "hermes-home" / "hermes-agent")
+    monkeypatch.setenv("IRIS_WEBUI_AGENT_DIR", str(legacy))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path / "iris-home"))
+    _make_pip_style_agent_root(tmp_path / "iris-home" / "iris-agent")
 
     assert config._discover_agent_dir() == legacy
 
@@ -129,7 +129,7 @@ def test_routes_shadow_helper_can_recover_once_agent_dir_resolves(monkeypatch, t
     import api.config as config
     import api.routes as routes
 
-    agent_dir = _make_pip_style_agent_root(tmp_path / "hermes-agent")
+    agent_dir = _make_pip_style_agent_root(tmp_path / "iris-agent")
     shadow_site_packages = tmp_path / "shadow-site-packages"
     shadow_cron = shadow_site_packages / "cron"
     (shadow_cron / "__init__.py").parent.mkdir(parents=True, exist_ok=True)

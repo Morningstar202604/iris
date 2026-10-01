@@ -1,11 +1,11 @@
 """Kanban read-only bridge tests.
 
 The first upstream WebUI Kanban integration is intentionally read-only: it
-surfaces Hermes Agent Kanban data under /api/kanban/* while keeping the Agent
+surfaces Iris Agent Kanban data under /api/kanban/* while keeping the Agent
 kanban database as the only source of truth.
 
-CI for hermes-webui does not install hermes-agent, so these tests inject a tiny
-fake ``hermes_cli.kanban_db`` module and verify the bridge contract without
+CI for iris-webui does not install iris-agent, so these tests inject a tiny
+fake ``iris_cli.kanban_db`` module and verify the bridge contract without
 requiring the external package.
 """
 
@@ -236,7 +236,7 @@ class FakeKanbanDB:
 
     def worker_log_path(self, task_id):
         from pathlib import Path
-        return Path(f"/tmp/hermes-kanban/{task_id}.log")
+        return Path(f"/tmp/iris-kanban/{task_id}.log")
 
     def dispatch_once(self, conn, dry_run=False, max_spawn=8):
         return {"dry_run": dry_run, "max_spawn": max_spawn, "spawned": []}
@@ -359,10 +359,10 @@ class FakeKanbanDB:
 
 def _load_bridge(monkeypatch):
     fake_kanban = FakeKanbanDB()
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.kanban_db = fake_kanban
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.kanban_db", fake_kanban)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.kanban_db = fake_kanban
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.kanban_db", fake_kanban)
     import api.kanban_bridge as bridge
 
     return importlib.reload(bridge)
@@ -391,7 +391,7 @@ def test_kanban_board_payload_exposes_read_only_board(monkeypatch):
 
 def test_board_pointer_drift_falls_back_to_default(monkeypatch):
     bridge = _load_bridge(monkeypatch)
-    fake_kanban = sys.modules["hermes_cli.kanban_db"]
+    fake_kanban = sys.modules["iris_cli.kanban_db"]
     fake_kanban.boards = {
         "default": {"slug": "default", "name": "Default board", "archived": False},
         "active": {"slug": "active", "name": "Active board", "archived": False},
@@ -606,17 +606,17 @@ def test_patch_status_blocked_to_ready_routes_through_unblock_task(monkeypatch):
     )
 
 
-def test_handle_kanban_get_returns_503_when_hermes_cli_missing(monkeypatch):
-    """If hermes_cli is unavailable (webui-only deploy), the bridge must
+def test_handle_kanban_get_returns_503_when_iris_cli_missing(monkeypatch):
+    """If iris_cli is unavailable (webui-only deploy), the bridge must
     return a clean 503 with a `kanban unavailable` body — NOT a 500/exception
     that bubbles up to the user. The frontend's existing try/catch surfaces
     the toast cleanly only when the bridge gives a structured error.
     """
     bridge = _load_bridge(monkeypatch)
-    # Force _kb() to raise ImportError as if hermes_cli was uninstalled
+    # Force _kb() to raise ImportError as if iris_cli was uninstalled
     monkeypatch.setattr(
         bridge, "_kb",
-        lambda: (_ for _ in ()).throw(ImportError("No module named 'hermes_cli'")),
+        lambda: (_ for _ in ()).throw(ImportError("No module named 'iris_cli'")),
     )
 
     captured = {}
@@ -642,12 +642,12 @@ def test_handle_kanban_get_returns_503_when_hermes_cli_missing(monkeypatch):
     assert "kanban unavailable" in captured["msg"]
 
 
-def test_handle_kanban_post_returns_503_when_hermes_cli_missing(monkeypatch):
+def test_handle_kanban_post_returns_503_when_iris_cli_missing(monkeypatch):
     """Same fallback contract for POST verb."""
     bridge = _load_bridge(monkeypatch)
     monkeypatch.setattr(
         bridge, "_kb",
-        lambda: (_ for _ in ()).throw(ImportError("hermes_cli missing")),
+        lambda: (_ for _ in ()).throw(ImportError("iris_cli missing")),
     )
     captured = {}
 
@@ -667,12 +667,12 @@ def test_handle_kanban_post_returns_503_when_hermes_cli_missing(monkeypatch):
     assert captured["status"] == 503
 
 
-def test_handle_kanban_patch_returns_503_when_hermes_cli_missing(monkeypatch):
+def test_handle_kanban_patch_returns_503_when_iris_cli_missing(monkeypatch):
     """Same fallback contract for PATCH verb."""
     bridge = _load_bridge(monkeypatch)
     monkeypatch.setattr(
         bridge, "_kb",
-        lambda: (_ for _ in ()).throw(ImportError("hermes_cli missing")),
+        lambda: (_ for _ in ()).throw(ImportError("iris_cli missing")),
     )
     captured = {}
 
@@ -723,10 +723,10 @@ def test_board_counts_returns_empty_for_nonexistent_board(monkeypatch):
         return orig_connect(board=board)
     fake_kanban.connect = tracking_connect
 
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.kanban_db = fake_kanban
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.kanban_db", fake_kanban)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.kanban_db = fake_kanban
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.kanban_db", fake_kanban)
     import api.kanban_bridge as bridge
     bridge = importlib.reload(bridge)
 
@@ -741,10 +741,10 @@ def test_board_counts_returns_real_counts_for_populated_board(monkeypatch):
     per-status counts. The FakeConn needs to handle the board-counts SQL
     pattern (which differs from the dashboard stats SQL)."""
     fake_kanban = FakeKanbanDB()
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.kanban_db = fake_kanban
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.kanban_db", fake_kanban)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.kanban_db = fake_kanban
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.kanban_db", fake_kanban)
     import api.kanban_bridge as bridge
     bridge = importlib.reload(bridge)
 
@@ -1302,7 +1302,7 @@ def test_board_payload_includes_unassigned_ready_tasks_without_assignee_filter(m
     data to build an Unassigned lane from — the bug Brett hit on Dynasty board.
     """
     bridge = _load_bridge(monkeypatch)
-    fake_kanban = sys.modules["hermes_cli.kanban_db"]
+    fake_kanban = sys.modules["iris_cli.kanban_db"]
 
     # Seed an unassigned ready task alongside the existing assigned one.
     unassigned_task = FakeTask("t_unassigned_ready", "Unassigned ready task", "ready", None)

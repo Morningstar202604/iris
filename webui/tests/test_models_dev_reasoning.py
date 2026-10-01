@@ -112,9 +112,9 @@ def test_copilot_gpt55_caps_at_high(monkeypatch):
     import api.config as cfg
 
     try:
-        from hermes_cli.models import github_model_reasoning_efforts
+        from iris_cli.models import github_model_reasoning_efforts
     except ImportError:
-        pytest.skip("hermes_cli not available")
+        pytest.skip("iris_cli not available")
 
     result = cfg.resolve_model_reasoning_efforts(
         "gpt-5.5", provider_id="copilot"

@@ -109,7 +109,7 @@ def test_hidden_poll_started_on_both_hidden_paths():
     # Path 1: inside the visibilitychange hook's hidden branch. Anchor on the
     # session-stream hook specifically (there are other unrelated
     # visibilitychange listeners in the file).
-    hook_idx = MESSAGES_JS.find("_hermesSessionStreamVisibilityHook")
+    hook_idx = MESSAGES_JS.find("_irisSessionStreamVisibilityHook")
     assert hook_idx != -1
     hook_block = MESSAGES_JS[hook_idx:hook_idx + 900]
     assert "_startHiddenActiveStreamPoll(_sessionStreamHiddenSid)" in hook_block

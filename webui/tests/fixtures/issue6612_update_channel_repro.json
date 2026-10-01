@@ -1,5 +1,5 @@
 {
-  "source": "https://github.com/nesquena/hermes-webui/issues/6612",
+  "source": "https://github.com/nesquena/iris-webui/issues/6612",
   "symptom": "A stale WebUI tab overwrites a newer update-channel selection when the user changes any unrelated preference.",
   "sequence": [
     "Select Experimental and leave Tab A open; its settingsUpdateChannel control holds 'experimental'.",

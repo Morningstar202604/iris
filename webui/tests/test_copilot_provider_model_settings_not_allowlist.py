@@ -1,6 +1,6 @@
 """Regression coverage for Copilot model settings vs picker catalog.
 
-Hermes config uses providers.<provider>.models as a per-model settings map for
+Iris config uses providers.<provider>.models as a per-model settings map for
 some built-in providers. WebUI must not mistake that for a picker allowlist for
 Copilot, or a single reasoning_effort entry collapses the model dropdown.
 """

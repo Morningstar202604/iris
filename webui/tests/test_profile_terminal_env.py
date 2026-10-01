@@ -30,7 +30,7 @@ def test_profile_runtime_env_includes_terminal_config_and_dotenv(tmp_path):
     (home / ".env").write_text(
         "TERMINAL_TIMEOUT=60\n"
         "TERMINAL_SSH_HOST=pollux-from-env\n"
-        "HERMES_MAX_ITERATIONS=90\n",
+        "IRIS_MAX_ITERATIONS=90\n",
         encoding="utf-8",
     )
 
@@ -44,7 +44,7 @@ def test_profile_runtime_env_includes_terminal_config_and_dotenv(tmp_path):
     # .env remains the final override source, matching CLI/profile behaviour.
     assert env["TERMINAL_TIMEOUT"] == "60"
     assert env["TERMINAL_SSH_HOST"] == "pollux-from-env"
-    assert env["HERMES_MAX_ITERATIONS"] == "90"
+    assert env["IRIS_MAX_ITERATIONS"] == "90"
 
 
 def test_streaming_applies_profile_runtime_env_to_agent_run():
@@ -112,11 +112,11 @@ def test_streaming_thread_env_allows_profile_terminal_cwd_override():
     env = ns["_build_agent_thread_env"](
         {
             "TERMINAL_CWD": "/profile/config/cwd",
-            "HERMES_EXEC_ASK": "0",
-            "HERMES_SESSION_KEY": "old-session",
-            "HERMES_SESSION_ID": "old-session",
-            "HERMES_SESSION_PLATFORM": "cli",
-            "HERMES_HOME": "/old/profile/home",
+            "IRIS_EXEC_ASK": "0",
+            "IRIS_SESSION_KEY": "old-session",
+            "IRIS_SESSION_ID": "old-session",
+            "IRIS_SESSION_PLATFORM": "cli",
+            "IRIS_HOME": "/old/profile/home",
             "TERMINAL_ENV": "ssh",
         },
         "/active/workspace",
@@ -125,9 +125,9 @@ def test_streaming_thread_env_allows_profile_terminal_cwd_override():
     )
 
     assert env["TERMINAL_CWD"] == "/active/workspace"
-    assert env["HERMES_EXEC_ASK"] == "1"
-    assert env["HERMES_SESSION_KEY"] == "active-session"
-    assert env["HERMES_SESSION_ID"] == "active-session"
-    assert env["HERMES_SESSION_PLATFORM"] == "webui"
-    assert env["HERMES_HOME"] == "/active/profile/home"
+    assert env["IRIS_EXEC_ASK"] == "1"
+    assert env["IRIS_SESSION_KEY"] == "active-session"
+    assert env["IRIS_SESSION_ID"] == "active-session"
+    assert env["IRIS_SESSION_PLATFORM"] == "webui"
+    assert env["IRIS_HOME"] == "/active/profile/home"
     assert env["TERMINAL_ENV"] == "ssh"

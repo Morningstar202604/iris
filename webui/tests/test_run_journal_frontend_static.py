@@ -40,13 +40,13 @@ def _optional_function_body(src: str, signature: str) -> str:
 
 def _run_session_identity_probe() -> dict:
     prompt = "same submitted prompt\nwith a second line"
-    workspace_prompt = f"[Workspace::v1: /tmp/hermes-webui]\n{prompt}"
-    legacy_workspace_prompt = f"[Workspace: /tmp/hermes-webui]\n{prompt}"
+    workspace_prompt = f"[Workspace::v1: /tmp/iris-webui]\n{prompt}"
+    legacy_workspace_prompt = f"[Workspace: /tmp/iris-webui]\n{prompt}"
     attached_prompt = f"{prompt}\n\n[Attached files: /tmp/a.txt]"
     forced_prompt = (
-        "[USER OVERRIDE] You MUST follow the skill 'hermes-webui-coordinator' "
+        "[USER OVERRIDE] You MUST follow the skill 'iris-webui-coordinator' "
         "content provided below before responding to the next message.\n\n"
-        "[FORCED SKILL CONTEXT: hermes-webui-coordinator]\n"
+        "[FORCED SKILL CONTEXT: iris-webui-coordinator]\n"
         "skill body that should not make a second user bubble\n"
         "[/FORCED SKILL CONTEXT]\n\n"
         f"{prompt}"

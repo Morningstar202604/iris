@@ -1,4 +1,4 @@
-import { Box, stringWidth, Text } from '@hermes/ink'
+import { Box, stringWidth, Text } from '@iris/ink'
 import { useStore } from '@nanostores/react'
 import type { ReactNode } from 'react'
 

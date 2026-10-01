@@ -26,8 +26,8 @@ def _setup_ext_env(monkeypatch, tmp_path):
     ext_dir.mkdir()
     state_dir = tmp_path / "state"
     state_dir.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(ext_dir))
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(state_dir))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(ext_dir))
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(state_dir))
     import api.extensions as ext_mod
     monkeypatch.setattr(ext_mod, "_extension_state_dir", lambda: state_dir)
     return ext_dir, state_dir
@@ -51,7 +51,7 @@ def test_install_valid(monkeypatch, tmp_path):
 
     result = ext_mod.install_extension(
         "my-ext",
-        "https://hermes-webui.github.io/exts/my-ext.zip",
+        "https://iris-webui.github.io/exts/my-ext.zip",
         sha,
     )
     assert result["installed"] is True
@@ -80,7 +80,7 @@ def test_install_prefixed_zip(monkeypatch, tmp_path):
 
     result = ext_mod.install_extension(
         "my-ext",
-        "https://hermes-webui.github.io/exts/my-ext.zip",
+        "https://iris-webui.github.io/exts/my-ext.zip",
         sha,
     )
     assert result["installed"] is True
@@ -97,9 +97,9 @@ def test_install_prefixed_zip(monkeypatch, tmp_path):
 def test_gallery_installed_extension_becomes_runtime_manifest(monkeypatch, tmp_path):
     """Installed gallery extensions are injected without a separate manifest env var."""
     ext_dir, state_dir = _setup_ext_env(monkeypatch, tmp_path)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_MANIFEST", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_MANIFEST", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     import api.extensions as ext_mod
 
     files = {
@@ -126,7 +126,7 @@ def test_gallery_installed_extension_becomes_runtime_manifest(monkeypatch, tmp_p
 
     ext_mod.install_extension(
         "my-ext",
-        "https://hermes-webui.github.io/exts/my-ext.zip",
+        "https://iris-webui.github.io/exts/my-ext.zip",
         sha,
     )
 
@@ -152,9 +152,9 @@ def test_gallery_installed_extension_becomes_runtime_manifest(monkeypatch, tmp_p
 def test_gallery_installed_settings_only_manifest_becomes_runtime_entry(monkeypatch, tmp_path):
     """Settings-only gallery installs still surface in status and runtime config."""
     ext_dir, state_dir = _setup_ext_env(monkeypatch, tmp_path)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_MANIFEST", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_MANIFEST", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
     import api.extensions as ext_mod
 
     files = {
@@ -176,7 +176,7 @@ def test_gallery_installed_settings_only_manifest_becomes_runtime_entry(monkeypa
 
     ext_mod.install_extension(
         "my-ext",
-        "https://hermes-webui.github.io/exts/my-ext.zip",
+        "https://iris-webui.github.io/exts/my-ext.zip",
         sha,
     )
 
@@ -208,18 +208,18 @@ def test_gallery_installed_settings_only_manifest_becomes_runtime_entry(monkeypa
 def test_install_bootstraps_managed_default_root_without_env(monkeypatch, tmp_path):
     """Plug-and-play (#4933): one-click install works with NO env configured.
 
-    With HERMES_WEBUI_EXTENSION_DIR unset and no extension dir on disk, the
+    With IRIS_WEBUI_EXTENSION_DIR unset and no extension dir on disk, the
     first install must bootstrap the WebUI-managed default
     (STATE_DIR/extensions), land the files there, and make the extension load
     via get_extension_config() — all without any environment setup.
     """
     state_dir = tmp_path / "state"
     state_dir.mkdir()
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_DIR", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_MANIFEST", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(state_dir))
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_DIR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_MANIFEST", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_SCRIPT_URLS", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTENSION_STYLESHEET_URLS", raising=False)
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(state_dir))
     import api.extensions as ext_mod
 
     monkeypatch.setattr(ext_mod, "_extension_state_dir", lambda: state_dir)
@@ -254,7 +254,7 @@ def test_install_bootstraps_managed_default_root_without_env(monkeypatch, tmp_pa
 
     result = ext_mod.install_extension(
         "plug-ext",
-        "https://hermes-webui.github.io/exts/plug-ext.zip",
+        "https://iris-webui.github.io/exts/plug-ext.zip",
         sha,
     )
     assert result["installed"] is True
@@ -297,7 +297,7 @@ def test_install_bad_hash(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError, match="SHA-256"):
         ext_mod.install_extension(
             "bad-ext",
-            "https://hermes-webui.github.io/exts/bad-ext.zip",
+            "https://iris-webui.github.io/exts/bad-ext.zip",
             wrong_sha,
         )
     assert not (ext_dir / "bad-ext").exists()
@@ -318,7 +318,7 @@ def test_install_zipslip(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError):
         ext_mod.install_extension(
             "slip-ext",
-            "https://hermes-webui.github.io/exts/slip-ext.zip",
+            "https://iris-webui.github.io/exts/slip-ext.zip",
             sha,
         )
     assert not (tmp_path / "evil.txt").exists()
@@ -336,7 +336,7 @@ def test_uninstall(monkeypatch, tmp_path):
 
     ext_mod.install_extension(
         "rm-ext",
-        "https://hermes-webui.github.io/exts/rm-ext.zip",
+        "https://iris-webui.github.io/exts/rm-ext.zip",
         sha,
     )
     assert (ext_dir / "rm-ext" / "index.js").exists()
@@ -367,7 +367,7 @@ def test_uninstall_cleans_nested_dirs(monkeypatch, tmp_path):
 
     ext_mod.install_extension(
         "deep-ext",
-        "https://hermes-webui.github.io/exts/deep-ext.zip",
+        "https://iris-webui.github.io/exts/deep-ext.zip",
         sha,
     )
     assert (ext_dir / "deep-ext" / "sub" / "a" / "b.js").exists()
@@ -400,7 +400,7 @@ def test_install_rollback(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError, match="Extraction failed"):
         ext_mod.install_extension(
             "roll-ext",
-            "https://hermes-webui.github.io/exts/roll-ext.zip",
+            "https://iris-webui.github.io/exts/roll-ext.zip",
             sha,
         )
     remaining = list((ext_dir / "roll-ext").glob("**/*")) if (ext_dir / "roll-ext").exists() else []
@@ -474,7 +474,7 @@ def test_install_rejects_symlinked_ext_dir_outside_root(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError):
         ext_mod.install_extension(
             "linked-ext",
-            "https://hermes-webui.github.io/exts/linked-ext.zip",
+            "https://iris-webui.github.io/exts/linked-ext.zip",
             sha,
         )
     assert not (target_dir / "index.js").exists()
@@ -502,7 +502,7 @@ def test_install_rejects_symlinked_ext_dir_inside_root(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError, match="symlink"):
         ext_mod.install_extension(
             "linked-ext",
-            "https://hermes-webui.github.io/exts/linked-ext.zip",
+            "https://iris-webui.github.io/exts/linked-ext.zip",
             sha,
         )
 
@@ -520,7 +520,7 @@ def test_install_rejects_redirect_to_disallowed_host(monkeypatch, tmp_path):
     with pytest.raises(ext_mod.ExtensionInstallError, match="disallowed host"):
         ext_mod.install_extension(
             "redir-ext",
-            "https://hermes-webui.github.io/exts/redir-ext.zip",
+            "https://iris-webui.github.io/exts/redir-ext.zip",
             "a" * 64,
         )
 

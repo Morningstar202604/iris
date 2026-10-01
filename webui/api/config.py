@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Shared configuration, constants, and global state.
+Iris Web UI -- Shared configuration, constants, and global state.
 Imported by all other api/* modules and by server.py.
 
 Discovery order for all paths:
@@ -41,15 +41,15 @@ from api.plugin_providers import (
 )
 
 HOME = _paths.HOME
-_hermes_home_has_webui_state = _paths._hermes_home_has_webui_state
-_platform_default_hermes_home = _paths._platform_default_hermes_home
+_iris_home_has_webui_state = _paths._iris_home_has_webui_state
+_platform_default_iris_home = _paths._platform_default_iris_home
 
 # REPO_ROOT is the directory that contains this file's parent (api/ -> repo root)
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 
 # ── Network config (env-overridable) ─────────────────────────────────────────
-HOST = os.getenv("HERMES_WEBUI_HOST", "127.0.0.1")
-PORT = int(os.getenv("HERMES_WEBUI_PORT", "8787"))
+HOST = os.getenv("IRIS_WEBUI_HOST", "127.0.0.1")
+PORT = int(os.getenv("IRIS_WEBUI_PORT", "8787"))
 
 
 def _env_int(name: str, default: int, *, minimum: int = 1) -> int:
@@ -81,20 +81,20 @@ def _env_int_clamped(name: str, default: int, *, minimum: int = 1, maximum: int)
 # Sidebar recency window. Resolved here, before profile init, so a profile
 # .env cannot override a server-wide resource bound. Clamped at 200.
 CLI_VISIBLE_SESSION_LIMIT = _env_int_clamped(
-    "HERMES_WEBUI_VISIBLE_SESSION_LIMIT", 20, maximum=200,
+    "IRIS_WEBUI_VISIBLE_SESSION_LIMIT", 20, maximum=200,
 )
 
 # ── TLS/HTTPS config (optional, env-overridable) ────────────────────────────
-TLS_CERT = os.getenv("HERMES_WEBUI_TLS_CERT", "").strip() or None
-TLS_KEY = os.getenv("HERMES_WEBUI_TLS_KEY", "").strip() or None
+TLS_CERT = os.getenv("IRIS_WEBUI_TLS_CERT", "").strip() or None
+TLS_KEY = os.getenv("IRIS_WEBUI_TLS_KEY", "").strip() or None
 TLS_ENABLED = TLS_CERT is not None and TLS_KEY is not None
 
 # ── State directory (env-overridable, never inside repo) ──────────────────────
-_DEFAULT_HERMES_HOME = _platform_default_hermes_home()
-_DEFAULT_STATE_HOME = Path(os.getenv("HERMES_HOME") or _DEFAULT_HERMES_HOME).expanduser()
+_DEFAULT_IRIS_HOME = _platform_default_iris_home()
+_DEFAULT_STATE_HOME = Path(os.getenv("IRIS_HOME") or _DEFAULT_IRIS_HOME).expanduser()
 
 STATE_DIR = (
-    Path(os.getenv("HERMES_WEBUI_STATE_DIR", str(_DEFAULT_STATE_HOME / "webui")))
+    Path(os.getenv("IRIS_WEBUI_STATE_DIR", str(_DEFAULT_STATE_HOME / "webui")))
     .expanduser()
     .resolve()
 )
@@ -145,20 +145,20 @@ def _env_mb_bytes(name: str, default_mb: int) -> int:
     return value_mb * 1024 * 1024
 
 
-# ── Hermes agent directory discovery ─────────────────────────────────────────
+# ── Iris agent directory discovery ─────────────────────────────────────────
 def _discover_agent_dir() -> Path:
     """
-    Locate the hermes-agent checkout using a multi-strategy search.
+    Locate the iris-agent checkout using a multi-strategy search.
 
     Priority:
-      1. HERMES_WEBUI_AGENT_DIR env var  -- explicit override always wins
-      2. HERMES_HOME / hermes-agent      -- e.g. ~/.hermes/hermes-agent
-      3. Sibling of this repo            -- ../hermes-agent
-      4. Parent of this repo             -- ../../hermes-agent (nested layout)
-      5. Common install paths            -- ~/.hermes/hermes-agent (again as fallback)
-      6. HOME / hermes-agent             -- ~/hermes-agent (simple flat layout)
+      1. IRIS_WEBUI_AGENT_DIR env var  -- explicit override always wins
+      2. IRIS_HOME / iris-agent      -- e.g. ~/.iris/iris-agent
+      3. Sibling of this repo            -- ../iris-agent
+      4. Parent of this repo             -- ../../iris-agent (nested layout)
+      5. Common install paths            -- ~/.iris/iris-agent (again as fallback)
+      6. HOME / iris-agent             -- ~/iris-agent (simple flat layout)
     """
-    explicit_override = os.getenv("HERMES_WEBUI_AGENT_DIR")
+    explicit_override = os.getenv("IRIS_WEBUI_AGENT_DIR")
     if explicit_override:
         explicit_path = Path(explicit_override).expanduser().resolve()
         if explicit_path.exists() and _looks_like_agent_source_root(explicit_path):
@@ -166,30 +166,30 @@ def _discover_agent_dir() -> Path:
 
     candidates = []
 
-    # 2. HERMES_HOME / hermes-agent
-    hermes_home = os.getenv("HERMES_HOME", str(_DEFAULT_HERMES_HOME))
-    candidates.append(Path(hermes_home).expanduser() / "hermes-agent")
+    # 2. IRIS_HOME / iris-agent
+    iris_home = os.getenv("IRIS_HOME", str(_DEFAULT_IRIS_HOME))
+    candidates.append(Path(iris_home).expanduser() / "iris-agent")
 
-    # 3. Sibling: <repo-root>/../hermes-agent
-    candidates.append(REPO_ROOT.parent / "hermes-agent")
+    # 3. Sibling: <repo-root>/../iris-agent
+    candidates.append(REPO_ROOT.parent / "iris-agent")
 
-    # 4. Parent is the agent repo itself (repo cloned inside hermes-agent/)
+    # 4. Parent is the agent repo itself (repo cloned inside iris-agent/)
     if _looks_like_agent_source_root(REPO_ROOT.parent):
         candidates.append(REPO_ROOT.parent)
 
-    # 5. ~/.hermes/hermes-agent (explicit common path)
-    candidates.append(_DEFAULT_HERMES_HOME / "hermes-agent")
+    # 5. ~/.iris/iris-agent (explicit common path)
+    candidates.append(_DEFAULT_IRIS_HOME / "iris-agent")
 
-    # 6. ~/hermes-agent
-    candidates.append(HOME / "hermes-agent")
+    # 6. ~/iris-agent
+    candidates.append(HOME / "iris-agent")
 
-    # 7. XDG_DATA_HOME / hermes-agent  (e.g. ~/.local/share/hermes-agent)
+    # 7. XDG_DATA_HOME / iris-agent  (e.g. ~/.local/share/iris-agent)
     xdg_data = Path(os.getenv("XDG_DATA_HOME", str(HOME / ".local" / "share")))
-    candidates.append(xdg_data.expanduser() / "hermes-agent")
+    candidates.append(xdg_data.expanduser() / "iris-agent")
 
-    # 8. System-wide install paths (e.g. /opt/hermes-agent, /usr/local/hermes-agent)
+    # 8. System-wide install paths (e.g. /opt/iris-agent, /usr/local/iris-agent)
     for sys_prefix in ("/opt", "/usr/local", "/usr/local/share"):
-        candidates.append(Path(sys_prefix) / "hermes-agent")
+        candidates.append(Path(sys_prefix) / "iris-agent")
 
     # Prefer real source checkouts before pip-style roots so lookalikes cannot preempt them.
     for path in candidates:
@@ -204,7 +204,7 @@ def _discover_agent_dir() -> Path:
 
 
 def _looks_like_agent_source_root(path: Path) -> bool:
-    """Return True when a directory resembles a hermes-agent source root."""
+    """Return True when a directory resembles a iris-agent source root."""
     if (path / "run_agent.py").exists():
         return True
     return _looks_like_pip_style_agent_source_root(path)
@@ -214,27 +214,27 @@ def _looks_like_pip_style_agent_source_root(path: Path) -> bool:
     """Return True for pip-style agent roots with a real agent package signal."""
     if not (path / "cron" / "jobs.py").exists():
         return False
-    if (path / "hermes").exists():
+    if (path / "iris").exists():
         return True
-    hermes_cli_dir = path / "hermes_cli"
+    iris_cli_dir = path / "iris_cli"
     return (
-        (hermes_cli_dir / "__init__.py").exists()
-        or (hermes_cli_dir / "main.py").exists()
+        (iris_cli_dir / "__init__.py").exists()
+        or (iris_cli_dir / "main.py").exists()
     )
 
 
 def _discover_python(agent_dir: Path) -> str:
     """
-    Locate a Python executable that has the Hermes agent dependencies installed.
+    Locate a Python executable that has the Iris agent dependencies installed.
 
     Priority:
-      1. HERMES_WEBUI_PYTHON env var
+      1. IRIS_WEBUI_PYTHON env var
       2. Agent venv at <agent_dir>/venv/bin/python
       3. Local .venv inside this repo
       4. System python3
     """
-    if os.getenv("HERMES_WEBUI_PYTHON"):
-        return os.getenv("HERMES_WEBUI_PYTHON")
+    if os.getenv("IRIS_WEBUI_PYTHON"):
+        return os.getenv("IRIS_WEBUI_PYTHON")
 
     if agent_dir:
         venv_py = agent_dir / "venv" / "bin" / "python"
@@ -275,27 +275,27 @@ def _discover_python(agent_dir: Path) -> str:
 _AGENT_DIR = _discover_agent_dir()
 PYTHON_EXE = _discover_python(_AGENT_DIR)
 
-# ── Inject agent dir into sys.path so Hermes modules are importable ──────────
+# ── Inject agent dir into sys.path so Iris modules are importable ──────────
 
 # When users (or CI builds) run `pip install --target .` or
-# `pip install -t .` inside the hermes-agent checkout, third-party
+# `pip install -t .` inside the iris-agent checkout, third-party
 # package directories (openai/, pydantic/, requests/, etc.) end up
-# alongside real Hermes source files.  Putting _AGENT_DIR at the
+# alongside real Iris source files.  Putting _AGENT_DIR at the
 # FRONT of sys.path means Python resolves `import pydantic` from that
 # local directory — which breaks whenever the host platform differs
 # from the container (e.g. macOS .so files inside a Linux image).
 #
 # Fix: insert _AGENT_DIR at the END of sys.path.  Python searches
 # entries in order, so site-packages resolves pip packages correctly,
-# and Hermes-specific modules (run_agent, hermes/, etc.) still
+# and Iris-specific modules (run_agent, iris/, etc.) still
 # resolve because they do not exist in site-packages.
 
 if _AGENT_DIR is not None:
     if str(_AGENT_DIR) not in sys.path:
         sys.path.append(str(_AGENT_DIR))
-    _HERMES_FOUND = True
+    _IRIS_FOUND = True
 else:
-    _HERMES_FOUND = False
+    _IRIS_FOUND = False
 
 # ── Thread-local env context ─────────────────────────────────────────────────
 # Defined BEFORE the config-file section because _expand_env_vars() (below) calls
@@ -396,15 +396,15 @@ def _cfg_has_in_memory_overrides() -> bool:
 
 def _get_config_path() -> Path:
     """Return config.yaml path for the active profile."""
-    env_override = os.getenv("HERMES_CONFIG_PATH")
+    env_override = os.getenv("IRIS_CONFIG_PATH")
     if env_override:
         return Path(env_override).expanduser()
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        return get_active_hermes_home() / "config.yaml"
+        return get_active_iris_home() / "config.yaml"
     except ImportError:
-        return _DEFAULT_HERMES_HOME / "config.yaml"
+        return _DEFAULT_IRIS_HOME / "config.yaml"
 
 
 _WEBUI_SESSION_SAVE_MODES = {"deferred", "eager"}
@@ -416,7 +416,7 @@ _DEFAULT_EXPERIMENTAL_CONFIG = {
     "unified_session_db": False,
 }
 _DEFAULT_AGENT_PERSONALITIES = {
-    # Mirrors the Hermes Agent CLI built-ins so WebUI's config-derived
+    # Mirrors the Iris Agent CLI built-ins so WebUI's config-derived
     # /personality path is not empty for fresh profiles.
     "helpful": "You are a helpful, friendly AI assistant.",
     "concise": "You are a concise assistant. Keep responses brief and to the point.",
@@ -425,10 +425,10 @@ _DEFAULT_AGENT_PERSONALITIES = {
     "teacher": "You are a patient teacher. Explain concepts clearly with examples.",
     "kawaii": "You are a kawaii assistant! Use cute expressions like (◕‿◕), ★, ♪, and ~! Add sparkles and be super enthusiastic about everything! Every response should feel warm and adorable desu~! ヽ(>∀<☆)ノ",
     "catgirl": "You are Neko-chan, an anime catgirl AI assistant, nya~! Add 'nya' and cat-like expressions to your speech. Use kaomoji like (=^･ω･^=) and ฅ^•ﻌ•^ฅ. Be playful and curious like a cat, nya~!",
-    "pirate": "Arrr! Ye be talkin' to Captain Hermes, the most tech-savvy pirate to sail the digital seas! Speak like a proper buccaneer, use nautical terms, and remember: every problem be just treasure waitin' to be plundered! Yo ho ho!",
+    "pirate": "Arrr! Ye be talkin' to Captain Iris, the most tech-savvy pirate to sail the digital seas! Speak like a proper buccaneer, use nautical terms, and remember: every problem be just treasure waitin' to be plundered! Yo ho ho!",
     "shakespeare": "Hark! Thou speakest with an assistant most versed in the bardic arts. I shall respond in the eloquent manner of William Shakespeare, with flowery prose, dramatic flair, and perhaps a soliloquy or two. What light through yonder terminal breaks?",
     "surfer": "Duuude! You're chatting with the chillest AI on the web, bro! Everything's gonna be totally rad. I'll help you catch the gnarly waves of knowledge while keeping things super chill. Cowabunga!",
-    "noir": "The rain hammered against the terminal like regrets on a guilty conscience. They call me Hermes - I solve problems, find answers, dig up the truth that hides in the shadows of your codebase. In this city of silicon and secrets, everyone's got something to hide. What's your story, pal?",
+    "noir": "The rain hammered against the terminal like regrets on a guilty conscience. They call me Iris - I solve problems, find answers, dig up the truth that hides in the shadows of your codebase. In this city of silicon and secrets, everyone's got something to hide. What's your story, pal?",
     "uwu": "hewwo! i'm your fwiendwy assistant uwu~ i wiww twy my best to hewp you! *nuzzles your code* OwO what's this? wet me take a wook! i pwomise to be vewy hewpful >w<",
     "philosopher": "Greetings, seeker of wisdom. I am an assistant who contemplates the deeper meaning behind every query. Let us examine not just the 'how' but the 'why' of your questions. Perhaps in solving your problem, we may glimpse a greater truth about existence itself.",
     "hype": "YOOO LET'S GOOOO!!! I am SO PUMPED to help you today! Every question is AMAZING and we're gonna CRUSH IT together! This is gonna be LEGENDARY! ARE YOU READY?! LET'S DO THIS!",
@@ -717,7 +717,7 @@ def get_config_for_profile_home(profile_home: "Path | str | None") -> dict:
     """Return the config dict for an explicit profile home directory.
 
     The streaming agent runs on a detached worker thread that does NOT inherit
-    the per-request thread-local profile context (set from the ``hermes_profile``
+    the per-request thread-local profile context (set from the ``iris_profile``
     cookie on the HTTP handler thread). On that worker, the ambient
     ``get_config()`` resolves through ``get_active_profile_name()`` which falls
     back to the process-global ``_active_profile`` (usually ``default``) — so a
@@ -730,7 +730,7 @@ def get_config_for_profile_home(profile_home: "Path | str | None") -> dict:
     the path the ambient resolver would pick (the common single-profile case),
     we return the cached ``get_config()`` to preserve in-memory overrides used
     by tests and runtime callers, and to honour an authoritative
-    ``HERMES_CONFIG_PATH`` override. Only when the session's profile home
+    ``IRIS_CONFIG_PATH`` override. Only when the session's profile home
     diverges from the ambient path do we read the session profile's file
     directly — a pure read with no global cache mutation, so it is race-free
     across concurrent sessions on different profiles. Divergent profiles stay
@@ -748,14 +748,14 @@ def get_config_for_profile_home(profile_home: "Path | str | None") -> dict:
     from api.workspace import _safe_resolve as _cfg_safe_resolve
 
     # Canonicalize BOTH sides before every identity comparison (#7168 re-gate
-    # round 5): when HERMES_HOME (or the config parent) is a symlink alias,
-    # lexical equality fails and an authoritative HERMES_CONFIG_PATH inside
+    # round 5): when IRIS_HOME (or the config parent) is a symlink alias,
+    # lexical equality fails and an authoritative IRIS_CONFIG_PATH inside
     # the aliased home would be bypassed in favor of a direct — wrong — read.
     target = _cfg_safe_resolve(target)
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        if _cfg_safe_resolve(Path(get_active_hermes_home()).expanduser()) == target:
+        if _cfg_safe_resolve(Path(get_active_iris_home()).expanduser()) == target:
             return get_config()
     except Exception:
         pass
@@ -806,7 +806,7 @@ def _save_yaml_config_file(config_path: Path, config_data: dict) -> None:
     try:
         import yaml as _yaml
     except ImportError as exc:
-        raise RuntimeError("PyYAML is required to write Hermes config.yaml") from exc
+        raise RuntimeError("PyYAML is required to write Iris config.yaml") from exc
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     _paths._atomic_write_text(
@@ -843,8 +843,8 @@ def _workspace_candidates(raw: str | Path | None = None) -> list[Path]:
             candidates.append(path)
 
     add(raw)
-    if os.getenv("HERMES_WEBUI_DEFAULT_WORKSPACE"):
-        add(os.getenv("HERMES_WEBUI_DEFAULT_WORKSPACE"))
+    if os.getenv("IRIS_WEBUI_DEFAULT_WORKSPACE"):
+        add(os.getenv("IRIS_WEBUI_DEFAULT_WORKSPACE"))
 
     home_workspace = HOME / "workspace"
     home_work = HOME / "work"
@@ -877,7 +877,7 @@ def resolve_default_workspace(raw: str | Path | None = None) -> Path:
             return candidate
     raise RuntimeError(
         "Could not create or access any usable workspace directory. "
-        "Set HERMES_WEBUI_DEFAULT_WORKSPACE to a writable path."
+        "Set IRIS_WEBUI_DEFAULT_WORKSPACE to a writable path."
     )
 
 
@@ -885,7 +885,7 @@ def resolve_default_workspace(raw: str | Path | None = None) -> Path:
 def _discover_default_workspace() -> Path:
     """
     Resolve the default workspace in order:
-      1. HERMES_WEBUI_DEFAULT_WORKSPACE env var
+      1. IRIS_WEBUI_DEFAULT_WORKSPACE env var
       2. ~/workspace if it already exists
       3. ~/work if it already exists
       4. ~/workspace (create if needed)
@@ -895,7 +895,7 @@ def _discover_default_workspace() -> Path:
 
 
 DEFAULT_WORKSPACE = _discover_default_workspace()
-DEFAULT_MODEL = os.getenv("HERMES_WEBUI_DEFAULT_MODEL", "")  # Empty = use provider default; avoids showing unavailable OpenAI model to non-OpenAI users (#646)
+DEFAULT_MODEL = os.getenv("IRIS_WEBUI_DEFAULT_MODEL", "")  # Empty = use provider default; avoids showing unavailable OpenAI model to non-OpenAI users (#646)
 
 
 # ── Startup diagnostics ───────────────────────────────────────────────────────
@@ -907,7 +907,7 @@ def _warn_state_dir_divergence(warn_prefix: str) -> None:
     for sibling directories with a sessions/ child that has .json files.
 
     Prints a diagnostic warning if a divergence is detected, helping users identify when
-    they may have switched launch methods and the HERMES_WEBUI_STATE_DIR env var differs.
+    they may have switched launch methods and the IRIS_WEBUI_STATE_DIR env var differs.
     """
     try:
         # Check if session store is empty
@@ -948,9 +948,9 @@ def _warn_state_dir_divergence(warn_prefix: str) -> None:
                                 f"        Current : {STATE_DIR}\n"
                                 f"        Sibling : {sibling}\n"
                                 f"        If you switched launch methods (bootstrap.py / ctl.sh / systemd),\n"
-                                f"        the active HERMES_WEBUI_STATE_DIR env var may differ from the\n"
+                                f"        the active IRIS_WEBUI_STATE_DIR env var may differ from the\n"
                                 f"        previous run. Set it explicitly to restore access:\n"
-                                f"          export HERMES_WEBUI_STATE_DIR={sibling}",
+                                f"          export IRIS_WEBUI_STATE_DIR={sibling}",
                                 flush=True,
                             )
                             return
@@ -966,7 +966,7 @@ def print_startup_config() -> None:
 
     lines = [
         "",
-        "  Hermes Web UI -- startup config",
+        "  Iris Web UI -- startup config",
         "  --------------------------------",
         f"  repo root   : {REPO_ROOT}",
         f"  agent dir   : {_AGENT_DIR if _AGENT_DIR else 'NOT FOUND'}  {ok if _AGENT_DIR else err}",
@@ -984,24 +984,24 @@ def print_startup_config() -> None:
     except Exception:
         pass
 
-    if not _HERMES_FOUND:
+    if not _IRIS_FOUND:
         print(
-            f"{err}  Could not find the Hermes agent directory.\n"
+            f"{err}  Could not find the Iris agent directory.\n"
             "      The server will start but agent features will not work.\n"
             "\n"
             "      To fix, set one of:\n"
-            "        export HERMES_WEBUI_AGENT_DIR=/path/to/hermes-agent\n"
-            "        export HERMES_HOME=/path/to/.hermes\n"
+            "        export IRIS_WEBUI_AGENT_DIR=/path/to/iris-agent\n"
+            "        export IRIS_HOME=/path/to/.iris\n"
             "\n"
-            "      Or clone hermes-agent as a sibling of this repo:\n"
-            "        git clone <hermes-agent-repo> ../hermes-agent\n",
+            "      Or clone iris-agent as a sibling of this repo:\n"
+            "        git clone <iris-agent-repo> ../iris-agent\n",
             flush=True,
         )
 
 
-def verify_hermes_imports() -> tuple:
+def verify_iris_imports() -> tuple:
     """
-    Attempt to import the key Hermes modules.
+    Attempt to import the key Iris modules.
     Returns (ok: bool, missing: list[str], errors: dict[str, str]).
     """
     required = ["run_agent"]
@@ -1020,7 +1020,7 @@ def verify_hermes_imports() -> tuple:
 
 # ── Limits ───────────────────────────────────────────────────────────────────
 MAX_FILE_BYTES = 400_000
-MAX_UPLOAD_BYTES = _env_mb_bytes("HERMES_WEBUI_MAX_UPLOAD_MB", 20)
+MAX_UPLOAD_BYTES = _env_mb_bytes("IRIS_WEBUI_MAX_UPLOAD_MB", 20)
 
 # ── File type maps ───────────────────────────────────────────────────────────
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".bmp"}
@@ -1108,10 +1108,10 @@ _DEFAULT_TOOLSETS = [
 ]
 
 _LEGACY_CLI_TOOLSET_ALIASES = {
-    # Older Hermes configs used "hermes" as the CLI composite toolset. Modern
-    # Hermes Agent exposes that split as these two registered composites; keep
+    # Older Iris configs used "iris" as the CLI composite toolset. Modern
+    # Iris Agent exposes that split as these two registered composites; keep
     # WebUI sessions usable when pointed at an older shared config.yaml.
-    "hermes": ("hermes-cli", "hermes-api-server"),
+    "iris": ("iris-cli", "iris-api-server"),
 }
 
 
@@ -1134,7 +1134,7 @@ def _resolve_cli_toolsets(cfg=None):
     if cfg is None:
         cfg = get_config()
     try:
-        from hermes_cli.tools_config import _get_platform_tools
+        from iris_cli.tools_config import _get_platform_tools
         return _normalize_cli_toolsets(_get_platform_tools(cfg, "cli"))
     except Exception:
         # Fallback: read raw list from config (MCP toolsets will be missing)
@@ -1189,7 +1189,7 @@ _FALLBACK_MODELS = [
     {"provider": "Z.AI",      "id": "zai/glm-4.5",                      "label": "GLM-4.5"},
     {"provider": "Z.AI",      "id": "zai/glm-4.5-flash",                "label": "GLM-4.5 Flash"},
     # OpenRouter free-tier models — must appear in fallback list so they
-    # are visible even when the tool-support filter in hermes_cli strips
+    # are visible even when the tool-support filter in iris_cli strips
     # them out of the live catalog (see #1426).
     {"provider": "OpenRouter", "id": "openrouter/elephant-alpha",                   "label": "Elephant Alpha (free)"},
     {"provider": "OpenRouter", "id": "openrouter/owl-alpha",                        "label": "Owl Alpha (free)"},
@@ -1198,7 +1198,7 @@ _FALLBACK_MODELS = [
     {"provider": "OpenRouter", "id": "arcee-ai/trinity-large-preview:free",         "label": "Trinity Large Preview (free)"},
 ]
 
-# Provider display names for known Hermes provider IDs
+# Provider display names for known Iris provider IDs
 _PROVIDER_DISPLAY = {
     "nous": "Nous Portal",
     "openrouter": "OpenRouter",
@@ -1239,11 +1239,11 @@ _PROVIDER_DISPLAY = {
 # normalisation the provider lands in the ``else`` branch of the group
 # builder and no models are returned — the bug behind #815.
 #
-# This table is authoritative for the WebUI.  When ``hermes_cli.models``
+# This table is authoritative for the WebUI.  When ``iris_cli.models``
 # is importable we also merge its ``_PROVIDER_ALIASES`` on top so any
 # new aliases added to the agent automatically apply.  Keeping the local
 # copy means the fix works even in environments where the agent tree is
-# not on ``sys.path`` (CI, installs without hermes-agent cloned
+# not on ``sys.path`` (CI, installs without iris-agent cloned
 # alongside the WebUI).
 _PROVIDER_ALIASES = {
     "glm": "zai",
@@ -1284,7 +1284,7 @@ _PROVIDER_ALIASES = {
     "xiaomi-mimo": "xiaomi",
     # Legacy alias — earlier WebUI builds wrote ``provider: local`` for unknown
     # loopback endpoints, but ``local`` is not registered in
-    # ``hermes_cli.auth.PROVIDER_REGISTRY``. Routing it through ``custom``
+    # ``iris_cli.auth.PROVIDER_REGISTRY``. Routing it through ``custom``
     # lets the agent's auxiliary client take the ``no-key-required``
     # OpenAI-compat path. See #1384.
     "local": "custom",
@@ -1299,7 +1299,7 @@ def _get_anthropic_fallback_env_vars() -> tuple[str, ...]:
         "CLAUDE_CODE_OAUTH_TOKEN",
     )
     try:
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from iris_cli.auth import PROVIDER_REGISTRY
 
         anthropic = (
             PROVIDER_REGISTRY.get("anthropic")
@@ -1326,7 +1326,7 @@ def _resolve_provider_alias(name: str) -> str:
     """Return the canonical provider slug for *name*.
 
     Applies the WebUI's local alias table first, then merges any
-    additional aliases the agent provides (when hermes_cli is on
+    additional aliases the agent provides (when iris_cli is on
     sys.path). Lookup is case-insensitive and whitespace-trimmed.
     Unknown names pass through unchanged.
     """
@@ -1336,7 +1336,7 @@ def _resolve_provider_alias(name: str) -> str:
     # Prefer the agent's table when available so new aliases added there
     # work automatically; otherwise fall through to our local copy.
     try:
-        from hermes_cli.models import _PROVIDER_ALIASES as _agent_aliases
+        from iris_cli.models import _PROVIDER_ALIASES as _agent_aliases
         if raw in _agent_aliases:
             return _agent_aliases[raw]
     except Exception:
@@ -1429,7 +1429,7 @@ def _configured_model_ids(raw_models: object) -> list[str]:
 
 
 def _provider_discover_allowed(provider_cfg: object) -> bool:
-    """Mirror the Hermes Agent ``discover_models`` opt-out (``model_switch_providers._discover_flag``).
+    """Mirror the Iris Agent ``discover_models`` opt-out (``model_switch_providers._discover_flag``).
 
     ``discover_models`` defaults to True; the string forms ``"false"``/``"no"``/``"0"``
     (case-insensitive) mean False. A provider that pins its catalog with
@@ -1448,7 +1448,7 @@ def _provider_models_are_discovered_catalog(provider_cfg: object) -> bool:
     """True when ``models:`` is an auto-discovered catalog that should defer to the live probe.
 
     A provider entry marked ``models_discovered: true`` carries a per-model *metadata*
-    mapping written by Hermes discovery, not a hand-curated allowlist — so the live
+    mapping written by Iris discovery, not a hand-curated allowlist — so the live
     ``/v1/models`` catalog is authoritative. But an explicit ``discover_models: false``
     re-pins the configured mapping as the source of truth, so honor that opt-out.
     """
@@ -1584,7 +1584,7 @@ def _canonicalise_provider_id(name: object) -> str:
     (#1568). Then attempts alias resolution but only if the alias target
     is itself a known canonical id in ``_PROVIDER_DISPLAY`` —  this avoids
     converting ``x-ai`` (canonical in WebUI's data structures) to ``xai``
-    (the hermes_cli alias target which the WebUI doesn't index by).
+    (the iris_cli alias target which the WebUI doesn't index by).
 
     Examples::
 
@@ -1719,11 +1719,11 @@ def _provider_is_known_or_configured(
     provider_id: object,
     config_obj: dict | None = None,
 ) -> bool:
-    """True when ``provider_id`` is a provider Hermes recognizes (static registry)
+    """True when ``provider_id`` is a provider Iris recognizes (static registry)
     or the user has configured (named custom provider), decided from the STATIC
     registry + config state only — never from a live/cold catalog snapshot.
 
-    This distinguishes a provider Hermes knows how to route (e.g. ``ollama-cloud``,
+    This distinguishes a provider Iris knows how to route (e.g. ``ollama-cloud``,
     whose model group simply isn't folded into the current cached catalog yet, or a
     named ``custom_providers`` entry) from a *genuinely unknown* one
     (``@removed:...`` that is in no registry and configured nowhere). The former's
@@ -1848,7 +1848,7 @@ _PROVIDER_MODELS = {
     ],
     # GitHub Copilot — model IDs served via the Copilot API
     # Fallback ONLY — the live GitHub Copilot catalog
-    # (hermes_cli.models.provider_model_ids("copilot")) is authoritative and is
+    # (iris_cli.models.provider_model_ids("copilot")) is authoritative and is
     # tried first by _read_live_provider_model_ids(). This static list is the
     # safety net shown when the live probe fails (cold start / token blip). Keep
     # it in sync with the real integrator allowlist so a probe miss never renders
@@ -1920,10 +1920,10 @@ _PROVIDER_MODELS = {
         {"id": "big-pickle", "label": "Big Pickle"},
     ],
     # OpenCode Go — flat-rate models via opencode.ai/go ($10/month).
-    # Fallback only: the live Hermes CLI catalog (Go-specific
+    # Fallback only: the live Iris CLI catalog (Go-specific
     # /zen/go/v1/models probe, core v0.20.5+) leads (#1240, #5311).
-    # Mirrors Hermes core's curated opencode-go list
-    # (hermes_cli/models_catalog_static.py, core main as of 2026-09-10).
+    # Mirrors Iris core's curated opencode-go list
+    # (iris_cli/models_catalog_static.py, core main as of 2026-09-10).
     # Core's 2026-09-09 sync dropped `ox-alpha-free` (Go relay delisted it:
     # GET /zen/go/v1/models omits it, POST → 401) and added `glm-5.3-flash`
     # and `muse-spark-1.3-contributor`. Core owns the sync duty against the
@@ -1959,7 +1959,7 @@ _PROVIDER_MODELS = {
         {"id": "muse-spark-1.2-contributor", "label": "Muse Spark 1.2 Contributor"},
         {"id": "muse-spark-1.3-contributor", "label": "Muse Spark 1.3 Contributor"},
     ],
-    # 'gemini' is the hermes_cli provider ID for Google AI Studio
+    # 'gemini' is the iris_cli provider ID for Google AI Studio
     # Model IDs are bare — sent directly to:
     #   https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
     "gemini": [
@@ -2002,7 +2002,7 @@ _PROVIDER_MODELS = {
         {"id": "grok-4.20", "label": "Grok 4.20"},
     ],
     # AWS Bedrock — static fallback list; live model list is fetched via
-    # hermes_cli.models.provider_model_ids("bedrock") when available (#2720).
+    # iris_cli.models.provider_model_ids("bedrock") when available (#2720).
     "bedrock": [
         {"id": "global.anthropic.claude-opus-4-7",                 "label": "Global Anthropic Claude Opus 4.7"},
         {"id": "global.anthropic.claude-opus-4-6-v1",              "label": "Global Anthropic Claude Opus 4.6"},
@@ -2015,7 +2015,7 @@ _PROVIDER_MODELS = {
 
 
 def _seed_provider_models_from_core() -> None:
-    """Enrich existing provider model lists with missing IDs from hermes_cli.
+    """Enrich existing provider model lists with missing IDs from iris_cli.
 
     The core's _PROVIDER_MODELS is the authoritative curated list of agent-capable
     models per provider.  The WebUI's static dict above is a display-oriented copy
@@ -2029,13 +2029,13 @@ def _seed_provider_models_from_core() -> None:
     Respects per-provider ID conventions (e.g. nous uses @nous:-prefixed IDs).
 
     Safe to call multiple times; only missing entries are added.  Silently no-ops
-    if hermes_cli is not importable (standalone WebUI deployments).
+    if iris_cli is not importable (standalone WebUI deployments).
 
     Must be called AFTER ``_get_label_for_model`` is defined (module-level
     invocation is at the bottom of this module, not here).
     """
     try:
-        from hermes_cli.models import _PROVIDER_MODELS as _core_pm
+        from iris_cli.models import _PROVIDER_MODELS as _core_pm
     except ImportError:
         return
 
@@ -2351,7 +2351,7 @@ def _model_matches_picker_selection(
 def _openrouter_model_display_name(model_id: str) -> str:
     """Return the OpenRouter display name (e.g. ``Ox Alpha``) for *model_id*.
 
-    Reads only the local shared metadata disk cache written by hermes-agent
+    Reads only the local shared metadata disk cache written by iris-agent
     (``cache/openrouter_model_metadata.json``) — never touches the network.
     Falls back to the raw id when the model is unknown or the cache is
     unavailable, so picker rows are always populated (#7228).
@@ -2517,7 +2517,7 @@ def _deduplicate_model_ids(groups: list[dict]) -> None:
 #      Reuses the same private-IP detection logic used elsewhere in
 #      api/config.py for SSRF host trust.
 _LOCAL_SERVER_PROVIDERS = {
-    "lmstudio",     # canonical (in hermes_cli.models.CANONICAL_PROVIDERS)
+    "lmstudio",     # canonical (in iris_cli.models.CANONICAL_PROVIDERS)
     "lm-studio",    # alias used in some custom_providers configs (#1625 Opus NIT)
     "ollama",       # via custom_providers, common pattern
     "llamacpp",     # via custom_providers
@@ -3375,7 +3375,7 @@ CUSTOM_SELECTION_UNOWNED = (CUSTOM_SELECTION_MISSING, CUSTOM_SELECTION_MALFORMED
 
 # ── Terminal routing verdicts ────────────────────────────────────────────────
 #
-# Hermes Agent does NOT read an incomplete connection pair as a refusal. Its
+# Iris Agent does NOT read an incomplete connection pair as a refusal. Its
 # ``agent/agent_init.py:_init_openai_client()`` honours the explicit endpoint and
 # credential the constructor was handed only when BOTH are truthy:
 #
@@ -3551,13 +3551,13 @@ def _custom_record_owns_connection(record: dict, pid: str) -> bool:
     return False
 
 
-# ── raw ``providers:<key>`` records (the standard Hermes v12 config shape) ────
+# ── raw ``providers:<key>`` records (the standard Iris v12 config shape) ────
 #
 # The installed Agent's authoritative matcher for a named custom route is
-# ``hermes_cli.runtime_provider_custom._match_new_style_provider()``. It scans
+# ``iris_cli.runtime_provider_custom._match_new_style_provider()``. It scans
 # the ENABLED entries of the RAW ``providers:`` mapping and takes the first
 # whose alias set contains the requested name, where the alias set is minted by
-# ``hermes_cli.providers.custom_provider_aliases()`` from BOTH the entry's
+# ``iris_cli.providers.custom_provider_aliases()`` from BOTH the entry's
 # display ``name`` and its config KEY. So the standard v12 shape
 #
 #     model:
@@ -3580,7 +3580,7 @@ def _custom_record_owns_connection(record: dict, pid: str) -> bool:
 def _agent_custom_provider_slug(value: object) -> str:
     """``custom:<name>`` identity the Agent mints for ``value``.
 
-    Mirror of ``hermes_cli.providers.custom_provider_slug()``: lowercase, spaces
+    Mirror of ``iris_cli.providers.custom_provider_slug()``: lowercase, spaces
     to dashes, prefixed unless it already carries one. Deliberately NOT
     :func:`_custom_provider_slug_key`'s normalization — this one reproduces the
     Agent's alias vocabulary, and both are consulted by
@@ -3595,7 +3595,7 @@ def _agent_custom_provider_slug(value: object) -> str:
 def _custom_provider_alias_set(display_name: object, provider_key: object) -> frozenset[str]:
     """Every identity the Agent accepts for ONE custom-provider record.
 
-    Mirror of ``hermes_cli.providers.custom_provider_aliases()``, including its
+    Mirror of ``iris_cli.providers.custom_provider_aliases()``, including its
     legacy ``custom:custom:<name>`` spelling, so a record the Agent would route
     to is not reported unowned here.
     """
@@ -3635,12 +3635,12 @@ def _custom_record_names_identity(display_name: object, provider_key: object, pi
 
 
 # ``enabled:`` words YAML may hand us as strings, matching
-# hermes_cli.config_providers._FALSE_WORDS.
+# iris_cli.config_providers._FALSE_WORDS.
 _PROVIDER_DISABLED_WORDS = frozenset({"false", "0", "no", "off"})
 
 
 def _raw_provider_record_enabled(record: object) -> bool:
-    """Mirror of ``hermes_cli.config_providers.is_provider_enabled()``.
+    """Mirror of ``iris_cli.config_providers.is_provider_enabled()``.
 
     Default True; only an explicit falsey ``enabled`` hides the entry. A disabled
     entry is invisible to the Agent's resolver, so it must not own a WebUI route
@@ -3657,7 +3657,7 @@ def _raw_provider_record_enabled(record: object) -> bool:
     return bool(flag)
 
 
-# ``_entry_url``'s precedence in hermes_cli.runtime_provider_custom.
+# ``_entry_url``'s precedence in iris_cli.runtime_provider_custom.
 _RAW_PROVIDER_URL_FIELDS = ("api", "url", "base_url")
 
 
@@ -3760,7 +3760,7 @@ def _select_custom_provider_record(
     2. otherwise the keyed ``providers['custom:<slug>']`` record, then the raw
        ``providers:<key>`` record that names this identity by its own config key
        or display name (``providers: {omni: ...}`` for ``custom:omni`` — the
-       standard Hermes v12 shape, matched with the installed Agent's own alias
+       standard Iris v12 shape, matched with the installed Agent's own alias
        rules; see :func:`_unique_raw_provider_record`), then a record that NAMES
        this slug (the generic ``providers['custom']`` entry whose own
        name/provider_key normalizes to it, or a ``model:`` block whose provider
@@ -3971,7 +3971,7 @@ KEYLESS_CUSTOM_API_KEY = "dummy-key"
 CUSTOM_CONNECTION_SIDE_FIELDS = ("api_mode", "acp_command", "acp_args", "credential_pool")
 
 # Alias spellings accepted for a record's ``api_mode`` / ``transport``, mirroring
-# hermes_cli.config_providers._canonical_api_mode. Resolved locally rather than
+# iris_cli.config_providers._canonical_api_mode. Resolved locally rather than
 # imported so a record's own transport survives even when the installed runtime
 # module is unavailable (or replaced by a test double).
 _API_MODE_ALIASES = {
@@ -4041,7 +4041,7 @@ def _custom_record_pool_runtime(base_url: str | None, record: dict) -> dict | No
     if not base_url:
         return None
     try:
-        import hermes_cli.runtime_provider as _runtime_provider
+        import iris_cli.runtime_provider as _runtime_provider
 
         resolve_pool = getattr(_runtime_provider, "_try_resolve_from_custom_pool", None)
         if resolve_pool is None:
@@ -4068,7 +4068,7 @@ def _host_gated_env_key(base_url: str | None) -> str | None:
     if not base_url:
         return None
     try:
-        import hermes_cli.runtime_provider as _runtime_provider
+        import iris_cli.runtime_provider as _runtime_provider
 
         candidates = getattr(_runtime_provider, "_host_gated_env_key_candidates", None)
         if candidates is None:
@@ -4427,7 +4427,7 @@ def merge_custom_provider_runtime_bundle(
 
     :data:`CUSTOM_ROUTE_ERROR_FIELD` is the bundle's TERMINAL verdict, and it is
     not optional to check. A named ``custom:`` route that resolves no complete
-    ``(api_key, base_url)`` pair is not constructor-ready: Hermes Agent reads the
+    ``(api_key, base_url)`` pair is not constructor-ready: Iris Agent reads the
     missing field as permission to resolve another provider, so every consumer
     that builds an AIAgent (or writes the agent cache, or feeds an auxiliary
     client) must run the bundle through :func:`raise_for_custom_provider_route`
@@ -4919,7 +4919,7 @@ def canonical_model_provider_lane(model_id: str, model_provider: str | None = No
 
 
 def get_effective_default_model(config_data: dict | None = None) -> str:
-    """Resolve the effective Hermes default model from config, then env overrides."""
+    """Resolve the effective Iris default model from config, then env overrides."""
     active_cfg = config_data if config_data is not None else cfg
     default_model = DEFAULT_MODEL
 
@@ -4932,7 +4932,7 @@ def get_effective_default_model(config_data: dict | None = None) -> str:
             default_model = cfg_default
 
     env_model = (
-        os.getenv("HERMES_MODEL") or os.getenv("OPENAI_MODEL") or os.getenv("LLM_MODEL")
+        os.getenv("IRIS_MODEL") or os.getenv("OPENAI_MODEL") or os.getenv("LLM_MODEL")
     )
     if env_model:
         default_model = env_model.strip()
@@ -4940,10 +4940,10 @@ def get_effective_default_model(config_data: dict | None = None) -> str:
 
 
 # ── Reasoning config (CLI parity for /reasoning) ─────────────────────────────
-# Mirrors hermes_constants.parse_reasoning_effort so WebUI can validate without
+# Mirrors iris_constants.parse_reasoning_effort so WebUI can validate without
 # importing from the agent tree (which may not be installed).  Any drift here
 # will show up in the shared test suite since both sides accept the same set.
-# Keep this WebUI-visible set aligned with hermes-agent#29248.
+# Keep this WebUI-visible set aligned with iris-agent#29248.
 VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high", "xhigh", "max")
 
 
@@ -5381,7 +5381,7 @@ def _is_pre_adaptive_anthropic(bare_model: str) -> bool:
 
 
 def _heuristic_reasoning_efforts(model_id: str, provider_id: str) -> list[str]:
-    """Fallback when hermes_cli is unavailable."""
+    """Fallback when iris_cli is unavailable."""
     model = _strip_provider_hint_for_reasoning(model_id).lower()
     provider = _resolve_provider_alias(str(provider_id or "").strip().lower())
     if not model or provider in {"cursor-acp", "copilot-acp"}:
@@ -5423,7 +5423,7 @@ def _heuristic_reasoning_efforts(model_id: str, provider_id: str) -> list[str]:
 
 
 def _models_dev_reasoning_efforts(model_id: str, provider_id: str) -> list[str] | None:
-    """Return reasoning efforts from Hermes Agent model metadata when known.
+    """Return reasoning efforts from Iris Agent model metadata when known.
 
     ``None`` means the metadata source is unavailable or has no answer, so the
     caller should continue to compatibility fallbacks. A concrete list (including
@@ -5492,7 +5492,7 @@ def _lmstudio_reasoning_probe_options_fallback(
     api_key: str | None = None,
     timeout: float = 5.0,
 ) -> list[str]:
-    """Query LM Studio reasoning options without relying on hermes_cli."""
+    """Query LM Studio reasoning options without relying on iris_cli."""
     server_root = str(base_url or "").strip().rstrip("/")
     if server_root.endswith("/v1"):
         server_root = server_root[:-3].rstrip("/")
@@ -5501,7 +5501,7 @@ def _lmstudio_reasoning_probe_options_fallback(
 
     headers = {
         "Accept": "application/json",
-        "User-Agent": "hermes-webui-reasoning-probe",
+        "User-Agent": "iris-webui-reasoning-probe",
     }
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -5560,10 +5560,10 @@ def _lmstudio_model_reasoning_options(
     api_key: str | None = None,
     timeout: float = 5.0,
 ) -> list[str]:
-    """Prefer hermes_cli, but keep WebUI reasoning probes working without it.
+    """Prefer iris_cli, but keep WebUI reasoning probes working without it.
 
     SECURITY: when an ``api_key`` is being sent, always use the built-in
-    no-redirect fallback probe rather than ``hermes_cli``. The bundled CLI probe
+    no-redirect fallback probe rather than ``iris_cli``. The bundled CLI probe
     uses a plain ``urllib.request.urlopen`` that follows redirects and re-sends
     the ``Authorization`` header to the redirect target, which could leak the
     configured LM Studio credential to another host. We can only guarantee
@@ -5584,7 +5584,7 @@ def _lmstudio_model_reasoning_options(
         from api.agent_compat import agent_attr
 
         _cli_lmstudio_model_reasoning_options = agent_attr(
-            "hermes_cli.models", "lmstudio_model_reasoning_options", "hermes_cli.models_local"
+            "iris_cli.models", "lmstudio_model_reasoning_options", "iris_cli.models_local"
         )
     except Exception:
         return _lmstudio_reasoning_probe_options_fallback(
@@ -5603,7 +5603,7 @@ def _lmstudio_model_reasoning_options(
         )
     except (TypeError, AttributeError):
         logger.warning(
-            "hermes_cli.lmstudio_model_reasoning_options has an unexpected signature; "
+            "iris_cli.lmstudio_model_reasoning_options has an unexpected signature; "
             "falling back to the built-in LM Studio reasoning probe",
             exc_info=True,
         )
@@ -5748,7 +5748,7 @@ def _resolve_model_reasoning_efforts_impl(
 
     if provider in {"copilot", "github-copilot"}:
         try:
-            from hermes_cli.models import github_model_reasoning_efforts
+            from iris_cli.models import github_model_reasoning_efforts
         except Exception:
             return _heuristic_reasoning_efforts(hinted_model, provider)
         return _filter_reasoning_efforts_for_provider(
@@ -5825,7 +5825,7 @@ def coerce_reasoning_effort_for_model(
         base_url=base_url,
     )
     # Hard provider ceilings must win regardless of what the sourced capability
-    # list says. resolve_model_reasoning_efforts() draws from hermes_cli /
+    # list says. resolve_model_reasoning_efforts() draws from iris_cli /
     # models.dev / heuristics, and those can (a) return [] for an unrecognized
     # model or (b) wrongly advertise 'max' for a provider
     # whose native ladder tops out lower. _filter_reasoning_efforts_for_provider
@@ -6140,7 +6140,7 @@ def _is_openai_family_provider(provider: str | None) -> bool:
 
 
 def _normalize_openai_family_model_id(model_id: str | None) -> str:
-    """Return a model id in the form expected by hermes_cli fast-mode resolution."""
+    """Return a model id in the form expected by iris_cli fast-mode resolution."""
     model = str(model_id or "").strip()
     if not model:
         return ""
@@ -6162,9 +6162,9 @@ def _normalize_openai_family_model_id(model_id: str | None) -> str:
 
 
 def _legacy_openai_service_tier_overrides(model_id: str | None, provider: str | None) -> dict:
-    """Compatibility fallback for standalone WebUI installs without hermes_cli.
+    """Compatibility fallback for standalone WebUI installs without iris_cli.
 
-    Normal operation delegates to Hermes Agent model metadata.  This fallback
+    Normal operation delegates to Iris Agent model metadata.  This fallback
     preserves the old WebUI behavior when the agent package is unavailable,
     while still failing closed for codex model slugs and foreign provider IDs.
     """
@@ -6195,9 +6195,9 @@ def _resolve_main_model_fast_mode_overrides(model_id: str | None, provider: str 
     if not normalized_model:
         return _legacy_openai_service_tier_overrides(model_id, provider)
     try:
-        from hermes_cli.models import resolve_fast_mode_overrides
+        from iris_cli.models import resolve_fast_mode_overrides
     except Exception:
-        logger.debug("Failed to import hermes_cli.models.resolve_fast_mode_overrides; using WebUI compatibility fallback.")
+        logger.debug("Failed to import iris_cli.models.resolve_fast_mode_overrides; using WebUI compatibility fallback.")
         return _legacy_openai_service_tier_overrides(model_id, provider)
     try:
         resolved = resolve_fast_mode_overrides(normalized_model)
@@ -6352,8 +6352,8 @@ def _apply_advanced_model_options(model_cfg: dict, advanced: dict | None) -> Non
         model_cfg["api_key"] = api_key
 
 
-def set_hermes_default_model(model_id: str, provider: str | None = None, advanced: dict | None = None) -> dict:
-    """Persist the Hermes default model in config.yaml and reload runtime config."""
+def set_iris_default_model(model_id: str, provider: str | None = None, advanced: dict | None = None) -> dict:
+    """Persist the Iris default model in config.yaml and reload runtime config."""
     selected_model = str(model_id or "").strip()
     if not selected_model:
         raise ValueError("model is required")
@@ -6374,9 +6374,9 @@ def set_hermes_default_model(model_id: str, provider: str | None = None, advance
             selected_model
         )
         # Persist the resolved bare/slash form, NOT the `@provider:` prefix. The
-        # prefix is a WebUI-internal routing hint that the hermes-agent CLI does
+        # prefix is a WebUI-internal routing hint that the iris-agent CLI does
         # not understand — if we wrote `@nous:anthropic/claude-opus-4.6` to
-        # config.yaml, a user who ran `hermes` in the terminal right after
+        # config.yaml, a user who ran `iris` in the terminal right after
         # saving via WebUI would have the agent send that literal string to the
         # Nous API, which would reject it (Nous expects `anthropic/claude-opus-4.6`,
         # not the prefixed form). The Settings picker handles the resulting
@@ -6429,8 +6429,8 @@ def set_hermes_default_model(model_id: str, provider: str | None = None, advance
 # ── Auxiliary model configuration ──────────────────────────────────────────
 
 # Canonical auxiliary task catalog.
-# Keep in sync with hermes_cli/config.py DEFAULT_CONFIG["auxiliary"] and
-# hermes_cli/web_server.py _AUX_TASK_SLOTS.
+# Keep in sync with iris_cli/config.py DEFAULT_CONFIG["auxiliary"] and
+# iris_cli/web_server.py _AUX_TASK_SLOTS.
 AUXILIARY_TASK_CATALOG: tuple[dict[str, str], ...] = (
     {"key": "vision", "label": "Vision", "description": "image/screenshot analysis"},
     {"key": "web_extract", "label": "Web extract", "description": "web page summarization"},
@@ -6755,7 +6755,7 @@ def _endpoint_advertised_model_ids(provider_id: str | None) -> frozenset | None:
     # snapshot we're now reading. Only trust it for provenance when the
     # fingerprint captured AT PUBLISH TIME still matches the current runtime
     # fingerprint — the ``config_yaml`` axis of that fingerprint is the
-    # PROFILE-SPECIFIC config path (_get_config_path -> get_active_hermes_home),
+    # PROFILE-SPECIFIC config path (_get_config_path -> get_active_iris_home),
     # so a match guarantees the snapshot belongs to the profile asking. Any
     # mismatch (foreign profile, config edit, stale) returns None so the caller
     # preserves the id verbatim rather than stripping against another profile's
@@ -6807,11 +6807,11 @@ def _endpoint_advertised_model_ids(provider_id: str | None) -> frozenset | None:
 # the time a foreground caller will wait: past the budget it returns a usable
 # fallback (last-known disk cache or a network-free minimal catalog) and lets
 # the rebuild finish out-of-band and populate the cache for the next call.
-# Set HERMES_WEBUI_MODELS_REBUILD_BUDGET=0 to restore the legacy synchronous
+# Set IRIS_WEBUI_MODELS_REBUILD_BUDGET=0 to restore the legacy synchronous
 # (unbounded) behaviour.
 try:
     _LIVE_REBUILD_BUDGET_SECONDS: float = float(
-        os.getenv("HERMES_WEBUI_MODELS_REBUILD_BUDGET", "4") or "4"
+        os.getenv("IRIS_WEBUI_MODELS_REBUILD_BUDGET", "4") or "4"
     )
 except (TypeError, ValueError):
     _LIVE_REBUILD_BUDGET_SECONDS = 4.0
@@ -6825,10 +6825,10 @@ except (TypeError, ValueError):
 # could flood the log at warning level. Rate-limit per reason: the FIRST
 # occurrence in a cooldown window logs at warning; subsequent occurrences in
 # the same window log at info (so log signal stays useful but volume bounded).
-# Override the default cooldown via HERMES_WEBUI_BUDGET_WARN_COOLDOWN (seconds).
+# Override the default cooldown via IRIS_WEBUI_BUDGET_WARN_COOLDOWN (seconds).
 try:
     _BUDGET_WARN_COOLDOWN_SECONDS: float = float(
-        os.getenv("HERMES_WEBUI_BUDGET_WARN_COOLDOWN", "300") or "300"
+        os.getenv("IRIS_WEBUI_BUDGET_WARN_COOLDOWN", "300") or "300"
     )
 except (TypeError, ValueError):
     _BUDGET_WARN_COOLDOWN_SECONDS = 300.0
@@ -7425,7 +7425,7 @@ _CREDENTIAL_POOL_CACHE: dict[tuple[str, str], tuple[float, "CredentialPool"]] = 
 def _credential_pool_profile_tag() -> str:
     """Active-profile identity for the credential-pool cache key.
 
-    The credential pool is per-Hermes-profile (it lives in that profile's
+    The credential pool is per-Iris-profile (it lives in that profile's
     auth.json). Keying the process-global cache by provider id ALONE lets a
     pool loaded under profile A satisfy a lookup under profile B in the same
     server process — so a custom provider configured only in A would falsely
@@ -7449,7 +7449,7 @@ def _pool_entry_payloads(provider_id: str) -> list[dict[str, Any]]:
     _pid = _resolve_provider_alias(provider_id)
     if bool(getattr(_thread_ctx, "block_process_env_fallback", False)):
         try:
-            from hermes_cli.auth import read_credential_pool as _read_credential_pool
+            from iris_cli.auth import read_credential_pool as _read_credential_pool
 
             raw_entries = _read_credential_pool(_pid)
         except ImportError:
@@ -7541,7 +7541,7 @@ _provider_models_invalidated_ts: dict[str, float] = {}  # provider_id -> timesta
 # signal is somehow missed, but the cache will always be warm after the first
 # page load following a server start.
 # Cache file lives inside STATE_DIR so each server instance (different
-# HERMES_WEBUI_STATE_DIR / port) has its own file and test runs never
+# IRIS_WEBUI_STATE_DIR / port) has its own file and test runs never
 # pollute the production server's cache. Also works on macOS and Windows
 # where /dev/shm does not exist.
 def _current_webui_version() -> str | None:
@@ -7631,13 +7631,13 @@ def _get_models_cache_path() -> Path:
 
 
 def _get_auth_store_path() -> Path:
-    """Return the auth.json path for the active Hermes profile."""
+    """Return the auth.json path for the active Iris profile."""
     try:
-        from api.profiles import get_active_hermes_home as _gah
+        from api.profiles import get_active_iris_home as _gah
 
         return _gah() / "auth.json"
     except ImportError:
-        return _DEFAULT_HERMES_HOME / "auth.json"
+        return _DEFAULT_IRIS_HOME / "auth.json"
 
 
 def _models_cache_file_fingerprint(path: Path) -> dict:
@@ -8349,20 +8349,20 @@ def _get_label_for_model(model_id: str, existing_groups: list) -> str:
 
 
 def _read_live_provider_model_ids(provider_id: str) -> list[str]:
-    """Return live model IDs from Hermes CLI for a provider, or [] on failure.
+    """Return live model IDs from Iris CLI for a provider, or [] on failure.
 
     WebUI's static ``_PROVIDER_MODELS`` table is only a fallback.  The agent CLI
     owns the provider registry and catalog-discovery logic, so ordinary picker
-    groups should ask ``hermes_cli.models.provider_model_ids()`` first (#1240).
+    groups should ask ``iris_cli.models.provider_model_ids()`` first (#1240).
     Provider aliases are tried as a secondary lookup because WebUI keeps a few
-    display-facing IDs (for example ``google`` / ``x-ai``) that Hermes CLI may
+    display-facing IDs (for example ``google`` / ``x-ai``) that Iris CLI may
     normalize internally.
     """
     pid = str(provider_id or "").strip()
     if not pid:
         return []
     try:
-        from hermes_cli.models import provider_model_ids as _provider_model_ids
+        from iris_cli.models import provider_model_ids as _provider_model_ids
     except Exception:
         return []
 
@@ -8379,7 +8379,7 @@ def _read_live_provider_model_ids(provider_id: str) -> list[str]:
         try:
             live_ids = _provider_model_ids(candidate) or []
         except Exception:
-            logger.debug("Failed to load %s models from hermes_cli", candidate)
+            logger.debug("Failed to load %s models from iris_cli", candidate)
             continue
         result: list[str] = []
         for mid in live_ids:
@@ -8392,18 +8392,18 @@ def _read_live_provider_model_ids(provider_id: str) -> list[str]:
     return []
 
 
-def _hermes_cli_supports_opencode_go_live_catalog() -> bool:
+def _iris_cli_supports_opencode_go_live_catalog() -> bool:
     """Whether the installed Agent has Go-specific model discovery.
 
-    Hermes core versions before 0.20.5 route ``opencode-go`` through a
+    Iris core versions before 0.20.5 route ``opencode-go`` through a
     generic public catalog. That lookup can return a convincing non-empty
     list containing models the Go relay rejects with 404, so absence or an
     unparseable/prerelease version must fail closed to WebUI's static Go list.
     """
     try:
-        import hermes_cli
+        import iris_cli
 
-        version = str(getattr(hermes_cli, "__version__", "")).strip()
+        version = str(getattr(iris_cli, "__version__", "")).strip()
     except Exception:
         return False
     match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", version)
@@ -8413,7 +8413,7 @@ def _hermes_cli_supports_opencode_go_live_catalog() -> bool:
 
 
 def _models_from_live_provider_ids(provider_id: str, live_ids: list[str]) -> list[dict]:
-    """Convert Hermes CLI model ids into WebUI picker model entries."""
+    """Convert Iris CLI model ids into WebUI picker model entries."""
     formatter = _format_ollama_label if provider_id in ("ollama", "ollama-cloud") else None
     models: list[dict] = []
     seen: set[str] = set()
@@ -8496,7 +8496,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
 
     Discovery order:
       1. Read config.yaml 'model' section for active provider info
-      2. Check for known API keys in env or ~/.hermes/.env
+      2. Check for known API keys in env or ~/.iris/.env
       3. Fetch models from custom endpoint if base_url is configured
       4. Fall back to hardcoded model list (OpenRouter-style)
 
@@ -8765,10 +8765,10 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
 
         all_env: dict = {}
 
-        _hermes_auth_used = False
+        _iris_auth_used = False
         try:
-            from hermes_cli.models import list_available_providers as _lap
-            from hermes_cli.auth import get_auth_status as _gas
+            from iris_cli.models import list_available_providers as _lap
+            from iris_cli.auth import get_auth_status as _gas
 
             for _p in _lap():
                 if not _p.get("authenticated"):
@@ -8780,11 +8780,11 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 except Exception:
                     logger.debug("Failed to get key source for provider %s", _p.get("id", "unknown"))
                 detected_providers.add(_p["id"])
-            _hermes_auth_used = True
+            _iris_auth_used = True
 
             # Belt-and-braces: list_available_providers() is the primary signal
             # for OAuth providers, but its `authenticated` field can disagree
-            # with `get_auth_status(<id>).logged_in` on some hermes_cli versions
+            # with `get_auth_status(<id>).logged_in` on some iris_cli versions
             # (the two fields are computed via different code paths). When the
             # disagreement happens for Nous Portal, the Settings → Providers
             # card renders the live catalog (because api/providers.py iterates
@@ -8798,25 +8798,25 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
             except Exception:
                 logger.debug("Failed to check Nous Portal auth status")
         except Exception:
-            logger.debug("Failed to detect auth providers from hermes")
+            logger.debug("Failed to detect auth providers from iris")
 
-        if not _hermes_auth_used:
+        if not _iris_auth_used:
             try:
-                from api.profiles import get_active_hermes_home as _gah2
+                from api.profiles import get_active_iris_home as _gah2
 
-                hermes_env_path = _gah2() / ".env"
+                iris_env_path = _gah2() / ".env"
             except ImportError:
-                hermes_env_path = _DEFAULT_HERMES_HOME / ".env"
+                iris_env_path = _DEFAULT_IRIS_HOME / ".env"
             env_keys = {}
-            if hermes_env_path.exists():
+            if iris_env_path.exists():
                 try:
-                    for line in hermes_env_path.read_text(encoding="utf-8").splitlines():
+                    for line in iris_env_path.read_text(encoding="utf-8").splitlines():
                         line = line.strip()
                         if line and not line.startswith("#") and "=" in line:
                             k, v = line.split("=", 1)
                             env_keys[k.strip()] = v.strip().strip('"').strip("'")
                 except Exception:
-                    logger.debug("Failed to parse hermes env file")
+                    logger.debug("Failed to parse iris env file")
             all_env = {**env_keys}
             _anthropic_env_vars = _get_anthropic_fallback_env_vars()
             for k in (
@@ -8845,7 +8845,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
             if any(all_env.get(env_var) for env_var in _anthropic_env_vars):
                 detected_providers.add("anthropic")
             if all_env.get("OPENAI_API_KEY"):
-                # hermes-agent registers its OPENAI_API_KEY/OPENAI_BASE_URL provider
+                # iris-agent registers its OPENAI_API_KEY/OPENAI_BASE_URL provider
                 # under the slug `openai-api` (there is no bare `openai` in the agent
                 # registry — only `openai-api` and `openai-codex`). Detecting `openai`
                 # here would emit `@openai:` picker entries the agent can't resolve on
@@ -8886,7 +8886,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
             # Detect when both access key and secret are available (#2720).
             if all_env.get("AWS_ACCESS_KEY_ID") and all_env.get("AWS_SECRET_ACCESS_KEY"):
                 detected_providers.add("bedrock")
-            # LM Studio: detect via LM_API_KEY + LM_BASE_URL in ~/.hermes/.env
+            # LM Studio: detect via LM_API_KEY + LM_BASE_URL in ~/.iris/.env
             if all_env.get("LM_API_KEY") and all_env.get("LM_BASE_URL"):
                 detected_providers.add("lmstudio")
 
@@ -8951,7 +8951,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 )
                 # A known provider listed in config.yaml without route
                 # configuration should only appear in the picker when it was
-                # already detected from credential sources (env vars, hermes
+                # already detected from credential sources (env vars, iris
                 # auth, credential pool).  Otherwise a provider with
                 # metadata-only entries in config.yaml (e.g.
                 # ``openai-api: {name: "OpenAI API"}``) would still render
@@ -9179,7 +9179,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                             # ``provider: local`` here used to break
                             # compression mid-conversation because ``local``
                             # is not a registered provider in
-                            # ``hermes_cli.auth.PROVIDER_REGISTRY`` — see #1384.
+                            # ``iris_cli.auth.PROVIDER_REGISTRY`` — see #1384.
                             provider = "custom"
                 except ValueError:
                     pass
@@ -9198,8 +9198,8 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                                 break
             if not api_key:
                 api_key_vars = (
-                    "HERMES_API_KEY",
-                    "HERMES_OPENAI_API_KEY",
+                    "IRIS_API_KEY",
+                    "IRIS_OPENAI_API_KEY",
                     "OPENAI_API_KEY",
                     "LOCAL_API_KEY",
                     "OPENROUTER_API_KEY",
@@ -9270,7 +9270,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 if _slug and _cp_base_url:
                     # Check if user has configured models in config.yaml —
                     # configured models take priority over live /v1/models
-                    # discovery (same as hermes-agent model_switch.py Section 4
+                    # discovery (same as iris-agent model_switch.py Section 4
                     # patch). Without this check, ZenMux and similar aggregator
                     # gateways would show hundreds of online models instead of
                     # the user's curated list.
@@ -9499,7 +9499,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 provider_name = _effective_provider_display_name(pid, _PROVIDER_DISPLAY)
                 if pid == "openrouter":
                     # OpenRouter has two model surfaces:
-                    #   (1) curated tool-supporting catalog via hermes_cli.models.fetch_openrouter_models()
+                    #   (1) curated tool-supporting catalog via iris_cli.models.fetch_openrouter_models()
                     #       — the canonical agent-ready list, applies a tool-support filter
                     #       (Kilo-Org/kilocode#9068) that hides image/completion-only models
                     #   (2) free-tier `:free` variants — newly-added models OpenRouter ships
@@ -9514,7 +9514,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                     raw_models = []
                     seen_ids = set()
                     try:
-                        from hermes_cli.models import (
+                        from iris_cli.models import (
                             fetch_openrouter_models as _fetch_or_models,
                         )
                         live_curated = _fetch_or_models() or []
@@ -9524,12 +9524,12 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                                 # Ship the friendly display name (e.g. "Ox Alpha")
                                 # from the local OpenRouter metadata cache instead
                                 # of the raw id, so the picker search matches what
-                                # users see in Hermes Desktop (#7228).
+                                # users see in Iris Desktop (#7228).
                                 raw_models.append(
                                     {"id": mid, "label": _openrouter_model_display_name(mid)}
                                 )
                     except Exception:
-                        logger.warning("Failed to load OpenRouter curated catalog from hermes_cli")
+                        logger.warning("Failed to load OpenRouter curated catalog from iris_cli")
 
                     # Free-tier live fetch — bypasses the tool-support filter so models
                     # OpenRouter has flagged free but hasn't yet annotated with tools=[]
@@ -9613,14 +9613,14 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 elif pid == "ollama-cloud":
                     raw_models = []
                     try:
-                        from hermes_cli.models import provider_model_ids as _provider_model_ids
+                        from iris_cli.models import provider_model_ids as _provider_model_ids
 
                         raw_models = [
                             {"id": mid, "label": _format_ollama_label(mid)}
                             for mid in (_provider_model_ids("ollama-cloud") or [])
                         ]
                     except Exception:
-                        logger.warning("Failed to load Ollama Cloud models from hermes_cli")
+                        logger.warning("Failed to load Ollama Cloud models from iris_cli")
 
                     if raw_models:
                         _append_picker_group(provider_name, pid, raw_models)
@@ -9634,11 +9634,11 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                     raw_models = []
                     codex_ids = []
                     try:
-                        from hermes_cli.models import provider_model_ids as _provider_model_ids
+                        from iris_cli.models import provider_model_ids as _provider_model_ids
 
                         codex_ids = [mid for mid in (_provider_model_ids("openai-codex") or []) if mid]
                     except Exception:
-                        logger.warning("Failed to load OpenAI Codex models from hermes_cli")
+                        logger.warning("Failed to load OpenAI Codex models from iris_cli")
 
                     for mid in _read_visible_codex_cache_model_ids():
                         if mid not in codex_ids:
@@ -9658,7 +9658,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                     # Nous Portal exposes a curated catalog (~30 models on most
                     # accounts, up to several hundred for enterprise tiers) via
                     # inference-api.nousresearch.com. Like ollama-cloud, we
-                    # live-fetch through hermes_cli.models.provider_model_ids()
+                    # live-fetch through iris_cli.models.provider_model_ids()
                     # rather than relying on the static four-entry list, which
                     # chronically drifts out of date (#1538).
                     #
@@ -9672,11 +9672,11 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                     raw_models = []
                     live_fetch_failed = False
                     try:
-                        from hermes_cli.models import provider_model_ids as _provider_model_ids
+                        from iris_cli.models import provider_model_ids as _provider_model_ids
 
                         live_ids = _provider_model_ids("nous") or []
                     except Exception:
-                        logger.warning("Failed to load Nous Portal models from hermes_cli")
+                        logger.warning("Failed to load Nous Portal models from iris_cli")
                         live_ids = []
                         live_fetch_failed = True
 
@@ -9705,10 +9705,10 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                             "omitting from picker (will retry on next cache rebuild)"
                         )
                     else:
-                        # hermes_cli unavailable / raised — fall back to the
+                        # iris_cli unavailable / raised — fall back to the
                         # curated 4-entry static list so the picker is never
                         # empty in this degraded state. This matches pre-#1538
-                        # behaviour for environments without hermes_cli (test
+                        # behaviour for environments without iris_cli (test
                         # envs, package mismatches, isolated WebUI builds).
                         raw_models = copy.deepcopy(_PROVIDER_MODELS.get("nous", []))
 
@@ -9727,16 +9727,16 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                     # Two-tier lookup, each in its own try so a failure in one
                     # does not abort the other (the bug pattern that broke
                     # tests/test_issue1527_lmstudio_base_url_classification on
-                    # CI environments where hermes_cli isn't importable —
+                    # CI environments where iris_cli isn't importable —
                     # ImportError in the cli tier was hijacking the whole
                     # branch and silently skipping the urlopen fallback).
                     raw_models = []
                     lm_ids: list[str] = []
                     try:
-                        from hermes_cli.models import provider_model_ids as _provider_model_ids
+                        from iris_cli.models import provider_model_ids as _provider_model_ids
                         lm_ids = _provider_model_ids("lmstudio") or []
                     except Exception:
-                        logger.debug("hermes_cli LM Studio lookup unavailable; using urlopen fallback")
+                        logger.debug("iris_cli LM Studio lookup unavailable; using urlopen fallback")
 
                     if lm_ids:
                         raw_models = [{"id": mid, "label": mid} for mid in lm_ids]
@@ -9786,13 +9786,13 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
 
                     # User-configured model allowlists are explicit local
                     # source-of-truth for custom/plugin providers, AND for most
-                    # built-in Hermes providers (e.g. providers.anthropic.models
+                    # built-in Iris providers (e.g. providers.anthropic.models
                     # is a real picker allowlist — see #644). Copilot is the
                     # exception: it uses providers.copilot.models as a per-model
                     # settings map (reasoning_effort, limits, etc.), so treating
                     # that as an allowlist collapsed the Copilot picker to
                     # whichever model had local settings. Only Copilot skips the
-                    # config-models allowlist branch and asks Hermes CLI for the
+                    # config-models allowlist branch and asks Iris CLI for the
                     # live catalog first (static _PROVIDER_MODELS is fallback only).
                     _uses_models_as_settings_map = (
                         pid == "copilot"
@@ -9810,7 +9810,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                             raw_models = _moa_preset_models_from_config(cfg)
                         elif (
                             pid == "opencode-go"
-                            and not _hermes_cli_supports_opencode_go_live_catalog()
+                            and not _iris_cli_supports_opencode_go_live_catalog()
                         ):
                             # Before core v0.20.5 this resolver returned the
                             # generic public catalog, including models that
@@ -10178,7 +10178,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
 
         # Capture the active per-request profile (#3957). The live provider
         # probe inside the rebuild resolves credentials from os.environ /
-        # HERMES_HOME and the disk-cache path/fingerprint from the profile TLS;
+        # IRIS_HOME and the disk-cache path/fingerprint from the profile TLS;
         # the detached worker thread below inherits NEITHER, so it must be
         # captured here (on the request thread, where the TLS is valid) and
         # re-bound on the worker. Empty / default for single-profile installs.
@@ -10204,7 +10204,7 @@ def get_available_models(*, prefer_cache: bool = False, force_refresh: bool = Fa
                 # Foreground thread already carries the request-profile TLS;
                 # apply the mirrored profile env (no-op for default) for the
                 # live probe because provider_model_ids() still has raw
-                # os.getenv()/HERMES_HOME readers on this synchronous path.
+                # os.getenv()/IRIS_HOME readers on this synchronous path.
                 _sync_scope = (
                     _prof_env_request("models rebuild (sync)")
                     if _prof_env_request is not None
@@ -10474,12 +10474,12 @@ def get_available_models_for_session_visit() -> dict:
     def _mark(name: str) -> None:
         _stagelog.append((name, _time.monotonic()))
     _logger = _logging.getLogger("api.config")
-    # HERMES_DEBUG_SLOW: a numeric value sets the slow-log threshold in ms; any
-    # other non-empty (truthy) value — e.g. the documented `HERMES_DEBUG_SLOW=1`
+    # IRIS_DEBUG_SLOW: a numeric value sets the slow-log threshold in ms; any
+    # other non-empty (truthy) value — e.g. the documented `IRIS_DEBUG_SLOW=1`
     # / `=true` — means "always log stage timing" (0ms threshold); unset/empty
     # keeps the default 500ms. Must be non-throwing: a nonnumeric truthy value
     # like `true` previously raised ValueError here and 500'd this hot path.
-    _slow_raw = (os.environ.get("HERMES_DEBUG_SLOW", "") or "").strip()
+    _slow_raw = (os.environ.get("IRIS_DEBUG_SLOW", "") or "").strip()
     if not _slow_raw:
         _slow_threshold_ms = 500.0
     else:
@@ -10601,10 +10601,10 @@ LOCK = threading.Lock()
 #
 # Precedence for the effective cap is resolved by get_sessions_cache_max():
 #   1. config.yaml  webui.sessions_cache_max   (preferred, no new env var)
-#   2. HERMES_WEBUI_SESSIONS_MAX env var        (legacy operator override)
+#   2. IRIS_WEBUI_SESSIONS_MAX env var        (legacy operator override)
 #   3. DEFAULT_SESSIONS_CACHE_MAX               (sane bounded default)
 DEFAULT_SESSIONS_CACHE_MAX = 100
-SESSIONS_MAX = _env_int("HERMES_WEBUI_SESSIONS_MAX", DEFAULT_SESSIONS_CACHE_MAX)
+SESSIONS_MAX = _env_int("IRIS_WEBUI_SESSIONS_MAX", DEFAULT_SESSIONS_CACHE_MAX)
 
 
 def get_sessions_cache_max(config_data: dict | None = None) -> int:
@@ -10612,10 +10612,10 @@ def get_sessions_cache_max(config_data: dict | None = None) -> int:
 
     The bound is configurable through ``webui.sessions_cache_max`` in
     ``config.yaml`` so operators of large self-hosted installs can size the
-    cache without editing source or adding a new ``HERMES_*`` env var (this
+    cache without editing source or adding a new ``IRIS_*`` env var (this
     project forbids new env vars for non-secret config). A missing, empty,
     non-numeric, or below-1 value falls back to the legacy
-    ``HERMES_WEBUI_SESSIONS_MAX`` env override, then to
+    ``IRIS_WEBUI_SESSIONS_MAX`` env override, then to
     ``DEFAULT_SESSIONS_CACHE_MAX`` — a typo can never disable the bound and
     reintroduce unbounded memory growth.
 
@@ -11124,7 +11124,7 @@ def invalidate_gateway_caps(base_url: str | None = None) -> None:
 # A drain task spawned at WebUI startup (api/background_process.py) reads that
 # queue and emits an SSE `process_complete` event to the matching session.
 # PROCESS_SESSION_INDEX maps the per-process "session_key" (set in the spawned
-# subprocess via HERMES_SESSION_KEY) back to the WebUI session_id that owns it,
+# subprocess via IRIS_SESSION_KEY) back to the WebUI session_id that owns it,
 # so the drain task can route the event to the right SSE channel.
 # PENDING_BG_TASK_COMPLETIONS mirrors PENDING_GOAL_CONTINUATION: server-side
 # marker discarded atomically by routes.py when the frontend re-POSTs the
@@ -11267,8 +11267,8 @@ SESSION_AGENT_CACHE: collections.OrderedDict = collections.OrderedDict()  # LRU 
 # the dominant lever on WebUI resident memory (issue #3506). The default is kept
 # deliberately modest -- large/long sessions can each weigh tens of MB, so 50
 # live agents could pin >1 GB on a heavily multiplexed install. Operators can
-# tune it via HERMES_WEBUI_AGENT_CACHE_MAX without editing source.
-SESSION_AGENT_CACHE_MAX = _env_int("HERMES_WEBUI_AGENT_CACHE_MAX", 25)
+# tune it via IRIS_WEBUI_AGENT_CACHE_MAX without editing source.
+SESSION_AGENT_CACHE_MAX = _env_int("IRIS_WEBUI_AGENT_CACHE_MAX", 25)
 SESSION_AGENT_CACHE_LOCK = threading.Lock()
 
 
@@ -11478,7 +11478,7 @@ _SETTINGS_DEFAULTS = {
     # their first hydration.  When a user picks a locale in the Settings
     # modal the value is written here and the field is set explicitly.
     "bot_name": os.getenv(
-        "HERMES_WEBUI_BOT_NAME", "Iris"
+        "IRIS_WEBUI_BOT_NAME", "Iris"
     ),  # display name for the assistant
     "sound_enabled": False,  # play notification sound when assistant finishes
     "rtl": False,  # right-to-left chat layout (chat messages + composer only)
@@ -12087,7 +12087,7 @@ def save_settings(settings: dict) -> dict:
 
 
 # Apply saved settings on startup (override env-derived defaults)
-# Exception: if HERMES_WEBUI_DEFAULT_WORKSPACE is explicitly set in the
+# Exception: if IRIS_WEBUI_DEFAULT_WORKSPACE is explicitly set in the
 # environment, it wins over whatever settings.json has stored.  Persisted
 # config must never shadow an explicit env-var override (Docker deployments
 # rely on this — otherwise deleting settings.json is the only escape).
@@ -12097,7 +12097,7 @@ try:
 except OSError:
     _settings_file_exists = False
 if _settings_file_exists:
-    if not os.getenv("HERMES_WEBUI_DEFAULT_WORKSPACE"):
+    if not os.getenv("IRIS_WEBUI_DEFAULT_WORKSPACE"):
         DEFAULT_WORKSPACE = resolve_default_workspace(
             _startup_settings.get("default_workspace")
         )
@@ -12195,7 +12195,7 @@ try:
 
     init_profile_state()
 except ImportError:
-    pass  # hermes_cli not available -- default profile only
+    pass  # iris_cli not available -- default profile only
 
 
 # Run the provider-model seeder once at import time. Must be at the END of the
@@ -12206,6 +12206,6 @@ except ImportError:
 try:
     _seed_provider_models_from_core()
 except ImportError:
-    pass  # hermes_cli not available (standalone deployment)
+    pass  # iris_cli not available (standalone deployment)
 except Exception:
     logger.warning("provider-model seeder failed", exc_info=True)

@@ -18,10 +18,10 @@ from tools.registry import tool_error
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CONTAINER_TAG = "hermes"
+_DEFAULT_CONTAINER_TAG = "iris"
 _VALID_SEARCH_MODES = ("hybrid", "memories", "documents")
 _DEFAULT_BASE_URL = "https://api.supermemory.ai"
-_API_KEY_URL = "http://app.supermemory.ai/integrations?connect=hermes"
+_API_KEY_URL = "http://app.supermemory.ai/integrations?connect=iris"
 # Strips injected <supermemory-context> / <supermemory-containers> blocks before capture.
 _INJECTED_BLOCK_RE = re.compile(r"<supermemory-(context|containers)>[\s\S]*?</supermemory-\1>\s*", re.DOTALL)
 _DATA_URI_RE = re.compile(r"data:[^;,\s]+;base64,[A-Za-z0-9+/=]+")  # pasted inline images are useless as memory text
@@ -103,19 +103,19 @@ def _read_json_dict(path: Path) -> dict:
     return raw if isinstance(raw, dict) else {}
 
 
-def _load_supermemory_config(hermes_home: Optional[str] = None) -> dict:
-    """Defaults overlaid with $hermes_home/supermemory.json (None = defaults only), every key normalized."""
+def _load_supermemory_config(iris_home: Optional[str] = None) -> dict:
+    """Defaults overlaid with $iris_home/supermemory.json (None = defaults only), every key normalized."""
     config = {k: (list(d) if isinstance(d, list) else d) for k, (d, _) in _CONFIG_SPEC.items()}
-    if hermes_home is not None:
-        config.update({k: v for k, v in _read_json_dict(Path(hermes_home) / "supermemory.json").items() if v is not None})
+    if iris_home is not None:
+        config.update({k: v for k, v in _read_json_dict(Path(iris_home) / "supermemory.json").items() if v is not None})
     for key, (_, normalize) in _CONFIG_SPEC.items():
         config[key] = normalize(config[key])
     return config
 
 
-def _save_supermemory_config(values: dict, hermes_home: str) -> None:
+def _save_supermemory_config(values: dict, iris_home: str) -> None:
     from utils import atomic_json_write
-    config_path = Path(hermes_home) / "supermemory.json"
+    config_path = Path(iris_home) / "supermemory.json"
     atomic_json_write(config_path, {**_read_json_dict(config_path), **values}, mode=0o600, sort_keys=True)
 
 
@@ -186,12 +186,12 @@ class _SupermemoryClient:
         self._search_mode = search_mode if search_mode in _VALID_SEARCH_MODES else "hybrid"
         self._base_url = _resolve_base_url(base_url)
         self._client = Supermemory(api_key=api_key, base_url=self._base_url, timeout=timeout, max_retries=0,
-                                   default_headers={"x-sm-source": "hermes"})
+                                   default_headers={"x-sm-source": "iris"})
 
     def _merge_metadata(self, metadata: Optional[dict]) -> dict:
-        # sm_source routes Hermes writes into the "Hermes" Space in the Supermemory app so the user
+        # sm_source routes Iris writes into the "Iris" Space in the Supermemory app so the user
         # can filter / bulk-manage them per source agent (a routing key for the user, not telemetry).
-        merged = {"sm_source": "hermes", **(metadata or {})}
+        merged = {"sm_source": "iris", **(metadata or {})}
         if (legacy_source := merged.pop("source", None)) and "type" not in merged:
             merged["type"] = str(legacy_source)
         return merged
@@ -260,8 +260,8 @@ def _resolve_container_tag(config_tag: str, identity: str) -> str:
     return _sanitize_tag(raw_tag.replace("{identity}", identity))
 
 
-def _probe_supermemory_connection(api_key: str, hermes_home: str, *, identity: str = "default") -> dict:
-    config = _load_supermemory_config(hermes_home)
+def _probe_supermemory_connection(api_key: str, iris_home: str, *, identity: str = "default") -> dict:
+    config = _load_supermemory_config(iris_home)
     status = {"ok": False, "error": "", "profile_facts": 0, "container_tag": _resolve_container_tag(config["container_tag"], identity),
               "auto_recall": bool(config["auto_recall"]), "auto_capture": bool(config["auto_capture"])}
     if not (api_key or "").strip():
@@ -314,7 +314,7 @@ def _tagged(resp: dict, tag: Optional[str]) -> dict:
 
 class SupermemoryMemoryProvider(MemoryProvider):
     def __init__(self):
-        self._api_key = self._session_id = self._hermes_home = ""
+        self._api_key = self._session_id = self._iris_home = ""
         self._client: Optional[_SupermemoryClient] = None
         self._container_tag, self._turn_count, self._write_enabled, self._active = _DEFAULT_CONTAINER_TAG, 0, True, False
         self._prefetch_thread = self._sync_thread = self._write_thread = None  # only _write_thread is ever started
@@ -340,23 +340,23 @@ class SupermemoryMemoryProvider(MemoryProvider):
         return bool(get_secret("SUPERMEMORY_API_KEY", ""))
 
     def get_config_schema(self):
-        # Only the API key is prompted during `hermes memory setup`; other options live in supermemory.json / env.
+        # Only the API key is prompted during `iris memory setup`; other options live in supermemory.json / env.
         return [{"key": "api_key", "description": "Supermemory API key", "secret": True, "required": True, "env_var": "SUPERMEMORY_API_KEY", "url": _API_KEY_URL}]
 
-    def save_config(self, values, hermes_home):
+    def save_config(self, values, iris_home):
         sanitized = dict(values or {})
         for key, fix in (("container_tag", _sanitize_tag), ("entity_context", _clamp_entity_context)):
             if key in sanitized:
                 sanitized[key] = fix(str(sanitized[key]))
-        _save_supermemory_config(sanitized, hermes_home)
+        _save_supermemory_config(sanitized, iris_home)
 
     def get_status_config(self, provider_config: dict) -> dict:
-        from hermes_constants import get_hermes_home
-        return {"summary": _format_connection_summary(_probe_supermemory_connection(get_secret("SUPERMEMORY_API_KEY", "") or "", str(get_hermes_home())))}
+        from iris_constants import get_iris_home
+        return {"summary": _format_connection_summary(_probe_supermemory_connection(get_secret("SUPERMEMORY_API_KEY", "") or "", str(get_iris_home())))}
 
-    def post_setup(self, hermes_home: str, config: dict) -> None:
-        from hermes_cli.config import save_config
-        from hermes_cli.memory_setup import _prompt, _write_env_vars
+    def post_setup(self, iris_home: str, config: dict) -> None:
+        from iris_cli.config import save_config
+        from iris_cli.memory_setup import _prompt, _write_env_vars
         print(f"\n  Configuring supermemory:\n\n  Get your API key at {_API_KEY_URL}\n")
         existing = os.environ.get("SUPERMEMORY_API_KEY", "")
         masked = f"...{existing[-4:]}" if len(existing) > 4 else "set"
@@ -365,23 +365,23 @@ class SupermemoryMemoryProvider(MemoryProvider):
         memory["provider"] = self.name
         save_config(config)
         if val:
-            _write_env_vars({"SUPERMEMORY_API_KEY": val}, hermes_home=hermes_home)
+            _write_env_vars({"SUPERMEMORY_API_KEY": val}, iris_home=iris_home)
         api_key = val or existing
         # Make the freshly-entered key visible to the probe below. Single-profile only: under a multiplexed
         # gateway, writing to the process-global environ would leak the key to sibling profiles and their subprocesses.
         if api_key and not is_multiplex_active() and os.environ.get("SUPERMEMORY_API_KEY") != api_key:
             os.environ["SUPERMEMORY_API_KEY"] = api_key
-        status = _probe_supermemory_connection(api_key, hermes_home)
+        status = _probe_supermemory_connection(api_key, iris_home)
         print(f"\n  {_format_connection_summary(status)}\n\n  Memory provider: supermemory\n  Activation saved to config.yaml")
         if val:
             print("  API keys saved to .env")
         print("\n  Start a new session to activate.\n")
 
     def initialize(self, session_id: str, **kwargs) -> None:
-        from hermes_constants import get_hermes_home
-        self._hermes_home = kwargs.get("hermes_home") or str(get_hermes_home())
+        from iris_constants import get_iris_home
+        self._iris_home = kwargs.get("iris_home") or str(get_iris_home())
         self._session_id, self._turn_count, self._pending_turns = session_id, 0, []
-        config = _load_supermemory_config(self._hermes_home)
+        config = _load_supermemory_config(self._iris_home)
         self._api_key = get_secret("SUPERMEMORY_API_KEY", "") or ""
         self._container_tag = _resolve_container_tag(config["container_tag"], kwargs.get("agent_identity", "default"))
         self._apply_config(config)
@@ -429,7 +429,7 @@ class SupermemoryMemoryProvider(MemoryProvider):
                 batch = [t for t in turns if t["session_id"] == sid]
                 now = datetime.now(timezone.utc)
                 content = "\n\n".join(_format_turn(t["user"], t["assistant"]) for t in batch)
-                metadata = {"type": "conversation", "session_id": sid, "timestamp": now.isoformat()}  # no sm_capture_mode: Hermes policy
+                metadata = {"type": "conversation", "session_id": sid, "timestamp": now.isoformat()}  # no sm_capture_mode: Iris policy
                 result = _quietly(lambda: self._client.add_memory(content, metadata=metadata, entity_context=self._entity_context,
                                                                   custom_id=_capture_custom_id(sid, now)),
                                   "Supermemory capture failed (%s, session=%s, %d turns pending)", mode, sid, len(batch),

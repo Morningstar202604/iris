@@ -27,7 +27,7 @@ guard, not a failure.
 **Fix**: point it explicitly:
 
 ```bash
-HERMES_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
+IRIS_WEBUI_AGENT_DIR=/path/to/iris/agent python3 server.py
 ```
 
 ## 4. Every request is slow (seconds of latency)
@@ -58,20 +58,20 @@ endpoint (see [quickstart.md](quickstart.md#image-generation-optional)).
 ## 7. Conversation history suddenly got shorter
 
 **Fix**: Iris compacts history automatically near the context limit and continues the
-task — normal memory management. Full session files remain on disk (`~/.hermes/sessions/`).
+task — normal memory management. Full session files remain on disk (`~/.iris/sessions/`).
 
 ## 8. How do I uninstall completely?
 
 ```bash
 # remove state and config
-rm -rf ~/.hermes
+rm -rf ~/.iris
 # remove the project
 rm -rf iris
 ```
 
 ## 9. Where is my data? Is it uploaded?
 
-- Sessions, memory, knowledge base and tasks live **on your machine**: `~/.hermes/`.
+- Sessions, memory, knowledge base and tasks live **on your machine**: `~/.iris/`.
 - Iris itself has **no account, no telemetry**. Only the model provider you configured
   receives conversation requests (data flow is decided by your provider).
 - Knowledge-base search happens locally — your documents are not uploaded.

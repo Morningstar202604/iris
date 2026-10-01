@@ -140,7 +140,7 @@ def _fake_urlopen_with_usage(usage=5.0, limit=20.0, label="Credits"):
 
 def test_monthly_budget_in_available_response(monkeypatch, tmp_path):
     """get_provider_cost_history returns monthly_budget when configured."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-key\n", encoding="utf-8")
 
@@ -164,7 +164,7 @@ def test_monthly_budget_in_available_response(monkeypatch, tmp_path):
 
 def test_monthly_budget_none_when_not_configured(monkeypatch, tmp_path):
     """get_provider_cost_history returns monthly_budget: None when no budget set."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-key\n", encoding="utf-8")
 
@@ -187,7 +187,7 @@ def test_monthly_budget_none_when_not_configured(monkeypatch, tmp_path):
 
 def test_monthly_budget_in_unavailable_response(monkeypatch, tmp_path):
     """monthly_budget is included when upstream OpenRouter call fails."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=test-key\n", encoding="utf-8")
 
@@ -217,7 +217,7 @@ def test_monthly_budget_in_unavailable_response(monkeypatch, tmp_path):
 
 def test_monthly_budget_in_no_key_response(monkeypatch, tmp_path):
     """monthly_budget is included in no_key response."""
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     # No .env → no key
 

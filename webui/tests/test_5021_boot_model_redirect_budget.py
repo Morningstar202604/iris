@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 BOOT_JS = ROOT / "static" / "boot.js"
 UI_JS = ROOT / "static" / "ui.js"
 NODE = shutil.which("node")
-BOOT_MARKER_KEY = "hermes-webui-active-profile-bootstrap-401"
+BOOT_MARKER_KEY = "iris-webui-active-profile-bootstrap-401"
 
 
 pytestmark = pytest.mark.skipif(

@@ -163,7 +163,7 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
     """Switching profiles in one WebUI session must not reuse old SOUL.md.
 
     The fake AIAgent mirrors the real failure mode: it reads SOUL.md from
-    HERMES_HOME at construction time and keeps that value in a cached system
+    IRIS_HOME at construction time and keeps that value in a cached system
     prompt. Two consecutive turns on the same profile should reuse the agent;
     changing only ``session.profile`` should create a fresh agent whose cached
     prompt comes from the new synthetic profile home.
@@ -174,7 +174,7 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
     from api import profiles
     from api import streaming
 
-    default_home = tmp_path / "hermes-home"
+    default_home = tmp_path / "iris-home"
     profile_a_home = default_home / "profiles" / "alpha"
     profile_b_home = default_home / "profiles" / "beta"
     profile_a_home.mkdir(parents=True)
@@ -253,14 +253,14 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
             self.tool_progress_callback = kwargs.get("tool_progress_callback")
             self.reasoning_callback = kwargs.get("reasoning_callback")
             self.clarify_callback = kwargs.get("clarify_callback")
-            home = Path(os.environ["HERMES_HOME"])
+            home = Path(os.environ["IRIS_HOME"])
             self.constructed_home = str(home)
             self._cached_system_prompt = (home / "SOUL.md").read_text(encoding="utf-8")
             constructed_agents.append(self)
 
         def run_conversation(self, **kwargs):
             prompts_used_for_runs.append(self._cached_system_prompt)
-            homes_seen_during_runs.append(os.environ.get("HERMES_HOME"))
+            homes_seen_during_runs.append(os.environ.get("IRIS_HOME"))
             history = list(kwargs.get("conversation_history") or [])
             return {
                 "messages": history
@@ -277,16 +277,16 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
             return None
 
     fake_session = FakeSession()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = lambda requested=None: {
         "provider": requested or "test-provider",
         "api_key": "synthetic-key",
         "base_url": None,
     }
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = lambda: None
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = lambda: None
 
     def home_for_profile(profile_name):
         return {"alpha": profile_a_home, "beta": profile_b_home}[profile_name]
@@ -299,7 +299,7 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
         lambda _model, **_kw: ("test-model", "test-provider", None),
     )
     monkeypatch.setattr(streaming, "_maybe_schedule_title_refresh", lambda *args, **kwargs: None)
-    monkeypatch.setattr(profiles, "get_hermes_home_for_profile", home_for_profile)
+    monkeypatch.setattr(profiles, "get_iris_home_for_profile", home_for_profile)
     monkeypatch.setattr(profiles, "get_profile_runtime_env", lambda _home: {})
     monkeypatch.setattr(
         oauth,
@@ -313,9 +313,9 @@ def test_same_session_profile_switch_rebuilds_agent_under_new_soul_home(tmp_path
     monkeypatch.setattr("api.config.get_config", lambda: {})
     monkeypatch.setattr("api.config._resolve_cli_toolsets", lambda _cfg: [])
     monkeypatch.setattr("api.config.load_settings", lambda: {})
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
-    monkeypatch.setitem(sys.modules, "hermes_state", fake_hermes_state)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
+    monkeypatch.setitem(sys.modules, "iris_state", fake_iris_state)
 
     with cfg.SESSION_AGENT_CACHE_LOCK:
         cfg.SESSION_AGENT_CACHE.clear()
@@ -368,7 +368,7 @@ def test_cache_signature_includes_profile_home():
     assert "profile_home" in block, (
         "SESSION_AGENT_CACHE signature is missing `profile_home`. Without this, "
         "same-session profile switches reuse the cached agent built under the "
-        "previous profile's HERMES_HOME, leaking the old SOUL.md into new turns."
+        "previous profile's IRIS_HOME, leaking the old SOUL.md into new turns."
     )
 
     calls = _production_signature_calls()

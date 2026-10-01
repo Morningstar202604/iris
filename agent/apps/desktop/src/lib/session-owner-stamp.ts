@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 /**
  * THE canonical write path for tagging backend-returned session rows with the

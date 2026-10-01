@@ -143,7 +143,7 @@ describe('ConnectorTool operation card', () => {
     $gateway.set({ request } as never)
     const openExternal = vi.fn()
     // SAFETY: the card reads only `openExternal` from the preload bridge.
-    window.hermesDesktop = { openExternal } as never
+    window.irisDesktop = { openExternal } as never
 
     renderConnector({ ...REQUEST, targets: [{ ...GMAIL, state: 'initiated' }] })
 
@@ -158,7 +158,7 @@ describe('ConnectorTool operation card', () => {
   it('Try again mints a fresh link on the open operation and never opens a browser by itself', async () => {
     const openExternal = vi.fn()
     // SAFETY: the card reads only `openExternal` from the preload bridge.
-    window.hermesDesktop = { openExternal } as never
+    window.irisDesktop = { openExternal } as never
 
     const request = vi.fn().mockResolvedValue({
       targets: [{ connect_url: 'https://connect.example/gmail-2', name: 'gmail', state: 'initiated' }]

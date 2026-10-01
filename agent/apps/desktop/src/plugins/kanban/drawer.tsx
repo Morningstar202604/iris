@@ -33,7 +33,7 @@ import {
   useQuery,
   useQueryClient,
   useValue
-} from '@hermes/plugin-sdk'
+} from '@iris/plugin-sdk'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import {

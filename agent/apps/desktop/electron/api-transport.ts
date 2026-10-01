@@ -1,5 +1,5 @@
 /**
- * Shared HTTP transport policy for the Electron main process's Hermes REST
+ * Shared HTTP transport policy for the Electron main process's Iris REST
  * helpers (fetchJson / fetchPublicJson / downloadViaTokenToFile).
  *
  * Two concerns live here so they can be unit-tested without Electron:
@@ -243,7 +243,7 @@ function htmlResponseError(url: string, statusCode: unknown, location?: unknown)
   }
 
   return new Error(
-    `Expected JSON from ${url} but got HTML (status ${statusCode}). The endpoint is likely missing on the Hermes backend.`
+    `Expected JSON from ${url} but got HTML (status ${statusCode}). The endpoint is likely missing on the Iris backend.`
   )
 }
 

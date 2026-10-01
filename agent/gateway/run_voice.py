@@ -117,7 +117,7 @@ class GatewayVoiceMixin:
         if not chat_sets:
             return
         try:
-            from hermes_cli.config import load_config  # lazy: no gateway -> hermes_cli module dep
+            from iris_cli.config import load_config  # lazy: no gateway -> iris_cli module dep
             auto_tts_default = bool((load_config().get("voice") or {}).get("auto_tts", False))
         except Exception:
             auto_tts_default = False

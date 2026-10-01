@@ -145,7 +145,7 @@ def test_cross_provider_openrouter_qwen_selection_not_stale_routed():
     still route through openrouter — NOT inherit the stale config provider.
 
     Regression guard for #6131's fix: ``qwen`` canonicalises to ``qwen``
-    (a _PROVIDER_MODELS key), but its hermes_cli *alias* target is
+    (a _PROVIDER_MODELS key), but its iris_cli *alias* target is
     ``alibaba`` (NOT a _PROVIDER_MODELS key). An earlier fix that resolved
     through _PROVIDER_ALIASES instead of the idempotent
     _canonicalise_provider_id would have mapped ``qwen`` → ``alibaba``,
@@ -710,7 +710,7 @@ def test_custom_remote_preserves_advertised_full_id_5979():
     provenance rule preserves it because the endpoint advertised the full id.
     """
     # Deterministically reproduce the data-driven trigger regardless of the
-    # hermes-agent catalog version CI happens to run against: ensure grok-4.5 is
+    # iris-agent catalog version CI happens to run against: ensure grok-4.5 is
     # first-party of x-ai so _is_first_party_model('x-ai','grok-4.5') is True (the
     # condition under which the OLD code stripped). We stub it into the catalog
     # rather than asserting the live catalog already contains it.
@@ -1503,15 +1503,15 @@ def test_provider_config_object_list_catalog_uses_picker_supported_keys_6121(mon
 # ── get_available_models(): phantom "Custom" group regression ─────────────
 #
 # When the user has model.provider set to a real provider (e.g. openai-codex)
-# AND a model.base_url set, hermes_cli reports the 'custom' pseudo-provider as
+# AND a model.base_url set, iris_cli reports the 'custom' pseudo-provider as
 # authenticated. The WebUI picker must NOT build a separate "Custom" group in
 # that case — the base_url belongs to the active provider.
 
 def _available_models_with_full_cfg(provider, default, base_url):
     """Helper: set model.provider, model.default, model.base_url at once.
 
-    Clears model-override env vars (HERMES_MODEL, OPENAI_MODEL, LLM_MODEL)
-    during the call so the real hermes profile environment doesn't leak into
+    Clears model-override env vars (IRIS_MODEL, OPENAI_MODEL, LLM_MODEL)
+    during the call so the real iris profile environment doesn't leak into
     the test and override the fixture's default model.
     """
     import os
@@ -1530,7 +1530,7 @@ def _available_models_with_full_cfg(provider, default, base_url):
         # which would overwrite the in-memory cfg we just set up.
         _cfg._cfg_mtime = 0.0
     # Clear model-override env vars to prevent the real profile from leaking in
-    _model_env_keys = ('HERMES_MODEL', 'OPENAI_MODEL', 'LLM_MODEL')
+    _model_env_keys = ('IRIS_MODEL', 'OPENAI_MODEL', 'LLM_MODEL')
     _saved_env = {k: os.environ.pop(k, None) for k in _model_env_keys}
     try:
         return _cfg.get_available_models()
@@ -1547,18 +1547,18 @@ def test_no_phantom_custom_group_when_active_provider_is_set(monkeypatch):
     under a phantom "Custom" group instead of the "OpenAI Codex" group."""
     import sys, types
 
-    # Force hermes_cli to report both the real provider and the phantom
+    # Force iris_cli to report both the real provider and the phantom
     # 'custom' as authenticated, simulating what list_available_providers()
     # returns when base_url is configured.
-    fake_mod = types.ModuleType('hermes_cli.models')
+    fake_mod = types.ModuleType('iris_cli.models')
     fake_mod.list_available_providers = lambda: [
         {'id': 'openai-codex', 'authenticated': True},
         {'id': 'custom',       'authenticated': True},
     ]
-    fake_auth = types.ModuleType('hermes_cli.auth')
+    fake_auth = types.ModuleType('iris_cli.auth')
     fake_auth.get_auth_status = lambda pid: {'key_source': 'env'}
-    monkeypatch.setitem(sys.modules, 'hermes_cli.models', fake_mod)
-    monkeypatch.setitem(sys.modules, 'hermes_cli.auth', fake_auth)
+    monkeypatch.setitem(sys.modules, 'iris_cli.models', fake_mod)
+    monkeypatch.setitem(sys.modules, 'iris_cli.auth', fake_auth)
 
     result = _available_models_with_full_cfg(
         provider='openai-codex',
@@ -1584,16 +1584,16 @@ def test_default_model_lands_under_active_provider_group(monkeypatch):
     alphabetically (e.g. 'anthropic'), placed gpt-5.4 in the WRONG group.
     """
     import sys, types
-    fake_mod = types.ModuleType('hermes_cli.models')
+    fake_mod = types.ModuleType('iris_cli.models')
     fake_mod.list_available_providers = lambda: [
         {'id': 'anthropic',    'authenticated': True},  # sorts before openai-codex
         {'id': 'openai-codex', 'authenticated': True},
         {'id': 'custom',       'authenticated': True},
     ]
-    fake_auth = types.ModuleType('hermes_cli.auth')
+    fake_auth = types.ModuleType('iris_cli.auth')
     fake_auth.get_auth_status = lambda pid: {'key_source': 'env'}
-    monkeypatch.setitem(sys.modules, 'hermes_cli.models', fake_mod)
-    monkeypatch.setitem(sys.modules, 'hermes_cli.auth', fake_auth)
+    monkeypatch.setitem(sys.modules, 'iris_cli.models', fake_mod)
+    monkeypatch.setitem(sys.modules, 'iris_cli.auth', fake_auth)
 
     result = _available_models_with_full_cfg(
         provider='openai-codex',
@@ -1623,16 +1623,16 @@ def test_unknown_providers_do_not_inherit_default_model(monkeypatch):
     """
     import sys, types
 
-    fake_mod = types.ModuleType('hermes_cli.models')
+    fake_mod = types.ModuleType('iris_cli.models')
     fake_mod.list_available_providers = lambda: [
         {'id': 'openai-codex', 'authenticated': True},
         {'id': 'alibaba',      'authenticated': True},
         {'id': 'minimax-cn',   'authenticated': True},
     ]
-    fake_auth = types.ModuleType('hermes_cli.auth')
+    fake_auth = types.ModuleType('iris_cli.auth')
     fake_auth.get_auth_status = lambda pid: {'key_source': 'env'}
-    monkeypatch.setitem(sys.modules, 'hermes_cli.models', fake_mod)
-    monkeypatch.setitem(sys.modules, 'hermes_cli.auth', fake_auth)
+    monkeypatch.setitem(sys.modules, 'iris_cli.models', fake_mod)
+    monkeypatch.setitem(sys.modules, 'iris_cli.auth', fake_auth)
 
     result = _available_models_with_full_cfg(
         provider='openai-codex',
@@ -1698,8 +1698,8 @@ def test_custom_endpoint_uses_model_config_api_key_for_model_discovery(monkeypat
     monkeypatch.setattr('urllib.request.urlopen', _fake_urlopen)
     monkeypatch.setattr('socket.getaddrinfo', lambda *a, **k: [])
     monkeypatch.delenv('OPENAI_API_KEY', raising=False)
-    monkeypatch.delenv('HERMES_API_KEY', raising=False)
-    monkeypatch.delenv('HERMES_OPENAI_API_KEY', raising=False)
+    monkeypatch.delenv('IRIS_API_KEY', raising=False)
+    monkeypatch.delenv('IRIS_OPENAI_API_KEY', raising=False)
     monkeypatch.delenv('LOCAL_API_KEY', raising=False)
     monkeypatch.delenv('OPENROUTER_API_KEY', raising=False)
     monkeypatch.delenv('API_KEY', raising=False)

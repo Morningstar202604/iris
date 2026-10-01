@@ -1,17 +1,17 @@
-# Hermes Agent CLI Configuration
-# Copy settings from this example into ~/.hermes/config.yaml, or use
-# `hermes config set <section.key> <value>` to update the active profile.
+# Iris Agent CLI Configuration
+# Copy settings from this example into ~/.iris/config.yaml, or use
+# `iris config set <section.key> <value>` to update the active profile.
 # This file configures CLI behavior; only documented secret environment
 # variables in .env take precedence over their corresponding settings.
 
 # =============================================================================
 # Database Configuration
 # =============================================================================
-# WAL is the normal default. Hermes automatically falls back to DELETE when
+# WAL is the normal default. Iris automatically falls back to DELETE when
 # SQLite reports that WAL is incompatible with the filesystem. Set this to
 # "delete" explicitly for deployments whose backing filesystem is not WAL
 # crash-safe, such as Linux containers bind-mounted through macOS virtiofs,
-# NFS, or SMB. Hermes will not live-downgrade a database already open in WAL.
+# NFS, or SMB. Iris will not live-downgrade a database already open in WAL.
 database:
   journal_mode: "wal"  # Supported values: "wal", "delete"
   # Optional WAL sizing pragmas (integers). Unset = SQLite defaults.
@@ -30,7 +30,7 @@ database:
 # =============================================================================
 # Runtime Limits
 # =============================================================================
-# Long-running Hermes server processes raise their RLIMIT_NOFILE soft limit to
+# Long-running Iris server processes raise their RLIMIT_NOFILE soft limit to
 # this value when the operating system permits it. The value is clamped to the
 # hard limit and never lowers an already higher soft limit. Set to 0, false, or
 # null to disable the adjustment. Default: 4096.
@@ -48,10 +48,10 @@ model:
   # Inference provider selection:
   #   "auto"         - Auto-detect from credentials (default)
   #   "openrouter"   - OpenRouter (requires: OPENROUTER_API_KEY or OPENAI_API_KEY)
-  #   "nous"         - Nous Portal OAuth (requires: hermes auth add nous)
+  #   "nous"         - Nous Portal OAuth (requires: iris auth add nous)
   #   "nous-api"     - Nous Portal API key (requires: NOUS_API_KEY)
   #   "anthropic"    - Direct Anthropic API (requires: ANTHROPIC_API_KEY)
-  #   "openai-codex" - OpenAI Codex (requires: hermes auth)
+  #   "openai-codex" - OpenAI Codex (requires: iris auth)
   #   "copilot"      - GitHub Copilot / GitHub Models (requires: GITHUB_TOKEN)
   #   "gemini"      - Use Google AI Studio direct (requires: GOOGLE_API_KEY or GEMINI_API_KEY)
   #   "zai"         - Use z.ai / ZhipuAI GLM models (requires: GLM_API_KEY)
@@ -104,15 +104,15 @@ model:
   # ── Token limits — two settings, easy to confuse ──────────────────────────
   #
   # context_length: TOTAL context window (input + output tokens combined).
-  #   Controls when Hermes compresses history and validates requests.
-  #   Leave unset — Hermes auto-detects the correct value from the provider.
+  #   Controls when Iris compresses history and validates requests.
+  #   Leave unset — Iris auto-detects the correct value from the provider.
   #   Set manually only when auto-detection is wrong (e.g. a local server with
   #   a custom num_ctx, or a proxy that doesn't expose /v1/models).
   #
   # context_length: 131072
   #
   # ollama_num_ctx: Ollama only — the num_ctx sent on every chat request.
-  #   Hermes auto-detects the model's window and sends it (Ollama otherwise
+  #   Iris auto-detects the model's window and sends it (Ollama otherwise
   #   defaults to 2048); context_length, if set, caps the detected value.
   #   An explicit ollama_num_ctx is sent as-is (never capped) — set it to
   #   pin VRAM use.
@@ -120,7 +120,7 @@ model:
   # ollama_num_ctx: 32768
   #
   # Output-token limits are provider-owned, not user configuration. Native
-  # protocols requiring a limit receive an internal value from Hermes.
+  # protocols requiring a limit receive an internal value from Iris.
 
   # ── Custom request headers (optional) ─────────────────────────────────────
   #
@@ -153,9 +153,9 @@ model:
   #     extra_headers:
   #       CF-Access-Client-Id: "xxxx.access"
   #       CF-Access-Client-Secret: "${CF_ACCESS_SECRET}"
-  #       X-Client-Name: "hermes-agent"
+  #       X-Client-Name: "iris-agent"
   #
-  # session_affinity_header: NAME of a header that carries Hermes' conversation
+  # session_affinity_header: NAME of a header that carries Iris' conversation
   # id on every request to that provider (all api_modes + auxiliary calls). Off
   # unless set. For session-aware proxies that otherwise treat each agent-loop
   # request as a new conversation and replay the whole history upstream.
@@ -196,7 +196,7 @@ model:
 # Enterprise gateways often issue SHORT-LIVED bearers (SSO/OIDC brokers, cloud
 # IAM, internal auth proxies) rather than static API keys, so a value copied
 # into .env via `key_env` is stale within the hour and every later request 401s.
-# `key_cmd` names a command that PRINTS a token instead: Hermes runs it per
+# `key_cmd` names a command that PRINTS a token instead: Iris runs it per
 # request (cached until shortly before expiry), so long sessions keep working
 # with no restart.
 #
@@ -252,11 +252,11 @@ model:
 # client rebuilds during credential rotation.  For OpenAI-wire chat
 # completions (streaming and non-streaming) the configured value is also
 # used as the per-request ``timeout=`` kwarg so it wins over the legacy
-# HERMES_API_TIMEOUT env var (which still applies when no config is set).
+# IRIS_API_TIMEOUT env var (which still applies when no config is set).
 # ``stale_timeout_seconds`` controls the non-streaming stale-call detector and
-# wins over the legacy HERMES_API_CALL_STALE_TIMEOUT env var. Leaving these
-# unset keeps the legacy defaults (HERMES_API_TIMEOUT=1800s,
-# HERMES_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
+# wins over the legacy IRIS_API_CALL_STALE_TIMEOUT env var. Leaving these
+# unset keeps the legacy defaults (IRIS_API_TIMEOUT=1800s,
+# IRIS_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
 # implicit non-stream stale detector is auto-disabled for local endpoints
 # and can scale upward for very large contexts.
 #
@@ -280,9 +280,9 @@ model:
 # =============================================================================
 # Unified Timeouts (operation deadlines)
 # =============================================================================
-# One place to override Hermes's internal operation deadlines (seconds).
+# One place to override Iris's internal operation deadlines (seconds).
 # Keys are dotted paths resolved by agent/deadline.py:resolve_timeout().
-# Precedence: this section > legacy HERMES_* env var (back-compat) > built-in
+# Precedence: this section > legacy IRIS_* env var (back-compat) > built-in
 # default. 0 or a negative value disables the bound (unbounded); very large
 # values are clamped to a platform-safe maximum automatically.
 #
@@ -291,7 +291,7 @@ model:
 # timeouts:
 #   tools:
 #     concurrent_batch: 420   # Deadline for a parallel tool-call batch
-#                             # (legacy env: HERMES_CONCURRENT_TOOL_TIMEOUT_S)
+#                             # (legacy env: IRIS_CONCURRENT_TOOL_TIMEOUT_S)
 #     sequential_call: 420    # Deadline for one sequentially-executed tool call.
 #                             # Defaults to concurrent_batch's value so the two
 #                             # executor paths stay in sync; human waits
@@ -384,7 +384,7 @@ kanban:
 # Commands run directly on your machine in the current directory
 # -----------------------------------------------------------------------------
 # Working directory behavior:
-#   - CLI (`hermes` command): Uses "." (current directory where you run hermes)
+#   - CLI (`iris` command): Uses "." (current directory where you run iris)
 #   - Gateway/messaging/cron: Uses terminal.cwd here; legacy .env cwd values are deprecated
 cron:
   catch_up_missed: true  # False skips past-grace recurring misses after planned downtime.
@@ -396,9 +396,9 @@ terminal:
   # font_family: "MesloLGS NF"  # Also accepts a CSS stack; blank uses bundled JetBrains Mono.
   timeout: 180
   # HOME policy for tool subprocesses:
-  #   auto    - default: host uses your real HOME; containers use HERMES_HOME/home
+  #   auto    - default: host uses your real HOME; containers use IRIS_HOME/home
   #   real    - force your real OS-user HOME
-  #   profile - force HERMES_HOME/home for strict per-profile CLI config isolation
+  #   profile - force IRIS_HOME/home for strict per-profile CLI config isolation
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
   lifetime_seconds: 300
@@ -438,7 +438,7 @@ terminal:
 #   # chosen docker_image expects to start as root.
 #   docker_run_as_host_user: true
 #   # Optional: explicitly forward selected env vars into Docker.
-#   # These values come from your current shell first, then ~/.hermes/.env.
+#   # These values come from your current shell first, then ~/.iris/.env.
 #   # Warning: anything forwarded here is visible to commands run in the container.
 #   docker_forward_env:
 #     - "GITHUB_TOKEN"
@@ -513,7 +513,7 @@ terminal:
 # - Password is cached for the session
 #
 # EMPTY PASSWORDS: Setting sudo_password to an explicit empty string is different
-# from leaving it unset. Hermes will try an empty password via `sudo -S` and
+# from leaving it unset. Iris will try an empty password via `sudo -S` and
 # will not open the interactive prompt. This is useful for passwordless sudo,
 # Touch ID sudo setups, and environments where prompting is just noise.
 #
@@ -556,7 +556,7 @@ browser:
   # after this period of no activity between agent loops (default: 120 = 2 minutes)
   inactivity_timeout: 120
   # Let an authenticated browser extension register as the controller for an
-  # existing Hermes session. Disabled by default. Local API registration also
+  # existing Iris session. Disabled by default. Local API registration also
   # requires the API server bearer key to be configured.
   extension_control:
     enabled: false
@@ -630,8 +630,7 @@ compression:
   # codex_app_server API mode is refused at agent init (the codex agent
   # compacts its own thread — no checkpoint can be guaranteed there). Only
   # enable it with a checkpoint-capable provider configured — see
-  # website/docs/developer-guide/memory-provider-plugin.md
-  # ("Pre-Compress Checkpoints").
+  # memory-provider plugin docs ("Pre-Compress Checkpoints").
   checkpoint_required: false
 
   # Opt-in compression progress notices on chat platforms (default: false).
@@ -669,7 +668,7 @@ compression:
   # Set null to restore ratio-only behavior.
   threshold_tokens: 256000
 
-  # Existing Codex gpt-5.5 behavior: raise Hermes' compaction trigger to 85%
+  # Existing Codex gpt-5.5 behavior: raise Iris' compaction trigger to 85%
   # for the ChatGPT Codex OAuth route. Set false to opt back down to threshold.
   codex_gpt55_autoraise: true
 
@@ -700,19 +699,19 @@ compression:
   max_attempts: 3
 
   # Codex app-server (codex CLI runtime) thread-compaction mode. The codex
-  # agent owns the real thread context on this runtime, so Hermes' summarizer
+  # agent owns the real thread context on this runtime, so Iris' summarizer
   # cannot shrink it — compaction goes through the app server instead.
   #   native = let Codex decide when to compact its own thread (default)
-  #   hermes = let Hermes threshold trigger Codex thread/compact/start
-  #   off    = Hermes will not auto-trigger compaction; Codex may still compact natively
+  #   iris = let Iris threshold trigger Codex thread/compact/start
+  #   off    = Iris will not auto-trigger compaction; Codex may still compact natively
   codex_app_server_auto: native
 
   # Native OpenAI Responses server-side compaction (default: false). When true,
   # gpt-5.6-family models on the DIRECT OpenAI API (api.openai.com) or a ChatGPT
   # Codex subscription, plus exact gpt-6-astra on official Codex OAuth, compact
   # server-side: OpenAI prunes older context into an
-  # encrypted checkpoint that Hermes replays on later turns. No other provider,
-  # route, or model is affected. Hermes' local compression stays armed as the
+  # encrypted checkpoint that Iris replays on later turns. No other provider,
+  # route, or model is affected. Iris' local compression stays armed as the
   # fallback and still handles every non-eligible session.
   codex_responses_native: false
 
@@ -794,7 +793,7 @@ compression:
 # Tool-result budget (optional)
 # =============================================================================
 # Controls when a large tool result is spilled to disk (full output saved to
-# $HERMES_HOME/cache/spillover, preview + path kept in context). MCP tool
+# $IRIS_HOME/cache/spillover, preview + path kept in context). MCP tool
 # results (tools named mcp_*) spill at a tighter 50,000-char threshold than
 # the generic 100K default: MCP servers routinely return un-paginated 20-50K
 # payloads that bloat context and slow every subsequent turn. Nothing is
@@ -816,7 +815,7 @@ prompt_caching:
 # =============================================================================
 # Auxiliary Models (Advanced — Experimental)
 # =============================================================================
-# Hermes uses lightweight "auxiliary" models for side tasks: image analysis,
+# Iris uses lightweight "auxiliary" models for side tasks: image analysis,
 # browser screenshot analysis, web page summarization, TTS audio-tag insertion,
 # and context compression.
 #
@@ -836,10 +835,10 @@ prompt_caching:
 # Provider options:
 #   "auto"       - Best available: OpenRouter → Nous Portal → main endpoint (default)
 #   "openrouter" - Force OpenRouter (requires OPENROUTER_API_KEY)
-#   "nous"       - Force Nous Portal (requires: hermes auth add nous)
+#   "nous"       - Force Nous Portal (requires: iris auth add nous)
 #   "gemini"      - Force Google AI Studio direct (requires: GOOGLE_API_KEY or GEMINI_API_KEY)
 #   "ollama-cloud" - Ollama Cloud (requires: OLLAMA_API_KEY)
-#   "codex"       - Force Codex OAuth (requires: hermes model → Codex).
+#   "codex"       - Force Codex OAuth (requires: iris model → Codex).
 #                  Uses gpt-5.3-codex which supports vision.
 #   "main"       - Use your custom endpoint (OPENAI_BASE_URL + OPENAI_API_KEY).
 #                  Works with OpenAI API, local models, or any OpenAI-compatible
@@ -983,7 +982,7 @@ memory:
 # unlimited concurrent sessions. When the limit is reached, new sessions get a
 # clean error while existing active sessions keep their normal behavior. This
 # top-level key takes precedence over gateway.max_concurrent_sessions. The cap
-# is a best-effort single-host/profile runtime guard; Hermes fails open if the
+# is a best-effort single-host/profile runtime guard; Iris fails open if the
 # local runtime lease registry cannot be read or locked.
 max_concurrent_sessions: null
 
@@ -996,10 +995,10 @@ group_sessions_per_user: true
 # =============================================================================
 # Session Storage Retention (state.db)
 # =============================================================================
-# ~/.hermes/state.db keeps every session, message, and tool call, plus the
+# ~/.iris/state.db keeps every session, message, and tool call, plus the
 # FTS5 search indexes. Since #54189, auto-pruning is ON by default so the file
 # stays bounded: at CLI/gateway/cron startup (at most once per
-# min_interval_hours) Hermes deletes ENDED sessions whose last activity is
+# min_interval_hours) Iris deletes ENDED sessions whose last activity is
 # older than retention_days. Open, pinned, and in-progress sessions are never
 # deleted. Stale automation sessions (cron/kanban/subagent/one-shot CLI) whose
 # process died without closing them are first *closed*, then aged through a
@@ -1022,7 +1021,7 @@ group_sessions_per_user: true
 # Optional direct endpoint for autonomous Bot Mode rooms spanning gateways.
 # Leave unset for the safe default: Desktop coordinates cross-gateway rooms and
 # same-gateway rooms can still continue on their own. Set this only to the
-# public HTTPS base URL that another trusted Hermes gateway can reach. The API
+# public HTTPS base URL that another trusted Iris gateway can reach. The API
 # server key authorizes the initial invitation; scoped grants are signed by a
 # separate installation-private secret and survive API-key rotation. Disbanding
 # a Group Chat revokes its known peer routes; API-key rotation alone does not.
@@ -1032,10 +1031,10 @@ group_sessions_per_user: true
 # must use HTTPS.
 #
 # gateway:
-#   room_link_url: "https://hermes.example.net"
+#   room_link_url: "https://iris.example.net"
 #
-# The equivalent environment override is HERMES_ROOM_LINK_URL. After changing
-# it, restart the gateway and reopen New Group Chat > Advanced; Hermes will
+# The equivalent environment override is IRIS_ROOM_LINK_URL. After changing
+# it, restart the gateway and reopen New Group Chat > Advanced; Iris will
 # re-check the selected gateways automatically.
 
 # Startup sweep of session rows orphaned by a dead gateway process.
@@ -1043,7 +1042,7 @@ group_sessions_per_user: true
 # gateway restart (update, crash, systemd) leaves those rows permanently
 # "active". On every gateway boot — stdio TUI *and* the desktop/dashboard
 # WS sidecar — tui/desktop/subagent rows whose start time AND newest
-# message are both older than the session TTL (HERMES_TUI_SESSION_TTL_S,
+# message are both older than the session TTL (IRIS_TUI_SESSION_TTL_S,
 # default 6h) are closed with end_reason "startup_orphan_reap".
 # Messaging-platform sessions (Telegram, Discord, ...) are never touched;
 # live in-memory sessions are excluded; swept sessions stay resumable.
@@ -1055,7 +1054,7 @@ group_sessions_per_user: true
 # API Server — per-client model routing
 # ─────────────────────────────────────────────────────────────────────────────
 # Route different API clients to different models/providers on a single
-# Hermes deployment.  Clients choose a backend by sending a specific string
+# Iris deployment.  Clients choose a backend by sending a specific string
 # as the OpenAI ``model`` field.  Unmapped model values fall back to the
 # global model configured in the ``model:`` section above, and an explicit
 # session /model override always wins over a route.
@@ -1113,9 +1112,9 @@ skills:
   creation_nudge_interval: 15
 
   # External skill directories — share skills across tools/agents without
-  # copying them into ~/.hermes/skills/.  Each path is expanded (~ and ${VAR})
+  # copying them into ~/.iris/skills/.  Each path is expanded (~ and ${VAR})
   # and resolved to an absolute path.  External dirs are read-only: skill
-  # creation always writes to ~/.hermes/skills/.  Local skills take precedence
+  # creation always writes to ~/.iris/skills/.  Local skills take precedence
   # when names collide.
   # external_dirs:
   #   - ~/.agents/skills
@@ -1136,7 +1135,7 @@ agent:
   # gateway_timeout: 1800
 
   # Maximum time an alias routing key waits for an active turn holding the same
-  # resolved session lease. On expiry Hermes rejects this inbound message and
+  # resolved session lease. On expiry Iris rejects this inbound message and
   # asks the user to resend rather than running it without serialization.
   # Non-positive values fall back to the 5-second default.
   # gateway_turn_lease_timeout: 5
@@ -1154,9 +1153,9 @@ agent:
 
   # Transcript-sanitiser repeated-heal escalation (#96870). The pre-send
   # sanitiser silently repairs empty non-final turns on the wire copy; after
-  # this many heal passes within a 10-minute session window Hermes logs one
+  # this many heal passes within a 10-minute session window Iris logs one
   # ERROR (with session id + heal pattern) and sends a ONE-TIME out-of-band
-  # notice to the user suggesting /debug share or `hermes doctor`. The notice
+  # notice to the user suggesting /debug share or `iris doctor`. The notice
   # goes through the status channel only — conversation context and prompt
   # caching are untouched. Set 0 to disable escalation (per-window WARNINGs
   # still fire). Default 3.
@@ -1195,7 +1194,7 @@ agent:
   # in-flight agent, cron and API runs to complete so the requesting turn is
   # not cut off by restart_drain_timeout. 0 = enter stop()/drain immediately.
   # The default (30 min) is a safety valve for wedged agents, not a target
-  # latency; raise it for long unattended turns. Env: HERMES_RESTART_AFTER_TURN_TIMEOUT.
+  # latency; raise it for long unattended turns. Env: IRIS_RESTART_AFTER_TURN_TIMEOUT.
   # restart_after_turn_timeout: 1800
 
   # Upper bound (seconds) a submitted prompt waits for the deferred agent
@@ -1210,12 +1209,12 @@ agent:
   # timeouts, 5xx, etc.) before the agent surfaces the failure. Lower this
   # to 1 if you use fallback providers and want fast failover on flaky
   # primaries (default 3). The OpenAI SDK does its own low-level retries
-  # underneath this wrapper — this is the Hermes-level loop.
+  # underneath this wrapper — this is the Iris-level loop.
   # api_max_retries: 3
 
   # Once api_max_retries AND the fallback chain are spent on a transient outage
   # (5xx, overloaded/529, connect/read timeouts) and nothing has been delivered
-  # yet, Hermes waits and retries this many more cycles (jittered 15/30/60/60/60s;
+  # yet, Iris waits and retries this many more cycles (jittered 15/30/60/60/60s;
   # a provider Retry-After wins, up to 120s) showing "Provider temporarily
   # unavailable — retrying automatically in Ns (cycle k/5); press Esc to stop"
   # instead of ending the turn. Auth/format/billing/policy errors never enter.
@@ -1228,10 +1227,10 @@ agent:
   # coding surfaces (CLI, TUI, desktop) and programmatic callers, off on
   # conversational messaging surfaces (Telegram, Discord, etc.) where the
   # verification summary would reach a human as chat noise. The
-  # HERMES_VERIFY_ON_STOP env var (1/0) takes precedence.
+  # IRIS_VERIFY_ON_STOP env var (1/0) takes precedence.
   # verify_on_stop: false
 
-  # Standing operator instructions for the coding posture (when Hermes is in a
+  # Standing operator instructions for the coding posture (when Iris is in a
   # code workspace). Appended to the coding brief as an extra system block, so
   # you can pin project-wide workflow rules without editing the shipped brief.
   # Accepts a string or a list of strings. Takes effect next session.
@@ -1268,7 +1267,7 @@ agent:
   #      provider prefix optional). First match wins.
   # Value: reasoning effort level (same options as reasoning_effort, dict form included)
   # Override the global reasoning_effort for that specific model.
-  # NOTE: no `hermes config set` support for this key -- edit YAML directly.
+  # NOTE: no `iris config set` support for this key -- edit YAML directly.
   # reasoning_overrides:
   #   "openrouter/anthropic/claude-opus-4.5": "xhigh"
   #   "openai/gpt-5": "low"
@@ -1289,7 +1288,7 @@ agent:
   # Custom personalities (use with /personality command).
   # Built-ins (helpful, concise, technical, creative, teacher, kawaii, catgirl,
   # pirate, shakespeare, surfer, noir, uwu, philosopher, hype) are always
-  # available on every surface — defined once in hermes_cli/personality.py.
+  # available on every surface — defined once in iris_cli/personality.py.
   # Entries here ADD new personalities or OVERRIDE a built-in by name.
   # The active selection is stored in display.personality (never here, and
   # never in agent.system_prompt — that field is your manual system prompt).
@@ -1320,7 +1319,7 @@ gateway:
 # Toolsets
 # =============================================================================
 # Control which tools the agent has access to.
-# Use `hermes tools` to interactively enable/disable tools per platform.
+# Use `iris tools` to interactively enable/disable tools per platform.
 
 # =============================================================================
 # Platform Toolsets (per-platform tool configuration)
@@ -1329,7 +1328,7 @@ gateway:
 # If a platform isn't listed here, its built-in default is used.
 #
 # You can use EITHER:
-#   - A preset like "hermes-cli" or "hermes-telegram" (curated tool set)
+#   - A preset like "iris-cli" or "iris-telegram" (curated tool set)
 #   - A list of individual toolsets to compose your own (see list below)
 #
 # Supported platform keys: cli, telegram, discord, whatsapp, slack, qqbot, teams, google_chat
@@ -1338,8 +1337,8 @@ gateway:
 #
 #   # Use presets (same as defaults):
 #   platform_toolsets:
-#     cli: [hermes-cli]
-#     telegram: [hermes-telegram]
+#     cli: [iris-cli]
+#     telegram: [iris-telegram]
 #
 #   # Custom: give Telegram only web + terminal + file + planning:
 #   platform_toolsets:
@@ -1354,29 +1353,29 @@ gateway:
 #     discord: [web, vision, skills, todo]
 #
 # If not set, defaults are:
-#   cli:           hermes-cli            (everything + cronjob management)
-#   telegram:      hermes-telegram       (terminal, file, web, vision, image, tts, browser, skills, todo, cronjob, messaging)
-#   discord:       hermes-discord        (same as telegram)
-#   whatsapp:      hermes-whatsapp       (same as telegram)
-#   slack:         hermes-slack          (same as telegram)
-#   signal:        hermes-signal         (same as telegram)
-#   homeassistant: hermes-homeassistant  (same as telegram)
-#   qqbot:            hermes-qqbot            (same as telegram)
-#   teams:            hermes-teams            (same as telegram)
-#   google_chat:      hermes-google_chat      (same as telegram)
+#   cli:           iris-cli            (everything + cronjob management)
+#   telegram:      iris-telegram       (terminal, file, web, vision, image, tts, browser, skills, todo, cronjob, messaging)
+#   discord:       iris-discord        (same as telegram)
+#   whatsapp:      iris-whatsapp       (same as telegram)
+#   slack:         iris-slack          (same as telegram)
+#   signal:        iris-signal         (same as telegram)
+#   homeassistant: iris-homeassistant  (same as telegram)
+#   qqbot:            iris-qqbot            (same as telegram)
+#   teams:            iris-teams            (same as telegram)
+#   google_chat:      iris-google_chat      (same as telegram)
 #
 platform_toolsets:
-  cli: [hermes-cli]
-  telegram: [hermes-telegram]
-  discord: [hermes-discord]
-  whatsapp: [hermes-whatsapp]
-  slack: [hermes-slack]
-  signal: [hermes-signal]
-  homeassistant: [hermes-homeassistant]
-  qqbot: [hermes-qqbot]
-  yuanbao: [hermes-yuanbao]
-  teams: [hermes-teams]
-  google_chat: [hermes-google_chat]
+  cli: [iris-cli]
+  telegram: [iris-telegram]
+  discord: [iris-discord]
+  whatsapp: [iris-whatsapp]
+  slack: [iris-slack]
+  signal: [iris-signal]
+  homeassistant: [iris-homeassistant]
+  qqbot: [iris-qqbot]
+  yuanbao: [iris-yuanbao]
+  teams: [iris-teams]
+  google_chat: [iris-google_chat]
 
 # =============================================================================
 # Gateway Platform Settings
@@ -1398,12 +1397,12 @@ platform_toolsets:
 #       rich_drafts: false            # Experimental rich draft previews during Telegram DM streaming; default false because Telegram Desktop/macOS can visually overlay draft frames
 #       allow_cjk_rich_messages: false # Keep CJK content on the safe MarkdownV2 path unless an unaffected client explicitly opts in to native rich rendering
 #       command_menu:
-#         # Telegram allows up to 100 BotCommands; Hermes defaults to 60 so
+#         # Telegram allows up to 100 BotCommands; Iris defaults to 60 so
 #         # all built-in commands plus common skill commands stay visible
 #         # while remaining under Telegram's payload-size limit. Clamped 1..100.
 #         max_commands: 60
-#         # prepend = user priority first, then Hermes defaults
-#         # append  = Hermes defaults first, then user priority
+#         # prepend = user priority first, then Iris defaults
+#         # append  = Iris defaults first, then user priority
 #         # replace = only the list below defines priority
 #         priority_mode: prepend
 #         # Priority is applied across core + plugin + skill commands before
@@ -1445,8 +1444,8 @@ platform_toolsets:
 # ─────────────────────────────────────────────────────────────────────────────
 # Available toolsets (use these names in platform_toolsets or the toolsets list)
 #
-# Run `hermes chat --list-toolsets` to see all toolsets and their tools.
-# Run `hermes chat --list-tools` to see every individual tool with descriptions.
+# Run `iris chat --list-toolsets` to see all toolsets and their tools.
+# Run `iris chat --list-tools` to see every individual tool with descriptions.
 # ─────────────────────────────────────────────────────────────────────────────
 #
 # INDIVIDUAL TOOLSETS (compose your own):
@@ -1466,12 +1465,12 @@ platform_toolsets:
 #   cronjob      - cronjob (create/list/update/pause/resume/run/remove scheduled tasks)
 #
 # PRESETS (curated bundles):
-#   hermes-cli       - All of the above except send_message
-#   hermes-telegram  - terminal, file, web, vision, image_gen, tts, browser,
+#   iris-cli       - All of the above except send_message
+#   iris-telegram  - terminal, file, web, vision, image_gen, tts, browser,
 #                      skills, todo, cronjob, send_message
-#   hermes-discord   - Same as hermes-telegram
-#   hermes-whatsapp  - Same as hermes-telegram
-#   hermes-slack     - Same as hermes-telegram
+#   iris-discord   - Same as iris-telegram
+#   iris-whatsapp  - Same as iris-telegram
+#   iris-slack     - Same as iris-telegram
 #
 # COMPOSITE:
 #   debugging    - terminal + web + file
@@ -1498,16 +1497,16 @@ platform_toolsets:
 
 # NOTE: The top-level "toolsets" key is deprecated and ignored.
 # Tool configuration is managed per-platform via platform_toolsets above.
-# Use `hermes tools` to configure interactively, or edit platform_toolsets directly.
+# Use `iris tools` to configure interactively, or edit platform_toolsets directly.
 #
-# CLI override: hermes chat --toolsets terminal,web,file
+# CLI override: iris chat --toolsets terminal,web,file
 
 # =============================================================================
 # MCP (Model Context Protocol) Servers
 # =============================================================================
 # Connect to external MCP servers to add tools from the MCP ecosystem.
 # Each server's tools are automatically discovered and registered.
-# See website/docs/user-guide/features/mcp.md for full documentation.
+# See the MCP tool docs for full documentation.
 #
 # Stdio servers (spawn a subprocess):
 #   command: the executable to run
@@ -1567,7 +1566,7 @@ platform_toolsets:
 # =============================================================================
 # Text-to-Speech
 # =============================================================================
-# TTS defaults to Edge TTS unless changed in ~/.hermes/config.yaml.
+# TTS defaults to Edge TTS unless changed in ~/.iris/config.yaml.
 # Gemini TTS supports persona/director prompt files, and Gemini 3.1 Flash TTS
 # can use a hidden auxiliary rewrite pass to insert expressive square-bracket
 # audio tags into the TTS script without showing tags in chat.
@@ -1586,7 +1585,7 @@ platform_toolsets:
 #     model: "gemini-3.1-flash-tts-preview"
 #     voice: "Kore"
 #     audio_tags: false
-#     persona_prompt_file: ""  # e.g. ~/.hermes/tts/radio-host.md
+#     persona_prompt_file: ""  # e.g. ~/.iris/tts/radio-host.md
 #   xai:
 #     voice_id: "eve"       # built-in or custom voice ID from xAI Console
 #     language: "en"        # BCP-47 code ("en", "pt-BR") or "auto"
@@ -1624,7 +1623,7 @@ stt:
   # that provider.
   #
   # Length / truncation contract: Whisper-family backends (local, openai,
-  # groq, deepinfra) only use the final ~224 prompt tokens, so Hermes
+  # groq, deepinfra) only use the final ~224 prompt tokens, so Iris
   # truncates longer prompts client-side (keeping the tail) with a WARNING
   # log — never an error. Other backends own their own validation.
   #
@@ -1636,7 +1635,7 @@ stt:
   #   local_command/xai/
   #   elevenlabs             -> unsupported; DEBUG log, then continue
   #   plugin providers       -> `prompt` in `**extra`; plugin owns limits
-  # prompt: "Hermes, Teknium, Nous Research, kanban"
+  # prompt: "Iris, Teknium, Nous Research, kanban"
   local:
     model: "base"              # tiny | base | small | medium | large-v3 | turbo
     # language: ""             # auto-detect; set to "en", "es", "fr", etc. to force
@@ -1651,7 +1650,7 @@ stt:
   language: "en"               # GLOBAL language hint for every STT provider (per-provider language wins). Set "" for auto-detect.
   # groq:
   #   model: "whisper-large-v3-turbo"
-  #   language: ""             # blank = stt.language > HERMES_LOCAL_STT_LANGUAGE > auto-detect
+  #   language: ""             # blank = stt.language > IRIS_LOCAL_STT_LANGUAGE > auto-detect
   openai:
     model: "whisper-1"         # whisper-1 | gpt-4o-mini-transcribe | gpt-4o-transcribe | gpt-transcribe
     language: ""               # auto-detect; set to "en", "es", "fr", etc. to force
@@ -1668,7 +1667,7 @@ stt:
 # Text-to-speech. Only the deepinfra block is documented here — the
 # remaining providers (edge, openai, xai, minimax, mistral, gemini,
 # elevenlabs, neutts, kittentts, piper) inherit sensible defaults from
-# DEFAULT_CONFIG in hermes_cli/config.py.
+# DEFAULT_CONFIG in iris_cli/config.py.
 # tts:
 #   provider: "deepinfra"
 #   deepinfra:
@@ -1678,9 +1677,9 @@ stt:
 #     model: ""
 #     voice: "default"
 
-# "Hey Hermes" hands-free wake word (off by default; toggle with /wake).
+# "Hey Iris" hands-free wake word (off by default; toggle with /wake).
 # Full engine/provider options inherit from DEFAULT_CONFIG in
-# hermes_cli/config_defaults.py — only capture placement is documented here.
+# iris_cli/config_defaults.py — only capture placement is documented here.
 # wake_word:
 #   enabled: false
 #   capture: "auto"    # auto | local | client
@@ -1728,7 +1727,7 @@ stt:
 # =============================================================================
 # Code Execution Sandbox (Programmatic Tool Calling)
 # =============================================================================
-# The execute_code tool runs Python scripts that call Hermes tools via RPC.
+# The execute_code tool runs Python scripts that call Iris tools via RPC.
 # Intermediate tool results stay out of the LLM's context window.
 code_execution:
   timeout: 300         # Max seconds per script before kill (default: 300 = 5 min)
@@ -1782,9 +1781,9 @@ delegation:
 #
 # Requires: pip install honcho-ai
 # Config: ~/.honcho/config.json (shared with Claude Code, Cursor, etc.)
-# API key: HONCHO_API_KEY in ~/.hermes/.env or ~/.honcho/config.json
+# API key: HONCHO_API_KEY in ~/.iris/.env or ~/.honcho/config.json
 #
-# Hermes-specific overrides (optional — most config comes from ~/.honcho/config.json):
+# Iris-specific overrides (optional — most config comes from ~/.honcho/config.json):
 # honcho: {}
 
 # =============================================================================
@@ -1801,7 +1800,7 @@ display:
   #   new:     Show a tool indicator only when the tool changes (skip repeats)
   #   all:     Show every tool call with a short preview (default)
   #   verbose: Full args, results, and debug logs (same as /verbose)
-  #   log:     Silent in chat; append every tool call to ~/.hermes/logs/tool_calls.log (gateway only)
+  #   log:     Silent in chat; append every tool call to ~/.iris/logs/tool_calls.log (gateway only)
   # Toggle at runtime with /verbose in the CLI
   tool_progress: all
 
@@ -1864,8 +1863,8 @@ display:
   # terse: "Interrupting current task" and "⏳ Working — 12 min, terminal".
   busy_ack_detail: true
 
-  # What Enter does when Hermes is already busy (CLI and gateway platforms).
-  #   interrupt: Interrupt the current run and redirect Hermes (default)
+  # What Enter does when Iris is already busy (CLI and gateway platforms).
+  #   interrupt: Interrupt the current run and redirect Iris (default)
   #   queue:     Queue your message for the next turn
   #   steer:     Inject your message mid-run via /steer, arriving at the agent
   #              after the next tool call — no interrupt, no role violation.
@@ -1925,7 +1924,7 @@ display:
   # response box label, and branding text. Change at runtime with /skin <name>.
   #
   # Built-in skins:
-  #   default        — Classic Hermes gold/kawaii
+  #   default        — Classic Iris gold/kawaii
   #   ares           — Crimson/bronze war-god theme with spinner wings
   #   mono           — Clean grayscale monochrome
   #   slate          — Cool blue developer-focused
@@ -1935,7 +1934,7 @@ display:
   #   sisyphus       — Earthy stone-and-moss theme
   #   charizard      — Fiery orange dragon theme
   #
-  # Custom skins: drop a YAML file in ~/.hermes/skins/<name>.yaml
+  # Custom skins: drop a YAML file in ~/.iris/skins/<name>.yaml
   # Schema (all fields optional, missing values inherit from default):
   #
   #   name: my-theme
@@ -2016,31 +2015,31 @@ display:
 # stdout the script may return JSON that either blocks the tool call or
 # injects context into the next LLM call.
 #
-# Valid events (mirror hermes_cli.plugins.VALID_HOOKS):
+# Valid events (mirror iris_cli.plugins.VALID_HOOKS):
 #   pre_tool_call, post_tool_call, pre_llm_call, post_llm_call,
 #   pre_api_request, post_api_request, on_session_start, on_session_end,
 #   on_session_finalize, on_session_reset, subagent_stop
 #
 # First-use consent: each (event, command) pair prompts once on a TTY, then
-# is persisted to ~/.hermes/shell-hooks-allowlist.json.  Non-interactive
-# runs (gateway, cron) need --accept-hooks, HERMES_ACCEPT_HOOKS=1, or the
+# is persisted to ~/.iris/shell-hooks-allowlist.json.  Non-interactive
+# runs (gateway, cron) need --accept-hooks, IRIS_ACCEPT_HOOKS=1, or the
 # hooks_auto_accept key below.
 #
-# See website/docs/user-guide/features/hooks.md for the full JSON wire
+# See the hooks documentation for the full JSON wire
 # protocol and worked examples.
 #
 # hooks:
 #   pre_tool_call:
 #     - matcher: "terminal"
-#       command: "~/.hermes/agent-hooks/block-rm-rf.sh"
+#       command: "~/.iris/agent-hooks/block-rm-rf.sh"
 #       timeout: 10
 #   post_tool_call:
 #     - matcher: "write_file|patch"
-#       command: "~/.hermes/agent-hooks/auto-format.sh"
+#       command: "~/.iris/agent-hooks/auto-format.sh"
 #   pre_llm_call:
-#     - command: "~/.hermes/agent-hooks/inject-cwd-context.sh"
+#     - command: "~/.iris/agent-hooks/inject-cwd-context.sh"
 #   subagent_stop:
-#     - command: "~/.hermes/agent-hooks/log-orchestration.sh"
+#     - command: "~/.iris/agent-hooks/log-orchestration.sh"
 #
 # hooks_auto_accept: false
 
@@ -2048,9 +2047,9 @@ display:
 # =============================================================================
 # Telemetry
 # =============================================================================
-# Shared metrics are disabled by default. When enabled, Hermes writes only
+# Shared metrics are disabled by default. When enabled, Iris writes only
 # allowlisted aggregate counters and immutable JSON
-# packages under $HERMES_HOME/telemetry/shared_metrics.
+# packages under $IRIS_HOME/telemetry/shared_metrics.
 # Packages include a random profile-scoped ID that stays stable until this
 # directory is deleted. It is not derived from hardware, account, or host data.
 # Successfully exported local history is retained for 30 days; pending deltas
@@ -2081,16 +2080,16 @@ telemetry:
 # Login Policy (credentials themselves live in auth.json / .env)
 # =============================================================================
 auth:
-  # Borrow and refresh the Codex CLI (~/.codex/auth.json) and Claude Code logins when Hermes has
+  # Borrow and refresh the Codex CLI (~/.codex/auth.json) and Claude Code logins when Iris has
   # no usable login of its own. Their refresh tokens are single-use, so two programs on one login
-  # can log each other out; set false to make Hermes use only its own logins.
+  # can log each other out; set false to make Iris use only its own logins.
   adopt_external_logins: true
-  # How `hermes auth add openai-codex` / `hermes model` sign in to OpenAI Codex.
+  # How `iris auth add openai-codex` / `iris model` sign in to OpenAI Codex.
   #   device_code (default) — open a URL and enter a code.
   #   browser — authorization-code + PKCE on http://localhost:1455/auth/callback (the redirect
   #             OpenAI registered for the Codex client) for organizations that disable the
   #             device-code grant; falls back to device code when that port is busy.
-  # `hermes auth add openai-codex --browser` opts in for a single login without changing this.
+  # `iris auth add openai-codex --browser` opts in for a single login without changing this.
   codex_login_flow: device_code
 
 
@@ -2098,18 +2097,18 @@ auth:
 # Update Behavior
 # =============================================================================
 updates:
-  # Disable passive CLI/banner update checks with `hermes config set updates.check false`.
-  # Explicit `hermes update --check` and `hermes update` remain available.
+  # Disable passive CLI/banner update checks with `iris config set updates.check false`.
+  # Explicit `iris update --check` and `iris update` remain available.
   check: true
-  # Create a full HERMES_HOME zip before every `hermes update`.
-  # Backups land in ~/.hermes/backups/ and can be restored with `hermes import`.
+  # Create a full IRIS_HOME zip before every `iris update`.
+  # Backups land in ~/.iris/backups/ and can be restored with `iris import`.
   # Off by default because large homes can add minutes to every update.
   pre_update_backup: false
 
   # Number of pre-update backup zips to retain.
   backup_keep: 5
 
-  # What non-interactive updates do with local source edits in the Hermes repo.
+  # What non-interactive updates do with local source edits in the Iris repo.
   # Interactive terminal updates always prompt before restoring the autostash.
   #
   #   stash   - auto-stash before pull, then auto-restore after success (default)
@@ -2121,13 +2120,13 @@ updates:
 # =============================================================================
 # Web Dashboard
 # =============================================================================
-# OAuth gate configuration for `hermes dashboard --host <non-loopback>`.
+# OAuth gate configuration for `iris dashboard --host <non-loopback>`.
 # The bundled Nous Portal plugin reads these on startup; settings here are
 # the canonical surface. Each can be overridden by an environment variable:
 #
-#   dashboard.oauth.client_id   <-  HERMES_DASHBOARD_OAUTH_CLIENT_ID
-#   dashboard.oauth.portal_url  <-  HERMES_DASHBOARD_PORTAL_URL
-#   dashboard.public_url        <-  HERMES_DASHBOARD_PUBLIC_URL
+#   dashboard.oauth.client_id   <-  IRIS_DASHBOARD_OAUTH_CLIENT_ID
+#   dashboard.oauth.portal_url  <-  IRIS_DASHBOARD_PORTAL_URL
+#   dashboard.public_url        <-  IRIS_DASHBOARD_PUBLIC_URL
 #
 # Env wins when set to a non-empty value. This is what Fly.io's platform-
 # secret injection uses to push per-deploy client_ids without needing to
@@ -2135,7 +2134,7 @@ updates:
 # so a provisioned-but-not-populated secret can't shadow a valid entry here.
 #
 # Local dev / on-prem deploys should typically set these via config.yaml
-# (the ~/.hermes/.env file is reserved for API keys and secrets).
+# (the ~/.iris/.env file is reserved for API keys and secrets).
 #
 # dashboard:
 #   oauth:
@@ -2150,7 +2149,7 @@ updates:
 #   # full proxy header chains).
 #   #
 #   # When set, the value is the complete authority: scheme + host +
-#   # optional path prefix (e.g. "https://example.com/hermes"). The OAuth
+#   # optional path prefix (e.g. "https://example.com/iris"). The OAuth
 #   # callback URL becomes "<public_url>/auth/callback" — X-Forwarded-Prefix
 #   # is IGNORED on this code path because the operator has explicitly
 #   # declared the public URL and we no longer need to guess.
@@ -2158,7 +2157,7 @@ updates:
 #   # Leave empty to use the existing proxy-header reconstruction (the
 #   # default — works on Fly.io out of the box).
 #   #
-#   #   public_url: "https://example.com/hermes"
+#   #   public_url: "https://example.com/iris"
 #   #
 #   # Reverse proxies connecting from another container or host are not
 #   # trusted by default. Add only the proxy's exact IP address, or a bounded
@@ -2176,38 +2175,38 @@ updates:
 # nous block above when gating the dashboard with your own identity provider.
 # Each setting can be overridden by an environment variable:
 #
-#   dashboard.oauth.self_hosted.issuer         <-  HERMES_DASHBOARD_OIDC_ISSUER
-#   dashboard.oauth.self_hosted.client_id      <-  HERMES_DASHBOARD_OIDC_CLIENT_ID
-#   dashboard.oauth.self_hosted.scopes         <-  HERMES_DASHBOARD_OIDC_SCOPES
-#   dashboard.oauth.self_hosted.client_secret  <-  HERMES_DASHBOARD_OIDC_CLIENT_SECRET
+#   dashboard.oauth.self_hosted.issuer         <-  IRIS_DASHBOARD_OIDC_ISSUER
+#   dashboard.oauth.self_hosted.client_id      <-  IRIS_DASHBOARD_OIDC_CLIENT_ID
+#   dashboard.oauth.self_hosted.scopes         <-  IRIS_DASHBOARD_OIDC_SCOPES
+#   dashboard.oauth.self_hosted.client_secret  <-  IRIS_DASHBOARD_OIDC_CLIENT_SECRET
 #
 # dashboard:
 #   oauth:
 #     provider: self-hosted
 #     self_hosted:
-#       issuer: "https://auth.example.com/application/o/hermes/"  # required
-#       client_id: "hermes-dashboard"                             # required
+#       issuer: "https://auth.example.com/application/o/iris/"  # required
+#       client_id: "iris-dashboard"                             # required
 #       scopes: "openid profile email"                            # optional
 #
 #       # OPTIONAL — set ONLY if your IDP registered the client as
 #       # *confidential* (Authentik / Keycloak often default to this). When
-#       # set, Hermes authenticates the client at the token endpoint
+#       # set, Iris authenticates the client at the token endpoint
 #       # (client_secret_basic or client_secret_post, auto-selected from the
 #       # IDP's discovery doc) IN ADDITION to PKCE. Leave unset for a public
 #       # (PKCE-only) client — the common case.
 #       #
-#       # This is a CREDENTIAL: prefer setting HERMES_DASHBOARD_OIDC_CLIENT_SECRET
-#       # in ~/.hermes/.env over putting it here in config.yaml.
+#       # This is a CREDENTIAL: prefer setting IRIS_DASHBOARD_OIDC_CLIENT_SECRET
+#       # in ~/.iris/.env over putting it here in config.yaml.
 #       #   client_secret: ""
 
 # =============================================================================
 # External secret sources
 # =============================================================================
 # Pull provider credentials from external secret managers at process startup
-# instead of storing them in ~/.hermes/.env. Only the manager's bootstrap
+# instead of storing them in ~/.iris/.env. Only the manager's bootstrap
 # credential (e.g. BWS_ACCESS_TOKEN / OP_SERVICE_ACCOUNT_TOKEN) lives in .env
 # (or your shell / desktop session); everything else rotates centrally.
-# Failures never block startup — Hermes warns once and continues with
+# Failures never block startup — Iris warns once and continues with
 # whatever .env already had.
 #
 # Multiple sources can be enabled at once:
@@ -2217,7 +2216,7 @@ updates:
 #     are skipped with a startup warning (never a silent clobber)
 #   - a source's override_existing lets it beat .env/shell values, but
 #     never another secret source's claim
-# Docs: https://hermes-agent.nousresearch.com/docs/user-guide/secrets/
+# Docs: https://gitcode.com/badhope/iris/tree/main/docs
 #
 # secrets:
 #   # Optional explicit ordering of enabled sources.
@@ -2234,7 +2233,7 @@ updates:
 #       enabled: false
 #       max_stale_seconds: 0               # 0 disables stale fallback
 #     override_existing: true              # BSM values win over existing env
-#     auto_install: true                   # lazy-download bws into ~/.hermes/bin
+#     auto_install: true                   # lazy-download bws into ~/.iris/bin
 #
 #   # ---- 1Password (op CLI) -------------------------------------------------
 #   onepassword:
@@ -2259,7 +2258,7 @@ updates:
 #   # its stderr is discarded so diagnostics can't leak secret material.
 #   command:
 #     enabled: false
-#     command: "cat /run/user/1000/hermes-secrets.env"
+#     command: "cat /run/user/1000/iris-secrets.env"
 #     helper_timeout_seconds: 3
 #     override_existing: false             # .env/shell win by default
 #   # This runs ONCE per process at startup, so it cannot replace a credential

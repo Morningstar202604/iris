@@ -10,7 +10,7 @@
  *
  * Every query key and the persisted board selection are scoped by the ACTIVE
  * CONNECTION (`host.state.connectionId`): a board lives on ONE gateway, so a
- * connection switch must be a clean cache miss (the hermes-bots roster
+ * connection switch must be a clean cache miss (the iris-bots roster
  * pattern), and each gateway remembers its own selected board instead of
  * pinning a slug the next gateway 404s on.
  */
@@ -24,7 +24,7 @@ import {
   type PluginTranslate,
   queryClient,
   useValue
-} from '@hermes/plugin-sdk'
+} from '@iris/plugin-sdk'
 
 // Native completion notification.
 import { bindCompletionNotify, type CompletionEvent, onKanbanEventsFrame } from './completion-notify'
@@ -259,7 +259,7 @@ export const fetchBoards = () => call<BoardsResponse>('/boards')
 
 export const fetchProfiles = () => call<{ profiles: KanbanProfile[] }>('/profiles')
 
-/** First-class Hermes projects, for scoping a board's default workspace. */
+/** First-class Iris projects, for scoping a board's default workspace. */
 export const fetchProjects = () => call<{ projects: KanbanProject[] }>('/projects')
 
 export const fetchOrchestration = () => call<OrchestrationSettings>('/orchestration')

@@ -148,7 +148,7 @@ def _pinned_guard(name: str) -> Optional[str]:
         from agent.skill_utils import ESSENTIAL_SKILLS
         if name in ESSENTIAL_SKILLS:
             return (
-                f"Skill '{name}' is essential to Hermes (the agent's own "
+                f"Skill '{name}' is essential to Iris (the agent's own "
                 f"operating manual referenced by the system prompt) and "
                 f"cannot be deleted. Patches and edits are still allowed.")
     except Exception:
@@ -156,7 +156,7 @@ def _pinned_guard(name: str) -> Optional[str]:
     if _is_pinned(name, "pinned-guard"):
         return (
             f"Skill '{name}' is pinned and cannot be deleted by skill_manage. Ask the user to "
-            f"run `hermes curator unpin {name}` if they want to delete it. Patches and edits "
+            f"run `iris curator unpin {name}` if they want to delete it. Patches and edits "
             f"are allowed on pinned skills; only deletion is blocked.")
     return None
 
@@ -171,7 +171,7 @@ def _background_review_write_guard(
     if _is_pinned(name, "pinned skill guard"):
         return _refusal(
             f"{refuse} pinned skill '{name}': pinned skills "
-            f"are off-limits to autonomous maintenance. Ask the user to run `hermes curator "
+            f"are off-limits to autonomous maintenance. Ask the user to run `iris curator "
             f"unpin {name}` if they want it changed.")
     try:
         from agent.skill_utils import is_external_skill_path
@@ -201,14 +201,14 @@ def _background_review_write_guard(
         # side effect: a local skill with no telemetry record passed, the successful write called
         # bump_patch() which created a `created_by: null` record, and the very same write was refused from
         # then on. "Allowed exactly once" is not a policy — it is a race with our own bookkeeping. Fail
-        # closed for both shapes; `hermes curator adopt <name>` is the supported way in. See #67140.
+        # closed for both shapes; `iris curator adopt <name>` is the supported way in. See #67140.
         if not skill_usage._is_curator_managed_record(usage_rec):
             _detail = (f"created_by={usage_rec.get('created_by')!r}" if isinstance(usage_rec, dict)
                        else "no usage record")
             return _refusal(
                 f"{refuse} skill '{name}': the skill is not "
                 f"curator-managed ({_detail}). User-owned skills are off-limits to autonomous "
-                f"curation. Run `hermes curator adopt {name}` to opt it in.")
+                f"curation. Run `iris curator adopt {name}` to opt it in.")
     except Exception:
         logger.warning("owned skill guard lookup failed for %s", name, exc_info=True)
         return _refusal(
@@ -278,7 +278,7 @@ def _maybe_auto_propose_org_edit(name: str, skill_path: Path) -> Optional[str]:
             return (
                 f"This skill is shared by your organisation. Your edit is "
                 f"saved locally and will not be overwritten by org updates. "
-                f"Run `hermes sync propose {name}` to share it back.")
+                f"Run `iris sync propose {name}` to share it back.")
         from tools.skills_sync_client_org import propose_skill
         result = propose_skill(name)
         if result.get("proposal_pending"):
@@ -290,13 +290,13 @@ def _maybe_auto_propose_org_edit(name: str, skill_path: Path) -> Optional[str]:
         logger.debug("auto-propose skipped for %s: %s", name, e)
         return (
             f"Edit saved locally. Could not submit it to your organisation "
-            f"right now — run `hermes sync propose {name}` to retry.")
+            f"right now — run `iris sync propose {name}` to retry.")
 
 
 def _org_mirror_write_guard(name: str, skill_path: Path, action: str) -> Optional[Dict[str, Any]]:
     """Org-shared skills are EDITABLE IN PLACE — this only blocks deletion. Edits land in the
     mirror, survive the next org pull (baseline sidecar in skills_sync_client) and reach the org
-    via `hermes sync propose`. Deletion stays refused: the mirror is a view of org HEAD, so a
+    via `iris sync propose`. Deletion stays refused: the mirror is a view of org HEAD, so a
     local delete just comes back, and removing for everyone is an admin action."""
     if action not in {"delete", "remove_file"}:
         return None
@@ -306,7 +306,7 @@ def _org_mirror_write_guard(name: str, skill_path: Path, action: str) -> Optiona
                 f"Cannot {action} '{name}' locally: it is shared by your organisation, so a local "
                 f"delete would just come back on the next sync. Ask an org admin to remove it for "
                 f"everyone. (Editing it IS allowed — your changes are kept and can be proposed "
-                f"back with `hermes sync propose {name}`.)")
+                f"back with `iris sync propose {name}`.)")
     except Exception:
         logger.debug("org mirror guard lookup failed for %s", name, exc_info=True)
     return None

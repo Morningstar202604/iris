@@ -49,12 +49,12 @@ export const zh: Translations = {
   },
 
   app: {
-    brand: "Hermes Agent",
+    brand: "Iris Agent",
     brandShort: "HA",
     closeNavigation: "关闭导航",
     closeModelTools: "关闭模型与工具",
     footer: {
-      org: "Nous Research",
+      org: "Iris 贡献者",
     },
     activeSessionsLabel: "活跃会话：",
     gatewayStatusLabel: "网关状态：",
@@ -119,8 +119,8 @@ export const zh: Translations = {
     starting: "启动中",
     startedInBackground: "已在后台启动 — 请查看日志",
     stopped: "已停止",
-    updateHermes: "更新 Hermes",
-    updatingHermes: "正在更新 Hermes…",
+    updateIris: "更新 Iris",
+    updatingIris: "正在更新 Iris…",
     waitingForOutput: "等待输出…",
   },
 
@@ -327,7 +327,7 @@ export const zh: Translations = {
     toggleTakesEffectAfterRestart:
       "已保存 — 重启网关以应用更改。",
     forceReinstall: "强制重装（先删除已有目录）",
-    headline: "发现、安装、启用和更新 Hermes 插件（对齐 `hermes plugins` CLI）。",
+    headline: "发现、安装、启用和更新 Iris 插件（对齐 `iris plugins` CLI）。",
     identifierLabel: "Git 地址或 owner/repo",
     inactive: "未启用",
     installBtn: "安装",
@@ -344,8 +344,8 @@ export const zh: Translations = {
     providersHint:
       "写入 config.yaml：memory.provider（留空为内置）、context.engine。下次会话生效。",
     refreshDashboard: "重新扫描仪表盘扩展",
-    removeConfirm: "从 ~/.hermes/plugins/ 删除此插件？",
-    removeHint: "仅可移除用户安装在 ~/.hermes/plugins 下的插件。",
+    removeConfirm: "从 ~/.iris/plugins/ 删除此插件？",
+    removeHint: "仅可移除用户安装在 ~/.iris/plugins 下的插件。",
     rescanHeading: "SPA 插件注册表",
     rescanHint: "在磁盘新增文件后扫描，使侧边栏载入新 manifest。",
     runtimeHeading: "网关运行时（YAML 插件）",
@@ -358,6 +358,21 @@ export const zh: Translations = {
     versionBadge: "版本",
     showInSidebar: "在侧边栏显示",
     hideFromSidebar: "从侧边栏隐藏",
+    catalogHint: "由 Iris 策展并固定到精确 commit。从此安装可获得供应链安全的版本。",
+    catalogHeading: "插件目录",
+    catalogSearchPlaceholder: "搜索目录...",
+    catalogEmpty: "没有匹配的目录条目。",
+    catalogEmptyDocsLink: "了解 Iris 插件",
+    catalogInstallBtn: "安装",
+    catalogInstalledBadge: "已安装 ✓",
+    catalogUpdateBtn: "可更新",
+    catalogRemovedBadge: "已移除",
+    catalogConfirmTitle: "安装此插件？",
+    catalogConfirmInstallNote: "插件安装已禁用；安装后启用以激活。",
+    catalogRequiresEnv: "需要环境变量",
+    removedFromCatalog: "已从目录移除",
+    updateConsentBody: (name: string, sha: string) =>
+      `目录将 ${name} (${sha}) 更新到新的 pin，会引入当前已安装版本没有的功能。仅在你信任时应用：`,
   },
 
   skills: {
@@ -367,7 +382,7 @@ export const zh: Translations = {
     all: "全部",
     categories: "分类",
     filters: "筛选",
-    noSkills: "未找到技能。技能从 ~/.hermes/skills/ 加载",
+    noSkills: "未找到技能。技能从 ~/.iris/skills/ 加载",
     noSkillsMatch: "没有匹配的技能。",
     skillCount: "{count} 个技能",
     resultCount: "{count} 个结果",
@@ -381,7 +396,7 @@ export const zh: Translations = {
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.iris/config.yaml",
     filters: "筛选",
     sections: "分类",
     exportConfig: "导出配置为 JSON",
@@ -440,7 +455,7 @@ export const zh: Translations = {
     showValue: "显示实际值",
     hideValue: "隐藏值",
     customTitle: "自定义密钥",
-    customHint: "存储在 .env 中、Hermes 无法识别的任意环境变量。可用于为技能、MCP 服务器或你自己的工具注入环境变量。",
+    customHint: "存储在 .env 中、Iris 无法识别的任意环境变量。可用于为技能、MCP 服务器或你自己的工具注入环境变量。",
     customConfigured: "已设置 {count} 个自定义密钥",
     addCustomKey: "添加自定义密钥",
     customKeyName: "变量名",
@@ -505,11 +520,11 @@ export const zh: Translations = {
   achievements: {
     hero: {
       kicker: "Agentic Gamerscore",
-      title: "Hermes Achievements",
+      title: "Iris Achievements",
       subtitle:
-        "从真实会话历史中获得的 Hermes 可收集徽章。已知尚未达成的成就显示为「已发现」；秘密成就在首次出现匹配行为之前保持隐藏。",
+        "从真实会话历史中获得的 Iris 可收集徽章。已知尚未达成的成就显示为「已发现」；秘密成就在首次出现匹配行为之前保持隐藏。",
       scan_subtitle:
-        "正在扫描 Hermes 会话历史。在历史记录较多时，首次扫描可能需要 5–10 秒。",
+        "正在扫描 Iris 会话历史。在历史记录较多时，首次扫描可能需要 5–10 秒。",
     },
     actions: {
       rescan: "重新扫描",
@@ -524,7 +539,7 @@ export const zh: Translations = {
       highest_tier: "最高等级",
       highest_tier_hint: "Copper → Silver → Gold → Diamond → Olympian",
       latest: "最新",
-      latest_hint_empty: "多多运行 Hermes",
+      latest_hint_empty: "多多运行 Iris",
       none_yet: "暂无",
     },
     state: {
@@ -555,10 +570,10 @@ export const zh: Translations = {
       tiers_header: "等级",
       secret_header: "秘密成就",
       secret_body:
-        "秘密成就会隐藏其确切触发条件。一旦 Hermes 检测到相关信号，卡片将变为「已发现」并显示其要求。",
+        "秘密成就会隐藏其确切触发条件。一旦 Iris 检测到相关信号，卡片将变为「已发现」并显示其要求。",
       scan_status_header: "扫描状态",
       scan_status_body:
-        "Hermes 正在对本地历史进行一次扫描，之后卡片会自动出现。即使这需要几秒钟，也没有卡住。",
+        "Iris 正在对本地历史进行一次扫描，之后卡片会自动出现。即使这需要几秒钟，也没有卡住。",
       what_scanned_header: "扫描内容",
       what_scanned_body:
         "会话、工具调用、模型元数据、错误、成就和本地解锁状态。",
@@ -605,7 +620,7 @@ export const zh: Translations = {
         "「在 X 上分享」会在新标签页中打开预填好的帖子。如果想附上 1200×630 的徽章，请先点击「复制图片」—— X 允许你直接粘贴到推文编辑器中。「下载 PNG」会将文件保存下来，可在任意位置使用。",
       clipboard_unsupported:
         "此浏览器不支持复制剪贴板图片 —— 请改用「下载」。",
-      tweet_text: "Just unlocked {tier_part}\"{name}\" in Hermes Agent ☤",
+      tweet_text: "Just unlocked {tier_part}\"{name}\" in Iris Agent ☤",
     },
   },
 

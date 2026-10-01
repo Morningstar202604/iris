@@ -26,9 +26,9 @@ import pytest
 @pytest.fixture
 def isolated_state_dir(tmp_path, monkeypatch):
     """Point STATE_DIR at a tmpdir so saved sessions don't pollute reality."""
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_BASE_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_BASE_HOME", str(tmp_path))
     yield tmp_path
 
 

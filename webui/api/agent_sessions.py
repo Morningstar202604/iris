@@ -1,4 +1,4 @@
-"""Shared helpers for reading Hermes Agent sessions from state.db."""
+"""Shared helpers for reading Iris Agent sessions from state.db."""
 import json
 import logging
 import os
@@ -136,7 +136,7 @@ SOURCE_LABELS = {
 
 
 def normalize_agent_session_source(raw_source: str | None) -> dict:
-    """Return stable source metadata for Hermes Agent session rows.
+    """Return stable source metadata for Iris Agent session rows.
 
     ``sessions.source`` is an Agent-level raw value. WebUI needs a smaller,
     durable contract so routes, SSE snapshots, and future sidebar policies do
@@ -292,7 +292,7 @@ def is_cli_session_row(row: dict) -> bool:
     if source == "cli":
         return True
     # External-agent imports (Claude Code, Codex, etc.) are read-only sessions
-    # that Hermes discovers on disk and lists alongside CLI/TUI sessions. The
+    # that Iris discovers on disk and lists alongside CLI/TUI sessions. The
     # client renderer (static/sessions.js: _isCliSession) files them in the CLI
     # bucket via the is_cli_session fallthrough, so the server session-count
     # classifier MUST agree — otherwise the server counts them under
@@ -369,7 +369,7 @@ def is_cli_session_row_visible(row: dict) -> bool:
 def _branch_markers(row: dict | None) -> tuple[str | None, str | None]:
     """Return ``(_branched_from, _delegate_from)`` from a row's ``model_config``.
 
-    Hermes Agent stamps explicit branches and delegate/subagent runs in the
+    Iris Agent stamps explicit branches and delegate/subagent runs in the
     ``model_config`` JSON column (``_branched_from`` / ``_delegate_from``);
     ``session_source='fork'`` alone only covers WebUI-created forks. Missing,
     empty, or unparsable ``model_config`` degrades to ``(None, None)``.
@@ -394,7 +394,7 @@ def _is_continuation_session(parent: dict | None, child: dict | None) -> bool:
     """Return True when ``child`` is the next segment of the same conversation.
 
     Compression rotates session ids automatically. A manual CLI close followed
-    by ``hermes -c`` also records a new child session; for sidebar projection it
+    by ``iris -c`` also records a new child session; for sidebar projection it
     should continue the same visible conversation rather than becoming a
     separate child-session row. Plain parent/child links that started before the
     parent's ended boundary remain child sessions. A small scheduling/write-order
@@ -615,14 +615,14 @@ def read_importable_agent_session_rows(
 ) -> list[dict]:
     """Return agent sessions projected as importable conversations.
 
-    Hermes Agent can create rows in ``state.db.sessions`` before a session has
+    Iris Agent can create rows in ``state.db.sessions`` before a session has
     any messages, and long conversations can be split into compression-linked
     rows. WebUI cannot import empty rows and should not show compression
     segments as separate conversations, so both the regular ``/api/sessions``
     path and the gateway SSE watcher use this shared projection.
 
     By default, omit background/internal sources such as ``cron`` from the WebUI
-    sidebar. This mirrors Hermes Agent CLI's session-list behaviour: interactive
+    sidebar. This mirrors Iris Agent CLI's session-list behaviour: interactive
     views should stay focused on user-facing conversations, while callers that
     need a source-specific diagnostic view can opt out by passing
     ``exclude_sources=None``. ``include_sources`` is an additional narrowing
@@ -652,7 +652,7 @@ def read_importable_agent_session_rows(
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        # Older Hermes Agent versions may not have source tracking. Without a
+        # Older Iris Agent versions may not have source tracking. Without a
         # source column we cannot safely distinguish WebUI rows from agent rows.
         cur.execute("PRAGMA table_info(sessions)")
         session_cols = {row[1] for row in cur.fetchall()}
@@ -664,8 +664,8 @@ def read_importable_agent_session_rows(
                 _SOURCE_COLUMN_WARNED_DB_PATHS.add(warned_key)
                 log.warning(
                     "agent session listing skipped: state.db at %s has no 'source' column "
-                    "(older hermes-agent?). Agent sessions unavailable. "
-                    "Upgrade hermes-agent to fix this.",
+                    "(older iris-agent?). Agent sessions unavailable. "
+                    "Upgrade iris-agent to fix this.",
                     db_path,
                 )
             return []
@@ -803,7 +803,7 @@ def read_importable_agent_session_rows(
                 return []
             # The sidebar only needs a small visible window. Bound the expensive
             # messages join to a recent-activity candidate set instead of
-            # aggregating every historical Hermes state.db session before
+            # aggregating every historical Iris state.db session before
             # slicing in Python. The candidate ordering must include the latest
             # message timestamp, not only ``started_at``: long-lived CLI sessions
             # can be resumed days later and should still surface at the top.
@@ -1088,7 +1088,7 @@ def read_session_lineage_report(db_path: Path, session_id: str | None, max_hops:
 def read_session_lineage_metadata(db_path: Path, session_ids: list[str] | set[str]) -> dict[str, dict]:
     """Return compression-lineage metadata for known WebUI sidebar sessions.
 
-    WebUI sessions are persisted as JSON files, but Hermes Agent also mirrors
+    WebUI sessions are persisted as JSON files, but Iris Agent also mirrors
     them into ``state.db.sessions`` for insights/session history. Compression
     and cross-surface continuation create parent chains there. ``/api/sessions``
     needs to surface that lineage to the sidebar so client-side collapse can

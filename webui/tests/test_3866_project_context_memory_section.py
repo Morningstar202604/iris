@@ -31,33 +31,33 @@ def test_project_context_reads_agents_md_from_active_workspace(tmp_path):
     assert data["shadowed"] == []
 
 
-def test_project_context_prefers_hermes_md_and_reports_shadowed_agents(tmp_path):
+def test_project_context_prefers_iris_md_and_reports_shadowed_agents(tmp_path):
     workspace = tmp_path / "priority"
     workspace.mkdir()
-    (workspace / "HERMES.md").write_text("# Hermes Rules\n\nHermes wins.", encoding="utf-8")
+    (workspace / "IRIS.md").write_text("# Iris Rules\n\nIris wins.", encoding="utf-8")
     (workspace / "AGENTS.md").write_text("# Agent Rules\n\nAgents lose.", encoding="utf-8")
 
     data = project_context_for(workspace)
 
-    assert "Hermes wins." in data["content"]
+    assert "Iris wins." in data["content"]
     assert "Agents lose." not in data["content"]
-    assert data["path"].endswith("HERMES.md")
+    assert data["path"].endswith("IRIS.md")
     assert [item["name"] for item in data["shadowed"]] == ["AGENTS.md"]
-    assert data["shadowed"][0]["shadowed_by"] == "HERMES.md"
+    assert data["shadowed"][0]["shadowed_by"] == "IRIS.md"
 
 
-def test_project_context_walks_hermes_md_to_git_root_but_not_agents_md(tmp_path):
+def test_project_context_walks_iris_md_to_git_root_but_not_agents_md(tmp_path):
     root = tmp_path / "repo"
     child = root / "src" / "pkg"
     child.mkdir(parents=True)
     (root / ".git").mkdir()
-    (root / ".hermes.md").write_text("# Root Hermes\n\nRoot project rules.", encoding="utf-8")
+    (root / ".iris.md").write_text("# Root Iris\n\nRoot project rules.", encoding="utf-8")
     (root / "AGENTS.md").write_text("# Root Agents\n\nRoot AGENTS should not be cwd-loaded.", encoding="utf-8")
 
     data = project_context_for(child)
 
     assert "Root project rules." in data["content"]
-    assert data["path"].endswith(".hermes.md")
+    assert data["path"].endswith(".iris.md")
     assert data["path"].startswith(str(root))
     assert data["shadowed"] == []
 
@@ -112,7 +112,7 @@ def test_project_context_content_is_redacted_in_memory_response(tmp_path, monkey
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(api.profiles, "get_active_hermes_home", lambda: home)
+    monkeypatch.setattr(api.profiles, "get_active_iris_home", lambda: home)
     monkeypatch.setattr(routes, "_memory_project_context_workspace", lambda _parsed: workspace)
     monkeypatch.setattr(routes, "_external_notes_sources_enabled", lambda _cfg: False)
     monkeypatch.setattr(routes, "j", lambda _handler, payload, **_kwargs: payload)
@@ -165,16 +165,16 @@ def _run_memory_render_harness():
         + r"""
 let _memoryData = {
   memory: 'Primary memory body',
-  memory_path: 'C:/Users/Rod/.hermes/memories/MEMORY.md',
+  memory_path: 'C:/Users/Rod/.iris/memories/MEMORY.md',
   memory_mtime: 1712345678,
   user: 'User memory body',
-  user_path: 'C:/Users/Rod/.hermes/memories/USER.md',
+  user_path: 'C:/Users/Rod/.iris/memories/USER.md',
   user_mtime: 1712345678,
   soul: 'Soul memory body',
-  soul_path: 'C:/Users/Rod/.hermes/SOUL.md',
+  soul_path: 'C:/Users/Rod/.iris/SOUL.md',
   soul_mtime: 1712345678,
   project_context: 'Project context body',
-  project_context_path: 'D:/Repos/hermes-webui/AGENTS.md',
+  project_context_path: 'D:/Repos/iris-webui/AGENTS.md',
   project_context_name: 'AGENTS.md',
   project_context_mtime: 1712345678,
   project_context_shadowed: [{name: 'CLAUDE.md', shadowed_by: 'AGENTS.md'}],
@@ -251,10 +251,10 @@ def _run_memory_button_harness():
         + ";\n"
         + r"""
 let _memoryData = {
-  memory_path: 'C:/Users/Rod/.hermes/memories/MEMORY.md',
-  user_path: 'C:/Users/Rod/.hermes/memories/USER.md',
-  soul_path: 'C:/Users/Rod/.hermes/SOUL.md',
-  project_context_path: 'D:/Repos/hermes-webui/AGENTS.md',
+  memory_path: 'C:/Users/Rod/.iris/memories/MEMORY.md',
+  user_path: 'C:/Users/Rod/.iris/memories/USER.md',
+  soul_path: 'C:/Users/Rod/.iris/SOUL.md',
+  project_context_path: 'D:/Repos/iris-webui/AGENTS.md',
   external_notes_enabled: true,
 };
 let _currentMemorySection = 'memory';
@@ -321,12 +321,12 @@ def test_memory_detail_renders_path_for_non_project_sections():
     rendered = _run_memory_render_harness()
 
     assert "MEMORY.md" in rendered["memoryHtml"]
-    assert "C:/Users/Rod/.hermes/memories/MEMORY.md" in rendered["memoryHtml"]
+    assert "C:/Users/Rod/.iris/memories/MEMORY.md" in rendered["memoryHtml"]
     assert "USER.md" in rendered["userHtml"]
-    assert "C:/Users/Rod/.hermes/memories/USER.md" in rendered["userHtml"]
+    assert "C:/Users/Rod/.iris/memories/USER.md" in rendered["userHtml"]
     assert "SOUL.md" in rendered["soulHtml"]
-    assert "C:/Users/Rod/.hermes/SOUL.md" in rendered["soulHtml"]
-    assert "AGENTS.md · D:/Repos/hermes-webui/AGENTS.md" in rendered["projectHtml"]
+    assert "C:/Users/Rod/.iris/SOUL.md" in rendered["soulHtml"]
+    assert "AGENTS.md · D:/Repos/iris-webui/AGENTS.md" in rendered["projectHtml"]
     assert "CLAUDE.md present, shadowed by AGENTS.md" in rendered["projectHtml"]
 
 
@@ -337,10 +337,10 @@ def test_memory_section_list_renders_hover_path_titles():
 
     rendered = {item["label"]: item["title"] for item in _run_memory_button_harness()}
 
-    assert rendered["memory"] == "C:/Users/Rod/.hermes/memories/MEMORY.md"
-    assert rendered["user"] == "C:/Users/Rod/.hermes/memories/USER.md"
-    assert rendered["soul"] == "C:/Users/Rod/.hermes/SOUL.md"
-    assert rendered["project_context"] == "D:/Repos/hermes-webui/AGENTS.md"
+    assert rendered["memory"] == "C:/Users/Rod/.iris/memories/MEMORY.md"
+    assert rendered["user"] == "C:/Users/Rod/.iris/memories/USER.md"
+    assert rendered["soul"] == "C:/Users/Rod/.iris/SOUL.md"
+    assert rendered["project_context"] == "D:/Repos/iris-webui/AGENTS.md"
     assert rendered["external_notes"] == ""
 
 

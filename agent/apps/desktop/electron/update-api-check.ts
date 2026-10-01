@@ -140,7 +140,7 @@ export interface UpdateCheckFailure {
 /**
  * One line a user can act on (or paste into a bug report) instead of the
  * generic "couldn't reach the update server": which host, which failure.
- * #105855 was a run of GitHub outages that read as a Hermes bug because the
+ * #105855 was a run of GitHub outages that read as a Iris bug because the
  * UI hid the cause.
  *
  * A 403 with `x-ratelimit-remaining: 0` is the anonymous per-IP budget spent

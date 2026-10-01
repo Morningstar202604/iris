@@ -69,7 +69,7 @@ export function attachRendererConsoleCapture(win: WindowLike, label: string, log
   })
 }
 
-/** Format a renderer error-boundary report (hermes:logs:renderer-error IPC)
+/** Format a renderer error-boundary report (iris:logs:renderer-error IPC)
  *  for desktop.log. Boundary catches carry the component stack — the one piece
  *  of context a minified console line loses — so persist it alongside.
  *  Inputs are renderer-supplied: clamp so a hostile/buggy payload cannot bloat

@@ -63,7 +63,7 @@ def _fire_post_api_request_hook(
     from agent.conversation_loop import _moa_reference_metrics_for_hook
 
     try:
-        from hermes_cli.lifecycle import has_hook, invoke_hook as _invoke_hook
+        from iris_cli.lifecycle import has_hook, invoke_hook as _invoke_hook
         if has_hook("post_api_request"):
             _invoke_hook(
                 "post_api_request",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Monitor a running video-production kanban. Polls `hermes kanban list` and
+Monitor a running video-production kanban. Polls `iris kanban list` and
 `events` for a tenant and surfaces issues (stuck tasks, missing heartbeats,
 repeated retries, dependency deadlocks).
 
@@ -26,25 +26,25 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 
-def hermes_available() -> bool:
-    return shutil.which("hermes") is not None
+def iris_available() -> bool:
+    return shutil.which("iris") is not None
 
 
 def kanban_list(tenant: str) -> list[dict]:
     """Returns parsed task rows. Falls back to plain stdout parsing if JSON
-    output isn't supported by the installed hermes CLI."""
+    output isn't supported by the installed iris CLI."""
     try:
         out = subprocess.run(
-            ["hermes", "kanban", "list", "--tenant", tenant, "--json"],
+            ["iris", "kanban", "list", "--tenant", tenant, "--json"],
             capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
         )
         if out.returncode == 0 and out.stdout.strip().startswith("["):
             return json.loads(out.stdout)
     except (FileNotFoundError, json.JSONDecodeError):
         pass
-    # Fallback: textual parse of `hermes kanban list`
+    # Fallback: textual parse of `iris kanban list`
     out = subprocess.run(
-        ["hermes", "kanban", "list", "--tenant", tenant],
+        ["iris", "kanban", "list", "--tenant", tenant],
         capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
     )
     rows = []
@@ -68,7 +68,7 @@ def kanban_list(tenant: str) -> list[dict]:
 
 def kanban_show(task_id: str) -> dict | None:
     out = subprocess.run(
-        ["hermes", "kanban", "show", task_id, "--json"],
+        ["iris", "kanban", "show", task_id, "--json"],
         capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
     )
     if out.returncode != 0:
@@ -171,8 +171,8 @@ def main():
                     help="Print one snapshot and exit (no polling loop)")
     args = ap.parse_args()
 
-    if not hermes_available():
-        print("ERROR: 'hermes' CLI not found in PATH", file=sys.stderr)
+    if not iris_available():
+        print("ERROR: 'iris' CLI not found in PATH", file=sys.stderr)
         sys.exit(1)
 
     if args.once:

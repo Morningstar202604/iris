@@ -2,7 +2,7 @@
 keeps retrying deleted sessions forever, generating an invisible stream
 of permanent 404 requests from stale background tabs.
 
-When a tab is hidden, Hermes WebUI replaces the persistent per-session
+When a tab is hidden, Iris WebUI replaces the persistent per-session
 SSE connection with a lightweight ``GET /api/session/status`` poll
 every six seconds. If the tracked session has been deleted or no
 longer exists in the active state directory, the endpoint returns

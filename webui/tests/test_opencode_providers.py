@@ -65,11 +65,11 @@ def test_opencode_go_in_provider_models():
 # ── Env-var fallback detection ────────────────────────────────────────
 
 def _models_with_env_key(monkeypatch, env_var, expected_provider_display):
-    """Helper: fake hermes_cli unavailable, set an env var, check detection."""
-    # Force the env-var fallback path by making hermes_cli import fail
-    fake_mod = types.ModuleType("hermes_cli.models")
+    """Helper: fake iris_cli unavailable, set an env var, check detection."""
+    # Force the env-var fallback path by making iris_cli import fail
+    fake_mod = types.ModuleType("iris_cli.models")
     fake_mod.list_available_providers = None  # will raise on call
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_mod)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_mod)
     monkeypatch.delattr(fake_mod, "list_available_providers")
 
     old_cfg = dict(config.cfg)
@@ -97,9 +97,9 @@ def test_opencode_go_detected_via_env_key(monkeypatch):
 
 def test_shared_opencode_api_key_detects_zen_and_go(monkeypatch):
     """A shared OpenCode bridge key should enable both OpenCode surfaces."""
-    fake_mod = types.ModuleType("hermes_cli.models")
+    fake_mod = types.ModuleType("iris_cli.models")
     fake_mod.list_available_providers = None
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_mod)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_mod)
     monkeypatch.delattr(fake_mod, "list_available_providers")
 
     old_cfg = dict(config.cfg)
@@ -143,7 +143,7 @@ def test_live_models_handler_delegates_to_provider_model_ids():
         pathlib.Path(__file__).parent.parent / "api" / "routes.py"
     ).read_text(encoding="utf-8")
     assert "provider_model_ids" in routes_src, (
-        "_handle_live_models must call hermes_cli.models.provider_model_ids() "
+        "_handle_live_models must call iris_cli.models.provider_model_ids() "
         "to delegate all provider-specific live-fetch logic to the agent"
     )
     # The old per-provider base_url hardcoding should be gone

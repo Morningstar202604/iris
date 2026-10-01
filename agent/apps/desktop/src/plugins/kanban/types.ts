@@ -171,7 +171,7 @@ export interface BoardImportResult {
   warnings: string[]
 }
 
-/** GET /projects — first-class Hermes projects available to scope a board. */
+/** GET /projects — first-class Iris projects available to scope a board. */
 export interface KanbanProject {
   id: string
   slug: string

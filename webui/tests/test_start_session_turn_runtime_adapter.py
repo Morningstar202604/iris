@@ -5,7 +5,7 @@ Before this fix start_session_turn (Option Z drain-thread wakeup entrypoint)
 called _start_chat_stream_for_session directly, bypassing the runtime-adapter
 selection block that /api/chat/start (_handle_chat_start) already ran. As a
 result a process-wakeup turn skipped the adapter that a human-typed turn
-would have hit when ``HERMES_RUNTIME_ADAPTER=legacy-journal`` was set.
+would have hit when ``IRIS_RUNTIME_ADAPTER=legacy-journal`` was set.
 
 The refactor factors a shared ``_start_run`` helper used by both entrypoints,
 so flipping the env to ``legacy-journal`` now routes process-wakeup turns
@@ -69,10 +69,10 @@ def _stub_routes(monkeypatch):
 
 
 def test_start_session_turn_uses_direct_path_by_default(_stub_routes, monkeypatch):
-    """With HERMES_WEBUI_RUNTIME_ADAPTER unset (legacy-direct default), the helper
+    """With IRIS_WEBUI_RUNTIME_ADAPTER unset (legacy-direct default), the helper
     must NOT go through the adapter — it falls through to the direct
     _start_chat_stream_for_session call, same as before."""
-    monkeypatch.delenv("HERMES_WEBUI_RUNTIME_ADAPTER", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_RUNTIME_ADAPTER", raising=False)
 
     calls = {"adapter": 0}
     from api import runtime_adapter as ra_mod
@@ -93,12 +93,12 @@ def test_start_session_turn_uses_direct_path_by_default(_stub_routes, monkeypatc
 def test_start_session_turn_routes_through_adapter_when_enabled(
     _stub_routes, monkeypatch
 ):
-    """With HERMES_WEBUI_RUNTIME_ADAPTER=legacy-journal, start_session_turn must
+    """With IRIS_WEBUI_RUNTIME_ADAPTER=legacy-journal, start_session_turn must
     construct + invoke the LegacyJournalRuntimeAdapter — same path
     _handle_chat_start exercises. This is the regression that Q-2979-A2 fixes:
     before the _start_run refactor, this env flip had no effect on the
     process-wakeup path."""
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "legacy-journal")
 
     from api import runtime_adapter as ra_mod
 

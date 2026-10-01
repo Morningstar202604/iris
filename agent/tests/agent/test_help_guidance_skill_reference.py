@@ -1,6 +1,6 @@
 """Contract: the skill pointer inside the stable help guidance must resolve.
 
-`system_prompt.build_system_prompt_parts` only swaps in HERMES_AGENT_HELP_GUIDANCE
+`system_prompt.build_system_prompt_parts` only swaps in IRIS_AGENT_HELP_GUIDANCE
 when the referenced skill actually renders in the skills index, so the name the
 guidance tells the model to load must appear there as `- <name>:` — otherwise the
 prompt teaches the model a call that cannot succeed.
@@ -19,7 +19,7 @@ def _bundled_skills_dir() -> Path:
 
 
 def test_help_guidance_skill_pointer_resolves_in_bundled_index():
-    match = re.search(r"skill_view\(name='([^']+)'\)", pb.HERMES_AGENT_HELP_GUIDANCE)
+    match = re.search(r"skill_view\(name='([^']+)'\)", pb.IRIS_AGENT_HELP_GUIDANCE)
     assert match, "guidance must name a skill_view target"
     name = match.group(1)
 
@@ -32,4 +32,4 @@ def test_help_guidance_skill_pointer_resolves_in_bundled_index():
 
 
 def test_no_skills_variant_carries_no_skill_pointer():
-    assert "skill_view" not in pb.HERMES_AGENT_HELP_GUIDANCE_NO_SKILLS
+    assert "skill_view" not in pb.IRIS_AGENT_HELP_GUIDANCE_NO_SKILLS

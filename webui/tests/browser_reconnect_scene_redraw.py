@@ -69,10 +69,10 @@ def main():
     with tempfile.TemporaryDirectory(prefix='webui-reconnect-') as temp:
         state = Path(temp)
         env = {k:os.environ[k] for k in ('PATH','SYSTEMROOT','TMPDIR') if k in os.environ}
-        env.update(HOME=temp, HERMES_HOME=temp, HERMES_BASE_HOME=temp,
-                   HERMES_WEBUI_STATE_DIR=str(state/'webui'), HERMES_CONFIG_PATH=str(state/'config.yaml'),
-                   HERMES_WEBUI_HOST='127.0.0.1', HERMES_WEBUI_SKIP_ONBOARDING='1',
-                   HERMES_WEBUI_AGENT_DIR=str(state/'no-agent'))
+        env.update(HOME=temp, IRIS_HOME=temp, IRIS_BASE_HOME=temp,
+                   IRIS_WEBUI_STATE_DIR=str(state/'webui'), IRIS_CONFIG_PATH=str(state/'config.yaml'),
+                   IRIS_WEBUI_HOST='127.0.0.1', IRIS_WEBUI_SKIP_ONBOARDING='1',
+                   IRIS_WEBUI_AGENT_DIR=str(state/'no-agent'))
         proc, log, _, base = _start_webui_server(ROOT, env, state)
         results = []
         try:

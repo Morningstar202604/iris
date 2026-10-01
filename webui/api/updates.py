@@ -1,7 +1,7 @@
 """
-Hermes Web UI -- Self-update checker.
+Iris Web UI -- Self-update checker.
 
-Checks if the webui and hermes-agent git repos are behind their latest
+Checks if the webui and iris-agent git repos are behind their latest
 release tags. Results are cached server-side (30-min TTL) so git fetch runs
 at most twice per hour regardless of client count.
 
@@ -530,8 +530,8 @@ def _detect_webui_version() -> str:
 
 
 def _read_agent_source_version(agent_dir: Path) -> str | None:
-    """Read Hermes Agent's package version from a copied source tree."""
-    init_file = agent_dir / 'hermes_cli' / '__init__.py'
+    """Read Iris Agent's package version from a copied source tree."""
+    init_file = agent_dir / 'iris_cli' / '__init__.py'
     try:
         text = init_file.read_text(encoding='utf-8')
     except (OSError, UnicodeDecodeError):
@@ -543,11 +543,11 @@ def _read_agent_source_version(agent_dir: Path) -> str | None:
 
 
 def _gateway_health_base_url() -> str:
-    """Return the configured/default Hermes Agent gateway base URL."""
+    """Return the configured/default Iris Agent gateway base URL."""
     raw = (
         os.environ.get('GATEWAY_HEALTH_URL')
-        or os.environ.get('HERMES_GATEWAY_HEALTH_URL')
-        or 'http://hermes-agent:8642'
+        or os.environ.get('IRIS_GATEWAY_HEALTH_URL')
+        or 'http://iris-agent:8642'
     ).strip()
     if raw.endswith('/health/detailed'):
         raw = raw[: -len('/health/detailed')]
@@ -557,10 +557,10 @@ def _gateway_health_base_url() -> str:
 
 
 def _version_from_gateway_health_payload(payload: object) -> str | None:
-    """Extract a version string from a Hermes Agent gateway health payload."""
+    """Extract a version string from a Iris Agent gateway health payload."""
     if not isinstance(payload, dict):
         return None
-    for key in ('version', 'agent_version', 'hermes_version'):
+    for key in ('version', 'agent_version', 'iris_version'):
         value = payload.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
@@ -593,7 +593,7 @@ def _detect_agent_version_from_gateway_health(timeout: float = 0.75) -> str | No
 
 
 def _detect_agent_version() -> str:
-    """Detect the running Hermes Agent version for UI display."""
+    """Detect the running Iris Agent version for UI display."""
     agent_dir = Path(_AGENT_DIR) if _AGENT_DIR is not None else None
 
     if agent_dir is not None:
@@ -618,7 +618,7 @@ def _detect_agent_version() -> str:
 
             # Docker two-container deployments often mount a copied agent source
             # tree without .git metadata or a VERSION file.  The package version
-            # still lives in hermes_cli/__init__.py, so prefer that before giving
+            # still lives in iris_cli/__init__.py, so prefer that before giving
             # up or relying on a live gateway probe.
             source_version = _read_agent_source_version(agent_dir)
             if source_version:
@@ -641,8 +641,8 @@ def _normalize_remote_url(remote_url):
 
     Git remotes may be HTTPS or SSH and may include a literal ``.git`` suffix.
     Strip only that literal suffix — never use ``str.rstrip('.git')`` because it
-    treats the argument as a character set and can truncate ``hermes-webui`` to
-    ``hermes-webu``.
+    treats the argument as a character set and can truncate ``iris-webui`` to
+    ``iris-webu``.
     """
     if not remote_url:
         return remote_url
@@ -846,13 +846,46 @@ def _is_stable_release_tag(tag):
     return bool(_RELEASE_TAG_RE.fullmatch(raw) and '-' not in raw[1:])
 
 
-def _github_release_tags(url='https://api.github.com/repos/nesquena/hermes-webui/tags?per_page=100', *, timeout=3.0):
-    """Return GitHub release tags newest-first, including commit SHAs when available."""
+# Dual-track release-source policy (see MIRROR.md):
+#   primary  = GitHub  X33834/iris   — CI + Releases home
+#   fallback = GitCode badhope/iris  — homepage + Releases; reachable where
+#             GitHub is blocked (mainland China).
+# The published-release probe below tries the primary first and degrades to the
+# GitCode mirror when GitHub is unreachable or returns nothing. The regular
+# fast-forward update path already probes whatever `origin` remote the user
+# cloned (`git remote get-url origin`), so it is dual-track automatically and
+# needs no hard-coded host here.
+_WEBUI_RELEASE_SOURCES = [
+    {
+        'name': 'github',
+        'tags_url': 'https://api.github.com/repos/X33834/iris/tags?per_page=100',
+        'repo_url': 'https://github.com/X33834/iris',
+    },
+    {
+        'name': 'gitcode',
+        # GitCode mirrors the same v* tags. [CHANNEL-PENDING] confirm the exact
+        # tags-JSON path against gitcode.com's API once the host's releases API
+        # is verified. Any failure here is swallowed and treated as "no update",
+        # so a wrong/empty endpoint simply skips the mirror — the GitHub primary
+        # still governs.
+        'tags_url': 'https://gitcode.com/api/v5/repos/badhope/iris/tags?per_page=100',
+        'repo_url': 'https://gitcode.com/badhope/iris',
+    },
+]
+
+
+def _github_release_tags(url='https://api.github.com/repos/X33834/iris/tags?per_page=100', *, timeout=3.0):
+    """Return release tags newest-first, including commit SHAs when available.
+
+    ``url`` points at a tags-JSON listing (GitHub REST shape). The dual-track
+    published-release probe passes the primary (GitHub) endpoint first, then a
+    fallback (GitCode) endpoint.
+    """
     request = urllib.request.Request(
         url,
         headers={
             'Accept': 'application/vnd.github+json',
-            'User-Agent': 'hermes-webui',
+            'User-Agent': 'iris-webui',
         },
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -882,14 +915,29 @@ def _github_release_tags(url='https://api.github.com/repos/nesquena/hermes-webui
 
 
 def _check_webui_published_release_update():
-    """Return a manual-update payload when the baked WebUI version trails GitHub tags."""
+    """Return a manual-update payload when the baked WebUI version lags tags.
+
+    Dual-track: probe the GitHub primary (``X33834/iris``) first; if it is
+    unreachable or returns nothing, fall back to the GitCode mirror
+    (``badhope/iris``). Whichever source answers supplies the tags AND the
+    repo/compare URLs, so the update banner links point at a host that is
+    actually reachable for the user.
+    """
     current_version = str(WEBUI_VERSION or '').strip()
     if not _RELEASE_TAG_RE.fullmatch(current_version):
         return None
-    try:
-        tags = _github_release_tags()
-    except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, UnicodeDecodeError, ValueError):
-        return None
+
+    tags = None
+    source = None
+    for candidate in _WEBUI_RELEASE_SOURCES:
+        try:
+            result = _github_release_tags(candidate['tags_url'])
+        except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, UnicodeDecodeError, ValueError):
+            result = []
+        if result:
+            tags = result
+            source = candidate
+            break
     if not tags:
         return None
 
@@ -906,7 +954,7 @@ def _check_webui_published_release_update():
     current = next((item for item in tags if item['name'] == current_version), None) or {}
     current_ref = current.get('sha') or current_version
     latest_ref = latest.get('sha') or latest_version
-    repo_url = 'https://github.com/nesquena/hermes-webui'
+    repo_url = source['repo_url']
     return {
         'name': 'webui',
         'behind': behind,
@@ -1429,7 +1477,7 @@ def _commit_subjects_for_update_with_limit(info: dict, *, limit: int = 24) -> tu
         return [], False
     target = info.get('name')
     if target not in ('webui', 'agent'):
-        target = 'webui' if info.get('repo_url', '').endswith('hermes-webui') else target
+        target = 'webui' if info.get('repo_url', '').endswith('iris-webui') else target
     path = _repo_path_for_update_target(target)
     if path is None or not (Path(path) / '.git').exists():
         return [], False
@@ -1527,7 +1575,7 @@ def _categorized_summary_bullets_from_text(text: str) -> tuple[list[str], list[s
 def _fallback_update_bullets(details: list[dict]) -> list[str]:
     bullets = []
     for item in details:
-        label = item.get('label') or item.get('name') or 'Hermes'
+        label = item.get('label') or item.get('name') or 'Iris'
         behind = item.get('behind') or 0
         commits = item.get('commits') or []
         if commits:
@@ -1543,7 +1591,7 @@ def _worth_knowing_bullets(details: list[dict]) -> list[str]:
     items = []
     truncated = [item for item in details if item.get('commits_truncated') and item.get('commits_limit')]
     for item in truncated[:2]:
-        label = item.get('label') or item.get('name') or 'Hermes'
+        label = item.get('label') or item.get('name') or 'Iris'
         behind = item.get('behind') or 0
         limit = item.get('commits_limit') or len(item.get('commits') or [])
         items.append(
@@ -1552,7 +1600,7 @@ def _worth_knowing_bullets(details: list[dict]) -> list[str]:
     if items:
         return items
     targets = [
-        f"{item.get('label') or item.get('name') or 'Hermes'} ({item.get('behind') or 0} update{'s' if (item.get('behind') or 0) != 1 else ''})"
+        f"{item.get('label') or item.get('name') or 'Iris'} ({item.get('behind') or 0} update{'s' if (item.get('behind') or 0) != 1 else ''})"
         for item in details
         if item.get('behind')
     ]
@@ -1599,7 +1647,7 @@ def _fallback_update_summary(updates: dict, details: list[dict]) -> str:
 
 def _update_summary_prompt(details: list[dict]) -> tuple[str, str]:
     system = (
-        "You write human-readable release summaries for Hermes users. "
+        "You write human-readable release summaries for Iris users. "
         "Focus on what the user will notice in the product. Keep it simple, specific, and short. "
         "avoid technical jargon, implementation details, SHA names, branch names, and file paths unless necessary. "
         "Return only bullets. Do not include headings, markdown tables, intro paragraphs, or closing notes."
@@ -1895,11 +1943,11 @@ def _agent_gateway_restart_failure_message(target: str, restart_result: dict) ->
     if restart_result.get("message"):
         return (
             f'{target} updated, but gateway restart did not complete: '
-            f'{restart_result["message"]}. Run `hermes gateway restart` manually.'
+            f'{restart_result["message"]}. Run `iris gateway restart` manually.'
         )
     return (
         f'{target} updated, but gateway restart did not complete. '
-        'Run `hermes gateway restart` manually.'
+        'Run `iris gateway restart` manually.'
     )
 
 
@@ -2188,7 +2236,7 @@ def _apply_update_inner(target, channel=DEFAULT_UPDATE_CHANNEL):
         }
     stashed = False
     if status_out:
-        _, ok = _run_git(['stash', 'push', '-m', 'hermes-update-autostash'], path)
+        _, ok = _run_git(['stash', 'push', '-m', 'iris-update-autostash'], path)
         if not ok:
             return {'ok': False, 'message': 'Failed to stash local changes'}
         stashed = True

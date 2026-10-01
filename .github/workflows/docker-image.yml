@@ -1,0 +1,91 @@
+name: Docker Image
+
+# Publishes the two Iris container images to GitHub Container Registry on every
+# `v*` tag push. Reuses the existing, already-multi-stage Dockerfiles verbatim:
+#
+#   ghcr.io/x33834/iris-agent   <- agent/Dockerfile  (context: agent/)
+#   ghcr.io/x33834/iris-webui   <- webui/Dockerfile  (context: webui/)
+#
+# Tag semantics for a push of `v0.12.0`:
+#   0.12.0   (exact semver)
+#   0.12     (major.minor floating track)
+#   latest   (moved on every release tag — intentionally unconditional)
+#
+# Auth: GITHUB_TOKEN is minted per-run and has packages: write for the repo's
+# own ghcr.io namespace; no PAT / org secret required.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to (re)build, e.g. v0.12.0'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+# Cancel superseded builds on the same image matrix entry; keep pushes safe.
+concurrency:
+  group: docker-${{ matrix.image }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & push ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: iris-agent
+            context: agent
+            dockerfile: agent/Dockerfile
+            # Agent Dockerfile bakes the git SHA into /opt/iris/.iris_build_sha.
+            build-args: |
+              IRIS_GIT_SHA=${{ github.sha }}
+          - image: iris-webui
+            context: webui
+            dockerfile: webui/Dockerfile
+            # WebUI Dockerfile bakes the tag into api/_version.py for the badge.
+            build-args: |
+              IRIS_VERSION=${{ github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c6a94f7392dceaa083591018602c8ecfad # v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@b45d80cb8d604d530a7e8c4b733f7cd20baf6276 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@03f1778d9126ae0709df731687bd65c73b02c854 # v5
+        with:
+          images: ghcr.io/x33834/${{ matrix.image }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@bcac647d30fb7428f7990b371d54079587e55aea # v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: ${{ matrix.build-args }}

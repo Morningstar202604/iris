@@ -45,7 +45,7 @@ const localConnection = {
 beforeEach(() => {
   getConnectionConfig.mockResolvedValue(localConnection)
   saveConnectionConfig.mockResolvedValue(localConnection)
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { getConnectionConfig, saveConnectionConfig }
   })
@@ -95,7 +95,7 @@ describe('GatewaySettings', () => {
       orgs: [{ id: 'new-team', name: 'New team', role: 'OWNER' }]
     })
 
-    Object.assign(window.hermesDesktop, {
+    Object.assign(window.irisDesktop, {
       oauthLogoutConnectionConfig,
       connections: { save },
       cloud: { status: vi.fn().mockResolvedValue({ signedIn: true }), discover, agentSignIn }
@@ -127,7 +127,7 @@ describe('GatewaySettings', () => {
     }
     const agentSignIn = vi.fn()
     const applyConnectionConfig = vi.fn()
-    Object.assign(window.hermesDesktop, {
+    Object.assign(window.irisDesktop, {
       applyConnectionConfig,
       cloud: {
         status: vi.fn().mockResolvedValue({ signedIn: false }),
@@ -149,7 +149,7 @@ describe('GatewaySettings', () => {
     getConnectionConfig.mockResolvedValue({ ...localConnection, mode: 'cloud' })
     const agentSignIn = vi.fn().mockResolvedValue({ connected: true })
     const applyConnectionConfig = vi.fn().mockResolvedValue({ ...localConnection, mode: 'cloud' })
-    Object.assign(window.hermesDesktop, {
+    Object.assign(window.irisDesktop, {
       applyConnectionConfig,
       cloud: {
         status: vi.fn().mockResolvedValue({ signedIn: true }),
@@ -180,7 +180,7 @@ describe('GatewaySettings', () => {
     expect(agentSignIn).toHaveBeenCalledExactlyOnceWith('https://new-a.example')
     expect(applyConnectionConfig).toHaveBeenCalledTimes(1)
   })
-  // #114856: an env-pinned remote (HERMES_DESKTOP_REMOTE_URL) whose session
+  // #114856: an env-pinned remote (IRIS_DESKTOP_REMOTE_URL) whose session
   // lapsed could not be re-authenticated from Settings → Gateway at all — the
   // whole remote block (URL + probe + Authentication) was hidden behind
   // `!state.envOverride`, so the recovery card's "Gateway settings" escape led
@@ -213,7 +213,7 @@ describe('GatewaySettings', () => {
       // Sign-in persists the URL + oauth mode before opening the login window;
       // the saved echo must stay remote or the signing sequence resets.
       saveConnectionConfig.mockResolvedValue({ ...envRemote, remoteAuthMode: 'oauth' })
-      Object.assign(window.hermesDesktop, { oauthLoginConnectionConfig, probeConnectionConfig })
+      Object.assign(window.irisDesktop, { oauthLoginConnectionConfig, probeConnectionConfig })
 
       render(<GatewaySettings embedded />)
 
@@ -229,7 +229,7 @@ describe('GatewaySettings', () => {
       const oauthLoginConnectionConfig = vi.fn()
 
       getConnectionConfig.mockResolvedValue({ ...envRemote, envOverride: false, remoteOauthConnected: false })
-      Object.assign(window.hermesDesktop, {
+      Object.assign(window.irisDesktop, {
         oauthLoginConnectionConfig,
         probeConnectionConfig: vi.fn().mockResolvedValue(oauthProbe)
       })

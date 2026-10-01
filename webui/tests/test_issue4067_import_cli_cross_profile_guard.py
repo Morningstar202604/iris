@@ -26,7 +26,7 @@ class _FakeHandler:
         self.status = None
         self.headers = {}
         if cookie_profile is not None:
-            self.headers["Cookie"] = f"hermes_profile={cookie_profile}"
+            self.headers["Cookie"] = f"iris_profile={cookie_profile}"
         self.wfile = io.BytesIO()
 
     def send_response(self, status):

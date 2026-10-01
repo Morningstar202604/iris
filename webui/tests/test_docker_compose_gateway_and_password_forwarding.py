@@ -1,18 +1,18 @@
 """Regression coverage for two Docker-compose gaps found in the field.
 
 1. Gateway API not reachable out of the box. The two/three-container compose
-   files set ``HERMES_API_URL=http://hermes-agent:8642`` on the WebUI but
+   files set ``IRIS_API_URL=http://iris-agent:8642`` on the WebUI but
    never configured the agent to listen on 8642. The agent image only starts
    its API-server listener when ``API_SERVER_KEY`` is a usable value (>=16
    chars); ``API_SERVER_ENABLED`` alone does nothing. The compose files now
    forward ``API_SERVER_KEY`` from ``.env`` and bind the listener on
    0.0.0.0, and the WebUI receives the matching
-   ``HERMES_WEBUI_GATEWAY_API_KEY`` so its health probe authenticates.
+   ``IRIS_WEBUI_GATEWAY_API_KEY`` so its health probe authenticates.
 
-2. ``HERMES_WEBUI_PASSWORD`` set in ``.env`` had no effect. Docker Compose
+2. ``IRIS_WEBUI_PASSWORD`` set in ``.env`` had no effect. Docker Compose
    uses ``.env`` only for variable interpolation — a value is not injected
    into a container unless the compose file references it. All three compose
-   files now forward ``HERMES_WEBUI_PASSWORD`` into the WebUI service.
+   files now forward ``IRIS_WEBUI_PASSWORD`` into the WebUI service.
 """
 
 from __future__ import annotations
@@ -53,23 +53,23 @@ def test_webui_service_forwards_gateway_api_key():
     reachable'."""
     for fn in MULTI:
         src = (REPO / fn).read_text(encoding="utf-8")
-        assert "- HERMES_WEBUI_GATEWAY_API_KEY=${API_SERVER_KEY:-}" in src, (
-            f"{fn}: WebUI must forward HERMES_WEBUI_GATEWAY_API_KEY from the "
+        assert "- IRIS_WEBUI_GATEWAY_API_KEY=${API_SERVER_KEY:-}" in src, (
+            f"{fn}: WebUI must forward IRIS_WEBUI_GATEWAY_API_KEY from the "
             "same API_SERVER_KEY so the gateway health probe authenticates."
         )
 
 
-# ── 2: HERMES_WEBUI_PASSWORD forwarding (all compose files) ────────────────
+# ── 2: IRIS_WEBUI_PASSWORD forwarding (all compose files) ────────────────
 
 
 def test_webui_service_forwards_password():
-    """HERMES_WEBUI_PASSWORD set in .env must reach the WebUI container.
+    """IRIS_WEBUI_PASSWORD set in .env must reach the WebUI container.
     .env is only for compose interpolation; without this forwarding line the
     password silently does nothing."""
     for fn in ALL:
         src = (REPO / fn).read_text(encoding="utf-8")
-        assert "- HERMES_WEBUI_PASSWORD=${HERMES_WEBUI_PASSWORD:-}" in src, (
-            f"{fn}: WebUI must forward HERMES_WEBUI_PASSWORD from .env — "
+        assert "- IRIS_WEBUI_PASSWORD=${IRIS_WEBUI_PASSWORD:-}" in src, (
+            f"{fn}: WebUI must forward IRIS_WEBUI_PASSWORD from .env — "
             "setting it only in .env does nothing unless the compose file "
             "references it."
         )
@@ -86,7 +86,7 @@ def test_env_example_documents_api_server_key():
         ".env.docker.example must state the API_SERVER_KEY length floor "
         "(>=16 chars) — shorter keys are silently ignored by the agent."
     )
-    assert "HERMES_WEBUI_GATEWAY_API_KEY" in example, (
+    assert "IRIS_WEBUI_GATEWAY_API_KEY" in example, (
         ".env.docker.example must mention that the WebUI key is forwarded "
         "automatically from the same API_SERVER_KEY."
     )

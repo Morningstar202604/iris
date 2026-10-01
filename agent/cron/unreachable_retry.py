@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from hermes_time import now as _hermes_now
+from iris_time import now as _iris_now
 
 logger = logging.getLogger("cron.scheduler")
 
@@ -40,7 +40,7 @@ def retry_enabled(cfg: Optional[dict] = None) -> bool:
     model calls were made)."""
     if cfg is None:
         try:
-            from hermes_cli.config import load_config
+            from iris_cli.config import load_config
 
             cfg = load_config() or {}
         except Exception:  # config unreadable — keep the reliability default
@@ -105,7 +105,7 @@ def plan_retry(job: Dict[str, Any]) -> bool:
     # late: jobs imports this module's helpers
     from cron.jobs import _instant_at_or_before, _parse_aware, _seconds_after
 
-    retry_dt = _seconds_after(_hermes_now(), delay)
+    retry_dt = _seconds_after(_iris_now(), delay)
     natural_next = _parse_aware(job.get("next_run_at"))
     if natural_next is not None and _instant_at_or_before(natural_next, retry_dt):
         # The schedule fires again sooner than the ladder would — no point consuming an

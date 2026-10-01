@@ -10,7 +10,7 @@ A handful of payloads stay ``extra="allow"`` on purpose: their closed shape is o
 module (the skin engine, the pet store, the goal/loop/heartbeat state files, the free-tier bootstrap
 record) or they are watcher signals whose payload is ``{}`` today and may grow. Everything else is
 closed, so a drifted emitter fails the suite (``registry.check_payload`` raises under
-``HERMES_TEST_ISOLATION``).
+``IRIS_TEST_ISOLATION``).
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ class OpenPayload(Payload):
 
 
 class SkinPayload(OpenPayload):
-    """``tui_gateway/change_watcher.py::resolve_skin`` — the resolved active skin (``HermesSkin``).
+    """``tui_gateway/change_watcher.py::resolve_skin`` — the resolved active skin (``IrisSkin``).
     ``{}`` when the skin engine failed to load. Colour maps are token → colour string."""
 
     name: str = ""
@@ -64,7 +64,7 @@ event("skin.changed", SkinPayload,
 
 
 class SetupReadyPayload(OpenPayload):
-    """``hermes_cli/free_tier_bootstrap.py::SetupRecord.as_payload``."""
+    """``iris_cli/free_tier_bootstrap.py::SetupRecord.as_payload``."""
 
     provider_configured: bool
     inference_provider: str

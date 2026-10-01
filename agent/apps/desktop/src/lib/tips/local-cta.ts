@@ -15,7 +15,7 @@
  * model name is a button" every time both are true.
  */
 
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/iris'
 
 /** Retirement/shown-at ledger id. Not a `TipId` — the rotation never walks it. */
 export const LOCAL_SETUP_TIP_ID = 'local-setup'

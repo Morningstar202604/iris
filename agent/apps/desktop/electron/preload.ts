@@ -8,118 +8,118 @@ import { customWindowControlsEnabled } from './window-controls'
 // needs it before its first paint, and answered by main because deciding it
 // needs `os.release()` — a sandboxed preload may only require electron, events,
 // timers and url, so importing node:os here throws before contextBridge runs
-// and takes the ENTIRE bridge down with it (window.hermesDesktop undefined =>
+// and takes the ENTIRE bridge down with it (window.irisDesktop undefined =>
 // "Desktop IPC bridge is unavailable"). No reply means no glass, which degrades
 // to an ordinary opaque window rather than a page thinned over nothing.
-const translucencySupport = ipcRenderer.sendSync('hermes:translucency:support')
-const hudWindowing = ipcRenderer.sendSync('hermes:hud:windowing')
+const translucencySupport = ipcRenderer.sendSync('iris:translucency:support')
+const hudWindowing = ipcRenderer.sendSync('iris:hud:windowing')
 const hudNativeDrag = hudWindowing?.nativeDrag === true
-const launchFlags = ipcRenderer.sendSync('hermes:launch-flags')
+const launchFlags = ipcRenderer.sendSync('iris:launch-flags')
 
-contextBridge.exposeInMainWorld('hermesDesktop', {
+contextBridge.exposeInMainWorld('irisDesktop', {
   glassSupported: translucencySupport?.glass === true,
   translucencySupported: translucencySupport?.translucency === true,
   // Launch-flag fact: the app was started with --local, so the renderer may
   // show the local-models surfaces. Static for the window's lifetime.
   localModelsEnabled: launchFlags?.localModels === true,
   // Launch-flag fact: the Nous free tier is on for this launch
-  // (HERMES_GUEST_ONBOARDING=1 or --guest-onboarding). Read-only; the same
+  // (IRIS_GUEST_ONBOARDING=1 or --guest-onboarding). Read-only; the same
   // decision is stamped onto every backend the app spawns.
   guestOnboardingEnabled: launchFlags?.guestOnboarding === true,
-  // Launch-flag fact: skip the first-run film (HERMES_SKIP_INTRO=1 or
+  // Launch-flag fact: skip the first-run film (IRIS_SKIP_INTRO=1 or
   // --skip-intro). Rehearsal aid for the guided chat behind it.
   skipIntro: launchFlags?.skipIntro === true,
-  getConnection: (profile, opts) => ipcRenderer.invoke('hermes:connection', profile, opts),
+  getConnection: (profile, opts) => ipcRenderer.invoke('iris:connection', profile, opts),
   // Registry-scoped backend resolution: { connectionId, profile } → descriptor.
-  getConnectionFor: payload => ipcRenderer.invoke('hermes:connection:for', payload),
-  getProfileRoutes: profiles => ipcRenderer.invoke('hermes:plugin-profile-routes', profiles),
-  revalidateConnection: () => ipcRenderer.invoke('hermes:connection:revalidate'),
-  touchBackend: (profile, options) => ipcRenderer.invoke('hermes:backend:touch', profile, options),
-  getPoolLimits: () => ipcRenderer.invoke('hermes:pool-limits:get'),
-  setPoolLimits: limits => ipcRenderer.invoke('hermes:pool-limits:set', limits),
-  getGatewayWsUrl: profile => ipcRenderer.invoke('hermes:gateway:ws-url', profile),
+  getConnectionFor: payload => ipcRenderer.invoke('iris:connection:for', payload),
+  getProfileRoutes: profiles => ipcRenderer.invoke('iris:plugin-profile-routes', profiles),
+  revalidateConnection: () => ipcRenderer.invoke('iris:connection:revalidate'),
+  touchBackend: (profile, options) => ipcRenderer.invoke('iris:backend:touch', profile, options),
+  getPoolLimits: () => ipcRenderer.invoke('iris:pool-limits:get'),
+  setPoolLimits: limits => ipcRenderer.invoke('iris:pool-limits:set', limits),
+  getGatewayWsUrl: profile => ipcRenderer.invoke('iris:gateway:ws-url', profile),
   // Registry-scoped fresh WS URL: { connectionId, profile } → result shape of
   // getGatewayWsUrl, minted against that connection's backend.
-  getGatewayWsUrlFor: payload => ipcRenderer.invoke('hermes:gateway:ws-url-for', payload),
+  getGatewayWsUrlFor: payload => ipcRenderer.invoke('iris:gateway:ws-url-for', payload),
   // Union agent roster across every registered connection.
-  getAgentRoster: () => ipcRenderer.invoke('hermes:agents:roster'),
-  openSessionWindow: (sessionId, opts) => ipcRenderer.invoke('hermes:window:openSession', sessionId, opts),
-  openSessionInTerminal: (sessionId, opts) => ipcRenderer.invoke('hermes:window:openInTerminal', sessionId, opts),
-  openWindow: (options?: DesktopProfileRoute) => ipcRenderer.invoke('hermes:window:openInstance', options),
-  openBrowserWindow: tabId => ipcRenderer.invoke('hermes:window:openBrowser', tabId),
+  getAgentRoster: () => ipcRenderer.invoke('iris:agents:roster'),
+  openSessionWindow: (sessionId, opts) => ipcRenderer.invoke('iris:window:openSession', sessionId, opts),
+  openSessionInTerminal: (sessionId, opts) => ipcRenderer.invoke('iris:window:openInTerminal', sessionId, opts),
+  openWindow: (options?: DesktopProfileRoute) => ipcRenderer.invoke('iris:window:openInstance', options),
+  openBrowserWindow: tabId => ipcRenderer.invoke('iris:window:openBrowser', tabId),
   onBrowserPopoutClosed: callback => {
     const listener = (_event, tabId) => callback(tabId)
-    ipcRenderer.on('hermes:browser-popout:closed', listener)
+    ipcRenderer.on('iris:browser-popout:closed', listener)
 
-    return () => ipcRenderer.removeListener('hermes:browser-popout:closed', listener)
+    return () => ipcRenderer.removeListener('iris:browser-popout:closed', listener)
   },
-  claimAmbientCue: key => ipcRenderer.invoke('hermes:ambient:claim', key),
+  claimAmbientCue: key => ipcRenderer.invoke('iris:ambient:claim', key),
   windowControls: {
     custom: customWindowControlsEnabled(),
-    minimize: () => ipcRenderer.send('hermes:window-control', 'minimize'),
-    toggleMaximize: () => ipcRenderer.send('hermes:window-control', 'toggle-maximize'),
-    close: () => ipcRenderer.send('hermes:window-control', 'close')
+    minimize: () => ipcRenderer.send('iris:window-control', 'minimize'),
+    toggleMaximize: () => ipcRenderer.send('iris:window-control', 'toggle-maximize'),
+    close: () => ipcRenderer.send('iris:window-control', 'close')
   },
   wakeIndicator: {
-    getState: () => ipcRenderer.invoke('hermes:wake-indicator:get'),
-    setState: state => ipcRenderer.send('hermes:wake-indicator:set', state),
+    getState: () => ipcRenderer.invoke('iris:wake-indicator:get'),
+    setState: state => ipcRenderer.send('iris:wake-indicator:set', state),
     onState: callback => {
       const listener = (_event, state) => callback(state)
-      ipcRenderer.on('hermes:wake-indicator:state', listener)
+      ipcRenderer.on('iris:wake-indicator:state', listener)
 
-      return () => ipcRenderer.removeListener('hermes:wake-indicator:state', listener)
+      return () => ipcRenderer.removeListener('iris:wake-indicator:state', listener)
     }
   },
   chatOnboarding: {
-    grow: request => ipcRenderer.send('hermes:chat-onboarding:grow', request),
-    soloBoot: () => ipcRenderer.send('hermes:chat-onboarding:solo-boot')
+    grow: request => ipcRenderer.send('iris:chat-onboarding:grow', request),
+    soloBoot: () => ipcRenderer.send('iris:chat-onboarding:solo-boot')
   },
   introReveal: {
-    open: (payload?: { hideMain?: boolean }) => ipcRenderer.invoke('hermes:intro-reveal:open', payload),
-    close: (payload?: { showMain?: boolean }) => ipcRenderer.invoke('hermes:intro-reveal:close', payload),
-    skip: () => ipcRenderer.send('hermes:intro-reveal:skip'),
-    ready: () => ipcRenderer.send('hermes:intro-reveal:ready'),
+    open: (payload?: { hideMain?: boolean }) => ipcRenderer.invoke('iris:intro-reveal:open', payload),
+    close: (payload?: { showMain?: boolean }) => ipcRenderer.invoke('iris:intro-reveal:close', payload),
+    skip: () => ipcRenderer.send('iris:intro-reveal:skip'),
+    ready: () => ipcRenderer.send('iris:intro-reveal:ready'),
     onSkip: callback => {
       const listener = () => callback()
 
-      ipcRenderer.on('hermes:intro-reveal:skip', listener)
+      ipcRenderer.on('iris:intro-reveal:skip', listener)
 
-      return () => ipcRenderer.removeListener('hermes:intro-reveal:skip', listener)
+      return () => ipcRenderer.removeListener('iris:intro-reveal:skip', listener)
     },
     onClosed: callback => {
       const listener = () => callback()
 
-      ipcRenderer.on('hermes:intro-reveal:closed', listener)
+      ipcRenderer.on('iris:intro-reveal:closed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:intro-reveal:closed', listener)
+      return () => ipcRenderer.removeListener('iris:intro-reveal:closed', listener)
     }
   },
   petOverlay: {
     // Main renderer → main process: window lifecycle + drag. `request` is
     // `{ bounds, screen }`; resolves with the screen bounds it actually used.
-    open: request => ipcRenderer.invoke('hermes:pet-overlay:open', request),
-    close: () => ipcRenderer.invoke('hermes:pet-overlay:close'),
-    setBounds: bounds => ipcRenderer.send('hermes:pet-overlay:set-bounds', bounds),
-    setIgnoreMouse: ignore => ipcRenderer.send('hermes:pet-overlay:ignore-mouse', ignore),
+    open: request => ipcRenderer.invoke('iris:pet-overlay:open', request),
+    close: () => ipcRenderer.invoke('iris:pet-overlay:close'),
+    setBounds: bounds => ipcRenderer.send('iris:pet-overlay:set-bounds', bounds),
+    setIgnoreMouse: ignore => ipcRenderer.send('iris:pet-overlay:ignore-mouse', ignore),
     // Flip the overlay focusable (and focus it) while the composer needs keys.
-    setFocusable: focusable => ipcRenderer.send('hermes:pet-overlay:set-focusable', focusable),
+    setFocusable: focusable => ipcRenderer.send('iris:pet-overlay:set-focusable', focusable),
     // Main renderer → overlay (forwarded by main): push the latest pet state.
-    pushState: payload => ipcRenderer.send('hermes:pet-overlay:state', payload),
+    pushState: payload => ipcRenderer.send('iris:pet-overlay:state', payload),
     // Overlay → main renderer (forwarded by main): pop back in / composer submit.
-    control: payload => ipcRenderer.send('hermes:pet-overlay:control', payload),
+    control: payload => ipcRenderer.send('iris:pet-overlay:control', payload),
     // Overlay subscribes to state pushes.
     onState: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:pet-overlay:state', listener)
+      ipcRenderer.on('iris:pet-overlay:state', listener)
 
-      return () => ipcRenderer.removeListener('hermes:pet-overlay:state', listener)
+      return () => ipcRenderer.removeListener('iris:pet-overlay:state', listener)
     },
     // Main renderer subscribes to overlay control messages.
     onControl: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:pet-overlay:control', listener)
+      ipcRenderer.on('iris:pet-overlay:control', listener)
 
-      return () => ipcRenderer.removeListener('hermes:pet-overlay:control', listener)
+      return () => ipcRenderer.removeListener('iris:pet-overlay:control', listener)
     }
   },
   // HUD mode: the chrome-free floating chat. A full app renderer (own gateway)
@@ -134,33 +134,33 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
       solid: hudWindowing?.solid === true,
       workspaceTransfer: hudWindowing?.workspaceTransfer === true
     },
-    open: request => ipcRenderer.invoke('hermes:hud:open', request),
-    close: () => ipcRenderer.invoke('hermes:hud:close'),
-    setIgnoreMouse: ignore => ipcRenderer.send('hermes:hud:ignore-mouse', ignore),
-    beginMove: () => ipcRenderer.send('hermes:hud:begin-move'),
-    endMove: () => ipcRenderer.send('hermes:hud:end-move'),
-    moveBy: delta => ipcRenderer.send('hermes:hud:move-by', delta),
-    setWorkspaceTransfer: transferring => ipcRenderer.send('hermes:hud:workspace-transfer', transferring),
-    setBounds: bounds => ipcRenderer.send('hermes:hud:set-bounds', bounds),
-    resetLayout: () => ipcRenderer.invoke('hermes:hud:reset-layout'),
+    open: request => ipcRenderer.invoke('iris:hud:open', request),
+    close: () => ipcRenderer.invoke('iris:hud:close'),
+    setIgnoreMouse: ignore => ipcRenderer.send('iris:hud:ignore-mouse', ignore),
+    beginMove: () => ipcRenderer.send('iris:hud:begin-move'),
+    endMove: () => ipcRenderer.send('iris:hud:end-move'),
+    moveBy: delta => ipcRenderer.send('iris:hud:move-by', delta),
+    setWorkspaceTransfer: transferring => ipcRenderer.send('iris:hud:workspace-transfer', transferring),
+    setBounds: bounds => ipcRenderer.send('iris:hud:set-bounds', bounds),
+    resetLayout: () => ipcRenderer.invoke('iris:hud:reset-layout'),
     // Whether the band covers the window below the bar. Main pairs it with the
     // user's translucency setting to decide the native frost (macOS vibrancy /
     // Windows 11 DWM backdrop) — see hudFrostFor.
-    setFrost: showing => ipcRenderer.invoke('hermes:hud:frost', showing),
+    setFrost: showing => ipcRenderer.invoke('iris:hud:frost', showing),
     // The HUD tells main which session it is on; main hands that back to the
     // app window when the HUD closes, so the app can re-home onto it.
-    setSession: sessionId => ipcRenderer.send('hermes:hud:session', sessionId),
+    setSession: sessionId => ipcRenderer.send('iris:hud:session', sessionId),
     onGoto: callback => {
       const listener = (_event, sessionId) => callback(sessionId)
-      ipcRenderer.on('hermes:hud:goto', listener)
+      ipcRenderer.on('iris:hud:goto', listener)
 
-      return () => ipcRenderer.removeListener('hermes:hud:goto', listener)
+      return () => ipcRenderer.removeListener('iris:hud:goto', listener)
     },
     onChanged: callback => {
       const listener = (_event, state) => callback(state)
-      ipcRenderer.on('hermes:hud:changed', listener)
+      ipcRenderer.on('iris:hud:changed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:hud:changed', listener)
+      return () => ipcRenderer.removeListener('iris:hud:changed', listener)
     },
     // Linux only, and silent elsewhere: where the cursor is, in page
     // coordinates, or null when it has left the window. Stands in for the
@@ -168,51 +168,51 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
     // macOS and Windows but not here.
     onCursor: callback => {
       const listener = (_event, point) => callback(point)
-      ipcRenderer.on('hermes:hud:cursor', listener)
+      ipcRenderer.on('iris:hud:cursor', listener)
 
-      return () => ipcRenderer.removeListener('hermes:hud:cursor', listener)
+      return () => ipcRenderer.removeListener('iris:hud:cursor', listener)
     },
     // Main's game-overlay watch: whether a fullscreen app (a game) is under
     // the HUD, so the renderer can step back to the low-opacity overlay
     // treatment while one owns the screen.
     onGameOverlay: callback => {
       const listener = (_event, state) => callback(state)
-      ipcRenderer.on('hermes:hud:game-overlay', listener)
+      ipcRenderer.on('iris:hud:game-overlay', listener)
 
-      return () => ipcRenderer.removeListener('hermes:hud:game-overlay', listener)
+      return () => ipcRenderer.removeListener('iris:hud:game-overlay', listener)
     }
   },
   hudModifier: {
-    getSettings: () => ipcRenderer.invoke('hermes:hud-modifier:settings:get'),
-    setEnabled: enabled => ipcRenderer.invoke('hermes:hud-modifier:settings:set', enabled),
-    openPermissionSettings: () => ipcRenderer.invoke('hermes:hud-modifier:permission'),
+    getSettings: () => ipcRenderer.invoke('iris:hud-modifier:settings:get'),
+    setEnabled: enabled => ipcRenderer.invoke('iris:hud-modifier:settings:set', enabled),
+    openPermissionSettings: () => ipcRenderer.invoke('iris:hud-modifier:permission'),
     onStatus: callback => {
       const listener = (_event: Electron.IpcRendererEvent, status: HudModifierStatus) => callback(status)
-      ipcRenderer.on('hermes:hud-modifier:status', listener)
+      ipcRenderer.on('iris:hud-modifier:status', listener)
 
-      return () => ipcRenderer.removeListener('hermes:hud-modifier:status', listener)
+      return () => ipcRenderer.removeListener('iris:hud-modifier:status', listener)
     }
   } satisfies HudModifierApi,
   // macOS native screenshot gesture; captures require a main-issued request.
   screenshot:
     process.platform === 'darwin'
       ? {
-          getSettings: () => ipcRenderer.invoke('hermes:screenshot:settings:get'),
-          setEnabled: enabled => ipcRenderer.invoke('hermes:screenshot:settings:set', enabled),
-          openPermissionSettings: kind => ipcRenderer.invoke('hermes:screenshot:permission', kind),
-          capture: requestId => ipcRenderer.invoke('hermes:screenshot:capture', requestId),
+          getSettings: () => ipcRenderer.invoke('iris:screenshot:settings:get'),
+          setEnabled: enabled => ipcRenderer.invoke('iris:screenshot:settings:set', enabled),
+          openPermissionSettings: kind => ipcRenderer.invoke('iris:screenshot:permission', kind),
+          capture: requestId => ipcRenderer.invoke('iris:screenshot:capture', requestId),
           onStatus: callback => {
             const listener = (_event, status) => callback(status)
-            ipcRenderer.on('hermes:screenshot:status', listener)
+            ipcRenderer.on('iris:screenshot:status', listener)
 
-            return () => ipcRenderer.removeListener('hermes:screenshot:status', listener)
+            return () => ipcRenderer.removeListener('iris:screenshot:status', listener)
           },
           onRequest: callback => {
-            const channel = 'hermes:screenshot:request'
+            const channel = 'iris:screenshot:request'
             const listener = (_event, requestId) => callback(requestId)
 
             if (ipcRenderer.listenerCount(channel) === 0) {
-              ipcRenderer.send('hermes:screenshot:subscribe', true)
+              ipcRenderer.send('iris:screenshot:subscribe', true)
             }
 
             ipcRenderer.on(channel, listener)
@@ -221,7 +221,7 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
               ipcRenderer.removeListener(channel, listener)
 
               if (ipcRenderer.listenerCount(channel) === 0) {
-                ipcRenderer.send('hermes:screenshot:subscribe', false)
+                ipcRenderer.send('iris:screenshot:subscribe', false)
               }
             }
           }
@@ -232,127 +232,127 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   // and hands it back, and the primary renderer submits it through the normal
   // prompt path.
   quickEntry: {
-    getSettings: () => ipcRenderer.invoke('hermes:quick-entry:settings:get'),
-    setSettings: patch => ipcRenderer.invoke('hermes:quick-entry:settings:set', patch),
-    submit: payload => ipcRenderer.send('hermes:quick-entry:submit', payload),
-    dismiss: () => ipcRenderer.send('hermes:quick-entry:dismiss'),
+    getSettings: () => ipcRenderer.invoke('iris:quick-entry:settings:get'),
+    setSettings: patch => ipcRenderer.invoke('iris:quick-entry:settings:set', patch),
+    submit: payload => ipcRenderer.send('iris:quick-entry:submit', payload),
+    dismiss: () => ipcRenderer.send('iris:quick-entry:dismiss'),
     // Primary renderer → main → quick window: gateway connection state + the
     // recent-session options the target picker offers. Main caches the latest
     // payload so a freshly spawned quick window starts from truth.
-    pushState: payload => ipcRenderer.send('hermes:quick-entry:state', payload),
+    pushState: payload => ipcRenderer.send('iris:quick-entry:state', payload),
     // Quick window subscribes to those pushes.
     onState: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:quick-entry:state', listener)
+      ipcRenderer.on('iris:quick-entry:state', listener)
 
-      return () => ipcRenderer.removeListener('hermes:quick-entry:state', listener)
+      return () => ipcRenderer.removeListener('iris:quick-entry:state', listener)
     },
     // Main → primary renderer: a submit captured by the quick window.
     onSubmit: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:quick-entry:submit', listener)
+      ipcRenderer.on('iris:quick-entry:submit', listener)
 
-      return () => ipcRenderer.removeListener('hermes:quick-entry:submit', listener)
+      return () => ipcRenderer.removeListener('iris:quick-entry:submit', listener)
     },
     // Main → quick window: you were just summoned (reset draft + refocus).
     onShown: callback => {
       const listener = () => callback()
-      ipcRenderer.on('hermes:quick-entry:shown', listener)
+      ipcRenderer.on('iris:quick-entry:shown', listener)
 
-      return () => ipcRenderer.removeListener('hermes:quick-entry:shown', listener)
+      return () => ipcRenderer.removeListener('iris:quick-entry:shown', listener)
     }
   },
-  getBootProgress: () => ipcRenderer.invoke('hermes:boot-progress:get'),
-  getConnectionConfig: profile => ipcRenderer.invoke('hermes:connection-config:get', profile),
-  saveConnectionConfig: payload => ipcRenderer.invoke('hermes:connection-config:save', payload),
-  applyConnectionConfig: payload => ipcRenderer.invoke('hermes:connection-config:apply', payload),
-  testConnectionConfig: payload => ipcRenderer.invoke('hermes:connection-config:test', payload),
+  getBootProgress: () => ipcRenderer.invoke('iris:boot-progress:get'),
+  getConnectionConfig: profile => ipcRenderer.invoke('iris:connection-config:get', profile),
+  saveConnectionConfig: payload => ipcRenderer.invoke('iris:connection-config:save', payload),
+  applyConnectionConfig: payload => ipcRenderer.invoke('iris:connection-config:apply', payload),
+  testConnectionConfig: payload => ipcRenderer.invoke('iris:connection-config:test', payload),
   // Opt-in OS-keychain encryption for stored gateway secrets (default off —
   // see secret-storage-policy.ts). get never touches the OS keychain.
-  getSecretStorageEncryption: () => ipcRenderer.invoke('hermes:secret-storage:get'),
-  setSecretStorageEncryption: (on: boolean) => ipcRenderer.invoke('hermes:secret-storage:set', on),
+  getSecretStorageEncryption: () => ipcRenderer.invoke('iris:secret-storage:get'),
+  setSecretStorageEncryption: (on: boolean) => ipcRenderer.invoke('iris:secret-storage:set', on),
   // v2 multi-connection registry: named agent sources (local / remote / cloud / ssh).
   connections: {
-    list: () => ipcRenderer.invoke('hermes:connections:list'),
-    save: payload => ipcRenderer.invoke('hermes:connections:save', payload),
-    remove: id => ipcRenderer.invoke('hermes:connections:remove', id),
-    setPrimary: id => ipcRenderer.invoke('hermes:connections:set-primary', id),
-    setLaunchMode: mode => ipcRenderer.invoke('hermes:connections:set-launch-mode', mode),
-    setLastUsed: id => ipcRenderer.invoke('hermes:connections:set-last-used', id),
-    test: id => ipcRenderer.invoke('hermes:connections:test', id),
-    updateManaged: id => ipcRenderer.invoke('hermes:connections:update-managed', id),
-    // Fan out `hermes update` to every eligible registered connection.
+    list: () => ipcRenderer.invoke('iris:connections:list'),
+    save: payload => ipcRenderer.invoke('iris:connections:save', payload),
+    remove: id => ipcRenderer.invoke('iris:connections:remove', id),
+    setPrimary: id => ipcRenderer.invoke('iris:connections:set-primary', id),
+    setLaunchMode: mode => ipcRenderer.invoke('iris:connections:set-launch-mode', mode),
+    setLastUsed: id => ipcRenderer.invoke('iris:connections:set-last-used', id),
+    test: id => ipcRenderer.invoke('iris:connections:test', id),
+    updateManaged: id => ipcRenderer.invoke('iris:connections:update-managed', id),
+    // Fan out `iris update` to every eligible registered connection.
     // Optional excludeIds skips rows the caller updates through another path.
-    updateAll: options => ipcRenderer.invoke('hermes:connections:update-all', options),
+    updateAll: options => ipcRenderer.invoke('iris:connections:update-all', options),
     // Registry lifecycle push (main → renderer): a connection was removed or
     // materially edited, so secondaries scoped to it must be disposed (and,
     // for edits, re-dialed at the new target).
     onChanged: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:connections:changed', listener)
+      ipcRenderer.on('iris:connections:changed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:connections:changed', listener)
+      return () => ipcRenderer.removeListener('iris:connections:changed', listener)
     }
   },
-  sshConfigHosts: () => ipcRenderer.invoke('hermes:ssh-config:hosts'),
-  sshResolveHost: host => ipcRenderer.invoke('hermes:ssh-config:resolve', host),
-  probeConnectionConfig: remoteUrl => ipcRenderer.invoke('hermes:connection-config:probe', remoteUrl),
-  oauthLoginConnectionConfig: remoteUrl => ipcRenderer.invoke('hermes:connection-config:oauth-login', remoteUrl),
-  oauthLogoutConnectionConfig: remoteUrl => ipcRenderer.invoke('hermes:connection-config:oauth-logout', remoteUrl),
-  // Hermes Cloud: one portal login powers discovery + silent per-agent sign-in
+  sshConfigHosts: () => ipcRenderer.invoke('iris:ssh-config:hosts'),
+  sshResolveHost: host => ipcRenderer.invoke('iris:ssh-config:resolve', host),
+  probeConnectionConfig: remoteUrl => ipcRenderer.invoke('iris:connection-config:probe', remoteUrl),
+  oauthLoginConnectionConfig: remoteUrl => ipcRenderer.invoke('iris:connection-config:oauth-login', remoteUrl),
+  oauthLogoutConnectionConfig: remoteUrl => ipcRenderer.invoke('iris:connection-config:oauth-logout', remoteUrl),
+  // Iris Cloud: one portal login powers discovery + silent per-agent sign-in
   // (cloud-auto-discovery Phase 3).
   cloud: {
-    status: () => ipcRenderer.invoke('hermes:cloud:status'),
-    login: () => ipcRenderer.invoke('hermes:cloud:login'),
-    logout: () => ipcRenderer.invoke('hermes:cloud:logout'),
-    discover: org => ipcRenderer.invoke('hermes:cloud:discover', org),
-    agentSignIn: dashboardUrl => ipcRenderer.invoke('hermes:cloud:agent-sign-in', dashboardUrl)
+    status: () => ipcRenderer.invoke('iris:cloud:status'),
+    login: () => ipcRenderer.invoke('iris:cloud:login'),
+    logout: () => ipcRenderer.invoke('iris:cloud:logout'),
+    discover: org => ipcRenderer.invoke('iris:cloud:discover', org),
+    agentSignIn: dashboardUrl => ipcRenderer.invoke('iris:cloud:agent-sign-in', dashboardUrl)
   },
   profile: {
-    getDefault: () => ipcRenderer.invoke('hermes:profile:default:get'),
-    setDefault: (route: DesktopProfileRoute) => ipcRenderer.invoke('hermes:profile:default:set', route),
+    getDefault: () => ipcRenderer.invoke('iris:profile:default:get'),
+    setDefault: (route: DesktopProfileRoute) => ipcRenderer.invoke('iris:profile:default:set', route),
     onDefaultChanged: (callback: (route: DesktopProfileRoute | null) => void) => {
       const listener = (_event: Electron.IpcRendererEvent, route: DesktopProfileRoute | null) => callback(route)
-      ipcRenderer.on('hermes:profile:default:changed', listener)
+      ipcRenderer.on('iris:profile:default:changed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:profile:default:changed', listener)
+      return () => ipcRenderer.removeListener('iris:profile:default:changed', listener)
     },
-    get: () => ipcRenderer.invoke('hermes:profile:get'),
-    remember: name => ipcRenderer.invoke('hermes:profile:remember', name),
-    set: name => ipcRenderer.invoke('hermes:profile:set', name)
+    get: () => ipcRenderer.invoke('iris:profile:get'),
+    remember: name => ipcRenderer.invoke('iris:profile:remember', name),
+    set: name => ipcRenderer.invoke('iris:profile:set', name)
   },
-  api: request => ipcRenderer.invoke('hermes:api', request),
-  notify: payload => ipcRenderer.invoke('hermes:notify', payload),
-  requestMicrophoneAccess: () => ipcRenderer.invoke('hermes:requestMicrophoneAccess'),
-  readWindowBelow: () => ipcRenderer.invoke('hermes:window:readBelow'),
-  readFileDataUrl: filePath => ipcRenderer.invoke('hermes:readFileDataUrl', filePath),
-  readFileDataUrlForAttach: filePath => ipcRenderer.invoke('hermes:readFileDataUrlForAttach', filePath),
+  api: request => ipcRenderer.invoke('iris:api', request),
+  notify: payload => ipcRenderer.invoke('iris:notify', payload),
+  requestMicrophoneAccess: () => ipcRenderer.invoke('iris:requestMicrophoneAccess'),
+  readWindowBelow: () => ipcRenderer.invoke('iris:window:readBelow'),
+  readFileDataUrl: filePath => ipcRenderer.invoke('iris:readFileDataUrl', filePath),
+  readFileDataUrlForAttach: filePath => ipcRenderer.invoke('iris:readFileDataUrlForAttach', filePath),
   dataUrlReadMax: {
-    get: () => ipcRenderer.invoke('hermes:data-url-read-max:get'),
-    set: maxMb => ipcRenderer.invoke('hermes:data-url-read-max:set', maxMb)
+    get: () => ipcRenderer.invoke('iris:data-url-read-max:get'),
+    set: maxMb => ipcRenderer.invoke('iris:data-url-read-max:set', maxMb)
   },
-  readFileText: filePath => ipcRenderer.invoke('hermes:readFileText', filePath),
-  readPluginSource: (filePath: string) => ipcRenderer.invoke('hermes:readPluginSource', filePath),
-  selectPaths: options => ipcRenderer.invoke('hermes:selectPaths', options),
-  selectSavePath: options => ipcRenderer.invoke('hermes:selectSavePath', options),
-  writeClipboard: text => ipcRenderer.invoke('hermes:writeClipboard', text),
-  readClipboard: () => ipcRenderer.invoke('hermes:readClipboard'),
-  saveGatewayFile: payload => ipcRenderer.invoke('hermes:saveGatewayFile', payload),
-  saveImageFromUrl: url => ipcRenderer.invoke('hermes:saveImageFromUrl', url),
-  contextMenuEdit: command => ipcRenderer.invoke('hermes:context-menu:edit', command),
-  contextMenuCopyImage: () => ipcRenderer.invoke('hermes:context-menu:copy-image'),
-  contextMenuSpellcheck: action => ipcRenderer.invoke('hermes:context-menu:spellcheck', action),
-  contextMenuGuestAddWord: payload => ipcRenderer.invoke('hermes:context-menu:guest-add-word', payload),
+  readFileText: filePath => ipcRenderer.invoke('iris:readFileText', filePath),
+  readPluginSource: (filePath: string) => ipcRenderer.invoke('iris:readPluginSource', filePath),
+  selectPaths: options => ipcRenderer.invoke('iris:selectPaths', options),
+  selectSavePath: options => ipcRenderer.invoke('iris:selectSavePath', options),
+  writeClipboard: text => ipcRenderer.invoke('iris:writeClipboard', text),
+  readClipboard: () => ipcRenderer.invoke('iris:readClipboard'),
+  saveGatewayFile: payload => ipcRenderer.invoke('iris:saveGatewayFile', payload),
+  saveImageFromUrl: url => ipcRenderer.invoke('iris:saveImageFromUrl', url),
+  contextMenuEdit: command => ipcRenderer.invoke('iris:context-menu:edit', command),
+  contextMenuCopyImage: () => ipcRenderer.invoke('iris:context-menu:copy-image'),
+  contextMenuSpellcheck: action => ipcRenderer.invoke('iris:context-menu:spellcheck', action),
+  contextMenuGuestAddWord: payload => ipcRenderer.invoke('iris:context-menu:guest-add-word', payload),
   onContextMenuSpellcheck: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:context-menu-spellcheck', listener)
+    ipcRenderer.on('iris:context-menu-spellcheck', listener)
 
-    return () => ipcRenderer.removeListener('hermes:context-menu-spellcheck', listener)
+    return () => ipcRenderer.removeListener('iris:context-menu-spellcheck', listener)
   },
-  saveImageBuffer: (data, ext, name) => ipcRenderer.invoke('hermes:saveImageBuffer', { data, ext, name }),
-  capturePreview: payload => ipcRenderer.invoke('hermes:capturePreview', payload),
-  savePastedText: text => ipcRenderer.invoke('hermes:savePastedText', { text }),
-  saveClipboardImage: () => ipcRenderer.invoke('hermes:saveClipboardImage'),
+  saveImageBuffer: (data, ext, name) => ipcRenderer.invoke('iris:saveImageBuffer', { data, ext, name }),
+  capturePreview: payload => ipcRenderer.invoke('iris:capturePreview', payload),
+  savePastedText: text => ipcRenderer.invoke('iris:savePastedText', { text }),
+  saveClipboardImage: () => ipcRenderer.invoke('iris:saveClipboardImage'),
   getPathForFile: file => {
     try {
       return webUtils.getPathForFile(file) || ''
@@ -360,122 +360,122 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
       return ''
     }
   },
-  normalizePreviewTarget: (target, baseDir) => ipcRenderer.invoke('hermes:normalizePreviewTarget', target, baseDir),
-  watchPreviewFile: url => ipcRenderer.invoke('hermes:watchPreviewFile', url),
-  watchDirectory: dir => ipcRenderer.invoke('hermes:watchDirectory', dir),
-  stopPreviewFileWatch: id => ipcRenderer.invoke('hermes:stopPreviewFileWatch', id),
-  setActiveWork: payload => ipcRenderer.send('hermes:active-work', payload),
-  setTitleBarTheme: payload => ipcRenderer.send('hermes:titlebar-theme', payload),
-  setNativeTheme: mode => ipcRenderer.send('hermes:native-theme', mode),
-  setTranslucency: payload => ipcRenderer.send('hermes:translucency', payload),
-  setKeepAwake: on => ipcRenderer.send('hermes:keep-awake', on),
+  normalizePreviewTarget: (target, baseDir) => ipcRenderer.invoke('iris:normalizePreviewTarget', target, baseDir),
+  watchPreviewFile: url => ipcRenderer.invoke('iris:watchPreviewFile', url),
+  watchDirectory: dir => ipcRenderer.invoke('iris:watchDirectory', dir),
+  stopPreviewFileWatch: id => ipcRenderer.invoke('iris:stopPreviewFileWatch', id),
+  setActiveWork: payload => ipcRenderer.send('iris:active-work', payload),
+  setTitleBarTheme: payload => ipcRenderer.send('iris:titlebar-theme', payload),
+  setNativeTheme: mode => ipcRenderer.send('iris:native-theme', mode),
+  setTranslucency: payload => ipcRenderer.send('iris:translucency', payload),
+  setKeepAwake: on => ipcRenderer.send('iris:keep-awake', on),
   minimizeToTray: {
-    get: () => ipcRenderer.invoke('hermes:minimize-to-tray:get'),
-    set: on => ipcRenderer.invoke('hermes:minimize-to-tray:set', on),
+    get: () => ipcRenderer.invoke('iris:minimize-to-tray:get'),
+    set: on => ipcRenderer.invoke('iris:minimize-to-tray:set', on),
     onChanged: callback => {
       const listener = (_event, status) => callback(status)
-      ipcRenderer.on('hermes:minimize-to-tray:changed', listener)
+      ipcRenderer.on('iris:minimize-to-tray:changed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:minimize-to-tray:changed', listener)
+      return () => ipcRenderer.removeListener('iris:minimize-to-tray:changed', listener)
     }
   },
-  setDisableF12: blocked => ipcRenderer.send('hermes:devtools:disable-f12', blocked),
-  setPreviewShortcutActive: active => ipcRenderer.send('hermes:previewShortcutActive', Boolean(active)),
-  openExternal: url => ipcRenderer.invoke('hermes:openExternal', url),
+  setDisableF12: blocked => ipcRenderer.send('iris:devtools:disable-f12', blocked),
+  setPreviewShortcutActive: active => ipcRenderer.send('iris:previewShortcutActive', Boolean(active)),
+  openExternal: url => ipcRenderer.invoke('iris:openExternal', url),
   mcpOauth: {
     // One-shot loopback listener for MCP OAuth against remote backends: bind
     // on this machine, hand redirectUri to mcp.servers.oauth.start, then wait
     // for the provider redirect and relay code/state via oauth.callback.
-    listen: () => ipcRenderer.invoke('hermes:mcp-oauth:listen'),
-    wait: (id, timeoutMs) => ipcRenderer.invoke('hermes:mcp-oauth:wait', id, timeoutMs),
-    cancel: id => ipcRenderer.invoke('hermes:mcp-oauth:cancel', id)
+    listen: () => ipcRenderer.invoke('iris:mcp-oauth:listen'),
+    wait: (id, timeoutMs) => ipcRenderer.invoke('iris:mcp-oauth:wait', id, timeoutMs),
+    cancel: id => ipcRenderer.invoke('iris:mcp-oauth:cancel', id)
   },
-  openPreviewInBrowser: url => ipcRenderer.invoke('hermes:openPreviewInBrowser', url),
-  reachPreviewUrl: url => ipcRenderer.invoke('hermes:preview:reach', url),
-  setActiveConnectionRoute: route => ipcRenderer.send('hermes:connection:active-route', route),
-  fetchLinkTitle: url => ipcRenderer.invoke('hermes:fetchLinkTitle', url),
-  resolveFavicon: url => ipcRenderer.invoke('hermes:resolveFavicon', url),
-  sanitizeWorkspaceCwd: cwd => ipcRenderer.invoke('hermes:workspace:sanitize', cwd),
+  openPreviewInBrowser: url => ipcRenderer.invoke('iris:openPreviewInBrowser', url),
+  reachPreviewUrl: url => ipcRenderer.invoke('iris:preview:reach', url),
+  setActiveConnectionRoute: route => ipcRenderer.send('iris:connection:active-route', route),
+  fetchLinkTitle: url => ipcRenderer.invoke('iris:fetchLinkTitle', url),
+  resolveFavicon: url => ipcRenderer.invoke('iris:resolveFavicon', url),
+  sanitizeWorkspaceCwd: cwd => ipcRenderer.invoke('iris:workspace:sanitize', cwd),
   settings: {
-    getDefaultProjectDir: () => ipcRenderer.invoke('hermes:setting:defaultProjectDir:get'),
-    setDefaultProjectDir: dir => ipcRenderer.invoke('hermes:setting:defaultProjectDir:set', dir),
-    pickDefaultProjectDir: () => ipcRenderer.invoke('hermes:setting:defaultProjectDir:pick')
+    getDefaultProjectDir: () => ipcRenderer.invoke('iris:setting:defaultProjectDir:get'),
+    setDefaultProjectDir: dir => ipcRenderer.invoke('iris:setting:defaultProjectDir:set', dir),
+    pickDefaultProjectDir: () => ipcRenderer.invoke('iris:setting:defaultProjectDir:pick')
   },
   zoom: {
     // Current zoom of this window, as { level, percent }.
-    get: () => ipcRenderer.invoke('hermes:zoom:get'),
+    get: () => ipcRenderer.invoke('iris:zoom:get'),
     // Synchronous zoom factor (1 = 100%). Coordinate math needs it in the
     // same tick as the event it converts, so no IPC round-trip here.
     factor: () => webFrame.getZoomFactor(),
-    setPercent: percent => ipcRenderer.send('hermes:zoom:set-percent', percent),
+    setPercent: percent => ipcRenderer.send('iris:zoom:set-percent', percent),
     // Fires on every zoom change, including the Ctrl/Cmd +/-/0 shortcuts,
     // so the settings UI can stay in sync with the keyboard.
     onChanged: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:zoom:changed', listener)
+      ipcRenderer.on('iris:zoom:changed', listener)
 
-      return () => ipcRenderer.removeListener('hermes:zoom:changed', listener)
+      return () => ipcRenderer.removeListener('iris:zoom:changed', listener)
     }
   },
-  revealLogs: () => ipcRenderer.invoke('hermes:logs:reveal'),
-  getRecentLogs: () => ipcRenderer.invoke('hermes:logs:recent'),
+  revealLogs: () => ipcRenderer.invoke('iris:logs:reveal'),
+  getRecentLogs: () => ipcRenderer.invoke('iris:logs:recent'),
   // Fire-and-forget: persists a renderer error-boundary catch (with component
   // stack) to desktop.log so crashes survive the window (#79428).
-  reportRendererError: report => ipcRenderer.send('hermes:logs:renderer-error', report),
-  readDir: dirPath => ipcRenderer.invoke('hermes:fs:readDir', dirPath),
-  gitRoot: startPath => ipcRenderer.invoke('hermes:fs:gitRoot', startPath),
-  revealPath: targetPath => ipcRenderer.invoke('hermes:fs:reveal', targetPath),
-  openDir: dirPath => ipcRenderer.invoke('hermes:fs:openDir', dirPath),
-  desktopPluginsRoot: () => ipcRenderer.invoke('hermes:fs:desktopPluginsRoot'),
-  reconcileDesktopPlugins: () => ipcRenderer.invoke('hermes:fs:reconcileDesktopPlugins'),
-  logsRoot: () => ipcRenderer.invoke('hermes:fs:logsRoot'),
-  renamePath: (targetPath, newName) => ipcRenderer.invoke('hermes:fs:rename', targetPath, newName),
-  writeTextFile: (filePath, content) => ipcRenderer.invoke('hermes:fs:writeText', filePath, content),
-  trashPath: targetPath => ipcRenderer.invoke('hermes:fs:trash', targetPath),
+  reportRendererError: report => ipcRenderer.send('iris:logs:renderer-error', report),
+  readDir: dirPath => ipcRenderer.invoke('iris:fs:readDir', dirPath),
+  gitRoot: startPath => ipcRenderer.invoke('iris:fs:gitRoot', startPath),
+  revealPath: targetPath => ipcRenderer.invoke('iris:fs:reveal', targetPath),
+  openDir: dirPath => ipcRenderer.invoke('iris:fs:openDir', dirPath),
+  desktopPluginsRoot: () => ipcRenderer.invoke('iris:fs:desktopPluginsRoot'),
+  reconcileDesktopPlugins: () => ipcRenderer.invoke('iris:fs:reconcileDesktopPlugins'),
+  logsRoot: () => ipcRenderer.invoke('iris:fs:logsRoot'),
+  renamePath: (targetPath, newName) => ipcRenderer.invoke('iris:fs:rename', targetPath, newName),
+  writeTextFile: (filePath, content) => ipcRenderer.invoke('iris:fs:writeText', filePath, content),
+  trashPath: targetPath => ipcRenderer.invoke('iris:fs:trash', targetPath),
   git: {
-    worktreeList: repoPath => ipcRenderer.invoke('hermes:git:worktreeList', repoPath),
-    worktreeAdd: (repoPath, options) => ipcRenderer.invoke('hermes:git:worktreeAdd', repoPath, options),
+    worktreeList: repoPath => ipcRenderer.invoke('iris:git:worktreeList', repoPath),
+    worktreeAdd: (repoPath, options) => ipcRenderer.invoke('iris:git:worktreeAdd', repoPath, options),
     worktreeRemove: (repoPath, worktreePath, options) =>
-      ipcRenderer.invoke('hermes:git:worktreeRemove', repoPath, worktreePath, options),
-    branchSwitch: (repoPath, branch) => ipcRenderer.invoke('hermes:git:branchSwitch', repoPath, branch),
-    branchList: repoPath => ipcRenderer.invoke('hermes:git:branchList', repoPath),
-    baseBranchList: repoPath => ipcRenderer.invoke('hermes:git:baseBranchList', repoPath),
-    repoStatus: repoPath => ipcRenderer.invoke('hermes:git:repoStatus', repoPath),
-    fileDiff: (repoPath, filePath) => ipcRenderer.invoke('hermes:git:fileDiff', repoPath, filePath),
-    scanRepos: (roots, options) => ipcRenderer.invoke('hermes:git:scanRepos', roots, options),
+      ipcRenderer.invoke('iris:git:worktreeRemove', repoPath, worktreePath, options),
+    branchSwitch: (repoPath, branch) => ipcRenderer.invoke('iris:git:branchSwitch', repoPath, branch),
+    branchList: repoPath => ipcRenderer.invoke('iris:git:branchList', repoPath),
+    baseBranchList: repoPath => ipcRenderer.invoke('iris:git:baseBranchList', repoPath),
+    repoStatus: repoPath => ipcRenderer.invoke('iris:git:repoStatus', repoPath),
+    fileDiff: (repoPath, filePath) => ipcRenderer.invoke('iris:git:fileDiff', repoPath, filePath),
+    scanRepos: (roots, options) => ipcRenderer.invoke('iris:git:scanRepos', roots, options),
     review: {
-      list: (repoPath, scope, baseRef) => ipcRenderer.invoke('hermes:git:review:list', repoPath, scope, baseRef),
+      list: (repoPath, scope, baseRef) => ipcRenderer.invoke('iris:git:review:list', repoPath, scope, baseRef),
       diff: (repoPath, filePath, scope, baseRef, staged) =>
-        ipcRenderer.invoke('hermes:git:review:diff', repoPath, filePath, scope, baseRef, staged),
-      stage: (repoPath, filePath) => ipcRenderer.invoke('hermes:git:review:stage', repoPath, filePath),
-      unstage: (repoPath, filePath) => ipcRenderer.invoke('hermes:git:review:unstage', repoPath, filePath),
-      revert: (repoPath, filePath) => ipcRenderer.invoke('hermes:git:review:revert', repoPath, filePath),
-      revParse: (repoPath, ref) => ipcRenderer.invoke('hermes:git:review:revParse', repoPath, ref),
-      commit: (repoPath, message, push) => ipcRenderer.invoke('hermes:git:review:commit', repoPath, message, push),
-      commitContext: repoPath => ipcRenderer.invoke('hermes:git:review:commitContext', repoPath),
-      push: repoPath => ipcRenderer.invoke('hermes:git:review:push', repoPath),
-      shipInfo: repoPath => ipcRenderer.invoke('hermes:git:review:shipInfo', repoPath),
+        ipcRenderer.invoke('iris:git:review:diff', repoPath, filePath, scope, baseRef, staged),
+      stage: (repoPath, filePath) => ipcRenderer.invoke('iris:git:review:stage', repoPath, filePath),
+      unstage: (repoPath, filePath) => ipcRenderer.invoke('iris:git:review:unstage', repoPath, filePath),
+      revert: (repoPath, filePath) => ipcRenderer.invoke('iris:git:review:revert', repoPath, filePath),
+      revParse: (repoPath, ref) => ipcRenderer.invoke('iris:git:review:revParse', repoPath, ref),
+      commit: (repoPath, message, push) => ipcRenderer.invoke('iris:git:review:commit', repoPath, message, push),
+      commitContext: repoPath => ipcRenderer.invoke('iris:git:review:commitContext', repoPath),
+      push: repoPath => ipcRenderer.invoke('iris:git:review:push', repoPath),
+      shipInfo: repoPath => ipcRenderer.invoke('iris:git:review:shipInfo', repoPath),
       prList: (repoPath, branches, numbers) =>
-        ipcRenderer.invoke('hermes:git:review:prList', repoPath, branches, numbers),
-      createPr: repoPath => ipcRenderer.invoke('hermes:git:review:createPr', repoPath)
+        ipcRenderer.invoke('iris:git:review:prList', repoPath, branches, numbers),
+      createPr: repoPath => ipcRenderer.invoke('iris:git:review:createPr', repoPath)
     }
   },
   terminal: {
-    attach: id => ipcRenderer.invoke('hermes:terminal:attach', id),
-    cwd: id => ipcRenderer.invoke('hermes:terminal:cwd', id),
-    dispose: id => ipcRenderer.invoke('hermes:terminal:dispose', id),
-    resize: (id, size) => ipcRenderer.invoke('hermes:terminal:resize', id, size),
-    start: options => ipcRenderer.invoke('hermes:terminal:start', options),
-    write: (id, data) => ipcRenderer.invoke('hermes:terminal:write', id, data),
+    attach: id => ipcRenderer.invoke('iris:terminal:attach', id),
+    cwd: id => ipcRenderer.invoke('iris:terminal:cwd', id),
+    dispose: id => ipcRenderer.invoke('iris:terminal:dispose', id),
+    resize: (id, size) => ipcRenderer.invoke('iris:terminal:resize', id, size),
+    start: options => ipcRenderer.invoke('iris:terminal:start', options),
+    write: (id, data) => ipcRenderer.invoke('iris:terminal:write', id, data),
     onData: (id, callback) => {
-      const channel = `hermes:terminal:${id}:data`
+      const channel = `iris:terminal:${id}:data`
       const listener = (_event, payload) => callback(payload)
       ipcRenderer.on(channel, listener)
 
       return () => ipcRenderer.removeListener(channel, listener)
     },
     onExit: (id, callback) => {
-      const channel = `hermes:terminal:${id}:exit`
+      const channel = `iris:terminal:${id}:exit`
       const listener = (_event, payload) => callback(payload)
       ipcRenderer.on(channel, listener)
 
@@ -484,151 +484,151 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   },
   onClosePreviewRequested: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:close-preview-requested', listener)
+    ipcRenderer.on('iris:close-preview-requested', listener)
 
-    return () => ipcRenderer.removeListener('hermes:close-preview-requested', listener)
+    return () => ipcRenderer.removeListener('iris:close-preview-requested', listener)
   },
   onPreviewNav: callback => {
     const listener = (_event, command) => callback(command)
-    ipcRenderer.on('hermes:preview-nav', listener)
+    ipcRenderer.on('iris:preview-nav', listener)
 
-    return () => ipcRenderer.removeListener('hermes:preview-nav', listener)
+    return () => ipcRenderer.removeListener('iris:preview-nav', listener)
   },
   onOpenFolderRequested: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:open-folder-requested', listener)
+    ipcRenderer.on('iris:open-folder-requested', listener)
 
-    return () => ipcRenderer.removeListener('hermes:open-folder-requested', listener)
+    return () => ipcRenderer.removeListener('iris:open-folder-requested', listener)
   },
   onOpenUpdatesRequested: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:open-updates', listener)
+    ipcRenderer.on('iris:open-updates', listener)
 
-    return () => ipcRenderer.removeListener('hermes:open-updates', listener)
+    return () => ipcRenderer.removeListener('iris:open-updates', listener)
   },
   onDeepLink: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:deep-link', listener)
+    ipcRenderer.on('iris:deep-link', listener)
 
-    return () => ipcRenderer.removeListener('hermes:deep-link', listener)
+    return () => ipcRenderer.removeListener('iris:deep-link', listener)
   },
-  signalDeepLinkReady: () => ipcRenderer.invoke('hermes:deep-link-ready'),
-  probePluginRepo: payload => ipcRenderer.invoke('hermes:plugin:probe', payload),
-  installDesktopPlugin: payload => ipcRenderer.invoke('hermes:plugin:installDesktop', payload),
-  removeDesktopPlugin: payload => ipcRenderer.invoke('hermes:plugin:removeDesktop', payload),
+  signalDeepLinkReady: () => ipcRenderer.invoke('iris:deep-link-ready'),
+  probePluginRepo: payload => ipcRenderer.invoke('iris:plugin:probe', payload),
+  installDesktopPlugin: payload => ipcRenderer.invoke('iris:plugin:installDesktop', payload),
+  removeDesktopPlugin: payload => ipcRenderer.invoke('iris:plugin:removeDesktop', payload),
   onWindowStateChanged: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:window-state-changed', listener)
+    ipcRenderer.on('iris:window-state-changed', listener)
 
-    return () => ipcRenderer.removeListener('hermes:window-state-changed', listener)
+    return () => ipcRenderer.removeListener('iris:window-state-changed', listener)
   },
   onFocusSession: callback => {
     const listener = (_event, sessionId) => callback(sessionId)
-    ipcRenderer.on('hermes:focus-session', listener)
+    ipcRenderer.on('iris:focus-session', listener)
 
-    return () => ipcRenderer.removeListener('hermes:focus-session', listener)
+    return () => ipcRenderer.removeListener('iris:focus-session', listener)
   },
   onNotificationAction: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:notification-action', listener)
+    ipcRenderer.on('iris:notification-action', listener)
 
-    return () => ipcRenderer.removeListener('hermes:notification-action', listener)
+    return () => ipcRenderer.removeListener('iris:notification-action', listener)
   },
   onNotificationActivate: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:notification-activate', listener)
+    ipcRenderer.on('iris:notification-activate', listener)
 
-    return () => ipcRenderer.removeListener('hermes:notification-activate', listener)
+    return () => ipcRenderer.removeListener('iris:notification-activate', listener)
   },
   onPreviewFileChanged: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:preview-file-changed', listener)
+    ipcRenderer.on('iris:preview-file-changed', listener)
 
-    return () => ipcRenderer.removeListener('hermes:preview-file-changed', listener)
+    return () => ipcRenderer.removeListener('iris:preview-file-changed', listener)
   },
   onBackendExit: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:backend-exit', listener)
+    ipcRenderer.on('iris:backend-exit', listener)
 
-    return () => ipcRenderer.removeListener('hermes:backend-exit', listener)
+    return () => ipcRenderer.removeListener('iris:backend-exit', listener)
   },
   // Cooperative pool retirement (main → renderer): the pooled backend under
   // `poolKey` is being stopped for a foreground open. Park that scope; do not
   // redial into the slot it vacated.
   onPoolBackendRetiring: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:pool:retiring', listener)
+    ipcRenderer.on('iris:pool:retiring', listener)
 
-    return () => ipcRenderer.removeListener('hermes:pool:retiring', listener)
+    return () => ipcRenderer.removeListener('iris:pool:retiring', listener)
   },
   // Soft gateway-mode apply finished tearing down the primary backend. Renderer
   // should wipe session lists + re-dial without a window reload.
   onConnectionApplied: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:connection:applied', listener)
+    ipcRenderer.on('iris:connection:applied', listener)
 
-    return () => ipcRenderer.removeListener('hermes:connection:applied', listener)
+    return () => ipcRenderer.removeListener('iris:connection:applied', listener)
   },
   onPowerResume: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:power-resume', listener)
+    ipcRenderer.on('iris:power-resume', listener)
 
-    return () => ipcRenderer.removeListener('hermes:power-resume', listener)
+    return () => ipcRenderer.removeListener('iris:power-resume', listener)
   },
   // AC ↔ battery transitions; renderers slow their backstop polls on battery.
-  getOnBattery: () => ipcRenderer.invoke('hermes:power-battery:get'),
+  getOnBattery: () => ipcRenderer.invoke('iris:power-battery:get'),
   onBatteryChanged: callback => {
     const listener = (_event, onBattery) => callback(Boolean(onBattery))
-    ipcRenderer.on('hermes:power-battery', listener)
+    ipcRenderer.on('iris:power-battery', listener)
 
-    return () => ipcRenderer.removeListener('hermes:power-battery', listener)
+    return () => ipcRenderer.removeListener('iris:power-battery', listener)
   },
   onBootProgress: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:boot-progress', listener)
+    ipcRenderer.on('iris:boot-progress', listener)
 
-    return () => ipcRenderer.removeListener('hermes:boot-progress', listener)
+    return () => ipcRenderer.removeListener('iris:boot-progress', listener)
   },
   // First-launch bootstrap progress -- emitted by the install.ps1 stage
   // runner in main.ts (apps/desktop/electron/bootstrap-runner.ts).
   // Renderer's install overlay subscribes to live events and queries the
   // current snapshot via getBootstrapState() to recover after a devtools
   // reload mid-bootstrap.
-  getBootstrapState: () => ipcRenderer.invoke('hermes:bootstrap:get'),
-  continueBootstrapLocal: () => ipcRenderer.invoke('hermes:bootstrap:continue-local'),
-  recycleBackend: profile => ipcRenderer.invoke('hermes:backend:recycle', profile),
-  resetBootstrap: () => ipcRenderer.invoke('hermes:bootstrap:reset'),
-  repairBootstrap: () => ipcRenderer.invoke('hermes:bootstrap:repair'),
-  cancelBootstrap: () => ipcRenderer.invoke('hermes:bootstrap:cancel'),
+  getBootstrapState: () => ipcRenderer.invoke('iris:bootstrap:get'),
+  continueBootstrapLocal: () => ipcRenderer.invoke('iris:bootstrap:continue-local'),
+  recycleBackend: profile => ipcRenderer.invoke('iris:backend:recycle', profile),
+  resetBootstrap: () => ipcRenderer.invoke('iris:bootstrap:reset'),
+  repairBootstrap: () => ipcRenderer.invoke('iris:bootstrap:repair'),
+  cancelBootstrap: () => ipcRenderer.invoke('iris:bootstrap:cancel'),
   onBootstrapEvent: callback => {
     const listener = (_event, payload) => callback(payload)
-    ipcRenderer.on('hermes:bootstrap:event', listener)
+    ipcRenderer.on('iris:bootstrap:event', listener)
 
-    return () => ipcRenderer.removeListener('hermes:bootstrap:event', listener)
+    return () => ipcRenderer.removeListener('iris:bootstrap:event', listener)
   },
-  getVersion: () => ipcRenderer.invoke('hermes:version'),
-  relaunchApp: () => ipcRenderer.invoke('hermes:app:relaunch'),
-  getMachineProfile: () => ipcRenderer.invoke('hermes:machine:profile'),
-  getRemoteDisplayReason: () => ipcRenderer.invoke('hermes:get-remote-display-reason'),
+  getVersion: () => ipcRenderer.invoke('iris:version'),
+  relaunchApp: () => ipcRenderer.invoke('iris:app:relaunch'),
+  getMachineProfile: () => ipcRenderer.invoke('iris:machine:profile'),
+  getRemoteDisplayReason: () => ipcRenderer.invoke('iris:get-remote-display-reason'),
   uninstall: {
-    summary: () => ipcRenderer.invoke('hermes:uninstall:summary'),
-    run: mode => ipcRenderer.invoke('hermes:uninstall:run', { mode })
+    summary: () => ipcRenderer.invoke('iris:uninstall:summary'),
+    run: mode => ipcRenderer.invoke('iris:uninstall:run', { mode })
   },
   updates: {
-    check: opts => ipcRenderer.invoke('hermes:updates:check', opts),
-    apply: opts => ipcRenderer.invoke('hermes:updates:apply', opts),
-    getBranch: () => ipcRenderer.invoke('hermes:updates:branch:get'),
-    setBranch: name => ipcRenderer.invoke('hermes:updates:branch:set', name),
+    check: opts => ipcRenderer.invoke('iris:updates:check', opts),
+    apply: opts => ipcRenderer.invoke('iris:updates:apply', opts),
+    getBranch: () => ipcRenderer.invoke('iris:updates:branch:get'),
+    setBranch: name => ipcRenderer.invoke('iris:updates:branch:set', name),
     onProgress: callback => {
       const listener = (_event, payload) => callback(payload)
-      ipcRenderer.on('hermes:updates:progress', listener)
+      ipcRenderer.on('iris:updates:progress', listener)
 
-      return () => ipcRenderer.removeListener('hermes:updates:progress', listener)
+      return () => ipcRenderer.removeListener('iris:updates:progress', listener)
     }
   },
   themes: {
-    fetchMarketplace: id => ipcRenderer.invoke('hermes:vscode-theme:fetch', id),
-    searchMarketplace: query => ipcRenderer.invoke('hermes:vscode-theme:search', query)
+    fetchMarketplace: id => ipcRenderer.invoke('iris:vscode-theme:fetch', id),
+    searchMarketplace: query => ipcRenderer.invoke('iris:vscode-theme:search', query)
   },
   // Find-in-page (Ctrl/Cmd+F): delegates to Electron's
   // webContents.findInPage on the IPC sender's window so a Cmd+F pressed
@@ -636,21 +636,21 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   // `onFoundInPage` returns the unsubscribe fn; the renderer wires it via
   // `initFindInPageListener` in store/find-in-page.ts and tears it down
   // when the FindBar unmounts.
-  findInPage: (query, options) => ipcRenderer.invoke('hermes:find-in-page', query, options),
-  stopFindInPage: () => ipcRenderer.invoke('hermes:stop-find-in-page'),
+  findInPage: (query, options) => ipcRenderer.invoke('iris:find-in-page', query, options),
+  stopFindInPage: () => ipcRenderer.invoke('iris:stop-find-in-page'),
   onFoundInPage: callback => {
     const listener = (_event, result) => callback(result)
-    ipcRenderer.on('hermes:found-in-page', listener)
+    ipcRenderer.on('iris:found-in-page', listener)
 
-    return () => ipcRenderer.removeListener('hermes:found-in-page', listener)
+    return () => ipcRenderer.removeListener('iris:found-in-page', listener)
   },
   // Main-process `before-input-event` forwards Ctrl/Cmd+F here so renderer
   // can open the FindBar even when the GTK compositor has already grabbed
   // the chord at the windowing layer (#81727).
   onOpenFindBarRequested: callback => {
     const listener = () => callback()
-    ipcRenderer.on('hermes:open-find-bar', listener)
+    ipcRenderer.on('iris:open-find-bar', listener)
 
-    return () => ipcRenderer.removeListener('hermes:open-find-bar', listener)
+    return () => ipcRenderer.removeListener('iris:open-find-bar', listener)
   }
 })

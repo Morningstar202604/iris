@@ -7,7 +7,7 @@ file, ...) comes from ``secrets.command`` in ``config.yaml`` — NEVER from
 
 Security model: the command string is the USER'S OWN configuration, so it runs
 via ``/bin/sh -c``; the requested key reaches the child ONLY via
-``HERMES_SECRET_KEY`` (never interpolated, so a hostile key name is inert); hard
+``IRIS_SECRET_KEY`` (never interpolated, so a hostile key name is inert); hard
 timeout (default 3s) + 1 MiB output cap, every failure degrades to "no value";
 failure logs carry ONLY structured fields (exit code / signal / errno), never
 the command, the helper's stderr (captured and DISCARDED) or any value; startup
@@ -61,7 +61,7 @@ def unquote_dotenv_value(raw: str) -> str:
 def _run_helper(command: str, secret_key: str, timeout_seconds: float, max_output_bytes: int) -> Optional[str]:
     """Run the helper via ``/bin/sh -c`` and return its stdout, or None.
 
-    The key travels as DATA in ``HERMES_SECRET_KEY``. stdout/stderr are piped
+    The key travels as DATA in ``IRIS_SECRET_KEY``. stdout/stderr are piped
     (never inherited); stderr is discarded. Any failure logs structured fields
     only and returns None — never raises.
     """
@@ -72,7 +72,7 @@ def _run_helper(command: str, secret_key: str, timeout_seconds: float, max_outpu
     # The helper legitimately gets the user's shell env (it may need any
     # credential to resolve the secret) — but a multiplex profile only its own.
     env = source_child_env()
-    env["HERMES_SECRET_KEY"] = secret_key
+    env["IRIS_SECRET_KEY"] = secret_key
 
     try:
         proc = subprocess.Popen(  # noqa: S602 — command is the user's own config
@@ -141,7 +141,7 @@ class CommandSource(SecretSource):
         secrets:
           command:
             enabled: true
-            command: "cat /run/user/1000/hermes-secrets.env"
+            command: "cat /run/user/1000/iris-secrets.env"
     """
 
     name = "command"
@@ -151,7 +151,7 @@ class CommandSource(SecretSource):
         ErrorKind.NOT_CONFIGURED: "Set secrets.command.command in config.yaml to a fast, "
                                   "non-interactive helper that prints KEY=VALUE lines.",
         ErrorKind.INTERNAL: "Run the helper manually in a shell to see its real error — "
-                            "Hermes discards helper stderr so diagnostics can't leak "
+                            "Iris discards helper stderr so diagnostics can't leak "
                             "secret material.",
     }
 
@@ -230,7 +230,7 @@ def apply_command_secrets(
         return result
 
     # The list/enumerate path: run the helper exactly ONCE with an empty
-    # HERMES_SECRET_KEY and parse its stdout as a dotenv blob.
+    # IRIS_SECRET_KEY and parse its stdout as a dotenv blob.
     stdout = _run_helper(command, "", timeout_seconds, max_output_bytes)
     if stdout is None:
         # _run_helper already logged structured fields to stderr.
@@ -338,7 +338,7 @@ def get_command_secret(
     max_output_bytes: int = _MAX_OUTPUT_BYTES,
 ) -> Optional[str]:
     """Resolve a single secret by running the helper with the key in
-    ``HERMES_SECRET_KEY``.  Returns None on any failure — never raises."""
+    ``IRIS_SECRET_KEY``.  Returns None on any failure — never raises."""
     command = (command or "").strip()
     if not command:
         return None
@@ -377,7 +377,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

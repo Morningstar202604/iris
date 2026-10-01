@@ -53,8 +53,8 @@ eval(extractFunc('_isChildSession'));
 eval(extractFunc('_sessionLineageKey'));
 eval(extractFunc('_collapseSessionLineageForSidebar'));
 const sessions = [
-  {{session_id:'root', title:'Hermes WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'root'}},
-  {{session_id:'tip', title:'Hermes WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'root', title:'Iris WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'root'}},
+  {{session_id:'tip', title:'Iris WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
   {{session_id:'solo', title:'Other', message_count:5, updated_at:15, last_message_at:15}},
 ];
 const collapsed = _collapseSessionLineageForSidebar(sessions);
@@ -116,8 +116,8 @@ eval(extractFunc('_sessionLineageKey'));
 eval(extractFunc('_collapseSessionLineageForSidebar'));
 eval(extractFunc('_sessionLineageContainsSession'));
 const sessions = [
-  {{session_id:'root', title:'Hermes WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
-  {{session_id:'tip', title:'Hermes WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'root', title:'Iris WebUI', message_count:10, updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
+  {{session_id:'tip', title:'Iris WebUI', message_count:20, updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip'}},
 ];
 const collapsed = _collapseSessionLineageForSidebar(sessions);
 console.log(JSON.stringify({{sid: collapsed[0].session_id, containsRoot: _sessionLineageContainsSession(collapsed[0], 'root')}}));
@@ -415,14 +415,14 @@ function summarize(raw) {{
   }};
 }}
 const refreshA = [
-  {{session_id:'root', title:'Optimizing Hermes Development', updated_at:40, last_message_at:40, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
-  {{session_id:'tip', title:'Optimizing Hermes Development', parent_session_id:'root', updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
-  {{session_id:'fork-child', title:'Optimizing Hermes Development child', parent_session_id:'root', relationship_type:'child_session', session_source:'fork', _parent_lineage_root_id:'root', _parent_lineage_tip_id:'tip', updated_at:50, last_message_at:50}},
+  {{session_id:'root', title:'Optimizing Iris Development', updated_at:40, last_message_at:40, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
+  {{session_id:'tip', title:'Optimizing Iris Development', parent_session_id:'root', updated_at:20, last_message_at:20, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
+  {{session_id:'fork-child', title:'Optimizing Iris Development child', parent_session_id:'root', relationship_type:'child_session', session_source:'fork', _parent_lineage_root_id:'root', _parent_lineage_tip_id:'tip', updated_at:50, last_message_at:50}},
 ];
 const refreshB = [
-  {{session_id:'root', title:'Optimizing Hermes Development', updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
-  {{session_id:'tip', title:'Optimizing Hermes Development', parent_session_id:'root', updated_at:60, last_message_at:60, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
-  {{session_id:'fork-child', title:'Optimizing Hermes Development child', parent_session_id:'root', relationship_type:'child_session', session_source:'fork', _parent_lineage_root_id:'root', _parent_lineage_tip_id:'tip', updated_at:50, last_message_at:50}},
+  {{session_id:'root', title:'Optimizing Iris Development', updated_at:10, last_message_at:10, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
+  {{session_id:'tip', title:'Optimizing Iris Development', parent_session_id:'root', updated_at:60, last_message_at:60, _lineage_root_id:'root', _lineage_tip_id:'tip', _compression_segment_count:2}},
+  {{session_id:'fork-child', title:'Optimizing Iris Development child', parent_session_id:'root', relationship_type:'child_session', session_source:'fork', _parent_lineage_root_id:'root', _parent_lineage_tip_id:'tip', updated_at:50, last_message_at:50}},
 ];
 console.log(JSON.stringify([summarize(refreshA), summarize(refreshB)]));
 """
@@ -2296,11 +2296,11 @@ eval(extractFunc('_sessionDisplayTitle'));
 eval(extractFunc('_attachChildSessionsToSidebarRows'));
 const parentRow={{
   session_id:'tip',
-  title:'Hermes WebUI #8',
+  title:'Iris WebUI #8',
   _lineage_root_id:'root',
   _lineage_segments:[
-    {{session_id:'tip', title:'Hermes WebUI #8', display_title:'Hermes WebUI #177'}},
-    {{session_id:'old-parent', title:'Hermes WebUI #8', display_title:'Hermes WebUI #176'}},
+    {{session_id:'tip', title:'Iris WebUI #8', display_title:'Iris WebUI #177'}},
+    {{session_id:'old-parent', title:'Iris WebUI #8', display_title:'Iris WebUI #176'}},
   ],
 }};
 const child={{
@@ -2314,11 +2314,11 @@ console.log(JSON.stringify(rows[0]._child_sessions[0]));
 """
     child = json.loads(_run_node(source))
     assert child["_parent_segment_id"] == "old-parent"
-    assert child["_parent_segment_title"] == "Hermes WebUI #176"
+    assert child["_parent_segment_title"] == "Iris WebUI #176"
 
 
 def test_default_webui_numbered_titles_are_not_treated_as_hash_tags():
-    """The reconciled title 'Hermes WebUI #177' must render with its number intact."""
+    """The reconciled title 'Iris WebUI #177' must render with its number intact."""
     js = SESSIONS_JS_PATH.read_text(encoding="utf-8")
     source = f"""
 const src = {js!r};
@@ -2338,7 +2338,7 @@ function extractFunc(name) {{
 eval(extractFunc('_sessionTitleIsDefaultWebUI'));
 eval(extractFunc('_sessionTitleTags'));
 console.log(JSON.stringify({{
-  webui:_sessionTitleTags('Hermes WebUI #177'),
+  webui:_sessionTitleTags('Iris WebUI #177'),
   custom:_sessionTitleTags('Deploy #prod'),
 }}));
 """

@@ -34,10 +34,10 @@ describe('pickWindowBelow', () => {
   })
 
   it('skips our own other windows (same pid) while walking down', () => {
-    const secondHermesWindow = win(SELF_PID, 150, 150)
+    const secondIrisWindow = win(SELF_PID, 150, 150)
     const target = win(7, 160, 160)
 
-    const { below } = pickWindowBelow([win(SELF_PID, 100, 100), secondHermesWindow, target], SELF_PID, SELF_BOUNDS)
+    const { below } = pickWindowBelow([win(SELF_PID, 100, 100), secondIrisWindow, target], SELF_PID, SELF_BOUNDS)
 
     expect(below).toBe(target)
   })
@@ -153,10 +153,10 @@ describe('resolveOutsideAsar', () => {
   it('redirects a packaged specifier into app.asar.unpacked', () => {
     expect(
       resolveOutsideAsar(
-        'file:///Applications/Hermes.app/Contents/Resources/app.asar/dist/node_modules/get-windows/index.js'
+        'file:///Applications/Iris.app/Contents/Resources/app.asar/dist/node_modules/get-windows/index.js'
       )
     ).toBe(
-      'file:///Applications/Hermes.app/Contents/Resources/app.asar.unpacked/dist/node_modules/get-windows/index.js'
+      'file:///Applications/Iris.app/Contents/Resources/app.asar.unpacked/dist/node_modules/get-windows/index.js'
     )
   })
 
@@ -165,10 +165,10 @@ describe('resolveOutsideAsar', () => {
   it('redirects a Windows packaged path built with backslashes', () => {
     expect(
       resolveOutsideAsar(
-        'C:\\Users\\me\\AppData\\Local\\Hermes\\resources\\app.asar\\dist\\node_modules\\get-windows\\index.js'
+        'C:\\Users\\me\\AppData\\Local\\Iris\\resources\\app.asar\\dist\\node_modules\\get-windows\\index.js'
       )
     ).toBe(
-      'C:\\Users\\me\\AppData\\Local\\Hermes\\resources\\app.asar.unpacked\\dist\\node_modules\\get-windows\\index.js'
+      'C:\\Users\\me\\AppData\\Local\\Iris\\resources\\app.asar.unpacked\\dist\\node_modules\\get-windows\\index.js'
     )
   })
 
@@ -177,7 +177,7 @@ describe('resolveOutsideAsar', () => {
   it('requires app.asar to be a complete path segment', () => {
     for (const untouched of [
       'file:///opt/app.asar-tools/node_modules/get-windows/index.js',
-      'file:///Users/dev/hermes-agent/node_modules/get-windows/index.js'
+      'file:///Users/dev/iris-agent/node_modules/get-windows/index.js'
     ]) {
       expect(resolveOutsideAsar(untouched)).toBe(untouched)
     }

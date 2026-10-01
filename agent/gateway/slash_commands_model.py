@@ -16,7 +16,7 @@ from typing import Any, Optional
 
 from agent.i18n import t
 from gateway.platforms.event import MessageEvent
-from hermes_cli.config import atomic_config_write
+from iris_cli.config import atomic_config_write
 from utils import base_url_host_matches
 
 logger = logging.getLogger("gateway.run")  # log-record parity with gateway/run.py
@@ -49,7 +49,7 @@ def _model_switch_skew_guard() -> Optional[str]:
         error=(
             f"This gateway is running code from {boot_rev} but the checkout on "
             f"disk is now {disk_rev}. Switching models would risk a stale-module "
-            f"crash — restart the gateway to load the new code: hermes gateway restart"
+            f"crash — restart the gateway to load the new code: iris gateway restart"
         ),
     )
 
@@ -57,7 +57,7 @@ def _model_switch_skew_guard() -> Optional[str]:
 async def _persist_model_switch_to_config(result, config_path) -> None:
     """Write-through a resolved /model switch to the profile config at ``config_path``, off the
     event loop (the route comparison can do cold-start disk I/O)."""
-    from hermes_cli.model_switch import persist_model_selection
+    from iris_cli.model_switch import persist_model_selection
     await asyncio.to_thread(persist_model_selection, result, config_path)
 
 
@@ -94,7 +94,7 @@ class _ModelSwitchContext:
                 self.current_base_url = model_cfg.get("base_url", "")
             self.user_provs = cfg.get("providers")
             try:
-                from hermes_cli.config import get_compatible_custom_providers
+                from iris_cli.config import get_compatible_custom_providers
                 self.custom_provs = get_compatible_custom_providers(cfg)
             except Exception:
                 self.custom_provs = cfg.get("custom_providers")
@@ -141,7 +141,7 @@ class GatewayModelCommandsMixin:
     ):
         """Resolve a /model switch off-loop. Returns ``(result, None)`` or ``(None, error_text)``."""
         from gateway.run import _load_gateway_config
-        from hermes_cli.model_switch import switch_model
+        from iris_cli.model_switch import switch_model
 
         skew_error = _model_switch_skew_guard()
         if skew_error:
@@ -157,7 +157,7 @@ class GatewayModelCommandsMixin:
         if not result.success:
             return None, t("gateway.model.error_prefix", error=result.error_message)
         try:
-            from hermes_cli.context_switch_guard import enrich_model_switch_warnings_for_gateway
+            from iris_cli.context_switch_guard import enrich_model_switch_warnings_for_gateway
             # Off-loop: merge_preflight_compression_warning() runs the sync provider probe ladder.
             await asyncio.to_thread(
                 enrich_model_switch_warnings_for_gateway, result, self, session_key=ctx.session_key,
@@ -201,7 +201,7 @@ class GatewayModelCommandsMixin:
         Returns the warning for a ``--global`` switch whose ``config.yaml`` write or stale-override
         cleanup failed (the switch then stays a session override), else ``None``.
         """
-        from hermes_cli.model_switch import format_model_for_display
+        from iris_cli.model_switch import format_model_for_display
 
         # Persist the new model to the session DB so the dashboard shows the updated model (#34850).
         _sess_db = getattr(self, "_session_db", None)
@@ -289,7 +289,7 @@ class GatewayModelCommandsMixin:
     ) -> str:
         """Confirmation text with full metadata (display form shortens opaque Palantir IDs)."""
         from gateway.run import _load_gateway_config
-        from hermes_cli.model_switch import format_model_for_display, resolve_display_context_length_async
+        from iris_cli.model_switch import format_model_for_display, resolve_display_context_length_async
 
         lines = [
             t("gateway.model.switched", model=format_model_for_display(result.new_model)),
@@ -394,7 +394,7 @@ class GatewayModelCommandsMixin:
     async def _send_model_picker(self, event: MessageEvent, source, adapter, session_key: str, listing_kwargs: dict, on_model_selected) -> bool:
         """Send the interactive /model picker; False when nothing was sent (text fallback). *source*
         is session-key-normalized so the picker's thread metadata lands where the next turn reads."""
-        from hermes_cli.model_switch_providers import list_picker_providers
+        from iris_cli.model_switch_providers import list_picker_providers
         try:  # off-loop: listing still reads config/disk cache synchronously (#41289)
             providers = await asyncio.to_thread(
                 list_picker_providers, max_models=50, include_moa=True, **listing_kwargs
@@ -416,8 +416,8 @@ class GatewayModelCommandsMixin:
         self, event: MessageEvent, ctx: _ModelSwitchContext, profile_home
     ) -> Optional[str]:
         """``/model`` with no args: interactive picker where supported, else the text list."""
-        from hermes_cli.model_switch import list_authenticated_providers
-        from hermes_cli.providers import get_label
+        from iris_cli.model_switch import list_authenticated_providers
+        from iris_cli.providers import get_label
 
         listing_kwargs = dict(
             current_provider=ctx.current_provider, current_base_url=ctx.current_base_url,
@@ -468,7 +468,7 @@ class GatewayModelCommandsMixin:
         rendered confirm buttons itself.
         """
         try:
-            from hermes_cli.model_selection_guards import (
+            from iris_cli.model_selection_guards import (
                 combined_selection_warning, selection_context_for_agent)
             warning = await asyncio.to_thread(
                 combined_selection_warning, result.new_model, provider=result.target_provider,
@@ -503,8 +503,8 @@ class GatewayModelCommandsMixin:
             return await self._handle_model_command_locked(event)
 
     async def _handle_model_command_locked(self, event: MessageEvent) -> Optional[str]:
-        from gateway.run import _hermes_home
-        from hermes_cli.model_switch import parse_model_switch_args, resolve_persist_behavior
+        from gateway.run import _iris_home
+        from iris_cli.model_switch import parse_model_switch_args, resolve_persist_behavior
 
         profile_home = None
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
@@ -514,7 +514,7 @@ class GatewayModelCommandsMixin:
             return f"❌ {request.error_messages()[0]}"  # gateway decoration over canonical copy
         if request.force_refresh:  # bust the disk cache so the picker shows live data
             with contextlib.suppress(Exception):
-                from hermes_cli.models import clear_provider_models_cache
+                from iris_cli.models import clear_provider_models_cache
                 clear_provider_models_cache()
         # Normalize like a message turn (Telegram DM topic recovery) before deriving the override
         # key, so the override lands under the key the next turn reads.
@@ -529,14 +529,14 @@ class GatewayModelCommandsMixin:
             # mid-history-copy, since each append_message call a few lines down is independently
             # best-effort) leaves the branch permanently unroutable: unreachable by chat/thread lookup, and
             # unreachable via /resume's IDOR guard too (which requires the row's chat_id/thread_id to match
-            # the caller's). user_id is critical for the fallback lookup path (hermes_state.py:1994-2009)
+            # the caller's). user_id is critical for the fallback lookup path (iris_state.py:1994-2009)
             # that searches by the complete peer tuple when session_key doesn't match. origin_json and
             # display_name complete the identity (same shape as the reset path's db_create_kwargs in
             # gateway/session.py, #82633) so consumers that read routing/presentation data from state.db
             # (mcp_serve, mirror, channel directory) see the branch row fully formed with zero backfill gap.
             session_key=session_key,
             source=source,
-            config_path=(profile_home or _hermes_home) / "config.yaml",
+            config_path=(profile_home or _iris_home) / "config.yaml",
             persist_global=resolve_persist_behavior(
                 request.is_global, request.is_session, is_once=request.is_once,
                 explicit_provider=request.explicit_provider,
@@ -562,13 +562,13 @@ class GatewayModelCommandsMixin:
     async def _handle_codex_runtime_command(self, event: MessageEvent) -> str:
         """Handle /codex-runtime; a real change evicts the cached agent so the new api_mode applies
         on the next message (avoids prompt-cache invalidation mid-session)."""
-        from hermes_cli import codex_runtime_switch as crs
+        from iris_cli import codex_runtime_switch as crs
 
         new_value, errors = crs.parse_args(event.get_command_args().strip() if event else "")
         if errors:
             return "❌ " + "\n❌ ".join(errors)
         try:
-            from hermes_cli.config import load_config, save_config
+            from iris_cli.config import load_config, save_config
         except Exception as exc:
             return f"❌ Could not load config: {exc}"
         result = crs.apply(
@@ -582,9 +582,9 @@ class GatewayModelCommandsMixin:
         return f"{'✓' if result.success else '✗'} {result.message}"
 
     async def _handle_personality_command(self, event: MessageEvent) -> str:
-        """Handle /personality — list or set a personality (hermes_cli.personality owns the state)."""
+        """Handle /personality — list or set a personality (iris_cli.personality owns the state)."""
         from gateway.run import _load_gateway_config
-        from hermes_cli.personality import (
+        from iris_cli.personality import (
             active_personality_name,
             available_personalities,
             describe_personality,
@@ -627,7 +627,7 @@ class GatewayModelCommandsMixin:
         """Save a dot-separated key to config.yaml (shared by /reasoning, /fast and their pickers)."""
         from gateway.slash_commands import _nested_dict
         from gateway.run import _gateway_config_home
-        from hermes_cli.config import read_user_config_raw
+        from iris_cli.config import read_user_config_raw
         config_path = _gateway_config_home() / "config.yaml"
         try:
             user_config = read_user_config_raw(config_path)  # raw: never persist merged defaults
@@ -648,7 +648,7 @@ class GatewayModelCommandsMixin:
         self, session_key: str, platform_key: str, value: str, persist_global: bool = False,
     ) -> str:
         """Apply a /reasoning argument (typed or picked) and return the reply."""
-        from hermes_constants import parse_reasoning_effort
+        from iris_constants import parse_reasoning_effort
 
         value = (value or "").strip().lower()
         show = _REASONING_DISPLAY_TOGGLES.get(value)
@@ -699,7 +699,7 @@ class GatewayModelCommandsMixin:
     async def _handle_reasoning_command(self, event: MessageEvent) -> Optional[str]:
         """Handle /reasoning command — manage reasoning effort and display toggle."""
         from gateway.run import _platform_config_key
-        from hermes_constants import VALID_REASONING_EFFORTS
+        from iris_constants import VALID_REASONING_EFFORTS
 
         raw_args = event.get_command_args().strip()
         args, persist_global = self._parse_reasoning_command_args(raw_args)
@@ -719,7 +719,7 @@ class GatewayModelCommandsMixin:
         if raw_args:  # typed path — same applier the picker uses
             return self._apply_reasoning_selection(session_key, platform_key, args, persist_global=persist_global)
         rc = self._reasoning_config
-        # Labels tell the truth about the route: a Hermes-internal step (``ultra``) that the wire
+        # Labels tell the truth about the route: a Iris-internal step (``ultra``) that the wire
         # clamps is shown as "ultra (sends max on this route)" instead of a distinct level (#61634).
         from agent.reasoning_effort import effort_display_label
         from gateway.run import _load_gateway_config
@@ -783,7 +783,7 @@ class GatewayModelCommandsMixin:
         """Handle /fast — the CLI Priority Processing toggle; session-scoped unless ``--global``
         (persists agent.service_tier, parity with /model)."""
         from gateway.run import _load_gateway_config, _resolve_gateway_model
-        from hermes_cli.models import model_supports_fast_mode
+        from iris_cli.models import model_supports_fast_mode
 
         # The /reasoning parser strips --global (any position) and normalizes unicode dashes.
         args, persist_global = self._parse_reasoning_command_args(event.get_command_args().strip().lower())

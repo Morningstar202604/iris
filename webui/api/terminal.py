@@ -1,4 +1,4 @@
-"""Embedded workspace terminal support for Hermes Web UI.
+"""Embedded workspace terminal support for Iris Web UI.
 
 The terminal is intentionally independent from the agent execution path.  It
 starts a shell with an explicit cwd/env per process and never mutates
@@ -574,7 +574,7 @@ def start_terminal(session_id: str, workspace: Path, rows: int = 24, cols: int =
                 "COLUMNS": str(cols),
                 "LINES": str(rows),
                 "PWD": cwd,
-                "HERMES_WEBUI_TERMINAL": "1",
+                "IRIS_WEBUI_TERMINAL": "1",
             }
         )
         shell = _shell_path()

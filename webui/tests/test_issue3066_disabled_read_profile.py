@@ -1,6 +1,6 @@
 """Regression tests for issue #3066: skills panel disabled-state read path
 must resolve against the active WebUI profile, not the process-global
-HERMES_HOME.
+IRIS_HOME.
 """
 import yaml
 from pathlib import Path
@@ -24,7 +24,7 @@ def _write_skill(skills_dir: Path, name: str) -> None:
 
 def test_disabled_read_uses_active_profile_config(tmp_path, monkeypatch):
     """_get_disabled_skill_names_for_profile reads from the active profile's
-    config.yaml (via _get_config_path), not from HERMES_HOME."""
+    config.yaml (via _get_config_path), not from IRIS_HOME."""
     from api import routes
 
     profile_home = tmp_path / "profiles" / "work"
@@ -98,7 +98,7 @@ def test_disabled_read_empty_when_no_skills_section(tmp_path, monkeypatch):
 @requires_agent_modules
 def test_skills_list_disabled_reflects_active_profile(tmp_path, monkeypatch):
     """_skills_list_from_dir marks skills as disabled based on the active
-    profile's config, not the process-global HERMES_HOME."""
+    profile's config, not the process-global IRIS_HOME."""
     from api import routes
 
     # Set up skills directory with two skills
@@ -165,7 +165,7 @@ def test_normalize_disabled_set_handles_edge_cases():
 
 def test_disabled_read_decodes_json_array_string(tmp_path, monkeypatch):
     """Issue #7120: skills.disabled stored as a JSON-array string (the shape
-    produced by `hermes config set skills.disabled ...`) must decode to the
+    produced by `iris config set skills.disabled ...`) must decode to the
     real names, not one literal entry."""
     from api import routes
 

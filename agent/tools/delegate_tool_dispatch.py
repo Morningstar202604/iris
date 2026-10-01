@@ -70,7 +70,7 @@ def _announce_batch(parent_agent, n_tasks: int, live_deleg_id: Optional[str]) ->
 def _capture_origin() -> tuple[str, str, Any, Any, bool]:
     """``(wake_sid, ui_session_id, owner_transport, owner_session_record, session_history_delivery)`` of the
     ORIGINATING session, captured BEFORE building any child: AIAgent construction
-    clobbers the HERMES_SESSION_ID ContextVar/os.environ with the subagent's id.  The wake-
+    clobbers the IRIS_SESSION_ID ContextVar/os.environ with the subagent's id.  The wake-
     capability flag rides the same request-scoped binding and is captured here for the same
     reason — and fails closed: a binding that never declared it (or a read error) leaves the
     session treated as non-wake-capable (#98619)."""
@@ -80,7 +80,7 @@ def _capture_origin() -> tuple[str, str, Any, Any, bool]:
     _origin_session_history_delivery = False
     with _quiet(None):
         from gateway.session_context import get_session_env, session_history_delivery_supported
-        _origin_ui_session_id = get_session_env("HERMES_UI_SESSION_ID", "")
+        _origin_ui_session_id = get_session_env("IRIS_UI_SESSION_ID", "")
         _origin_session_history_delivery = session_history_delivery_supported()
     return (_origin_wake_sid, _origin_ui_session_id, *_capture_gateway_steer_authority(_origin_ui_session_id), _origin_session_history_delivery)
 
@@ -220,7 +220,7 @@ _SYNC_FALLBACK_NOTES = {
     "no_async": (
         "background=true is not available in this session — it cannot "
         "receive a detached subagent result after the turn ends (a "
-        "finite chat using -Q, --oneshot, or non-TTY stdio, `hermes -z`, a cron job, a Kanban "
+        "finite chat using -Q, --oneshot, or non-TTY stdio, `iris -z`, a cron job, a Kanban "
         "worker, or a stateless HTTP endpoint). The subagent(s) ran SYNCHRONOUSLY and the result is included above."
     ),
     "at_capacity": (
@@ -247,7 +247,7 @@ def _resolve_async_wake_sid(origin_wake_sid: str, origin_session_history_deliver
     # Finite chat owns no later turn to consume a detached result. Reuse its
     # approval/lifecycle marker without disabling terminal notify completions:
     # those have their own bounded exit linger and durable result receipts.
-    if get_session_env("HERMES_SINGLE_QUERY_SESSION") == "1":
+    if get_session_env("IRIS_SINGLE_QUERY_SESSION") == "1":
         return None
 
     try:
@@ -278,7 +278,7 @@ def _resolve_async_session_key(parent_agent: Any, origin_ui_session_id: str) -> 
 
     Desktop/TUI: the routable key is the durable AIAgent.session_id — compression can rotate it mid-turn before the
     TUI-side dict is re-anchored, and a stale approval-context key would orphan the completion. Gateway chats keep the
-    platform conversation key (agent:main:...). The CLI has no bound approval contextvar and no HERMES_SESSION_KEY, so
+    platform conversation key (agent:main:...). The CLI has no bound approval contextvar and no IRIS_SESSION_KEY, so
     the key resolves empty; its drain is a positive-ownership filter on the durable session_id (empty would fail
     closed), so stamp the parent's durable id.
     """
@@ -287,10 +287,10 @@ def _resolve_async_session_key(parent_agent: Any, origin_ui_session_id: str) -> 
     agent_session_id = str(getattr(parent_agent, "session_id", "") or "")
     with _quiet(None):
         from gateway.session_context import get_session_env
-        source = get_session_env("HERMES_SESSION_SOURCE", "")
+        source = get_session_env("IRIS_SESSION_SOURCE", "")
         # Refresh from the task-local source when available, else retain the
         # immutable value captured before child construction.
-        origin_ui_session_id = get_session_env("HERMES_UI_SESSION_ID", "") or origin_ui_session_id
+        origin_ui_session_id = get_session_env("IRIS_UI_SESSION_ID", "") or origin_ui_session_id
         if source == "tui" and agent_session_id:
             session_key = agent_session_id
     return session_key or agent_session_id, origin_ui_session_id

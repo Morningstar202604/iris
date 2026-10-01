@@ -136,6 +136,6 @@ def test_logs_source_fixtures_do_not_bake_private_log_content():
             "static/panels.js",
         )
     )
-    assert "/home/" + "michael/.hermes/logs" not in combined
+    assert "/home/" + "michael/.iris/logs" not in combined
     for name in ("agent", "gateway", "errors"):
         assert name + ".log:" not in combined

@@ -1,6 +1,6 @@
-# Hermes Agent — Web UI
+# Iris Agent — Web UI
 
-Browser-based dashboard for managing Hermes Agent configuration, API keys, and monitoring active sessions.
+Browser-based dashboard for managing Iris Agent configuration, API keys, and monitoring active sessions.
 
 ## Stack
 
@@ -13,7 +13,7 @@ Browser-based dashboard for managing Hermes Agent configuration, API keys, and m
 ```bash
 # Start the backend API server
 cd ../
-python -m hermes_cli.main web --no-open
+python -m iris_cli.main web --no-open
 
 # In another terminal, start the Vite dev server (with HMR + API proxy)
 cd web/
@@ -23,7 +23,7 @@ npm run dev
 
 Open the **Vite URL** printed in the terminal (usually `http://localhost:5173`). That is the live-reload UI.
 
-`hermes dashboard` on port 9119 serves the **built** bundle from `hermes_cli/web_dist/`, not the Vite dev server — changes in `web/src/` will not appear there until you run `npm run build` and restart the dashboard (or use `web --no-open` + Vite as above).
+`iris dashboard` on port 9119 serves the **built** bundle from `iris_cli/web_dist/`, not the Vite dev server — changes in `web/src/` will not appear there until you run `npm run build` and restart the dashboard (or use `web --no-open` + Vite as above).
 
 The Vite dev server proxies `/api` requests to `http://127.0.0.1:9119` (the FastAPI backend).
 
@@ -33,21 +33,23 @@ The Vite dev server proxies `/api` requests to `http://127.0.0.1:9119` (the Fast
 npm run build
 ```
 
-This outputs to `../hermes_cli/web_dist/`, which the FastAPI server serves as a static SPA. The built assets are included in the Python package via `pyproject.toml` package-data.
+This outputs to `../iris_cli/web_dist/`, which the FastAPI server serves as a static SPA. The built assets are included in the Python package via `pyproject.toml` package-data.
 
 ## Structure
 
 ```
 src/
-├── components/ui/   # Reusable UI primitives (Card, Badge, Button, Input, etc.)
-├── lib/
-│   ├── api.ts       # API client — typed fetch wrappers for all backend endpoints
-│   └── utils.ts     # cn() helper for Tailwind class merging
-├── pages/
-│   ├── StatusPage   # Agent status, active/recent sessions
-│   ├── ConfigPage   # Dynamic config editor (reads schema from backend)
-│   └── EnvPage      # API key management with save/clear
-├── App.tsx          # Main layout and navigation
+├── components/      # Sidebar widgets, dialogs, banners (Card/Badge/Button/… come from @nous-research/ui)
+├── contexts/        # React context providers (page header, profile scope, system actions)
+├── hooks/           # Small reusable hooks (modal behavior, sidebar status)
+├── i18n/            # en.ts source of truth + per-locale partial overrides (fall back to English)
+├── lib/             # Pure helpers + API client
+│   ├── api.ts      # API client — typed fetch wrappers for all backend endpoints
+│   └── utils.ts     # cn() helper for Tailwind class merging + timeAgo
+├── pages/           # One lazy-loaded route surface each (Chat, Sessions, Config, Env, …)
+├── plugins/         # Dashboard plugin SDK host (window.__IRIS_PLUGIN_SDK__) + registry/slots
+├── themes/          # Theme + font providers and built-in presets
+├── App.tsx          # Main layout, sidebar nav, route table (pages lazy-loaded)
 ├── main.tsx         # React entry point
 └── index.css        # Tailwind imports and theme variables
 ```
@@ -76,7 +78,7 @@ Read before adding or editing UI styles. These rules keep the dashboard legible 
 
 - The dashboard preserves the Nous brand uppercase aesthetic, but it is **opt-in per element, not global**.
 - Apply uppercase via the DS utility `text-display` on **brand chrome only** — page titles, nav section headings, badges, brand wordmark. DS components (`Button`, `Badge`, `Tabs`, `Segmented`, etc.) already self-apply `text-display`.
-- **Do not introduce new `uppercase`** (the literal Tailwind class) in `hermes-agent/web/src`. Prefer `text-display` for new brand chrome. Legacy `uppercase` call sites (e.g. `components/ui/label.tsx`, `card.tsx`) remain until migrated.
+- **Do not introduce new `uppercase`** (the literal Tailwind class) in `iris-agent/web/src`. Prefer `text-display` for new brand chrome. Legacy `uppercase` call sites (e.g. `components/ui/label.tsx`, `card.tsx`) remain until migrated.
 - The app shell no longer forces uppercase globally, so blanket `normal-case` opt-outs are unnecessary. Use `normal-case` only where a DS component applies `text-display` but the label should stay sentence case — e.g. dynamic user content (model slugs, theme names) **or** fixed UI copy that is not brand chrome (EnvPage “not configured” toggle, sidebar “New chat”).
 
 ### Fonts
@@ -88,7 +90,7 @@ Typography is **opt-in per surface**, not global on layout shells — the app sh
 | Brand chrome | `font-mondwest text-display` (or `themedChrome`) | Sidebar nav, card section headers (`CardTitle`), Segmented filter buttons, filter panel headings |
 | Themed body | `font-mondwest normal-case` (or `themedBody`) | Card content (`Card`, `CardDescription`), session/platform rows, analytics tables — **scoped to the component** |
 | Page chrome | `font-expanded` | Page header h1 (`PageHeaderProvider`) — sentence case, not `text-display` |
-| Wordmark | `Typography` + size/tracking only | Sidebar/mobile “Hermes Agent” — mixed case, no Mondwest, no `text-display` |
+| Wordmark | `Typography` + size/tracking only | Sidebar/mobile “Iris Agent” — mixed case, no Mondwest, no `text-display` |
 | Technical | `font-mono-ui` / `font-mono` / `font-courier` | Model slugs, env keys, schedules, YAML, repo URLs |
 
 - Do **not** put `themedBody` or `themedFont` on `<main>`, `App`, or other layout wrappers — it overrides component-scoped styles.

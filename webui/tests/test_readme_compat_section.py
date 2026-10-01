@@ -7,7 +7,7 @@ def test_readme_has_compatibility_section():
 
     assert "## Compatibility" in readme, (
         "README.md must contain a ## Compatibility section documenting the "
-        "tested hermes-agent compatibility policy"
+        "tested iris-agent compatibility policy"
     )
 
     assert "Upgrade both together" in readme, (

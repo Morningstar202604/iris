@@ -1,6 +1,6 @@
 """Regression tests for issue #7056 — login page must hide the password form
 when password auth is disabled (e.g. native OIDC configured and
-``HERMES_WEBUI_PASSWORD`` unset).
+``IRIS_WEBUI_PASSWORD`` unset).
 
 The original bug: ``/api/auth/status`` correctly reports
 ``password_auth_enabled: false`` when password auth is disabled, but
@@ -153,7 +153,7 @@ def patched_login(monkeypatch):
         },
     )
     monkeypatch.setattr(routes, "_resolve_login_locale_key", lambda _lang: "en")
-    monkeypatch.setattr(routes, "load_settings", lambda: {"bot_name": "Hermes"})
+    monkeypatch.setattr(routes, "load_settings", lambda: {"bot_name": "Iris"})
     from api import updates as _updates
     monkeypatch.setattr(_updates, "WEBUI_VERSION", "test-0.0.0")
     import html as _html

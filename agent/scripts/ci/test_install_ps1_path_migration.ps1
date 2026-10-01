@@ -48,7 +48,7 @@ $definition = $definition -replace `
 
 Invoke-Expression $definition
 
-$NODE = 'C:\Users\me\AppData\Local\hermes\node'
+$NODE = 'C:\Users\me\AppData\Local\iris\node'
 $script:Failures = 0
 
 function Invoke-Migration {
@@ -101,7 +101,7 @@ Assert-Equal "$NODE;C:\Program Files\nodejs;;C:\Users\me\bin;" $script:FakeUserP
     'empty segments are preserved'
 
 # Windows paths are case-insensitive, and -ne on strings is too.
-Invoke-Migration "C:\Program Files\nodejs;c:\users\me\appdata\local\HERMES\Node"
+Invoke-Migration "C:\Program Files\nodejs;c:\users\me\appdata\local\IRIS\Node"
 Assert-Equal "$NODE;C:\Program Files\nodejs" $script:FakeUserPath `
     'existing entry in different case is replaced, not duplicated'
 

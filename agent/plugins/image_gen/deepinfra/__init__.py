@@ -1,6 +1,6 @@
 """DeepInfra image generation (FLUX, Qwen-Image-Edit, …) via the OpenAI-compatible
 ``/v1/openai/images/generations`` endpoint. The catalog is fully dynamic (``image-gen``-tagged
-models from :func:`hermes_cli.models._fetch_deepinfra_models_by_tag`; no ids hardcoded).
+models from :func:`iris_cli.models._fetch_deepinfra_models_by_tag`; no ids hardcoded).
 Selection: ``DEEPINFRA_IMAGE_MODEL`` → ``image_gen.deepinfra.model`` → first live model;
 when all are absent ``generate()`` errors rather than guessing."""
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def _live_models() -> Optional[List[Dict[str, Any]]]:
     """Fetch ``image-gen``-tagged models from the DeepInfra catalog."""
     try:
-        from hermes_cli.models import _fetch_deepinfra_models_by_tag
+        from iris_cli.models import _fetch_deepinfra_models_by_tag
     except Exception as exc:
         logger.debug("Cannot import _fetch_deepinfra_models_by_tag: %s", exc)
         return None
@@ -99,8 +99,8 @@ class DeepInfraImageGenProvider(StaticImageGenProvider):
         api_key = (get_secret("DEEPINFRA_API_KEY", "") or "").strip()
         if not api_key:
             return fail(
-                "DEEPINFRA_API_KEY not set. Run `hermes tools` → Image "
-                "Generation → DeepInfra to configure, or `hermes setup` "
+                "DEEPINFRA_API_KEY not set. Run `iris tools` → Image "
+                "Generation → DeepInfra to configure, or `iris setup` "
                 "to add the key.",
                 "auth_required")
         di_cfg = load_image_gen_config("deepinfra")
@@ -113,7 +113,7 @@ class DeepInfraImageGenProvider(StaticImageGenProvider):
                 "api.deepinfra.com so the live catalog can be fetched.",
                 "no_model_available", prompt=prompt)
         size = size_for(aspect)
-        from hermes_cli.models import deepinfra_base_url
+        from iris_cli.models import deepinfra_base_url
 
         # The openai SDK supplies retry, timeout and error mapping.
         openai, err = import_openai("deepinfra", aspect)
@@ -174,7 +174,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

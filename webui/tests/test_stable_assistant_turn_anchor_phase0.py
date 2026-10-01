@@ -34,7 +34,7 @@ const src = fs.readFileSync({json.dumps(str(ANCHORS_JS))}, 'utf8');
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const anchor = api.createAssistantTurnAnchorSeed({{
   session_id:'sid-1',
   stream_id:'stream-1',
@@ -92,8 +92,8 @@ def test_phase0_scaffold_is_loaded_before_current_rendering_modules():
     assert "projectAssistantTurnAnchorSettledMessageFinalAnswer" in ui_src
     assert "createAssistantTurnAnchorRegistry" not in ui_src
     assert "applyAssistantTurnAnchorSourceEvent" not in ui_src
-    assert "HermesAssistantTurnAnchors" in ui_src
-    assert "HermesAssistantTurnAnchors" not in _read(SESSIONS_JS)
+    assert "IrisAssistantTurnAnchors" in ui_src
+    assert "IrisAssistantTurnAnchors" not in _read(SESSIONS_JS)
     messages_src = _read(MESSAGES_JS)
     assert "window._liveAnchorRegistries" in messages_src
     assert "createAssistantTurnAnchorRegistry" in messages_src
@@ -231,7 +231,7 @@ def test_phase0_inventory_doc_matches_scaffold_contract():
         "Stream closure state",
         "Live DOM",
         "Slice 7 Dual-Run Reconciler",
-        "`HermesAssistantTurnAnchors.reconcileAssistantTurnAnchorActivityScene()`",
+        "`IrisAssistantTurnAnchors.reconcileAssistantTurnAnchorActivityScene()`",
         "`activity_scene_reconciliation_v1`",
         "Dedupe Invariant",
         "`event_id`",

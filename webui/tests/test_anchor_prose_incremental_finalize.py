@@ -218,8 +218,8 @@ function createHarness(options={}){
   global.esc = (value)=>String(value || '');
 
   vm.runInThisContext(anchorSrc, {filename:'assistant_turn_anchors.js'});
-  if(!window.HermesAssistantTurnAnchors){
-    throw new Error('assistant_turn_anchors.js did not expose HermesAssistantTurnAnchors');
+  if(!window.IrisAssistantTurnAnchors){
+    throw new Error('assistant_turn_anchors.js did not expose IrisAssistantTurnAnchors');
   }
 
   _anchorProseSmdCache = cache;
@@ -234,7 +234,7 @@ function createHarness(options={}){
   return {
     calls,
     cache,
-    anchorApi: window.HermesAssistantTurnAnchors,
+    anchorApi: window.IrisAssistantTurnAnchors,
     renderRow(row){
       return _anchorSceneNodeForRow(row, {settled:false});
     },

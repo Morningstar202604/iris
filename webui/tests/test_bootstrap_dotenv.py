@@ -2,7 +2,7 @@
 Tests for bootstrap.py .env loading fix (issue #730).
 
 bootstrap.py is the primary documented entry point ("python3 bootstrap.py").
-Previously it did not load REPO_ROOT/.env, so HERMES_WEBUI_HOST, HERMES_WEBUI_PORT
+Previously it did not load REPO_ROOT/.env, so IRIS_WEBUI_HOST, IRIS_WEBUI_PORT
 etc. were silently ignored when launching without start.sh.
 
 Covers:
@@ -49,34 +49,34 @@ class TestLoadRepoDotenv:
 
     def test_sets_env_var_from_dotenv(self, tmp_path):
         """Basic key=value is loaded into os.environ."""
-        self._run(tmp_path, "HERMES_WEBUI_HOST=0.0.0.0\n")
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
+        self._run(tmp_path, "IRIS_WEBUI_HOST=0.0.0.0\n")
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0"
 
     def test_sets_port_from_dotenv(self, tmp_path):
-        """HERMES_WEBUI_PORT is loaded as a string (caller does int() conversion)."""
-        self._run(tmp_path, "HERMES_WEBUI_PORT=18787\n")
-        assert os.environ.get("HERMES_WEBUI_PORT") == "18787"
+        """IRIS_WEBUI_PORT is loaded as a string (caller does int() conversion)."""
+        self._run(tmp_path, "IRIS_WEBUI_PORT=18787\n")
+        assert os.environ.get("IRIS_WEBUI_PORT") == "18787"
 
     def test_ignores_comment_lines(self, tmp_path):
         """Lines starting with # are not loaded."""
-        os.environ.pop("HERMES_WEBUI_HOST", None)
-        self._run(tmp_path, "# HERMES_WEBUI_HOST=should-be-ignored\n")
-        assert os.environ.get("HERMES_WEBUI_HOST") is None
+        os.environ.pop("IRIS_WEBUI_HOST", None)
+        self._run(tmp_path, "# IRIS_WEBUI_HOST=should-be-ignored\n")
+        assert os.environ.get("IRIS_WEBUI_HOST") is None
 
     def test_ignores_blank_lines(self, tmp_path):
         """Blank lines are silently skipped without error."""
-        self._run(tmp_path, "\n\nHERMES_WEBUI_PORT=9000\n\n")
-        assert os.environ.get("HERMES_WEBUI_PORT") == "9000"
+        self._run(tmp_path, "\n\nIRIS_WEBUI_PORT=9000\n\n")
+        assert os.environ.get("IRIS_WEBUI_PORT") == "9000"
 
     def test_strips_double_quoted_values(self, tmp_path):
         """Values wrapped in double quotes are stripped."""
-        self._run(tmp_path, 'HERMES_WEBUI_HOST="0.0.0.0"\n')
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
+        self._run(tmp_path, 'IRIS_WEBUI_HOST="0.0.0.0"\n')
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0"
 
     def test_strips_single_quoted_values(self, tmp_path):
         """Values wrapped in single quotes are stripped."""
-        self._run(tmp_path, "HERMES_WEBUI_HOST='0.0.0.0'\n")
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
+        self._run(tmp_path, "IRIS_WEBUI_HOST='0.0.0.0'\n")
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0"
 
     def test_noop_when_no_dotenv(self, tmp_path):
         """No .env file — function returns silently without error."""
@@ -92,7 +92,7 @@ class TestLoadRepoDotenv:
         """Unreadable .env prints a warning to stderr — does not crash."""
         import bootstrap as bs
         env_path = tmp_path / ".env"
-        env_path.write_text("HERMES_WEBUI_PORT=9999\n")
+        env_path.write_text("IRIS_WEBUI_PORT=9999\n")
         orig = bs.REPO_ROOT
         try:
             bs.REPO_ROOT = tmp_path
@@ -108,39 +108,39 @@ class TestLoadRepoDotenv:
 
     def test_overwrites_existing_env_var(self, tmp_path):
         """Unconditional overwrite matches shell source semantics."""
-        os.environ["HERMES_WEBUI_HOST"] = "127.0.0.1"
-        self._run(tmp_path, "HERMES_WEBUI_HOST=0.0.0.0\n")
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
+        os.environ["IRIS_WEBUI_HOST"] = "127.0.0.1"
+        self._run(tmp_path, "IRIS_WEBUI_HOST=0.0.0.0\n")
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0"
 
     def test_preserve_existing_env_keeps_ctl_overrides(self, tmp_path):
         """ctl.sh can ask bootstrap.py to keep wrapper-provided env values."""
-        os.environ["HERMES_WEBUI_PRESERVE_ENV"] = "1"
-        os.environ["HERMES_HOME"] = "/runtime/hermesOne"
-        os.environ["HERMES_WEBUI_PASSWORD"] = ""
+        os.environ["IRIS_WEBUI_PRESERVE_ENV"] = "1"
+        os.environ["IRIS_HOME"] = "/runtime/irisOne"
+        os.environ["IRIS_WEBUI_PASSWORD"] = ""
         self._run(
             tmp_path,
-            "HERMES_HOME=/repo/default\nHERMES_WEBUI_PASSWORD=repo-password\n",
+            "IRIS_HOME=/repo/default\nIRIS_WEBUI_PASSWORD=repo-password\n",
         )
-        assert os.environ.get("HERMES_HOME") == "/runtime/hermesOne"
-        assert os.environ.get("HERMES_WEBUI_PASSWORD") == ""
+        assert os.environ.get("IRIS_HOME") == "/runtime/irisOne"
+        assert os.environ.get("IRIS_WEBUI_PASSWORD") == ""
 
     def test_does_not_set_empty_values(self, tmp_path):
         """A key whose value is empty after stripping is not set to a non-empty string."""
-        os.environ.pop("HERMES_EMPTY_KEY", None)
-        self._run(tmp_path, 'HERMES_EMPTY_KEY=""\n')
+        os.environ.pop("IRIS_EMPTY_KEY", None)
+        self._run(tmp_path, 'IRIS_EMPTY_KEY=""\n')
         # The current implementation sets key to "" (empty string) — verify it is
         # not set to a non-empty string, which would be clearly wrong.
-        val = os.environ.get("HERMES_EMPTY_KEY")
+        val = os.environ.get("IRIS_EMPTY_KEY")
         assert val != "something-wrong", "Empty-value key must not be set to a non-empty string"
         # Specifically: empty string or absent are both acceptable behaviours.
         assert val in (None, ""), f"Unexpected value for empty-quoted key: {val!r}"
 
     def test_multiple_keys_all_loaded(self, tmp_path):
         """Multiple key=value pairs in one file are all loaded."""
-        content = "HERMES_WEBUI_HOST=0.0.0.0\nHERMES_WEBUI_PORT=18787\n"
+        content = "IRIS_WEBUI_HOST=0.0.0.0\nIRIS_WEBUI_PORT=18787\n"
         self._run(tmp_path, content)
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
-        assert os.environ.get("HERMES_WEBUI_PORT") == "18787"
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0"
+        assert os.environ.get("IRIS_WEBUI_PORT") == "18787"
 
     def test_value_with_equals_sign_preserved(self, tmp_path):
         """Values containing '=' (e.g. base64) are preserved correctly."""
@@ -149,8 +149,8 @@ class TestLoadRepoDotenv:
 
     def test_export_prefix_stripped(self, tmp_path):
         """'export FOO=bar' lines are parsed correctly — export prefix is stripped."""
-        self._run(tmp_path, "export HERMES_WEBUI_HOST=0.0.0.0\n")
-        assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0", (
+        self._run(tmp_path, "export IRIS_WEBUI_HOST=0.0.0.0\n")
+        assert os.environ.get("IRIS_WEBUI_HOST") == "0.0.0.0", (
             "'export KEY=value' lines must set KEY, not 'export KEY'"
         )
 
@@ -178,11 +178,11 @@ class TestBootstrapStructure:
         assert load_pos != -1, "_load_repo_dotenv() call not found in bootstrap.py"
         assert load_pos < host_pos, (
             "_load_repo_dotenv() must be called before DEFAULT_HOST assignment "
-            "so that HERMES_WEBUI_HOST from .env is picked up"
+            "so that IRIS_WEBUI_HOST from .env is picked up"
         )
         assert load_pos < port_pos, (
             "_load_repo_dotenv() must be called before DEFAULT_PORT assignment "
-            "so that HERMES_WEBUI_PORT from .env is picked up"
+            "so that IRIS_WEBUI_PORT from .env is picked up"
         )
 
     def test_start_sh_and_bootstrap_equivalent_env_loading(self):
@@ -200,7 +200,7 @@ class TestBootstrapStructure:
 
 
 class TestLeakedWebuiPasswordIsolation:
-    """#7168 review: a local repo .env containing HERMES_WEBUI_PASSWORD leaks
+    """#7168 review: a local repo .env containing IRIS_WEBUI_PASSWORD leaks
     into os.environ when any test imports bootstrap (import-time
     _load_repo_dotenv() runs OUTSIDE monkeypatch's undo scope). The conftest
     autouse guard strips the leaked var around every test so later tests
@@ -218,12 +218,12 @@ class TestLeakedWebuiPasswordIsolation:
     def test_conftest_guard_strips_leaked_password(self):
         strip = self._load_guard()
 
-        os.environ["HERMES_WEBUI_PASSWORD"] = "leaked-from-repo-dotenv"
+        os.environ["IRIS_WEBUI_PASSWORD"] = "leaked-from-repo-dotenv"
         try:
             strip()
-            assert "HERMES_WEBUI_PASSWORD" not in os.environ
+            assert "IRIS_WEBUI_PASSWORD" not in os.environ
         finally:
-            os.environ.pop("HERMES_WEBUI_PASSWORD", None)
+            os.environ.pop("IRIS_WEBUI_PASSWORD", None)
 
     def test_conftest_guard_preserves_intentional_empty_override(self):
         """ctl.sh-style override semantics: an explicitly empty value means
@@ -231,21 +231,21 @@ class TestLeakedWebuiPasswordIsolation:
         strip = self._load_guard()
 
         sentinel = object()
-        os.environ["HERMES_WEBUI_PASSWORD"] = ""
+        os.environ["IRIS_WEBUI_PASSWORD"] = ""
         try:
             strip()
-            assert os.environ.get("HERMES_WEBUI_PASSWORD", sentinel) == ""
+            assert os.environ.get("IRIS_WEBUI_PASSWORD", sentinel) == ""
         finally:
-            os.environ.pop("HERMES_WEBUI_PASSWORD", None)
+            os.environ.pop("IRIS_WEBUI_PASSWORD", None)
 
 
-class TestLeakedHermesCommandIsolation:
-    """#7168 re-gate round 7: a local repo .env carrying HERMES_COMMAND leaks
+class TestLeakedIrisCommandIsolation:
+    """#7168 re-gate round 7: a local repo .env carrying IRIS_COMMAND leaks
     into os.environ via bootstrap import-time _load_repo_dotenv() and
-    redirects gateway_restart._resolve_hermes_command() away from its mocked
+    redirects gateway_restart._resolve_iris_command() away from its mocked
     shutil.which result — every later active-profile-restart test then fails
     on a machine-specific CLI path. The autouse conftest guard strips the
-    leaked var around every test; upstream code never reads HERMES_COMMAND,
+    leaked var around every test; upstream code never reads IRIS_COMMAND,
     so stripping restores exact upstream semantics."""
 
     def _load_guard(self):
@@ -257,27 +257,27 @@ class TestLeakedHermesCommandIsolation:
         spec.loader.exec_module(mod)
         return mod._strip_leaked_webui_password_env
 
-    def test_conftest_guard_strips_leaked_hermes_command(self):
+    def test_conftest_guard_strips_leaked_iris_command(self):
         strip = self._load_guard()
 
-        os.environ["HERMES_COMMAND"] = "/machine/local/hermes-gateway-wrapper"
+        os.environ["IRIS_COMMAND"] = "/machine/local/iris-gateway-wrapper"
         try:
             strip()
-            assert "HERMES_COMMAND" not in os.environ
+            assert "IRIS_COMMAND" not in os.environ
         finally:
-            os.environ.pop("HERMES_COMMAND", None)
+            os.environ.pop("IRIS_COMMAND", None)
 
     def test_conftest_guard_still_strips_password_when_command_leaks(self):
         """Both leaked vars are stripped in one pass (password branch must
-        not be short-circuited by the HERMES_COMMAND handling)."""
+        not be short-circuited by the IRIS_COMMAND handling)."""
         strip = self._load_guard()
 
-        os.environ["HERMES_WEBUI_PASSWORD"] = "leaked-from-repo-dotenv"
-        os.environ["HERMES_COMMAND"] = "/machine/local/hermes-gateway-wrapper"
+        os.environ["IRIS_WEBUI_PASSWORD"] = "leaked-from-repo-dotenv"
+        os.environ["IRIS_COMMAND"] = "/machine/local/iris-gateway-wrapper"
         try:
             strip()
-            assert "HERMES_WEBUI_PASSWORD" not in os.environ
-            assert "HERMES_COMMAND" not in os.environ
+            assert "IRIS_WEBUI_PASSWORD" not in os.environ
+            assert "IRIS_COMMAND" not in os.environ
         finally:
-            os.environ.pop("HERMES_WEBUI_PASSWORD", None)
-            os.environ.pop("HERMES_COMMAND", None)
+            os.environ.pop("IRIS_WEBUI_PASSWORD", None)
+            os.environ.pop("IRIS_COMMAND", None)

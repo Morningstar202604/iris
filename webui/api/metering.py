@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Streaming performance metering.
+Iris Web UI -- Streaming performance metering.
 
 Tracks Tokens Per Second (TPS) across active WebUI streams.  Metering data is
 emitted via SSE events so a streaming assistant message can update its own

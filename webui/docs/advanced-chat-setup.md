@@ -1,6 +1,6 @@
 # Advanced chat setup
 
-Two optional features for self-hosted Hermes WebUI deployments. **Most users need neither** — the defaults (in-process chat, no prefill) work out of the box.
+Two optional features for self-hosted Iris WebUI deployments. **Most users need neither** — the defaults (in-process chat, no prefill) work out of the box.
 
 ## Session recall prefill
 
@@ -16,7 +16,7 @@ new browser session. The prefill should point the agent toward retrieval; the
 notes/search tools should provide the specific facts on demand.
 
 Static JSON remains supported through `prefill_messages_file` or
-`HERMES_PREFILL_MESSAGES_FILE`. For dynamic recall, opt in explicitly with a
+`IRIS_PREFILL_MESSAGES_FILE`. For dynamic recall, opt in explicitly with a
 WebUI-specific script hook:
 
 ```yaml
@@ -29,8 +29,8 @@ webui_prefill_messages_script_timeout: 5
 or:
 
 ```bash
-HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT="python3 /path/to/notes_recall.py" \
-HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT=5 \
+IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT="python3 /path/to/notes_recall.py" \
+IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT_TIMEOUT=5 \
 ./ctl.sh restart
 ```
 
@@ -40,7 +40,7 @@ message so dynamic recall text becomes ordinary context instead of an extra
 system instruction. If the hook must provide system-level guidance, emit JSON
 messages with an explicit `role: "system"` entry instead. Script output is capped
 at 256 KiB before parsing. Parsed prefill context is then bounded by
-`webui_prefill_context_max_chars` or `HERMES_WEBUI_PREFILL_CONTEXT_MAX_CHARS`
+`webui_prefill_context_max_chars` or `IRIS_WEBUI_PREFILL_CONTEXT_MAX_CHARS`
 (default: 12,000 characters; set to `0` to disable). When a dynamic script
 exceeds the budget and a compact static prefill file is configured, WebUI falls
 back to that file. If no compact fallback is available, WebUI injects a short
@@ -51,7 +51,7 @@ never the prefill message bodies.
 
 ## Session title generation
 
-Hermes WebUI derives a provisional session title from the first user message
+Iris WebUI derives a provisional session title from the first user message
 and, after the first response, may call an LLM to generate a better title
 (and periodically refresh it for long sessions).
 
@@ -72,7 +72,7 @@ manually titled. Image-only or metadata-only content does not provide title
 text. Existing manual-title protection and the title-generation setting still
 apply; this cleanup does not rewrite the transcript or native image parts.
 
-Automatic title-generation LLM calls honor the active Hermes profile's
+Automatic title-generation LLM calls honor the active Iris profile's
 `auxiliary.title_generation.enabled` setting (default: `true`):
 
 ```yaml
@@ -97,27 +97,27 @@ automatic generation when the auxiliary flag is off.
 
 By default, browser chat runs through WebUI's in-process legacy runtime. Advanced
 self-hosted deployments can opt into routing new browser turns through a running
-Hermes Gateway API server while preserving the existing WebUI `/api/chat/start`
+Iris Gateway API server while preserving the existing WebUI `/api/chat/start`
 and `/api/chat/stream` browser contract:
 
 ```bash
-HERMES_WEBUI_CHAT_BACKEND=gateway \
-HERMES_WEBUI_GATEWAY_BASE_URL=http://127.0.0.1:8642 \
-HERMES_WEBUI_GATEWAY_API_KEY=... \
+IRIS_WEBUI_CHAT_BACKEND=gateway \
+IRIS_WEBUI_GATEWAY_BASE_URL=http://127.0.0.1:8642 \
+IRIS_WEBUI_GATEWAY_API_KEY=... \
 ./ctl.sh restart
 ```
 
 Gateway-backed approval prompts need one more explicit opt-in because they use the Gateway runs API path:
 
 ```bash
-HERMES_WEBUI_CHAT_BACKEND=gateway \
-HERMES_WEBUI_GATEWAY_BASE_URL=http://127.0.0.1:8642 \
-HERMES_WEBUI_GATEWAY_API_KEY=... \
-HERMES_WEBUI_GATEWAY_USE_RUNS_API=true \
+IRIS_WEBUI_CHAT_BACKEND=gateway \
+IRIS_WEBUI_GATEWAY_BASE_URL=http://127.0.0.1:8642 \
+IRIS_WEBUI_GATEWAY_API_KEY=... \
+IRIS_WEBUI_GATEWAY_USE_RUNS_API=true \
 ./ctl.sh restart
 ```
 
-Use this when the connected gateway advertises approval support and you want tool approval cards to appear in WebUI. Without `HERMES_WEBUI_GATEWAY_USE_RUNS_API=true`, gateway chat stays on the legacy chat-completions transport and approval-capable commands can remain pending in the agent without a WebUI approval card.
+Use this when the connected gateway advertises approval support and you want tool approval cards to appear in WebUI. Without `IRIS_WEBUI_GATEWAY_USE_RUNS_API=true`, gateway chat stays on the legacy chat-completions transport and approval-capable commands can remain pending in the agent without a WebUI approval card.
 
 When YOLO is enabled for a gateway-backed browser session, WebUI approves every
 approval already parked for that session: Runs API prompts are relayed by their
@@ -134,10 +134,10 @@ no session-YOLO toggle, so a request briefly reaches the approval boundary befor
 it, and Agent-owned policy such as unrestricted computer-use mode is unchanged.
 Native API session YOLO is tracked in [Hermes Agent PR #61946](https://github.com/NousResearch/hermes-agent/pull/61946).
 
-`HERMES_WEBUI_CHAT_BACKEND` is intentionally strict: only `gateway`,
+`IRIS_WEBUI_CHAT_BACKEND` is intentionally strict: only `gateway`,
 `api_server`, or `api-server` enable the bridge. Generic truthy values such as
 `1` or `true` are ignored so existing deployments do not change execution
-ownership accidentally. If `HERMES_WEBUI_GATEWAY_API_KEY` is omitted, WebUI falls
+ownership accidentally. If `IRIS_WEBUI_GATEWAY_API_KEY` is omitted, WebUI falls
 back to `API_SERVER_KEY` when present. When Gateway returns HTTP 401, WebUI
 reports a `gateway_auth_error` that points at this WebUI↔Gateway key mismatch
 rather than showing the Gateway's generic provider-style "Invalid API key" body.
@@ -147,7 +147,7 @@ exposing the key value. That `gateway_chat` field is an operator diagnostic
 payload only; it is not currently rendered as a user-facing health banner in the
 browser UI.
 
-The bridge is best used by operators who already run Hermes Gateway/API Server
+The bridge is best used by operators who already run Iris Gateway/API Server
 locally and want browser-originated chat to use the same runtime/tool path as
 messaging surfaces. Attachments, cancellation, approvals, and clarify prompts
 still follow WebUI's current compatibility path and may not match every messaging

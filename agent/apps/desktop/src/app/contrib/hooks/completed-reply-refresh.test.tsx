@@ -1,5 +1,5 @@
 import { useAuiState } from '@assistant-ui/react'
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@iris/shared'
 import { useStore } from '@nanostores/react'
 import { QueryClient } from '@tanstack/react-query'
 import { act, cleanup, render, screen } from '@testing-library/react'
@@ -12,7 +12,7 @@ import { mergeOlderTranscriptPage } from '@/app/chat/transcript-backfill'
 import { useMessageStream } from '@/app/session/hooks/use-message-stream'
 import { useSessionStateCache } from '@/app/session/hooks/use-session-state-cache'
 import { stubThreadEnvironment } from '@/components/assistant-ui/test-utils'
-import { getLatestSessionMessages } from '@/hermes'
+import { getLatestSessionMessages } from '@/iris'
 import { chatMessageText, toChatMessages } from '@/lib/chat-messages'
 import { resetLiveSync } from '@/store/live-sync'
 import {
@@ -25,7 +25,7 @@ import {
 } from '@/store/session'
 import { $sessionStates, $sessionTiles, clearAllSessionStates } from '@/store/session-states'
 import { $todosBySession, clearSessionTodos, setSessionTodos } from '@/store/todos'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/iris'
 
 import {
   hydrateStoredSessionTranscript,
@@ -34,7 +34,7 @@ import {
   useBackgroundSync
 } from './use-background-sync'
 
-vi.mock('@/hermes', async original => ({
+vi.mock('@/iris', async original => ({
   ...(await original<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn()
 }))
@@ -130,7 +130,7 @@ function Harness({
     ...cache,
     queryClient,
     hydrateFromStoredSession: fallback ? hydrate : noop,
-    refreshHermesConfig: noop,
+    refreshIrisConfig: noop,
     refreshSessions: noop
   })
   refresh = useCallback(
@@ -164,7 +164,7 @@ function Harness({
     refreshActiveTranscript: refresh,
     refreshCronJobs: noop,
     refreshCurrentModel: noop,
-    refreshHermesConfig: noop,
+    refreshIrisConfig: noop,
     refreshMessagingSessions: noop,
     refreshSessions: noop,
     requestGateway: async () => ({ sessions: [] }) as never,

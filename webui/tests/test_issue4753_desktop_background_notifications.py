@@ -76,7 +76,7 @@ const context = {
   document: { hidden: params.documentHidden },
   window: { _notificationsEnabled: true },
   Notification,
-  assistantDisplayName: () => 'Hermes',
+  assistantDisplayName: () => 'Iris',
   _notificationOptions: (body, options) => ({ body, tag: options && options.sid ? options.sid : '' }),
   _showPwaNotification: (title, body, options) => {
     shown.push({ title, body, options });
@@ -87,7 +87,7 @@ context.window.Notification = Notification;
 
 vm.createContext(context);
 vm.runInContext(source, context);
-context.window.__hermesSetBackgrounded(params.desktopBackgrounded);
+context.window.__irisSetBackgrounded(params.desktopBackgrounded);
 vm.runInContext(
   "sendBrowserNotification('Response complete','Task finished'," + JSON.stringify(params.options) + ");",
   context
@@ -97,7 +97,7 @@ console.log(JSON.stringify({
   shown,
   direct,
   documentHidden: context.document.hidden,
-  setterType: typeof context.window.__hermesSetBackgrounded,
+  setterType: typeof context.window.__irisSetBackgrounded,
 }));
 """
     )
@@ -165,8 +165,8 @@ vm.runInContext(
   "_STREAM_NOTIFICATION_BACKGROUND['session-1']={streamId:'stream-1',wasBackgrounded:false};",
   context
 );
-context.window.__hermesSetBackgrounded(true);
-context.window.__hermesSetBackgrounded(false);
+context.window.__irisSetBackgrounded(true);
+context.window.__irisSetBackgrounded(false);
 const first = vm.runInContext("_shouldForceCompletionNotification('session-1','stream-1')", context);
 const second = vm.runInContext("_shouldForceCompletionNotification('session-1','stream-1')", context);
 console.log(JSON.stringify({ first, second }));

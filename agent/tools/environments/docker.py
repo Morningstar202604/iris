@@ -30,7 +30,7 @@ from tools.environments.docker_egress import (
 )
 from tools.environments.path_utils import sanitize_task_id_for_path
 from tools.environments.remote_common import (
-    bash_argv, client_env_with, load_hermes_env_vars, prepend_unset, resolve_passthrough_env, run_capture)
+    bash_argv, client_env_with, load_iris_env_vars, prepend_unset, resolve_passthrough_env, run_capture)
 
 logger = logging.getLogger(__name__)
 
@@ -80,8 +80,8 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
     return normalized
 
 
-# Module-level binding: tests patch ``docker._load_hermes_env_vars`` to fake the .env file.
-_load_hermes_env_vars = load_hermes_env_vars
+# Module-level binding: tests patch ``docker._load_iris_env_vars`` to fake the .env file.
+_load_iris_env_vars = load_iris_env_vars
 
 
 # Docker label values must match [a-zA-Z0-9_.-] and stay <=63 chars to round-trip
@@ -102,10 +102,10 @@ _sandbox_dir_name = sanitize_task_id_for_path
 
 
 def _get_active_profile_name() -> str:
-    """Active Hermes profile name, or ``"default"`` on any error. Resolved at container-create
+    """Active Iris profile name, or ``"default"`` on any error. Resolved at container-create
     time so a container stays tagged with its creator even if the process switches profiles."""
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from iris_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
         return "default"
@@ -125,16 +125,16 @@ def _container_identity(shared_key: str = "") -> str:
 def reap_orphan_containers(
     *, max_age_seconds: int = 600, profile_filter: str | None = None, docker_exe: str | None = None,
 ) -> int:
-    """Remove stale hermes-tagged containers left behind by prior processes (SIGKILL/OOM
+    """Remove stale iris-tagged containers left behind by prior processes (SIGKILL/OOM
     exits that bypass atexit). Only ``status=exited`` containers (running ones may belong
     to a sibling process), only the caller's profile, and only if ``FinishedAt`` is older
     than *max_age_seconds* (a just-exited sibling may be about to reuse its container).
     Best-effort and idempotent: failures log at debug and the count removed so far is returned.
     """
     docker = docker_exe or find_docker() or "docker"
-    filters = ["--filter", "label=hermes-agent=1", "--filter", "status=exited"]
+    filters = ["--filter", "label=iris-agent=1", "--filter", "status=exited"]
     if profile_filter:
-        filters.extend(["--filter", f"label=hermes-profile={_sanitize_label_value(profile_filter)}"])
+        filters.extend(["--filter", f"label=iris-profile={_sanitize_label_value(profile_filter)}"])
 
     listing = _docker_query(
         [docker, "ps", "-a", *filters, "--format", "{{.ID}}"], timeout=15,
@@ -210,15 +210,15 @@ def _docker_query(
 
 
 def find_docker() -> Optional[str]:
-    """Locate the docker/podman CLI (cached): ``HERMES_DOCKER_BINARY`` override, ``docker``
+    """Locate the docker/podman CLI (cached): ``IRIS_DOCKER_BINARY`` override, ``docker``
     on PATH, ``podman`` on PATH, then macOS Docker Desktop locations; ``None`` if absent."""
     global _docker_executable
     if _docker_executable is not None:
         return _docker_executable
 
-    override = os.getenv("HERMES_DOCKER_BINARY")
+    override = os.getenv("IRIS_DOCKER_BINARY")
     if override and _is_executable(override):
-        logger.info("Using HERMES_DOCKER_BINARY override: %s", override)
+        logger.info("Using IRIS_DOCKER_BINARY override: %s", override)
         found = override
     elif found := shutil.which("docker"):
         pass
@@ -428,7 +428,7 @@ def _ensure_docker_available() -> None:
             "or known install locations. Install Docker Desktop and ensure the CLI is available.",
             error="Docker executable not found in PATH or known install locations. "
                   "Install Docker and ensure the 'docker' command is available.",
-            hint="Install Docker (or fix PATH) and retry, or run `hermes setup terminal` to switch to Local.")
+            hint="Install Docker (or fix PATH) and retry, or run `iris setup terminal` to switch to Local.")
     try:
         result = run_capture([docker_exe, "version"], timeout=5)
     except FileNotFoundError:
@@ -443,7 +443,7 @@ def _ensure_docker_available() -> None:
             docker_exe, exc_info=True,
             error="Docker daemon is not responding. Ensure Docker is running and try again.",
             hint="Start Docker (e.g. `systemctl start docker` or launch Docker Desktop), then retry — "
-                 "or run `hermes setup terminal` to switch to Local.")
+                 "or run `iris setup terminal` to switch to Local.")
     except Exception:
         logger.error("Unexpected error while checking Docker availability.", exc_info=True)
         raise
@@ -453,7 +453,7 @@ def _ensure_docker_available() -> None:
             docker_exe, result.returncode, result.stderr.strip(),
             error="Docker command is available but 'docker version' failed. Check your Docker installation.",
             hint="Start Docker, or add your user to the docker group, then retry — "
-                 "or run `hermes setup terminal` to switch to Local.")
+                 "or run `iris setup terminal` to switch to Local.")
 
 
 def _name_only_env_args(names) -> list[str]:
@@ -578,7 +578,7 @@ class DockerEnvironment(BaseEnvironment):
         # Resolved once so it works when /usr/local/bin is not in PATH (macOS services).
         self._docker_exe = find_docker() or "docker"
 
-        # s6-overlay images (e.g. hermes-agent:latest) already use /init as PID 1 and exec
+        # s6-overlay images (e.g. iris-agent:latest) already use /init as PID 1 and exec
         # /run/s6/basedir/bin/init during startup. For those images we must (a) skip Docker's --init (two
         # competing PID-1 inits) and (b) mount /run with exec instead of noexec, or s6 stage0 dies with exit
         # 126 "Permission denied". Detected once here; defaults are kept on any inspection failure. See
@@ -603,7 +603,7 @@ class DockerEnvironment(BaseEnvironment):
             + egress_host_args + volume_args + env_args + validated_extra)
         logger.info("Docker run_args: %s", all_run_args)
 
-        # Labels identify hermes containers to the orphan reaper (hermes-agent=1),
+        # Labels identify iris containers to the orphan reaper (iris-agent=1),
         # cross-process reuse (task-id/profile) and operators. The reuse identity
         # is captured at start and never changes for the container's lifetime.
         # Egress posture gets its own label: env/CA mounts are immutable after
@@ -611,9 +611,9 @@ class DockerEnvironment(BaseEnvironment):
         profile_name = _container_identity(shared_container_key)
         task_label = _sanitize_label_value(task_id)
         self._labels = {
-            "hermes-agent": "1",
-            "hermes-task-id": task_label,
-            "hermes-profile": profile_name,
+            "iris-agent": "1",
+            "iris-task-id": task_label,
+            "iris-profile": profile_name,
             _EGRESS_LABEL_KEY: egress_label}
         # Saved for container recreation on "No such container" recovery.
         self._image = image
@@ -696,7 +696,7 @@ class DockerEnvironment(BaseEnvironment):
 
     def _mount_args(self, volumes, host_cwd, auto_mount_cwd, task_id) -> tuple[list[str], list[str]]:
         """``(volume_args, writable_args)`` for user volumes, host cwd and /workspace,/root.
-        Persistent mode bind-mounts from TERMINAL_SANDBOX_DIR (default ~/.hermes/sandboxes/)."""
+        Persistent mode bind-mounts from TERMINAL_SANDBOX_DIR (default ~/.iris/sandboxes/)."""
         volume_args: list[str] = []
         for vol in (volumes or []):
             if not isinstance(vol, str):
@@ -814,7 +814,7 @@ class DockerEnvironment(BaseEnvironment):
         """Start a fresh container and return its id. A failed ``docker run`` (exit 125, timeout
         mid-pull) can leave a "Created" orphan the exited-only reaper never catches, so it is
         removed by name before re-raising."""
-        container_name = f"hermes-{uuid.uuid4().hex[:8]}"
+        container_name = f"iris-{uuid.uuid4().hex[:8]}"
         run_cmd = self._run_command(container_name, cwd)
         logger.debug("Starting container: %s", ' '.join(run_cmd))
         try:
@@ -860,7 +860,7 @@ class DockerEnvironment(BaseEnvironment):
 
     def _resolve_passthrough_env(self) -> tuple[dict[str, str], set[str]]:
         """See ``remote_common.resolve_passthrough_env``; explicit docker_forward_env bypasses the blocklist."""
-        return resolve_passthrough_env(self._forward_env, hermes_env_loader=_load_hermes_env_vars)
+        return resolve_passthrough_env(self._forward_env, iris_env_loader=_load_iris_env_vars)
 
     def _build_runtime_env_args_with_unsets(self) -> tuple[list[str], tuple[str, ...], dict[str, str]]:
         """Runtime name-only forwarding args, names absent from scope, and the values
@@ -914,8 +914,8 @@ class DockerEnvironment(BaseEnvironment):
         self._container_id = None
 
         existing = self._find_reusable_container(
-            self._labels.get("hermes-task-id", ""),
-            self._labels.get("hermes-profile", ""),
+            self._labels.get("iris-task-id", ""),
+            self._labels.get("iris-profile", ""),
             self._labels.get(_EGRESS_LABEL_KEY, "off"))
         if existing is not None:
             cid, state = existing
@@ -933,7 +933,7 @@ class DockerEnvironment(BaseEnvironment):
                 logger.error("Recovery: no saved image name, cannot recreate container")
                 return False
             try:
-                new_name = f"hermes-{uuid.uuid4().hex[:8]}"
+                new_name = f"iris-{uuid.uuid4().hex[:8]}"
                 result = run_capture(
                     self._run_command(new_name, self.cwd), timeout=120, check=True,
                     env=self._docker_client_env(self._run_env_values))
@@ -1010,13 +1010,13 @@ class DockerEnvironment(BaseEnvironment):
         """``(container_id, state)`` of an existing container labeled for this task/profile/
         egress posture, or ``None`` on miss or any failure. The egress posture is a label
         FILTER for every posture, "off" included: a container built with egress on must not be
-        reused after ``hermes egress disable`` (baked-in proxy env and CA mounts), and every
+        reused after ``iris egress disable`` (baked-in proxy env and CA mounts), and every
         container this class creates carries the label. The ``{{.Label "key"}}`` template
         function is Docker-only — podman ps exits 125 on it — so the probe never uses it (#99213)."""
         filters = [
-            "--filter", "label=hermes-agent=1",
-            "--filter", f"label=hermes-task-id={task_label}",
-            "--filter", f"label=hermes-profile={profile_label}",
+            "--filter", "label=iris-agent=1",
+            "--filter", f"label=iris-task-id={task_label}",
+            "--filter", f"label=iris-profile={profile_label}",
             "--filter", f"label={_EGRESS_LABEL_KEY}={egress_label}"]
         result = _docker_query(
             [self._docker_exe, "ps", "-a", *filters, "--format", "{{.ID}}\t{{.State}}"], timeout=10,
@@ -1083,7 +1083,7 @@ class DockerEnvironment(BaseEnvironment):
                 except (subprocess.TimeoutExpired, OSError) as e:
                     logger.warning(fail_msg, log_id, e)
 
-        t = threading.Thread(target=_do_cleanup, daemon=True, name=f"hermes-cleanup-{log_id}")
+        t = threading.Thread(target=_do_cleanup, daemon=True, name=f"iris-cleanup-{log_id}")
         with _TEARDOWN_LOCK:
             _TEARDOWN_THREADS.add(t)
         t.start()

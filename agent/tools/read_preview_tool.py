@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read the in-app browser / preview pane in the Hermes desktop GUI.
+"""Read the in-app browser / preview pane in the Iris desktop GUI.
 
 The preview's content lives in the renderer (a sandboxed ``<webview>``), so this
 round-trips through the gateway's blocking-prompt bridge like ``read_terminal``
@@ -17,7 +17,7 @@ def read_preview_tool(
 ) -> str:
     """Return the active preview tab's contents (+ metadata) as a JSON string."""
     return read_pane(callback, (("start", start, 0), ("count", count, 1)), (
-        "read_preview is only available in the Hermes desktop app.",
+        "read_preview is only available in the Iris desktop app.",
         "start and count must be integers.",
         "Failed to read the preview pane: ",
         "No preview tab is open, or the read timed out."))
@@ -33,7 +33,7 @@ READ_PREVIEW_SCHEMA = {
     "name": "read_preview",
     "description": (
         "Read what's currently shown in the in-app browser / preview pane of the "
-        "Hermes desktop GUI (the pane open_preview opens beside this chat). Call "
+        "Iris desktop GUI (the pane open_preview opens beside this chat). Call "
         "with no arguments for the first window of the active tab's content. "
         "Returns JSON {kind, url, title, text, start, end, total_chars, note?}: "
         "a URL (Browser) tab's text is the rendered page's visible text — page "
@@ -70,7 +70,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

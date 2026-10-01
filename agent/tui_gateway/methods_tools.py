@@ -29,7 +29,7 @@ def _profile_scoped_rpc(
     ``scoped=False`` ignores ``profile``.
 
     The scope is the same home + secret + terminal composition a turn binds
-    (``_session_profile_runtime_scope``), not HERMES_HOME alone: these bodies read config.yaml,
+    (``_session_profile_runtime_scope``), not IRIS_HOME alone: these bodies read config.yaml,
     whose ``${VAR}`` refs (``config._env_ref_lookup``) and the MCP probe's own header/env
     interpolation resolve through ``get_secret`` — with only the home bound they read plain
     ``os.environ``, i.e. the launch profile's values, so ``mcp.servers.test`` for a secondary
@@ -85,7 +85,7 @@ def _rpc(name: str, fail_code: int, prefix: str = "", *, live_session: bool = Fa
 
 
 def _scoped_rpc(name: str, fail_code: int = 5024, **kw):
-    """``@method(name)`` + ``_profile_scoped_rpc`` (optional ``profile`` HERMES_HOME scope)."""
+    """``@method(name)`` + ``_profile_scoped_rpc`` (optional ``profile`` IRIS_HOME scope)."""
     return lambda body: method(name)(_profile_scoped_rpc(fail_code, **kw)(body))
 
 
@@ -112,7 +112,7 @@ def _mcp_rpc(name: str, required=_NAME):
 
 
 def _mcp_server_rows():
-    config_servers = _tools_mod("hermes_cli.mcp_config")._get_mcp_servers()
+    config_servers = _tools_mod("iris_cli.mcp_config")._get_mcp_servers()
     return _tools_mod("tui_gateway.mcp_rpc_helpers").server_configs_with_sources(config_servers)
 
 
@@ -193,7 +193,7 @@ def _capture_run_kwargs(timeout: int) -> dict:
     not crash the gateway thread on Windows), no stdin, no console flash under the desktop parent."""
     return dict(
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
-        stdin=subprocess.DEVNULL, creationflags=_tools_mod("hermes_cli._subprocess_compat").windows_hide_flags())
+        stdin=subprocess.DEVNULL, creationflags=_tools_mod("iris_cli._subprocess_compat").windows_hide_flags())
 
 
 def _captured_exec(rid, cmd, timeout: int, *, on_result, timeout_err: tuple, fail_code: int,
@@ -247,11 +247,11 @@ def _(rid, params: dict) -> dict:
 _SIMPLE_RPCS = {
     # Session-scoped view of the background process registry (desktop status stack).
     "process.stop": (5010, lambda params: {"killed": _tools_mod("tools.process_registry").process_registry.kill_all()}),
-    # Re-read ``~/.hermes/.env`` (CLI ``/reload`` parity); built agents keep their pool, ``/new`` resolves fresh.
-    "reload.env": (5015, lambda params: {"updated": int(_tools_mod("hermes_cli.config").reload_env())}),
+    # Re-read ``~/.iris/.env`` (CLI ``/reload`` parity); built agents keep their pool, ``/new`` resolves fresh.
+    "reload.env": (5015, lambda params: {"updated": int(_tools_mod("iris_cli.config").reload_env())}),
     "plugins.list": (5032, lambda params: {"plugins": [
         {"name": n, "version": getattr(i, "version", "?"), "enabled": getattr(i, "enabled", True)}
-        for n, i in _tools_mod("hermes_cli.plugins").get_plugin_manager()._plugins.items()]}),
+        for n, i in _tools_mod("iris_cli.plugins").get_plugin_manager()._plugins.items()]}),
     "tools.list": (5031, lambda params: {"toolsets": _toolset_rows(params, with_tools=True)}),
     "toolsets.list": (5032, lambda params: {"toolsets": _toolset_rows(params, with_tools=False)}),
     "agents.list": (5033, lambda params: {"processes": [
@@ -282,7 +282,7 @@ def _(rid, params: dict, session) -> dict:
 def _mcp_reload_confirm_required() -> bool:
     """``approvals.mcp_reload_confirm`` from disk config; True (safe) on any failure."""
     try:
-        cfg = _tools_mod("hermes_cli.config").load_config()
+        cfg = _tools_mod("iris_cli.config").load_config()
         approvals = cfg.get("approvals") if isinstance(cfg, dict) else None
         return bool(approvals.get("mcp_reload_confirm", True)) if isinstance(approvals, dict) else True
     except Exception:
@@ -300,11 +300,11 @@ def _refresh_live_sessions(home=None, *, preserve_prefix: bool = False, note: st
     ``home``: only sessions of that profile home (a session with no ``profile_home`` belongs to the
     launch home). ``preserve_prefix``: append-only rebuild inside a live conversation. ``note``: queued
     for each session's next turn on the one-shot turn-note channel (``agent/turn_context.py``)."""
-    from hermes_constants import hermes_home_key
-    want = hermes_home_key(home) if home is not None else None
+    from iris_constants import iris_home_key
+    want = iris_home_key(home) if home is not None else None
     with _sessions_lock:
         live = [(sid, sess) for sid, sess in _sessions.items() if sess.get("agent") is not None and (
-            want is None or hermes_home_key(sess.get("profile_home") or get_process_hermes_home()) == want)]
+            want is None or iris_home_key(sess.get("profile_home") or get_process_iris_home()) == want)]
     refresh = _tools_mod("tools.mcp_tool_agent").refresh_agent_mcp_tools
     for sid, sess in live:
         agent = sess["agent"]
@@ -323,7 +323,7 @@ def _refresh_live_sessions(home=None, *, preserve_prefix: bool = False, note: st
 def refresh_plugin_sessions(home, note: str) -> None:
     """A plugin just went live in ``home``: append its MCP tools to that profile's open chats (deferred
     behind tool_search, so the model-facing tool array is unchanged) and queue ``note`` for their next
-    turn. Called by ``hermes_cli.plugins_activation_live``."""
+    turn. Called by ``iris_cli.plugins_activation_live``."""
     _refresh_live_sessions(home, preserve_prefix=True, note=note)
 
 
@@ -424,7 +424,7 @@ class _Catalog:
 
 
 def _catalog_registry(cat: _Catalog) -> None:
-    commands = _tools_mod("hermes_cli.commands")
+    commands = _tools_mod("iris_cli.commands")
     for cmd in commands.COMMAND_REGISTRY:
         meta = commands.command_desktop_meta(cmd)
         cat.commands.update({f"/{key}": dict(meta) for key in (cmd.name, *cmd.aliases)})
@@ -454,7 +454,7 @@ def _catalog_quick_commands(cat: _Catalog) -> None:
 
 
 def _catalog_plugin_commands(cat: _Catalog) -> None:
-    plugin_cmds = _tools_mod("hermes_cli.plugins").get_plugin_commands() or {}
+    plugin_cmds = _tools_mod("iris_cli.plugins").get_plugin_commands() or {}
     if plugin_cmds:
         cat.cat_map.setdefault("Plugin commands", [])
     for pname, info in sorted(plugin_cmds.items()):
@@ -509,7 +509,7 @@ def _(rid, params: dict) -> dict:
     except Exception as e:
         warning = f"skill discovery unavailable: {e}"
     return _ok(rid, {
-        "pairs": cat.pairs, "sub": {k: v[:] for k, v in _tools_mod("hermes_cli.commands").SUBCOMMANDS.items()},
+        "pairs": cat.pairs, "sub": {k: v[:] for k, v in _tools_mod("iris_cli.commands").SUBCOMMANDS.items()},
         "canon": cat.canon,
         "commands": cat.commands,
         "categories": [{"name": c, "pairs": rows} for c, rows in cat.cat_map.items()],
@@ -518,7 +518,7 @@ def _(rid, params: dict) -> dict:
 
 @method("cli.exec")
 def _(rid, params: dict) -> dict:
-    """Run `python -m hermes_cli.main` with argv; capture stdout/stderr (non-interactive only)."""
+    """Run `python -m iris_cli.main` with argv; capture stdout/stderr (non-interactive only)."""
     argv = params.get("argv", [])
     if not isinstance(argv, list) or not all(isinstance(x, str) for x in argv):
         return _err(rid, 4003, "argv must be list[str]")
@@ -528,16 +528,16 @@ def _(rid, params: dict) -> dict:
 
     # Can drive the agent → needs provider credentials; tier-1 secrets still stripped.
     return _captured_exec(
-        rid, [sys.executable, "-m", "hermes_cli.main", *argv], min(int(params.get("timeout", 240)), 600),
+        rid, [sys.executable, "-m", "iris_cli.main", *argv], min(int(params.get("timeout", 240)), 600),
         on_result=lambda r: _ok(rid, {
             "blocked": False, "code": r.returncode, "output": (_joined_output(r) or "(no output)")[:48_000]}),
         timeout_err=(5016, "cli.exec: timeout"), fail_code=5017,
-        env=hermes_subprocess_env(inherit_credentials=True))
+        env=iris_subprocess_env(inherit_credentials=True))
 
 
 @_rpc("command.resolve", 5012)
 def _(rid, params: dict) -> dict:
-    r = _tools_mod("hermes_cli.commands").resolve_command(params.get("name", ""))
+    r = _tools_mod("iris_cli.commands").resolve_command(params.get("name", ""))
     if r:
         return _ok(rid, {"canonical": r.name, "description": r.description, "category": r.category})
     return _err(rid, 4011, f"unknown command: {params.get('name')}")
@@ -565,19 +565,19 @@ def _dispatch_quick(rid, params, session, name, arg):
 
 def _plugin_command_handler(name: str):
     try:
-        return _tools_mod("hermes_cli.plugins").get_plugin_command_handler(name)
+        return _tools_mod("iris_cli.plugins").get_plugin_command_handler(name)
     except Exception:
         return None
 
 
 def _run_plugin_command(handler, arg: str, session=None) -> str:
-    """Run a plugin slash-command handler under the session's ``HERMES_SESSION_*`` binding.
+    """Run a plugin slash-command handler under the session's ``IRIS_SESSION_*`` binding.
 
     Plugin handlers read ``get_session_env()`` for the chat/session they serve; these RPCs run on
     the socket/worker thread where nothing upstream binds it (only the turn path does), so a handler
     saw ``""`` or the launch process's inherited values. Same class as the messaging gateway's
     #108698; ``_set_session_context`` is the turn path's own seam."""
-    plugins = _tools_mod("hermes_cli.plugins")
+    plugins = _tools_mod("iris_cli.plugins")
     tokens = _set_session_context(session.get("session_key", "") or "", cwd=str(session.get("cwd") or "")) if session else []
     try:
         return str(plugins.resolve_plugin_command_result(handler(arg)) or "")
@@ -587,7 +587,7 @@ def _run_plugin_command(handler, arg: str, session=None) -> str:
 
 @contextlib.contextmanager
 def _session_home_scope(session, cwd: str | None = None):
-    """Bind HERMES_HOME and the logical cwd to the session for the block.
+    """Bind IRIS_HOME and the logical cwd to the session for the block.
 
     Skill/bundle/quick-command resolution is home-keyed (``skills.external_dirs``, ``skill-bundles/``,
     ``quick_commands`` all live in the profile's config/home); nothing upstream of these RPC handlers
@@ -596,11 +596,11 @@ def _session_home_scope(session, cwd: str | None = None):
     thread with no session context, where the terminal scope resolves a placeholder ``terminal.cwd`` to
     ``$HOME`` and no project skill ever registers or dispatches (#114359). ``cwd`` overrides the session
     record (a session-less catalog request binds the workspace a new session would be seeded with)."""
-    hc = _tools_mod("hermes_constants")
+    hc = _tools_mod("iris_constants")
     rc = _tools_mod("agent.runtime_cwd")
     profile_home = session.get("profile_home") if session else None
     cwd = cwd or (str(session.get("cwd") or "") if session else "")
-    token = hc.set_hermes_home_override(profile_home) if profile_home else None
+    token = hc.set_iris_home_override(profile_home) if profile_home else None
     cwd_token = rc.set_session_cwd(cwd) if cwd else None
     try:
         yield
@@ -608,7 +608,7 @@ def _session_home_scope(session, cwd: str | None = None):
         if cwd_token is not None:
             rc.reset_session_cwd(cwd_token)
         if token is not None:
-            hc.reset_hermes_home_override(token)
+            hc.reset_iris_home_override(token)
 
 
 def _is_profile_skill_command(session: dict, base: str) -> bool:
@@ -630,7 +630,7 @@ def _dispatch_plugin(rid, params, session, name, arg):
 def _bundle_key_for(name: str):
     """Skill-bundle key for ``name`` when it is NOT a registry command; None otherwise / on failure."""
     try:
-        if _tools_mod("hermes_cli.commands").resolve_command(name) is None:
+        if _tools_mod("iris_cli.commands").resolve_command(name) is None:
             return _tools_mod("agent.skill_bundles").resolve_bundle_command_key(name)
         return None
     except Exception:
@@ -690,14 +690,14 @@ def _prompt_builtin(module: str, fn: str, kw: str = ""):
 
 _cmd_learn = _prompt_builtin("agent.learn_prompt", "build_learn_prompt")
 _cmd_plan = _prompt_builtin("agent.plan_prompt", "build_plan_prompt")
-_cmd_init = _prompt_builtin("hermes_cli.init_command", "build_init_prompt_for_cwd", kw="extra")
+_cmd_init = _prompt_builtin("iris_cli.init_command", "build_init_prompt_for_cwd", kw="extra")
 
 
 def _cmd_moa(rid, params, session, name, arg):
     # One prompt through the default MoA preset, then restore the prior model (whole-session
     # switching goes through the model picker).
     try:
-        moa = _tools_mod("hermes_cli.moa_config")
+        moa = _tools_mod("iris_cli.moa_config")
         if not arg:
             return _err(rid, 4004, moa.moa_usage())
         if not session:
@@ -730,7 +730,7 @@ def _cmd_moa(rid, params, session, name, arg):
 
 def _cmd_focus(rid, params, session, name, arg):
     # Display-only; routed through the config.set branch Ink uses so both surfaces share one state machine.
-    fv = _tools_mod("hermes_cli.focus_view")
+    fv = _tools_mod("iris_cli.focus_view")
     display = _load_cfg().get("display")
     display = display if isinstance(display, dict) else {}
     action, target = fv.resolve_focus_arg(arg, cur := bool(display.get("focus_view", False)))
@@ -788,7 +788,7 @@ def _cmd_steer(rid, params, session, name, arg):
 
 def _cmd_goal(rid, params, session, name, arg):
     with _session_profile_runtime_scope(session or {}):
-        sid_key, goals, err = _session_key_or_err(rid, session, "hermes_cli.goals", "goals")
+        sid_key, goals, err = _session_key_or_err(rid, session, "iris_cli.goals", "goals")
         if err:
             return err
         try:
@@ -796,7 +796,7 @@ def _cmd_goal(rid, params, session, name, arg):
         except Exception:
             max_turns = 20
         mgr = goals.GoalManager(session_id=sid_key, default_max_turns=max_turns)
-        from hermes_cli.goal_command import dispatch_goal_command
+        from iris_cli.goal_command import dispatch_goal_command
         result = dispatch_goal_command(
             mgr, arg, authorize_gate=lambda: None,
             last_user_message=goals.last_user_message_from_db(sid_key),
@@ -813,7 +813,7 @@ def _cmd_goal(rid, params, session, name, arg):
 
 
 def _cmd_loop(rid, params, session, name, arg):
-    sid_key, loops, err = _session_key_or_err(rid, session, "hermes_cli.loops", "loops")
+    sid_key, loops, err = _session_key_or_err(rid, session, "iris_cli.loops", "loops")
     if err:
         return err
     result = loops.dispatch_loop_command(loops.LoopManager(session_id=sid_key), arg)
@@ -1096,9 +1096,9 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     cfg = _load_cfg()
     get_secret = _tools_mod("agent.secret_scope").get_secret
-    api_key = get_secret("HERMES_API_KEY", "") or cfg.get("api_key", "")
+    api_key = get_secret("IRIS_API_KEY", "") or cfg.get("api_key", "")
     masked = f"****{api_key[-4:]}" if len(api_key) > 4 else "(not set)"
-    base_url = get_secret("HERMES_BASE_URL", "") or cfg.get("base_url", "")
+    base_url = get_secret("IRIS_BASE_URL", "") or cfg.get("base_url", "")
     sections = [
         {"title": "Model", "rows": [
             ["Model", _resolve_model()], ["Base URL", base_url or "(default)"], ["API Key", masked]]},
@@ -1154,7 +1154,7 @@ def _configure_session_tools(rid, params: dict, sid: str, session) -> dict:
         return _err(rid, 4017, f"unknown tools action: {action}")
     if not targets:
         return _err(rid, 4018, "names required")
-    hc, tc = _tools_mod("hermes_cli.config"), _tools_mod("hermes_cli.tools_config")
+    hc, tc = _tools_mod("iris_cli.config"), _tools_mod("iris_cli.tools_config")
     cfg = hc.load_config()
     valid_toolsets = {ts_key for ts_key, _, _ in tc.CONFIGURABLE_TOOLSETS} | tc._get_plugin_toolset_keys()
     mcp_targets = [name for name in targets if ":" in name]
@@ -1182,7 +1182,7 @@ def _configure_session_tools(rid, params: dict, sid: str, session) -> dict:
 # ─── Cron / learning / skills ────────────────────────────────────────────────
 @_scoped_rpc("cron.manage", 5023)
 def _(rid, params: dict) -> dict:
-    """cronjob() keys off HERMES_HOME, so ``profile`` reaches a per-profile cron store."""
+    """cronjob() keys off IRIS_HOME, so ``profile`` reaches a per-profile cron store."""
     cronjob = _tools_mod("tools.cronjob_tools").cronjob
     action, jid = params.get("action", "list"), params.get("name", "")
     if action == "list":
@@ -1246,21 +1246,21 @@ def _skills_search(rid, params, query):
 
 def _skills_install(rid, params, query):
     quiet = _tools_mod("types").SimpleNamespace(print=lambda *a, **k: None)
-    _tools_mod("hermes_cli.skills_hub").do_install(query, skip_confirm=True, console=quiet)
+    _tools_mod("iris_cli.skills_hub").do_install(query, skip_confirm=True, console=quiet)
     return _ok(rid, {"installed": True, "name": query})
 
 
 def _skills_browse(rid, params, query):
     pg = int(params.get("page", 0) or 0) or (int(query) if query.isdigit() else 1)
-    browse = _tools_mod("hermes_cli.skills_hub").browse_skills
+    browse = _tools_mod("iris_cli.skills_hub").browse_skills
     return _ok(rid, browse(page=pg, page_size=int(params.get("page_size", 20))))
 
 
 _SKILLS_ACTIONS = {
-    "list": lambda rid, params, query: _ok(rid, {"skills": _tools_mod("hermes_cli.banner").get_available_skills()}),
+    "list": lambda rid, params, query: _ok(rid, {"skills": _tools_mod("iris_cli.banner").get_available_skills()}),
     "search": _skills_search, "install": _skills_install, "browse": _skills_browse,
     "inspect": lambda rid, params, query: _ok(
-        rid, {"info": _tools_mod("hermes_cli.skills_hub").inspect_skill(query) or {}})}
+        rid, {"info": _tools_mod("iris_cli.skills_hub").inspect_skill(query) or {}})}
 
 
 def _run_action(rid, params: dict, table: dict, label: str, *extra) -> dict:
@@ -1295,12 +1295,12 @@ def _(rid, params: dict) -> dict:
 
 
 # ─── MCP catalog + per-profile server lifecycle (mcp.servers.*) ─────────────
-# Gateway mirrors of the dashboard REST surface (hermes_cli/web_routers/mcp.py) so a
-# desktop plugin can manage MCP servers for ANY profile. Persistence: hermes_cli/mcp_config.py.
+# Gateway mirrors of the dashboard REST surface (iris_cli/web_routers/mcp.py) so a
+# desktop plugin can manage MCP servers for ANY profile. Persistence: iris_cli/mcp_config.py.
 @_scoped_rpc("mcp.catalog")
 def _(rid, params: dict) -> dict:
     """``{servers: [{name, description, installed, enabled, requires: [env keys], transport}]}`` per profile."""
-    mcp_catalog = _tools_mod("hermes_cli.mcp_catalog")
+    mcp_catalog = _tools_mod("iris_cli.mcp_catalog")
     out = []
     for entry in mcp_catalog.list_catalog():
         try:
@@ -1333,10 +1333,10 @@ def _(rid, params: dict) -> dict:
     runtime state; never connects, probes, or starts auth. Under a multiplexer the runtime view is the
     scoped profile's; otherwise it is shown only when ``profile`` is the launch profile."""
     import time
-    hc = _tools_mod("hermes_constants")
+    hc = _tools_mod("iris_constants")
     configured, plugins = _mcp_server_rows()
     include_runtime = (_tools_mod("agent.secret_scope").is_multiplex_active()
-                       or hc.hermes_home_key() == hc.hermes_home_key(hc.get_process_hermes_home()))
+                       or hc.iris_home_key() == hc.iris_home_key(hc.get_process_iris_home()))
     safe = ("name", "transport", "tools", "connected", "disabled", "status")
     servers = _tools_mod("tools.mcp_tool_discovery").get_mcp_status(configured, include_runtime=include_runtime)
     return _ok(rid, {"servers": [
@@ -1349,7 +1349,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """Add ``name`` from ``preset`` (catalog id) and/or ``config`` (url/command/args/env/headers/auth/
     tools); ``bearer_token`` goes to the profile's .env (only the header template persists). Dup → 4090."""
-    mc = _tools_mod("hermes_cli.mcp_config")
+    mc = _tools_mod("iris_cli.mcp_config")
     name, preset = _str_arg(params, "name"), _str_arg(params, "preset")
     servers, plugins = _mcp_server_rows()
     if err := _mcp_plugin_write_error(rid, name, plugins):
@@ -1376,7 +1376,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """Secret → profile .env under ``env_var`` (default ``MCP_<NAME>_API_KEY``); config.yaml gets only
     a ``${ENV}`` reference (Bearer header for http, ``env`` entry for stdio)."""
-    hc, mc = _tools_mod("hermes_cli.config"), _tools_mod("hermes_cli.mcp_config")
+    hc, mc = _tools_mod("iris_cli.config"), _tools_mod("iris_cli.mcp_config")
     name, servers, err = _mcp_config_server_or_error(rid, params)
     if err:
         return err
@@ -1408,7 +1408,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """Connect, list tools, disconnect → ``{ok, tools, prompts, resources, oauth_needed,
     oauth_tokens_present}`` (``{ok: false, error, tools: []...}`` on failure). RPC pool: cold npx blocks."""
-    mc = _tools_mod("hermes_cli.mcp_config")
+    mc = _tools_mod("iris_cli.mcp_config")
     name, servers, err = _mcp_named_server(rid, params)
     if err:
         return err
@@ -1440,7 +1440,7 @@ def _(rid, params: dict) -> dict:
     name = _str_arg(params, "name")
     if err := _mcp_plugin_write_error(rid, name, _mcp_server_rows()[1]):
         return err
-    if not _tools_mod("hermes_cli.mcp_config")._remove_mcp_server(name):
+    if not _tools_mod("iris_cli.mcp_config")._remove_mcp_server(name):
         return _err(rid, 4064, f"server '{name}' not found")
     return _ok(rid, {"ok": True, "removed": True})
 
@@ -1462,9 +1462,9 @@ def _(rid, params: dict) -> dict:
         if cfg.get("headers") and cfg.get("auth") != "oauth":
             return _err(rid, 4001, "this server uses header/API-key auth, not OAuth")
         cfg["auth"] = "oauth"
-        hermes_home = str(_tools_mod("hermes_constants").get_hermes_home().expanduser().resolve(strict=False))
+        iris_home = str(_tools_mod("iris_constants").get_iris_home().expanduser().resolve(strict=False))
         result = _tools_mod("tui_gateway.mcp_oauth_sessions").start_flow(
-            hermes_home, name, cfg, client_redirect_uri=client_redirect_uri)
+            iris_home, name, cfg, client_redirect_uri=client_redirect_uri)
     except ValueError as e:
         return _err(rid, 4001, str(e))
     return _ok(rid, {"ok": True, **{k: result[k] for k in ("session_id", "auth_url", "flow")}})
@@ -1480,7 +1480,7 @@ def _(rid, params: dict) -> dict:
 @_mcp_rpc("oauth.cancel", _NAME_SESSION)
 def _(rid, params: dict) -> dict:
     """Cancel a flow owned by the resolved profile, waking its callback worker."""
-    home = str(_tools_mod("hermes_constants").get_hermes_home().expanduser().resolve(strict=False))
+    home = str(_tools_mod("iris_constants").get_iris_home().expanduser().resolve(strict=False))
     cancel = _tools_mod("tui_gateway.mcp_oauth_sessions").cancel_flow
     return _ok(rid, cancel(_str_arg(params, "session_id"), _str_arg(params, "name"), home))
 
@@ -1499,12 +1499,12 @@ def _(rid, params: dict) -> dict:
 def _plugin_server_rows(plugin_dir: Path | None, key: str, *, portable: bool) -> list[dict]:
     if not portable or plugin_dir is None:
         return []
-    package = _tools_mod("hermes_cli.agent_plugins").load_agent_plugin(plugin_dir, plugin_dir)
-    namespace = package.manifest.get("extensions", {}).get("com.nousresearch.hermes", {})
+    package = _tools_mod("iris_cli.agent_plugins").load_agent_plugin(plugin_dir, plugin_dir)
+    namespace = package.manifest.get("extensions", {}).get("com.nousresearch.iris", {})
     declared = namespace.get("servers", {})
     if not isinstance(declared, dict):
         return []
-    server_name_for = _tools_mod("hermes_cli.plugins_manifest").portable_mcp_server_name
+    server_name_for = _tools_mod("iris_cli.plugins_manifest").portable_mcp_server_name
     liveness = _tools_mod("tools.mcp_liveness")
     core = _tools_mod("tools.mcp_tool_common")._core
     resolve_key = _tools_mod("tools.mcp_tool_scope")._resolve_server_key
@@ -1517,7 +1517,7 @@ def _plugin_server_rows(plugin_dir: Path | None, key: str, *, portable: bool) ->
         if connected:
             rows.append({"name": name, "state": "connected", "sentence": ""})
             continue
-        decl = _tools_mod("hermes_platform.declaration").lookup(internal_name)
+        decl = _tools_mod("iris_platform.declaration").lookup(internal_name)
         status = liveness.status(internal_name)
         if decl is None or status is None:
             rows.append({"name": name, "state": "unknown", "sentence": ""})
@@ -1531,8 +1531,8 @@ def _plugin_server_rows(plugin_dir: Path | None, key: str, *, portable: bool) ->
 
 
 def _plugin_rows() -> list[dict]:
-    pc = _tools_mod("hermes_cli.plugins_cmd")
-    cat = _tools_mod("hermes_cli.plugins_cmd_catalog")
+    pc = _tools_mod("iris_cli.plugins_cmd")
+    cat = _tools_mod("iris_cli.plugins_cmd_catalog")
     enabled, disabled = pc._get_enabled_set(), pc._get_disabled_set()
     pins = cat.catalog_pins()  # powers the desktop's "Update to <pin>" affordance
     versions = cat.catalog_versions()
@@ -1554,7 +1554,7 @@ def _plugin_rows() -> list[dict]:
             "install_dir": str(_dir_path) if _dir_path else "",
             "has_desktop_half": bool(_dir_path and (_dir_path / "desktop" / "plugin.js").is_file()),
             # Manifest ``config_schema`` + current values: the Plugins hub renders these as a form.
-            "settings_schema": _tools_mod("hermes_cli.plugins_settings").plugin_settings_fields(key, _dir_path),
+            "settings_schema": _tools_mod("iris_cli.plugins_settings").plugin_settings_fields(key, _dir_path),
             "servers": _plugin_server_rows(_dir_path, key, portable=portable),
             **cat.catalog_row_fields(_dir, pins, versions),
             **({"pinned_sha": sha} if (sha := pc.pinned_revision(name, ref_pins)) else {})})
@@ -1568,7 +1568,7 @@ _plugin_activation_subscribed: set = set()
 
 
 def _ensure_plugin_activation_listener() -> None:
-    from hermes_cli.plugins import get_plugin_manager
+    from iris_cli.plugins import get_plugin_manager
     manager = get_plugin_manager()
     if manager.scope_key in _plugin_activation_subscribed:
         return
@@ -1605,7 +1605,7 @@ def _plugins_toggle(rid, params):
     if not ident:
         return _err(rid, 4019, "plugins.toggle requires a 'key' or 'name'")
     _ensure_plugin_activation_listener()
-    toggle = _tools_mod("hermes_cli.plugins_cmd").dashboard_set_agent_plugin_enabled
+    toggle = _tools_mod("iris_cli.plugins_cmd").dashboard_set_agent_plugin_enabled
     result = toggle(ident, enabled=bool(params.get("enable")))
     if not result.get("ok"):
         return _err(rid, 5026, result.get("error") or "toggle failed")
@@ -1627,7 +1627,7 @@ def _plugins_install(rid, params):
     if not ident and not catalog_name:
         return _err(rid, 4019, "plugins.install requires 'identifier', 'repo', or 'catalog_name'")
     _ensure_plugin_activation_listener()
-    result = _tools_mod("hermes_cli.plugins_cmd").dashboard_install_plugin(
+    result = _tools_mod("iris_cli.plugins_cmd").dashboard_install_plugin(
         ident, force=bool(params.get("force")), enable=params.get("enable", True), catalog_name=catalog_name or None,
         ref=str(params.get("ref") or "").strip() or None)
     if not result.get("ok"):
@@ -1643,7 +1643,7 @@ def _plugins_update(rid, params):
     name = (params.get("name") or "").strip()
     if not name:
         return _err(rid, 4019, "plugins.update requires a 'name'")
-    pc, cat = _tools_mod("hermes_cli.plugins_cmd"), _tools_mod("hermes_cli.plugins_cmd_catalog")
+    pc, cat = _tools_mod("iris_cli.plugins_cmd"), _tools_mod("iris_cli.plugins_cmd_catalog")
     target = pc._plugins_dir() / name
     sidecar = cat.read_catalog_sidecar(target) if target.is_dir() else None
     if not sidecar:
@@ -1660,18 +1660,18 @@ def _plugins_update(rid, params):
                "warnings": list(result.warnings)}
     if result.changed:
         _ensure_plugin_activation_listener()
-        activate = _tools_mod("hermes_cli.plugins_activation").activate_plugin_now
+        activate = _tools_mod("iris_cli.plugins_activation").activate_plugin_now
         payload = _with_activation({**payload, **activate(result.installed_name)}, result.installed_name)
     return _ok(rid, payload)
 
 
 def _plugins_remove(rid, params):
-    """Uninstall a user install (``<HERMES_HOME>/plugins/<name>``) — the same core as ``hermes plugins
+    """Uninstall a user install (``<IRIS_HOME>/plugins/<name>``) — the same core as ``iris plugins
     remove`` and the dashboard; bundled plugins and paths outside the plugins dir are refused there."""
     name = (params.get("name") or "").strip()
     if not name:
         return _err(rid, 4019, "plugins.remove requires a 'name'")
-    result = _tools_mod("hermes_cli.plugins_cmd").dashboard_remove_user_plugin(name)
+    result = _tools_mod("iris_cli.plugins_cmd").dashboard_remove_user_plugin(name)
     return _ok(rid, result) if result.get("ok") else _err(rid, 5026, result.get("error") or "remove failed")
 
 
@@ -1682,13 +1682,13 @@ def _plugins_settings(rid, params):
     values = params.get("values")
     if not key or not isinstance(values, dict):
         return _err(rid, 4019, "plugins.settings requires a 'key' and a 'values' mapping")
-    pc = _tools_mod("hermes_cli.plugins_cmd")
+    pc = _tools_mod("iris_cli.plugins_cmd")
     found = next((p for p in pc._discover_all_plugins() if key in (p[5], p[0])), None)
     if found is None:
         return _err(rid, 4020, f"plugin '{key}' not found")
     _name, _version, _desc, _source, plugin_dir, canonical = found
     try:
-        written = _tools_mod("hermes_cli.plugins_settings").save_plugin_settings(
+        written = _tools_mod("iris_cli.plugins_settings").save_plugin_settings(
             canonical, Path(str(plugin_dir)) if plugin_dir else None, values)
     except (ValueError, PermissionError) as e:
         return _err(rid, 4021, str(e))
@@ -1698,7 +1698,7 @@ def _plugins_settings(rid, params):
 
 def _plugins_onboarding(rid, params):
     """Catalog plugins curated for the onboarding card that this OS runs, each with its app state."""
-    return _ok(rid, {"onboarding": _tools_mod("hermes_cli.plugin_catalog_presence").onboarding_entries()})
+    return _ok(rid, {"onboarding": _tools_mod("iris_cli.plugin_catalog_presence").onboarding_entries()})
 
 
 _PLUGINS_ACTIONS = {"list": _plugins_list, "onboarding": _plugins_onboarding, "toggle": _plugins_toggle, "install": _plugins_install,
@@ -1707,7 +1707,7 @@ _PLUGINS_ACTIONS = {"list": _plugins_list, "onboarding": _plugins_onboarding, "t
 
 @_scoped_rpc("plugins.manage", 5026, catch_resolve=False)
 def _(rid, params: dict) -> dict:
-    """TUI Plugins Hub backend (shares primitives with ``hermes plugins`` / the dashboard):
+    """TUI Plugins Hub backend (shares primitives with ``iris plugins`` / the dashboard):
     ``list`` → {plugins, user_count, bundled_count}; ``toggle`` flips ``key``/``name`` per ``enable``;
     ``install`` git-clones ``identifier``/``repo`` or a curated ``catalog_name`` (``force``, ``enable``
     default True); ``update`` re-pins a catalog install to the current catalog SHA; ``remove`` deletes

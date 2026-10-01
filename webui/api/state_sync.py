@@ -1,8 +1,8 @@
 """
-Hermes Web UI -- Optional state.db sync bridge.
+Iris Web UI -- Optional state.db sync bridge.
 
 Mirrors WebUI session metadata (token usage, title, model) into the
-hermes-agent state.db so that /insights, session lists, and cost
+iris-agent state.db so that /insights, session lists, and cost
 tracking include WebUI activity.
 
 This is opt-in via the 'sync_to_insights' setting (default: off).
@@ -28,30 +28,30 @@ def _get_state_db(profile: Optional[str] = None):
     home directory directly (via ``_resolve_profile_home_for_name``).
     If resolution fails (unknown profile name, IO error, etc.) the
     function returns ``None`` rather than silently falling back to
-    ``HERMES_HOME`` — silently routing the write to the wrong DB
+    ``IRIS_HOME`` — silently routing the write to the wrong DB
     would defeat the point of the explicit-profile path (#2762).
 
     When ``profile`` is None it falls back to the TLS-based
-    ``get_active_hermes_home()`` lookup for backward compatibility,
-    with a final ``HERMES_HOME`` fallback only on that path. TLS may be
+    ``get_active_iris_home()`` lookup for backward compatibility,
+    with a final ``IRIS_HOME`` fallback only on that path. TLS may be
     unset in background/worker threads, in which case the lookup falls
     through to the process-global active profile and can write to the
     wrong DB. Callers that know the session's profile (e.g.
     ``sync_session_usage`` after a stream completes on a background
     thread) should pass it explicitly to avoid that race.
 
-    Returns None if hermes_state is not importable, the explicit
+    Returns None if iris_state is not importable, the explicit
     profile cannot be resolved, or the DB is unavailable. Each caller
     is responsible for calling db.close() when done.
     """
     try:
-        from hermes_state import SessionDB
+        from iris_state import SessionDB
     except ImportError:
         return None
 
     if profile is not None:
         # Explicit-profile path — a resolution failure here MUST NOT
-        # silently fall back to HERMES_HOME or the caller's "write to
+        # silently fall back to IRIS_HOME or the caller's "write to
         # the named profile" contract is broken (the original #2762
         # symptom: writes leaking into the wrong profile's state.db).
         #
@@ -59,7 +59,7 @@ def _get_state_db(profile: Optional[str] = None):
         # name shape BEFORE handing it to ``_resolve_profile_home_for_name``.
         # The resolver itself rarely raises — for an invalid-but-non-
         # malicious name (e.g. one that fails ``_PROFILE_ID_RE``) it
-        # quietly returns ``_DEFAULT_HERMES_HOME``, which is the exact
+        # quietly returns ``_DEFAULT_IRIS_HOME``, which is the exact
         # leak we're trying to prevent on the explicit-profile path.
         # Validating up-front turns that quiet leak into an explicit
         # "refuse + log + return None" so the contract is "write to
@@ -77,7 +77,7 @@ def _get_state_db(profile: Optional[str] = None):
                     profile,
                 )
                 return None
-            hermes_home = Path(_resolve_profile_home_for_name(profile)).expanduser().resolve()
+            iris_home = Path(_resolve_profile_home_for_name(profile)).expanduser().resolve()
         except Exception:
             logger.warning(
                 "state_sync: could not resolve profile %r — skipping write rather "
@@ -88,13 +88,13 @@ def _get_state_db(profile: Optional[str] = None):
         # Implicit / TLS-fallback path — preserves pre-#2762 behavior
         # for any caller that doesn't pass profile= explicitly.
         try:
-            from api.profiles import get_active_hermes_home
-            hermes_home = Path(get_active_hermes_home()).expanduser().resolve()
+            from api.profiles import get_active_iris_home
+            iris_home = Path(get_active_iris_home()).expanduser().resolve()
         except Exception:
-            logger.debug("Failed to resolve hermes home, using default")
-            hermes_home = Path(os.getenv('HERMES_HOME', str(Path.home() / '.hermes')))
+            logger.debug("Failed to resolve iris home, using default")
+            iris_home = Path(os.getenv('IRIS_HOME', str(Path.home() / '.iris')))
 
-    db_path = hermes_home / 'state.db'
+    db_path = iris_home / 'state.db'
     if not db_path.exists():
         return None
 
@@ -201,7 +201,7 @@ def sync_session_title(session_id: str, title: str, profile: Optional[str] = Non
     """Sync an auto-generated title to state.db (not gated by sync_to_insights).
 
     Background title generation writes the title to the WebUI sidecar JSON but
-    not to hermes-agent's state.db, so ``hermes sessions list`` shows blank
+    not to iris-agent's state.db, so ``iris sessions list`` shows blank
     titles for WebUI sessions.  This function bridges that gap and is called
     from the background title update/refresh paths after a title is persisted.
 
@@ -211,7 +211,7 @@ def sync_session_title(session_id: str, title: str, profile: Optional[str] = Non
     untouched, when a higher-authority title holds the row).  This means title
     refreshes (where state.db already holds the initial auto-title) are
     effectively no-ops at the state.db layer -- acceptable because the primary
-    goal is ensuring ``hermes sessions list`` is not blank.
+    goal is ensuring ``iris sessions list`` is not blank.
 
     On a title collision (two sessions with the same auto-title), the title is
     de-duplicated via ``get_next_title_in_lineage`` (e.g. "My Session" ->
@@ -225,7 +225,7 @@ def sync_session_title(session_id: str, title: str, profile: Optional[str] = Non
     try:
         # Ensure the session row exists (idempotent) so the UPDATE has a target.
         db.ensure_session(session_id=session_id, source='webui')
-        # hermes-agent's SessionDB.set_auto_title_if_empty was renamed to
+        # iris-agent's SessionDB.set_auto_title_if_empty was renamed to
         # set_auto_title(session_id, title, *, source) in the state-module
         # split (agent commit 53db597201, released v2026.9.7). set_auto_title
         # preserves the same "only populate NULL / never clobber a manual

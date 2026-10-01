@@ -1,5 +1,5 @@
 import type { ToolCallMessagePartProps } from '@assistant-ui/react'
-import type { ConnectionOperationTarget, ConnectionRequestPayload } from '@hermes/shared'
+import type { ConnectionOperationTarget, ConnectionRequestPayload } from '@iris/shared'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

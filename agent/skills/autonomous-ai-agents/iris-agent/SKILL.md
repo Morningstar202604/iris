@@ -8,13 +8,13 @@ platforms: [linux, macos, windows]
 metadata:
   iris:
     tags: [iris, setup, configuration, multi-agent, spawning, cli, gateway, bots, bot-mode, features, themes, skins, desktop-plugins, tui-widgets, petdex, development]
-    homepage: https://github.com/NousResearch/iris-agent
+    homepage: https://github.com/X33834/iris
     related_skills: [claude-code, codex, opencode]
 ---
 
 # Iris Agent
 
-Iris Agent is an open-source AI agent framework by Nous Research that runs in your terminal, a native desktop app, messaging platforms, and IDEs. It's in the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. Iris works with any LLM provider (OpenRouter, Anthropic, OpenAI, Google, DeepSeek, xAI, local models, and 20+ others) and runs on Linux, macOS, Windows, and WSL.
+Iris Agent is an open-source AI agent framework (a community fork of Hermes, originally by Nous Research) that runs in your terminal, a native desktop app, messaging platforms, and IDEs. It's in the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. Iris works with any LLM provider (OpenRouter, Anthropic, OpenAI, Google, DeepSeek, xAI, local models, and 20+ others) and runs on Linux, macOS, Windows, and WSL.
 
 What makes Iris different:
 
@@ -28,7 +28,7 @@ What makes Iris different:
 
 **This skill is a hub.** The body covers identity, quick start, spawning/orchestration, and hard invariants. Everything else lives in reference files — **load the matching reference (below) before answering**; do not answer detail questions from the body alone.
 
-**Docs:** https://iris-agent.nousresearch.com/docs/
+**Docs:** https://gitcode.com/badhope/iris/tree/main/docs
 
 ## Scope & Verification
 
@@ -36,9 +36,9 @@ This skill is a concise operating guide, not the complete source of truth for ev
 
 Good verification targets, cheapest first:
 
-- **Every shipped feature, one line each: https://iris-agent.nousresearch.com/docs/llms.txt.** Start here for any "can Iris do X?" or "how do I do X?" — it indexes the entire documentation set with a link to the page that answers. It is generated from the docs tree on every build, so it is never behind the product. Fetch it with `web_extract`, or `curl -s https://iris-agent.nousresearch.com/docs/llms.txt` when web tools are off. The whole documentation set in one file is at `/docs/llms-full.txt`.
+- **Docs tree: https://gitcode.com/badhope/iris/tree/main/docs.** Start here for any "can Iris do X?" or "how do I do X?" — the documentation set (`quickstart.md`, `configuration.md`, `faq.md`, plus zh-CN variants) lives under `docs/` in the repo and is published to the official site on every push to `main`. Fetch pages with `web_extract`, or read `docs/quickstart.md`, `docs/configuration.md`, and `docs/faq.md` locally when web tools are off. (No generated single-file `docs.txt`/`llms-full.txt` index is shipped; use the docs tree instead.)
 - CLI commands: `iris --help`, `iris <command> --help`, and `iris_cli/main.py`
-- Source tree: https://github.com/NousResearch/iris-agent
+- Source tree: https://github.com/X33834/iris
 
 Never answer "Iris can't do that" from memory. Iris ships far more than this skill body describes, and the index exists so a negative answer is always checkable.
 
@@ -46,7 +46,7 @@ Never answer "Iris can't do that" from memory. Iris ships far more than this ski
 
 ```bash
 # Install (shell installer — sets up uv, Python, the venv, and the launcher)
-curl -fsSL https://iris-agent.nousresearch.com/install.sh | bash
+git clone https://gitcode.com/badhope/iris.git && cd iris/agent && ./setup-iris.sh
 
 # Interactive chat (default surface; set display.interface: tui to launch the Ink TUI instead)
 iris
@@ -88,7 +88,7 @@ Profiles use `~/.iris/profiles/<name>/` with the same layout. When a profile is 
 
 | User wants... | Load |
 |---|---|
-| **Anything not listed below — "can Iris do X?", "how do I set up X?"** | **https://iris-agent.nousresearch.com/docs/llms.txt** |
+| **Anything not listed below — "can Iris do X?", "how do I set up X?"** | **docs tree: https://gitcode.com/badhope/iris/tree/main/docs** (`docs/quickstart.md`, `docs/configuration.md`, `docs/faq.md`) |
 | Bots that chat, run routines, or message each other; the Bots tab | docs: `/user-guide/bot-mode` |
 | CLI commands, subcommands, flags, "how do I run X" | `references/cli-reference.md` |
 | In-session slash commands | `references/slash-commands.md` |
@@ -111,8 +111,8 @@ Profiles use `~/.iris/profiles/<name>/` with the same layout. When a profile is 
 | Connecting a messaging platform (Telegram, Discord, Slack, WhatsApp, …) | docs: `/user-guide/messaging` |
 
 The reference list above is not the feature list — it is the set of topics that
-need more than their docs page. For everything else Iris ships, fetch
-`llms.txt` and it maps the question to the page that answers it.
+need more than their docs page. For everything else Iris ships, consult the docs
+tree / official site linked at the top of this file.
 
 Two theming rules that hold even without loading the reference: **you apply skins yourself** (`iris config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and **to tweak one color, edit the ACTIVE skin** (`iris skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
 

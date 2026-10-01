@@ -57,7 +57,7 @@ def _fresh_tts_limiter(monkeypatch):
     import api.auth as _auth
     monkeypatch.setattr(_auth, "is_auth_enabled", lambda: False)
     monkeypatch.setattr(routes, "is_auth_enabled", lambda: False, raising=False)
-    monkeypatch.delenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", raising=False)
     _reset_limiter()
     yield
     _reset_limiter()

@@ -99,7 +99,7 @@ def _is_deepseek_anthropic_endpoint(base_url: str | None) -> bool:
 
     Per DeepSeek's published compatibility matrix the blocks are unsigned (no Anthropic-proprietary
     signature, no ``redacted_thinking`` support), so this endpoint is handled with the same strip-signed /
-    keep-unsigned policy used for Kimi's ``/coding`` endpoint. See hermes-agent#16748.
+    keep-unsigned policy used for Kimi's ``/coding`` endpoint. See iris-agent#16748.
     """
     return base_url_host_matches(base_url or "", "api.deepseek.com") and "/anthropic" in _normalized_lower(base_url)
 
@@ -112,7 +112,7 @@ def _is_nous_portal_endpoint(base_url: str | None) -> bool:
     if base_url_host_matches(base_url or "", "inference-api.nousresearch.com"):
         return True
     try:
-        from hermes_cli.auth import _nous_inference_env_override
+        from iris_cli.auth import _nous_inference_env_override
         override = _nous_inference_env_override()
     except Exception:
         return False

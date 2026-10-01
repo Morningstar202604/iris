@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { makeSessionInfo } from '@/test/session-info'
-import type { SessionInfo, SessionSearchResult } from '@/types/hermes'
+import type { SessionInfo, SessionSearchResult } from '@/types/iris'
 
 import { mergeSearchResults } from './index'
 

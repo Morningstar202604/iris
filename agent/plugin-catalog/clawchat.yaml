@@ -1,11 +1,11 @@
 name: clawchat
-repo: https://github.com/clawling/clawchat-plugin-hermes-agent
+repo: https://github.com/clawling/clawchat-plugin-iris-agent
 sha: c1e009e6f66cd25aa729f72de1808b2d451089a6
-description: ClawChat gateway integration for Hermes Agent.
+description: ClawChat gateway integration for Iris Agent.
 maintainer: clawling
 tier: community
 category: platform
-docs_url: https://github.com/clawling/clawchat-plugin-hermes-agent#readme
+docs_url: https://github.com/clawling/clawchat-plugin-iris-agent#readme
 capabilities:
   provides_tools:
   - clawchat_accept_friend_request

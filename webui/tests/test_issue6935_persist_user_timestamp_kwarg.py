@@ -6,7 +6,7 @@ from api.streaming import _supports_kwarg
 
 
 class LegacyAgentStub:
-    """Agent stub mimicking older hermes-agent whose run_conversation does NOT accept **kwargs or persist_user_timestamp."""
+    """Agent stub mimicking older iris-agent whose run_conversation does NOT accept **kwargs or persist_user_timestamp."""
     def run_conversation(self, user_message, system_message=None, conversation_history=None, task_id=None, persist_user_message=None):
         return {"final_response": "ok", "messages": []}
 

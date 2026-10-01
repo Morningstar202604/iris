@@ -1,6 +1,6 @@
 # Project Contracts
 
-This document is a contributor-facing index for existing Hermes WebUI contracts,
+This document is a contributor-facing index for existing Iris WebUI contracts,
 RFCs, design constraints, and review expectations. It does not replace the
 source documents and it does not mark proposals as implemented. Follow each
 linked document's status and scope.
@@ -51,14 +51,14 @@ contributor guidance; it does not change runtime behavior or CI gates.
   sidebar rows, and compression-lineage IDs to one canonical visible session
   target. Start here for session routing, boot restore, stale parent, or
   compression-tip selection changes.
-- [`docs/rfcs/hermes-run-adapter-contract.md`](rfcs/hermes-run-adapter-contract.md):
+- [`docs/rfcs/iris-run-adapter-contract.md`](rfcs/iris-run-adapter-contract.md):
   proposed event/control contract, runtime-state ownership matrix,
   acceptance-test catalog, and reversible migration gates for moving WebUI
   execution behind an adapter boundary. Use this for adapter-seam, control-plane,
   runner, sidecar, or execution-ownership work; do not treat it as authorization
   to implement those slices.
 - [`docs/architecture/agent-api-contract.md`](architecture/agent-api-contract.md):
-  current audit of WebUI dependencies on the hermes-agent source checkout and
+  current audit of WebUI dependencies on the iris-agent source checkout and
   the replacement API/client surfaces needed before source mounts can be removed.
   Start here for issue #2491 and Docker/source-boundary migration slices.
 - [`docs/rfcs/turn-journal.md`](rfcs/turn-journal.md): proposed crash-safe
@@ -94,7 +94,7 @@ contributor guidance; it does not change runtime behavior or CI gates.
   upstream catalog: the four signals in evaluation order (discovered catalog
   defers to the live probe, explicit plural `models:` allowlist filters,
   singular `model:` never gates, no allowlist shows the full catalog), the
-  serialized-list shapes `hermes config set` persists, the deliberate
+  serialized-list shapes `iris config set` persists, the deliberate
   empty-allowlist-is-not-configured rule, and the probe-failure fallback.
   Start here before changing custom-provider model filtering or
   discovery-vs-allowlist semantics (#7165, #7404).
@@ -212,8 +212,8 @@ Required checks:
   list the regression or manual invariant check.
 - Contract-affecting PRs include `Contract Routing`; intentional contract
   changes also include `Contract Change`.
-- Onboarding/setup validation used isolated `HERMES_HOME` and
-  `HERMES_WEBUI_STATE_DIR`, unless the human operator explicitly requested real
+- Onboarding/setup validation used isolated `IRIS_HOME` and
+  `IRIS_WEBUI_STATE_DIR`, unless the human operator explicitly requested real
   state.
 - Docs updates are included or explicitly not needed, and release-note-worthy
   changes are described in the PR body rather than by editing `CHANGELOG.md`.
@@ -256,8 +256,8 @@ Before opening a change for review, confirm:
   which layer they mutate and include a regression for the invariant.
 - New dependencies, build tools, frameworks, or long-lived processes are avoided
   unless the benefit and rollback story are explicit.
-- Onboarding/setup validation uses isolated `HERMES_HOME` and
-  `HERMES_WEBUI_STATE_DIR` unless the human operator explicitly asks to use real
+- Onboarding/setup validation uses isolated `IRIS_HOME` and
+  `IRIS_WEBUI_STATE_DIR` unless the human operator explicitly asks to use real
   state.
 - Secrets, private paths, local-only workflows, and personal notes stay out of
   tracked docs and examples.

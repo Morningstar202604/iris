@@ -204,8 +204,8 @@ def test_named_profile_remote_terminal_workspace_candidate_isolated(monkeypatch,
     )
 
     from api import profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     # Scoped to named remote profile: candidate is recognized as remote
     cand_optiplex = workspace._remote_terminal_workspace_candidate(
@@ -241,8 +241,8 @@ def test_build_native_multimodal_message_preserves_remote_workspace(monkeypatch,
     )
 
     from api import profiles, streaming
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     # 1. Profile as logical name string
     msg1 = streaming._build_native_multimodal_message(
@@ -282,10 +282,10 @@ def test_resolve_profile_home_param_formats(tmp_path):
     homes — a string is strictly a logical profile id (grammar-checked), so an
     explicit home must be expressed as a Path value.
     """
-    from api.profiles import _DEFAULT_HERMES_HOME
+    from api.profiles import _DEFAULT_IRIS_HOME
 
-    assert workspace._resolve_profile_home_param(None) == _DEFAULT_HERMES_HOME
-    assert workspace._resolve_profile_home_param("default") == _DEFAULT_HERMES_HOME
+    assert workspace._resolve_profile_home_param(None) == _DEFAULT_IRIS_HOME
+    assert workspace._resolve_profile_home_param("default") == _DEFAULT_IRIS_HOME
     # Path-shaped string: rejected by the logical-id grammar.
     with pytest.raises(ValueError):
         workspace._resolve_profile_home_param(str(tmp_path / "profiles/custom"))
@@ -306,8 +306,8 @@ def test_remote_profile_a_cannot_use_remote_profile_b_cwd(monkeypatch, tmp_path)
     (profiles_bob / "config.yaml").write_text("terminal:\n  backend: ssh\n  cwd: /srv/remote-bob\n", encoding="utf-8")
 
     from api import profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     # Scoped to Alice: Bob's path must be rejected
     with pytest.raises(ValueError, match="Path does not exist"):
@@ -351,8 +351,8 @@ def test_local_profile_add_workspace_auto_create_on_remote_path_collision(monkey
     (profiles_dir / "config.yaml").write_text("terminal:\n  backend: ssh\n  cwd: /tmp/remote-test\n", encoding="utf-8")
 
     from api import profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     local_target = tmp_path / "remote-test" / "subproject"
     assert not local_target.exists()
@@ -390,8 +390,8 @@ def test_detached_streaming_worker_preserves_session_profile_workspace(monkeypat
     (profiles_dir / "config.yaml").write_text("terminal:\n  backend: ssh\n  cwd: /srv/remote-alice\n", encoding="utf-8")
 
     from api import profiles, models
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     # Simulate macOS firmlink expansion on host resolve
     real_resolve = workspace._safe_resolve
@@ -415,7 +415,7 @@ def test_detached_streaming_worker_preserves_session_profile_workspace(monkeypat
     turn_ws = streaming._resolve_path("/srv/remote-alice", profile=getattr(s, "profile", None))
     assert str(turn_ws) == "/srv/remote-alice"
 
-    pytest.importorskip("agent.runtime_cwd", reason="hermes-agent not installed")
+    pytest.importorskip("agent.runtime_cwd", reason="iris-agent not installed")
     tokens = streaming._set_turn_session_identity(s.session_id, workspace=str(turn_ws))
     try:
         from agent.runtime_cwd import _SESSION_CWD
@@ -434,8 +434,8 @@ def test_gateway_multimodal_message_preserves_remote_profile_workspace(monkeypat
     (profiles_dir / "config.yaml").write_text("terminal:\n  backend: ssh\n  cwd: /home/rootson\n", encoding="utf-8")
 
     from api import profiles, streaming, models
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     s = models.Session(session_id="gw_test", workspace="/home/rootson", profile="optiplex")
 
@@ -460,8 +460,8 @@ def test_isolated_profile_config_read_does_not_mutate_or_read_shared_cache(monke
     (bob_home / "config.yaml").write_text("terminal:\n  backend: local\n  cwd: /Users/bob\n", encoding="utf-8")
 
     from api import profiles
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
 
     # NO ambient TLS profile: simulates a detached worker resolving an explicit
     # session profile while the process-global active profile is 'default'
@@ -498,8 +498,8 @@ def test_workspace_routes_profile_isolation(monkeypatch, tmp_path):
     bob_home.mkdir(parents=True)
     (bob_home / "config.yaml").write_text("terminal:\n  backend: ssh\n  cwd: /srv/remote-bob\n", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path)
 
     # Ambient get_config() follows the per-request TLS profile exactly as
@@ -578,8 +578,8 @@ def test_saved_workspace_trust_scoped_to_session_profile(monkeypatch, tmp_path):
     """
     from api import profiles
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path)
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path)
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path)
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path / "home")
     (tmp_path / "home").mkdir(parents=True)
 
@@ -677,7 +677,7 @@ def test_local_tilde_and_relative_paths_still_host_resolve(monkeypatch, tmp_path
 
 
 def test_config_authority_active_home_with_external_override(monkeypatch, tmp_path):
-    """Maintainer blocker 1: an authoritative HERMES_CONFIG_PATH override wins
+    """Maintainer blocker 1: an authoritative IRIS_CONFIG_PATH override wins
     over target/config.yaml when resolving the ACTIVE profile home."""
     from api import config as cfg, profiles as profiles_mod
     import yaml
@@ -695,14 +695,14 @@ def test_config_authority_active_home_with_external_override(monkeypatch, tmp_pa
         yaml.safe_dump({"terminal": {"backend": "docker", "cwd": "/srv/from-override"}}, sort_keys=False),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(override_cfg))
-    monkeypatch.setattr(profiles_mod, "get_active_hermes_home", lambda: active_home)
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(override_cfg))
+    monkeypatch.setattr(profiles_mod, "get_active_iris_home", lambda: active_home)
     cfg.reload_config()
 
     result = cfg.get_config_for_profile_home(active_home)
     assert result.get("terminal", {}).get("cwd") == "/srv/from-override"
     # NOTE: no manual delenv/reload here — monkeypatch restores
-    # HERMES_CONFIG_PATH at teardown, and the stale (_cfg_path vs pinned)
+    # IRIS_CONFIG_PATH at teardown, and the stale (_cfg_path vs pinned)
     # check invalidates the cache on the next reader. A trailing
     # reload_config() would bake this test's override into the global cache
     # and pollute later tests (#7168 review triage).
@@ -723,8 +723,8 @@ def test_divergent_profile_without_config_yaml_stays_isolated(monkeypatch, tmp_p
     fresh_profile_home = tmp_path / "profiles" / "fresh"
     fresh_profile_home.mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_CONFIG_PATH", str(default_home / "config.yaml"))
-    monkeypatch.setattr(profiles_mod, "get_active_hermes_home", lambda: default_home)
+    monkeypatch.setenv("IRIS_CONFIG_PATH", str(default_home / "config.yaml"))
+    monkeypatch.setattr(profiles_mod, "get_active_iris_home", lambda: default_home)
     cfg.reload_config()
 
     result = cfg.get_config_for_profile_home(fresh_profile_home)
@@ -813,15 +813,15 @@ def test_clean_workspace_list_explicit_profile_keeps_own_entries(monkeypatch, tm
     """
     from api import profiles
 
-    # _clean_workspace_list derives the profiles root as _home_path()/'.hermes'/profiles.
+    # _clean_workspace_list derives the profiles root as _home_path()/'.iris'/profiles.
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path / ".hermes")
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path / ".hermes")
-    (tmp_path / ".hermes" / "profiles").mkdir(parents=True)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path / ".iris")
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path / ".iris")
+    (tmp_path / ".iris" / "profiles").mkdir(parents=True)
 
-    alice_home = tmp_path / ".hermes" / "profiles" / "alice"
+    alice_home = tmp_path / ".iris" / "profiles" / "alice"
     alice_home.mkdir(parents=True)
-    bob_home = tmp_path / ".hermes" / "profiles" / "bob"
+    bob_home = tmp_path / ".iris" / "profiles" / "bob"
     bob_home.mkdir(parents=True)
 
     # Alice owns a workspace that lives inside her OWN profile directory.
@@ -881,13 +881,13 @@ def test_stale_workspace_recovery_scoped_to_explicit_profile(monkeypatch, tmp_pa
     from api import profiles
 
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path / ".hermes")
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path / ".hermes")
-    (tmp_path / ".hermes" / "profiles").mkdir(parents=True)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path / ".iris")
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path / ".iris")
+    (tmp_path / ".iris" / "profiles").mkdir(parents=True)
 
-    alice_home = tmp_path / ".hermes" / "profiles" / "alice"
+    alice_home = tmp_path / ".iris" / "profiles" / "alice"
     alice_home.mkdir(parents=True)
-    bob_home = tmp_path / ".hermes" / "profiles" / "bob"
+    bob_home = tmp_path / ".iris" / "profiles" / "bob"
     bob_home.mkdir(parents=True)
 
     def _ambient_cfg():
@@ -967,10 +967,10 @@ def test_get_last_workspace_named_profile_never_reads_global_file(monkeypatch, t
     from api import profiles
 
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path / ".hermes")
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path / ".hermes")
-    (tmp_path / ".hermes" / "profiles").mkdir(parents=True)
-    (tmp_path / ".hermes" / "profiles" / "alice").mkdir(parents=True)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path / ".iris")
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path / ".iris")
+    (tmp_path / ".iris" / "profiles").mkdir(parents=True)
+    (tmp_path / ".iris" / "profiles" / "alice").mkdir(parents=True)
 
     bobs_dir = tmp_path / "srv" / "bobs-global"
     bobs_dir.mkdir(parents=True)
@@ -982,7 +982,7 @@ def test_get_last_workspace_named_profile_never_reads_global_file(monkeypatch, t
     monkeypatch.setattr(workspace, "_GLOBAL_LW_FILE", global_lw / "last_workspace.txt")
 
     # Alice has NO profile-local last-workspace file at all.
-    alice_state = tmp_path / ".hermes" / "profiles" / "alice" / "webui_state"
+    alice_state = tmp_path / ".iris" / "profiles" / "alice" / "webui_state"
 
     def _lw_file_for(p=None):
         if p is not None and str(p) == "alice":
@@ -1001,7 +1001,7 @@ def test_get_last_workspace_named_profile_never_reads_global_file(monkeypatch, t
     monkeypatch.setattr(
         profiles,
         "_resolve_profile_home_param",
-        lambda p: tmp_path / ".hermes" if p is None or str(p) in ("default",) else _lw_file_for(p).parent.parent.parent,
+        lambda p: tmp_path / ".iris" if p is None or str(p) in ("default",) else _lw_file_for(p).parent.parent.parent,
         raising=False,
     )
     got_default = workspace.get_last_workspace(profile="default")
@@ -1022,10 +1022,10 @@ def test_new_session_binds_explicit_profile_not_ambient_last_workspace(monkeypat
     from api import profiles
 
     monkeypatch.setattr(workspace, "_home_path", lambda: tmp_path)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", tmp_path / ".hermes")
-    monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: tmp_path / ".hermes")
-    (tmp_path / ".hermes" / "profiles").mkdir(parents=True)
-    (tmp_path / ".hermes" / "profiles" / "alice").mkdir(parents=True)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", tmp_path / ".iris")
+    monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: tmp_path / ".iris")
+    (tmp_path / ".iris" / "profiles").mkdir(parents=True)
+    (tmp_path / ".iris" / "profiles" / "alice").mkdir(parents=True)
 
     bobs_ws = tmp_path / "srv" / "bobs-workspace"
     bobs_ws.mkdir(parents=True)
@@ -1039,7 +1039,7 @@ def test_new_session_binds_explicit_profile_not_ambient_last_workspace(monkeypat
     monkeypatch.setattr(workspace, "_GLOBAL_LW_FILE", global_lw / "last_workspace.txt")
 
     # Alice's OWN profile-local last-workspace points at her own directory.
-    alice_state = tmp_path / ".hermes" / "profiles" / "alice" / "webui_state"
+    alice_state = tmp_path / ".iris" / "profiles" / "alice" / "webui_state"
     alice_state.mkdir(parents=True)
     (alice_state / "last_workspace.txt").write_text(str(alice_ws), encoding="utf-8")
 
@@ -1079,16 +1079,16 @@ class TestRound4ProfileIsolation:
         """A malformed name must NOT be clamped onto the default home.
 
         Old behavior: _resolve_profile_home_param('bad name') returned
-        _DEFAULT_HERMES_HOME, so get_last_workspace(profile='bad name') read
+        _DEFAULT_IRIS_HOME, so get_last_workspace(profile='bad name') read
         (and could fall back to) the DEFAULT profile's global state file.
         """
         import api.models as models  # noqa: F401  (import parity with R3 tests)
         from api import profiles
 
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".iris"
         default_home.mkdir(parents=True)
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", default_home)
-        monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: default_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", default_home)
+        monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: default_home)
 
         global_lw = tmp_path / "global-state"
         global_lw.mkdir(parents=True)
@@ -1114,30 +1114,30 @@ class TestRound4ProfileIsolation:
             workspace.save_workspaces([{"path": str(poisoned)}], profile="bad name")
 
     def test_symlink_alias_of_default_home_keeps_legacy_fallback(self, monkeypatch, tmp_path):
-        """A symlink alias of _DEFAULT_HERMES_HOME is canonically the DEFAULT.
+        """A symlink alias of _DEFAULT_IRIS_HOME is canonically the DEFAULT.
 
-        Old behavior compared lexically: alias != _DEFAULT_HERMES_HOME, so the
+        Old behavior compared lexically: alias != _DEFAULT_IRIS_HOME, so the
         default profile accessed through its alias wrongly LOST the legacy
         global fallback. With canonical identity it keeps it.
         """
         from api import profiles
 
-        real_home = tmp_path / "real-hermes"
+        real_home = tmp_path / "real-iris"
         real_home.mkdir(parents=True)
-        alias = tmp_path / "alias-hermes"
+        alias = tmp_path / "alias-iris"
         try:
             alias.symlink_to(real_home, target_is_directory=True)
         except OSError:
             pytest.skip("symlinks unavailable in this environment")
 
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", real_home)
-        monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: real_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", real_home)
+        monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: real_home)
 
         shared_ws = tmp_path / "shared-workspace"
         shared_ws.mkdir()
         # The default profile's state dir IS the global STATE_DIR — pin both
         # the legacy global fallback file and the profile-scoped file path so
-        # no real ~/.hermes state leaks into the assertion.
+        # no real ~/.iris state leaks into the assertion.
         global_state = tmp_path / "global-state"
         global_state.mkdir(parents=True)
         (global_state / "last_workspace.txt").write_text(str(shared_ws), encoding="utf-8")
@@ -1267,7 +1267,7 @@ class TestRound4ProfileIsolation:
 
 class TestRound5TraversalAndSymlinkAuthority:
     """Round 5: path-shaped profile STRINGS are rejected ids; config authority
-    survives a symlinked HERMES_HOME."""
+    survives a symlinked IRIS_HOME."""
 
     def test_path_shaped_profile_string_rejected_no_traversal_write(
         self, monkeypatch, tmp_path
@@ -1283,10 +1283,10 @@ class TestRound5TraversalAndSymlinkAuthority:
         """
         from api import profiles
 
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".iris"
         default_home.mkdir(parents=True)
-        monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", default_home)
-        monkeypatch.setattr(profiles, "_resolve_base_hermes_home", lambda: default_home)
+        monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", default_home)
+        monkeypatch.setattr(profiles, "_resolve_base_iris_home", lambda: default_home)
 
         # The file the traversal WOULD reach if it escaped the boundary.
         evil_dir = tmp_path / "evil"
@@ -1325,15 +1325,15 @@ class TestRound5TraversalAndSymlinkAuthority:
     def test_symlinked_home_with_authoritative_config_path_keeps_authority(
         self, monkeypatch, tmp_path
     ):
-        """HERMES_HOME via symlink + authoritative HERMES_CONFIG_PATH.
+        """IRIS_HOME via symlink + authoritative IRIS_CONFIG_PATH.
 
         Repro of review finding #2 (CORE): workspace canonicalization hands
         get_config_for_profile_home the RESOLVED alias target, but the config
         authority compared the active home and the config parent LEXICALLY.
-        With HERMES_HOME reached through a symlink alias, both identity checks
+        With IRIS_HOME reached through a symlink alias, both identity checks
         failed and the function performed a DIRECT read of the symlink
         target's own (wrong) config.yaml instead of deferring to the
-        authoritative HERMES_CONFIG_PATH — master trusts the remote
+        authoritative IRIS_CONFIG_PATH — master trusts the remote
         terminal.cwd from the override; the lexical head rejected it.
         Canonicalize all three sides before comparing.
         """
@@ -1343,9 +1343,9 @@ class TestRound5TraversalAndSymlinkAuthority:
 
         from api import profiles
 
-        real_home = tmp_path / "real-hermes"
+        real_home = tmp_path / "real-iris"
         real_home.mkdir(parents=True)
-        alias_home = tmp_path / "alias-hermes"
+        alias_home = tmp_path / "alias-iris"
         try:
             alias_home.symlink_to(real_home, target_is_directory=True)
         except OSError:
@@ -1362,7 +1362,7 @@ class TestRound5TraversalAndSymlinkAuthority:
             encoding="utf-8",
         )
         # The AUTHORITATIVE config lives OUTSIDE the home, behind
-        # HERMES_CONFIG_PATH (maintainer-blocker-1 semantics).
+        # IRIS_CONFIG_PATH (maintainer-blocker-1 semantics).
         override_dir = tmp_path / "override-dir"
         override_dir.mkdir()
         override_cfg = override_dir / "config.yaml"
@@ -1375,15 +1375,15 @@ class TestRound5TraversalAndSymlinkAuthority:
         )
 
         # Ambient resolver reports the home under its ALIAS spelling (as an
-        # env-provided HERMES_HOME would); callers pass the canonicalized
+        # env-provided IRIS_HOME would); callers pass the canonicalized
         # target — the exact divergence the lexical comparison mishandled.
-        monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: alias_home)
-        monkeypatch.setenv("HERMES_CONFIG_PATH", str(override_cfg))
+        monkeypatch.setattr(profiles, "get_active_iris_home", lambda: alias_home)
+        monkeypatch.setenv("IRIS_CONFIG_PATH", str(override_cfg))
         api_config.reload_config()
 
         got = api_config.get_config_for_profile_home(real_home)
         assert got.get("terminal", {}).get("cwd") == "/srv/from-override", (
-            "canonicalized alias target must preserve HERMES_CONFIG_PATH "
+            "canonicalized alias target must preserve IRIS_CONFIG_PATH "
             f"authority; got {got.get('terminal')!r}"
         )
         assert got.get("terminal", {}).get("backend") == "ssh"

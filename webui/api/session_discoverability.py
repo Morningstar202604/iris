@@ -1,4 +1,4 @@
-"""Read-only sidebar discoverability audit for Hermes WebUI sessions.
+"""Read-only sidebar discoverability audit for Iris WebUI sessions.
 
 This module does not repair or mutate session state. It cross-checks the four
 places that decide whether a session can be found from the WebUI sidebar:
@@ -627,7 +627,7 @@ def render_discoverability_markdown(report: dict) -> str:
 
 
 def _main() -> int:
-    parser = argparse.ArgumentParser(description="Read-only Hermes WebUI session discoverability audit")
+    parser = argparse.ArgumentParser(description="Read-only Iris WebUI session discoverability audit")
     parser.add_argument("--session-dir", type=Path, required=True)
     parser.add_argument("--state-db", type=Path, default=None)
     parser.add_argument("--format", choices=("json", "markdown"), default="json")

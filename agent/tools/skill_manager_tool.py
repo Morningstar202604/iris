@@ -2,7 +2,7 @@
 """Skill Manager Tool — agent-managed skill creation & editing.
 
 Skills are the agent's procedural memory (narrow "how to do X"; MEMORY.md/USER.md are
-broad, declarative). New skills land in ~/.hermes/skills/ (or ``skills.create_dir``);
+broad, declarative). New skills land in ~/.iris/skills/ (or ``skills.create_dir``);
 existing skills (bundled, hub, user) are modified in place. Layout:
 ``<skills>/[category/]<skill>/SKILL.md`` + optional ``references/ templates/ scripts/ assets/``.
 """
@@ -20,9 +20,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from hermes_constants import get_hermes_home, display_hermes_home
+from iris_constants import get_iris_home, display_iris_home
 from utils import atomic_write_text, is_truthy_value
-from hermes_cli.config import cfg_get
+from iris_cli.config import cfg_get
 from agent.skill_utils import (
     extract_skill_description,
     is_skill_description_truncated_for_prompt,
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 def _guard_agent_created_enabled() -> bool:
     """skills.guard_agent_created (default False): opt-in — terminal() runs the same code ungated."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         return is_truthy_value(cfg_get(load_config(), "skills", "guard_agent_created"), default=False)
     except Exception:
         return False
@@ -65,21 +65,21 @@ def _security_scan_skill(skill_dir: Path) -> Optional[str]:
     return None
 
 
-# All skills live in ~/.hermes/skills/ (single source of truth)
-HERMES_HOME = get_hermes_home()
-SKILLS_DIR = HERMES_HOME / "skills"
+# All skills live in ~/.iris/skills/ (single source of truth)
+IRIS_HOME = get_iris_home()
+SKILLS_DIR = IRIS_HOME / "skills"
 _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time (multi-profile runtimes rebind per session).
-    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live HERMES_HOME.
+    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live IRIS_HOME.
 
     Long-lived multi-profile runtimes (Dashboard/TUI/Desktop backend, cron, kanban workers) import this
-    module once under the launch HERMES_HOME and later bind a different profile per session (#40677).
+    module once under the launch IRIS_HOME and later bind a different profile per session (#40677).
     """
     configured = Path(SKILLS_DIR)
-    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
+    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_iris_home() / "skills"
 
 
 def _skill_lock_path(name: str) -> Path:
@@ -122,7 +122,7 @@ def _display_create_dir() -> str:
         from agent.skill_utils import display_skill_create_dir
         return display_skill_create_dir()
     except Exception:
-        return f"{display_hermes_home()}/skills/"
+        return f"{display_iris_home()}/skills/"
 
 
 # --- Validation helpers -------------------------------------------------------
@@ -260,8 +260,8 @@ def _find_skill_in_other_profiles(name: str) -> List[Tuple[str, Path]]:
     error can explain a wrong-profile mistake). Fail-quiet."""
     matches: List[Tuple[str, Path]] = []
     try:
-        from hermes_constants import get_default_hermes_root
-        root = get_default_hermes_root()
+        from iris_constants import get_default_iris_root
+        root = get_default_iris_root()
     except Exception:
         return matches
     _active = _skills_dir()
@@ -302,12 +302,12 @@ def _skill_not_found_error(name: str, suffix: str = "") -> str:
         other_profile, other_path = others[0]
         base += (
             f" A skill by that name exists in profile '{other_profile}' ({other_path}). To edit "
-            f"it, switch profiles (`hermes -p {other_profile}`) or edit the file directly "
+            f"it, switch profiles (`iris -p {other_profile}`) or edit the file directly "
             f"(file tools / terminal).")
     elif others:
         names = ", ".join(f"'{p}'" for p, _ in others)
         base += (
-            f" Skills by that name exist in other profiles: {names}. Switch profiles (`hermes -p "
+            f" Skills by that name exist in other profiles: {names}. Switch profiles (`iris -p "
             f"<name>`) to edit there, or edit the files directly (file tools / terminal).")
     else:
         base += " Use skills_list() to see available skills."
@@ -365,8 +365,8 @@ def _guarded_write(name: str, skill_dir: Path, target: Path, action: str, label:
         if read_guard := _background_review_read_before_write_guard(name, target, action, label):
             return read_guard
         original = target.read_text(encoding="utf-8")
-    from hermes_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(target.parent)
+    from iris_constants import mkdir_under_iris_home
+    mkdir_under_iris_home(target.parent)
     atomic_write_text(target, content, preserve_mode=True, create_mode=0o644)
     scan_error = _security_scan_skill(skill_dir)
     if not scan_error:
@@ -412,7 +412,7 @@ def _attach_lint_findings(result: Dict[str, Any], skill_md: Path, before: Option
         {"severity": f.severity, "rule": f.rule, "message": f.message} for f in findings]
     result["lint_hint"] = (
         "The write succeeded. These are advisory authoring-convention findings (not blockers) "
-        "— fix them with skill_manage(action='patch') to match Hermes skill standards.")
+        "— fix them with skill_manage(action='patch') to match Iris skill standards.")
 
 
 def _clip(text: str, n: int, ellipsis: str) -> str:
@@ -428,8 +428,8 @@ def _create_skill(name: str, content: str, category: str = None) -> Dict[str, An
     if existing := _find_skill(name):
         return _err(f"A skill named '{name}' already exists at {existing['path']}.")
     skill_dir = _resolve_skill_dir(name, category)
-    from hermes_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(skill_dir)
+    from iris_constants import mkdir_under_iris_home
+    mkdir_under_iris_home(skill_dir)
     skill_md = skill_dir / "SKILL.md"
     atomic_write_text(skill_md, content, preserve_mode=True, create_mode=0o644)
     if scan_error := _security_scan_skill(skill_dir):
@@ -532,7 +532,7 @@ def _delete_skill(name: str, absorbed_into: Optional[str] = None) -> Dict[str, A
     skills_root = _containing_skills_root(skill_dir)
     if unsafe := _validate_delete_target(skill_dir):  # defense-in-depth before rmtree
         return _err(unsafe)
-    # Curator consolidations must be RECOVERABLE (`hermes curator restore`): archive instead
+    # Curator consolidations must be RECOVERABLE (`iris curator restore`): archive instead
     # of rmtree. Foreground deletes keep hard-delete semantics.
     absorbed_note = f" Content absorbed into '{absorbed_target}'." if absorbed_target else ""
     if _is_background_review():
@@ -679,8 +679,8 @@ def _maybe_debounced_sync_push(skill_name: str) -> None:
             return
     except Exception:
         return
-    from hermes_constants import hermes_home_key
-    home_key = hermes_home_key()
+    from iris_constants import iris_home_key
+    home_key = iris_home_key()
     # Timer threads start with empty ContextVars; without the scheduling turn's context the push would
     # resolve the launch profile's home and credentials instead of the writing profile's.
     ctx = _ctxvars.copy_context()
@@ -738,12 +738,12 @@ def _record_success(action, name, result, *, file_path, absorbed_into, task_id,
         clear_skills_system_prompt_cache(clear_snapshot=True)
     # Curator telemetry: only the background review fork marks a skill agent-created
     # (foreground creates belong to the user). A recoverable curator archive keeps its
-    # record as STATE_ARCHIVED (`hermes curator status`/`restore`); only a hard delete forgets.
+    # record as STATE_ARCHIVED (`iris curator status`/`restore`); only a hard delete forgets.
     with suppress(Exception):
         from tools.skill_usage import bump_patch, forget, record_created
         # During the curator consolidation pass, a verified consolidation must be RECOVERABLE: archival into
-        # ~/.hermes/skills/.archive/ is documented as the maximum destructive action the curator may take,
-        # and `hermes curator restore` promises the skill can be brought back. Route through the recoverable
+        # ~/.iris/skills/.archive/ is documented as the maximum destructive action the curator may take,
+        # and `iris curator restore` promises the skill can be brought back. Route through the recoverable
         # archive primitive instead of permanent rmtree so a misjudged consolidation can be undone (#29912).
         # Foreground, user-directed deletes keep their existing hard-delete semantics.
         from tools.skill_provenance import is_background_review
@@ -946,7 +946,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

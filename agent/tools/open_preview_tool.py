@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Open a URL, dev server, or file in the Hermes desktop GUI's preview pane.
+"""Open a URL, dev server, or file in the Iris desktop GUI's preview pane.
 
 Registration lives in the `desktop_preview` tool (``tools.preview_tool``); this module keeps
 the normalizer + open action. Emits ``preview.open`` via ``desktop_ui``: the renderer opens
@@ -40,7 +40,7 @@ def open_preview_tool(url: str, label: str = "") -> str:
         "preview.open",
         {"url": target, "label": label},
         "Failed to open the preview pane: ",
-        "The preview pane is only available in the Hermes desktop app.",
+        "The preview pane is only available in the Iris desktop app.",
         {"success": True, "url": target, "label": label})
 
 
@@ -53,7 +53,7 @@ import json  # noqa: F401,E402
 OPEN_PREVIEW_SCHEMA = {
     "name": "open_preview",
     "description": (
-        "Open something in the preview pane beside the chat in the Hermes desktop "
+        "Open something in the preview pane beside the chat in the Iris desktop "
         "app. Use this when the user asks to see a page, dev server, or file in the "
         "preview pane — e.g. \"open cnn.com in the preview pane\" or \"preview "
         "localhost:3000\". Accepts a web URL (a bare domain like www.cnn.com is fine), "
@@ -91,7 +91,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

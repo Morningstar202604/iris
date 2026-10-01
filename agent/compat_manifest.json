@@ -196,9 +196,9 @@
   },
   {
    "facade": "agent.anthropic_adapter",
-   "name": "get_hermes_home",
+   "name": "get_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.anthropic_adapter",
@@ -244,7 +244,7 @@
   },
   {
    "facade": "agent.anthropic_adapter",
-   "name": "read_hermes_oauth_credentials",
+   "name": "read_iris_oauth_credentials",
    "kind": "moved-lazy",
    "target": "agent.anthropic_credentials"
   },
@@ -262,7 +262,7 @@
   },
   {
    "facade": "agent.anthropic_adapter",
-   "name": "run_hermes_oauth_login_pure",
+   "name": "run_iris_oauth_login_pure",
    "kind": "moved-lazy",
    "target": "agent.anthropic_credentials"
   },
@@ -424,9 +424,9 @@
   },
   {
    "facade": "agent.browser_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.browser_registry",
@@ -510,7 +510,7 @@
    "facade": "agent.conversation_loop",
    "name": "PARTIAL_STREAM_STUB_ID",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.conversation_loop",
@@ -790,9 +790,9 @@
   },
   {
    "facade": "agent.image_gen_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.image_gen_registry",
@@ -1144,9 +1144,9 @@
   },
   {
    "facade": "agent.terminal_env_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.terminal_env_registry",
@@ -1198,9 +1198,9 @@
   },
   {
    "facade": "agent.transcription_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.transcription_registry",
@@ -1264,9 +1264,9 @@
   },
   {
    "facade": "agent.tts_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.tts_registry",
@@ -1348,9 +1348,9 @@
   },
   {
    "facade": "agent.video_gen_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.video_gen_registry",
@@ -1378,9 +1378,9 @@
   },
   {
    "facade": "agent.web_search_registry",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "agent.web_search_registry",
@@ -1428,7 +1428,7 @@
    "facade": "cli",
    "name": "DEFAULT_BROWSER_CDP_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.browser_connect"
+   "target": "iris_cli.browser_connect"
   },
   {
    "facade": "cli",
@@ -1450,15 +1450,15 @@
   },
   {
    "facade": "cli",
-   "name": "HERMES_AGENT_LOGO",
+   "name": "IRIS_AGENT_LOGO",
    "kind": "moved-lazy",
-   "target": "hermes_cli.banner"
+   "target": "iris_cli.banner"
   },
   {
    "facade": "cli",
-   "name": "HERMES_CADUCEUS",
+   "name": "IRIS_CADUCEUS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.banner"
+   "target": "iris_cli.banner"
   },
   {
    "facade": "cli",
@@ -1506,13 +1506,13 @@
    "facade": "cli",
    "name": "SlashCommandAutoSuggest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_completion"
+   "target": "iris_cli.commands_completion"
   },
   {
    "facade": "cli",
    "name": "SlashCommandCompleter",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_completion"
+   "target": "iris_cli.commands_completion"
   },
   {
    "facade": "cli",
@@ -1548,7 +1548,7 @@
    "facade": "cli",
    "name": "build_welcome_banner",
    "kind": "moved-lazy",
-   "target": "hermes_cli.banner"
+   "target": "iris_cli.banner"
   },
   {
    "facade": "cli",
@@ -1564,9 +1564,9 @@
   },
   {
    "facade": "cli",
-   "name": "display_hermes_home",
+   "name": "display_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "cli",
@@ -1602,13 +1602,13 @@
    "facade": "cli",
    "name": "init_skin_from_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.skin_engine"
+   "target": "iris_cli.skin_engine"
   },
   {
    "facade": "cli",
    "name": "is_browser_debug_ready",
    "kind": "moved-lazy",
-   "target": "hermes_cli.browser_connect"
+   "target": "iris_cli.browser_connect"
   },
   {
    "facade": "cli",
@@ -1626,19 +1626,19 @@
    "facade": "cli",
    "name": "manual_chrome_debug_command",
    "kind": "moved-lazy",
-   "target": "hermes_cli.browser_connect"
+   "target": "iris_cli.browser_connect"
   },
   {
    "facade": "cli",
    "name": "print_config_warnings",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
    "facade": "cli",
    "name": "prompt_for_secret",
    "kind": "moved-lazy",
-   "target": "hermes_cli.callbacks"
+   "target": "iris_cli.callbacks"
   },
   {
    "facade": "cli",
@@ -1662,7 +1662,7 @@
    "facade": "cli",
    "name": "setup_logging",
    "kind": "moved-lazy",
-   "target": "hermes_logging"
+   "target": "iris_logging"
   },
   {
    "facade": "cli",
@@ -2670,7 +2670,7 @@
    "facade": "gateway.slash_commands",
    "name": "clear_model_endpoint_credentials",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
    "facade": "gateway.slash_commands",
@@ -2751,4801 +2751,4801 @@
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.agent_import",
+   "facade": "iris_cli.agent_import",
    "name": "backup_memory_file",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.agent_import",
+   "facade": "iris_cli.agent_import",
    "name": "default_source_dir",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "BaseHTTPRequestHandler",
    "kind": "import",
    "target": "http.server"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "CODEX_OAUTH_USER_AGENT",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_codex"
+   "target": "iris_cli.auth_codex"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "DEFAULT_SPOTIFY_REDIRECT_URI",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "HTTPServer",
    "kind": "import",
    "target": "http.server"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "MINIMAX_OAUTH_GRANT_TYPE",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "NOUS_INFERENCE_INVOKE_SCOPE",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "NOUS_SHARED_STORE_FILENAME",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_nous"
+   "target": "iris_cli.auth_nous"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "OAUTH_OVER_SSH_DOCS_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "QWEN_OAUTH_CLIENT_ID",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "QWEN_OAUTH_TOKEN_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "SINGLE_USE_OAUTH_SINGLETON_FILES",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_oauth_grants"
+   "target": "iris_cli.auth_oauth_grants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "SPOTIFY_ACCESS_TOKEN_REFRESH_SKEW_SECONDS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "SPOTIFY_DASHBOARD_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "TYPE_CHECKING",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "XAI_OAUTH_DEVICE_CODE_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "XAI_OAUTH_DISCOVERY_URL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "XAI_OAUTH_ISSUER",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_constants"
+   "target": "iris_cli.auth_constants"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "base64",
    "kind": "import",
    "target": "base64"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "parse_qs",
    "kind": "import",
    "target": "urllib.parse"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "refresh_nous_oauth_pure",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth_nous"
+   "target": "iris_cli.auth_nous"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "ssl",
    "kind": "import",
    "target": "ssl"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "sys",
    "kind": "import",
    "target": "sys"
   },
   {
-   "facade": "hermes_cli.auth",
+   "facade": "iris_cli.auth",
    "name": "urlencode",
    "kind": "import",
    "target": "urllib.parse"
   },
   {
-   "facade": "hermes_cli.backup",
+   "facade": "iris_cli.backup",
    "name": "copy_db_and_verify",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.browser_connect",
+   "facade": "iris_cli.browser_connect",
    "name": "try_launch_chrome_debug",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.callbacks",
+   "facade": "iris_cli.callbacks",
    "name": "approval_callback",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.callbacks",
+   "facade": "iris_cli.callbacks",
    "name": "clarify_callback",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.checkpoints",
+   "facade": "iris_cli.checkpoints",
    "name": "cmd_list",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugins_cmd"
+   "target": "iris_cli.plugins_cmd"
   },
   {
-   "facade": "hermes_cli.checkpoints",
+   "facade": "iris_cli.checkpoints",
    "name": "datetime",
    "kind": "import",
    "target": "datetime"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Any",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Callable",
    "kind": "import",
    "target": "collections.abc"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Dict",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Mapping",
    "kind": "import",
    "target": "collections.abc"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Optional",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Sequence",
    "kind": "import",
    "target": "collections.abc"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "SlashCommandAutoSuggest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_completion"
+   "target": "iris_cli.commands_completion"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "SlashCommandCompleter",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_completion"
+   "target": "iris_cli.commands_completion"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "Tuple",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "_requires_argument",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of discord_skill_commands)"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "_CMD_NAME_LIMIT",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of discord_skill_commands)"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "_clamp_command_names",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of discord_skill_commands)"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "_collect_gateway_skill_entries",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of discord_skill_commands)"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "discord_skill_commands",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "discord_skill_commands_by_category",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "field",
    "kind": "import",
    "target": "dataclasses"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "slack_app_manifest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "slack_native_slashes",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "slack_subcommand_map",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "telegram_bot_commands",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "telegram_menu_commands",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "telegram_menu_max_commands",
    "kind": "moved-lazy",
-   "target": "hermes_cli.commands_platforms"
+   "target": "iris_cli.commands_platforms"
   },
   {
-   "facade": "hermes_cli.commands",
+   "facade": "iris_cli.commands",
    "name": "time",
    "kind": "import",
    "target": "time"
   },
   {
-   "facade": "hermes_cli.config",
+   "facade": "iris_cli.config",
    "name": "normalize_route_base_url",
    "kind": "moved-lazy",
-   "target": "hermes_cli.route_identity"
+   "target": "iris_cli.route_identity"
   },
   {
-   "facade": "hermes_cli.config",
+   "facade": "iris_cli.config",
    "name": "_install_method_project_root",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of stamp_install_method)"
   },
   {
-   "facade": "hermes_cli.config",
+   "facade": "iris_cli.config",
    "name": "stamp_install_method",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.console_engine",
+   "facade": "iris_cli.console_engine",
    "name": "shlex",
    "kind": "import",
    "target": "shlex"
   },
   {
-   "facade": "hermes_cli.curses_ui",
+   "facade": "iris_cli.curses_ui",
    "name": "Protocol",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.dashboard_auth.audit",
+   "facade": "iris_cli.dashboard_auth.audit",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.dashboard_auth.middleware",
+   "facade": "iris_cli.dashboard_auth.middleware",
    "name": "DashboardAuthProvider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth.base"
+   "target": "iris_cli.dashboard_auth.base"
   },
   {
-   "facade": "hermes_cli.dingtalk_auth",
+   "facade": "iris_cli.dingtalk_auth",
    "name": "logger",
    "kind": "moved-lazy",
-   "target": "hermes_cli.auth"
+   "target": "iris_cli.auth"
   },
   {
-   "facade": "hermes_cli.dingtalk_auth",
+   "facade": "iris_cli.dingtalk_auth",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "FTS_STORAGE_VERSION",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "OPENROUTER_MODELS_URL",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "Path",
    "kind": "import",
    "target": "pathlib"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "STATE_DB_SIZE_WARN_BYTES",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_state"
+   "target": "iris_cli.doctor_state"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "agent_browser_runnable",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "base_url_host_matches",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_certificates",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_platform"
+   "target": "iris_cli.doctor_platform"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_fail",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_macos_full_disk_access",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_platform"
+   "target": "iris_cli.doctor_platform"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_macos_tcc_anchor",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_platform"
+   "target": "iris_cli.doctor_platform"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_macos_tcc_grants",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_platform"
+   "target": "iris_cli.doctor_platform"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_ok",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "check_warn",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "collect_deprecated_config_keys",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_config"
+   "target": "iris_cli.doctor_config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "collect_deprecated_env_vars",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_config"
+   "target": "iris_cli.doctor_config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "collect_relay_plugin_cutover_findings",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_config"
+   "target": "iris_cli.doctor_config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "describe_vercel_auth",
    "kind": "moved-lazy",
-   "target": "hermes_cli.vercel_auth"
+   "target": "iris_cli.vercel_auth"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "detect_install_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "importlib",
    "kind": "import",
    "target": "importlib.util"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "is_nix_install_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "managed_scope_check",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_config"
+   "target": "iris_cli.doctor_config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "recommended_update_command_for_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "report_deprecated_config_and_env",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor_config"
+   "target": "iris_cli.doctor_config"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.doctor",
+   "facade": "iris_cli.doctor",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.doctor_live",
+   "facade": "iris_cli.doctor_live",
    "name": "ELEVENLABS_VOICES_URL",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor_live",
+   "facade": "iris_cli.doctor_live",
    "name": "FAL_MODELS_URL",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor_live",
+   "facade": "iris_cli.doctor_live",
    "name": "FIRECRAWL_HEALTH_URL",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor_live",
+   "facade": "iris_cli.doctor_live",
    "name": "GROQ_MODELS_URL",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.doctor_live",
+   "facade": "iris_cli.doctor_live",
    "name": "OPENAI_MODELS_URL",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.focus_view",
+   "facade": "iris_cli.focus_view",
    "name": "FOCUS_USAGE",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.focus_view",
+   "facade": "iris_cli.focus_view",
    "name": "effective_tool_progress_mode",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.foreign_sessions",
+   "facade": "iris_cli.foreign_sessions",
    "name": "list_claude_sessions",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.foreign_sessions",
+   "facade": "iris_cli.foreign_sessions",
    "name": "list_codex_sessions",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.gateway",
+   "facade": "iris_cli.gateway",
    "name": "DEFAULT_GATEWAY_RESTART_AFTER_TURN_TIMEOUT",
    "kind": "moved-lazy",
    "target": "gateway.restart"
   },
   {
-   "facade": "hermes_cli.gateway",
+   "facade": "iris_cli.gateway",
    "name": "print_systemd_linger_guidance",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.gitlock",
+   "facade": "iris_cli.gitlock",
    "name": "is_ancestor_of_head",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.heartbeat",
+   "facade": "iris_cli.heartbeat",
    "name": "Dict",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.journey",
+   "facade": "iris_cli.journey",
    "name": "cmd_journey",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.kanban",
+   "facade": "iris_cli.kanban",
    "name": "Any",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DEFAULT_BUSY_TIMEOUT_MS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DEFAULT_LOG_BACKUP_COUNT",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DEFAULT_LOG_ROTATE_BYTES",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DEFAULT_SPAWN_FAILURE_LIMIT",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DERIVED_MAX_IN_PROGRESS_CEILING",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "DERIVED_MAX_IN_PROGRESS_FLOOR",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "KANBAN_TERMINAL_TIMEOUT_GRACE_SECONDS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "KanbanDbCorruptError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "MEMORY_GUARD_MB_PER_WORKER",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "Mapping",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "RepairResult",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "add_notify_sub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "advance_notify_cursor",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "check_respawn_guard",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "claim_unseen_events_for_sub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "configured_max_in_progress",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "connect",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "connect_closing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "count_notify_subs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "count_running_tasks",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "count_running_tasks_other_boards",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "derive_default_max_in_progress",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "detect_crashed_workers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "detect_stale_running",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "dispatch_once",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "enforce_max_runtime",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "field",
    "kind": "import",
    "target": "dataclasses"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "has_spawnable_ready",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "has_spawnable_review",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "heartbeat_worker",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "list_notify_subs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "parent_results",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "purge_stale_done_notify_subs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "random",
    "kind": "import",
    "target": "random"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "reap_worker_zombies",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "reconcile_orphaned_running",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "remove_notify_sub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "repair_db",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_connect"
+   "target": "iris_cli.kanban_db_connect"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "resolve_max_in_progress",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "resolve_workspace",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_workspace"
+   "target": "iris_cli.kanban_db_workspace"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "review_dispatch_enabled",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "rewind_notify_cursor",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "run_daemon",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "set_branch_name",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_workspace"
+   "target": "iris_cli.kanban_db_workspace"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "set_workspace_path",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_workspace"
+   "target": "iris_cli.kanban_db_workspace"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "threading",
    "kind": "import",
    "target": "threading"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "unseen_events_for_sub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_notify"
+   "target": "iris_cli.kanban_db_notify"
   },
   {
-   "facade": "hermes_cli.kanban_db",
+   "facade": "iris_cli.kanban_db",
    "name": "worker_log_rotation_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.kanban_db_dispatch"
+   "target": "iris_cli.kanban_db_dispatch"
   },
   {
-   "facade": "hermes_cli.kanban_decompose",
+   "facade": "iris_cli.kanban_decompose",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.kanban_decompose",
+   "facade": "iris_cli.kanban_decompose",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.kanban_diagnostics",
+   "facade": "iris_cli.kanban_diagnostics",
    "name": "DIAGNOSTIC_KINDS",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.local_runtime.binaries",
-   "name": "get_hermes_home",
+   "facade": "iris_cli.local_runtime.binaries",
+   "name": "get_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.local_runtime.bootstrap",
-   "name": "get_hermes_home",
+   "facade": "iris_cli.local_runtime.bootstrap",
+   "name": "get_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.local_runtime.capabilities",
+   "facade": "iris_cli.local_runtime.capabilities",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.local_runtime.capabilities",
+   "facade": "iris_cli.local_runtime.capabilities",
    "name": "urllib",
    "kind": "import",
    "target": "urllib.request"
   },
   {
-   "facade": "hermes_cli.local_runtime.catalog",
+   "facade": "iris_cli.local_runtime.catalog",
    "name": "find_variant",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.local_runtime.catalog",
+   "facade": "iris_cli.local_runtime.catalog",
    "name": "re",
    "kind": "import",
    "target": "re"
   },
   {
-   "facade": "hermes_cli.local_runtime.catalog",
+   "facade": "iris_cli.local_runtime.catalog",
    "name": "recommended_id",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.local_runtime.hf_browse",
+   "facade": "iris_cli.local_runtime.hf_browse",
    "name": "field",
    "kind": "import",
    "target": "dataclasses"
   },
   {
-   "facade": "hermes_cli.main",
+   "facade": "iris_cli.main",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.main",
+   "facade": "iris_cli.main",
    "name": "line_input",
    "kind": "moved-lazy",
-   "target": "hermes_cli.cli_output"
+   "target": "iris_cli.cli_output"
   },
   {
-   "facade": "hermes_cli.main",
+   "facade": "iris_cli.main",
    "name": "shlex",
    "kind": "import",
    "target": "shlex"
   },
   {
-   "facade": "hermes_cli.main",
+   "facade": "iris_cli.main",
    "name": "stat",
    "kind": "import",
    "target": "stat"
   },
   {
-   "facade": "hermes_cli.main",
+   "facade": "iris_cli.main",
    "name": "tempfile",
    "kind": "import",
    "target": "tempfile"
   },
   {
-   "facade": "hermes_cli.mcp_picker",
+   "facade": "iris_cli.mcp_picker",
    "name": "color",
    "kind": "moved-lazy",
-   "target": "hermes_cli.colors"
+   "target": "iris_cli.colors"
   },
   {
-   "facade": "hermes_cli.mcp_security",
+   "facade": "iris_cli.mcp_security",
    "name": "is_mcp_server_entry_suspicious",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.middleware",
+   "facade": "iris_cli.middleware",
    "name": "API_EXECUTION_MIDDLEWARE",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.middleware",
+   "facade": "iris_cli.middleware",
    "name": "API_REQUEST_MIDDLEWARE",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.middleware",
+   "facade": "iris_cli.middleware",
    "name": "apply_api_request_middleware",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.middleware",
+   "facade": "iris_cli.middleware",
    "name": "run_api_execution_middleware",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.moa_config",
+   "facade": "iris_cli.moa_config",
    "name": "encode_moa_turn",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of build_moa_turn_prompt)"
   },
   {
-   "facade": "hermes_cli.moa_config",
+   "facade": "iris_cli.moa_config",
    "name": "build_moa_turn_prompt",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.moa_config",
+   "facade": "iris_cli.moa_config",
    "name": "encode_moa_turn",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.moa_config",
+   "facade": "iris_cli.moa_config",
    "name": "list_moa_presets",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.moa_config",
+   "facade": "iris_cli.moa_config",
    "name": "set_active_moa_preset",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "BEDROCK_GEO_PREFIXES",
    "kind": "moved-lazy",
-   "target": "hermes_cli.model_setup_flows_bedrock"
+   "target": "iris_cli.model_setup_flows_bedrock"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "bedrock_model_routable_from_region",
    "kind": "moved-lazy",
-   "target": "hermes_cli.model_setup_flows_bedrock"
+   "target": "iris_cli.model_setup_flows_bedrock"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "bedrock_region_geo_prefix",
    "kind": "moved-lazy",
-   "target": "hermes_cli.model_setup_flows_bedrock"
+   "target": "iris_cli.model_setup_flows_bedrock"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "custom_provider_slug",
    "kind": "moved-lazy",
-   "target": "hermes_cli.providers"
+   "target": "iris_cli.providers"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "line_input",
    "kind": "moved-lazy",
-   "target": "hermes_cli.cli_output"
+   "target": "iris_cli.cli_output"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.model_setup_flows",
+   "facade": "iris_cli.model_setup_flows",
    "name": "urllib",
    "kind": "import",
    "target": "urllib.parse"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "List",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "base_url_host_matches",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "custom_provider_slug",
    "kind": "moved-lazy",
-   "target": "hermes_cli.providers"
+   "target": "iris_cli.providers"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "http",
    "kind": "import",
    "target": "http.client"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "list_picker_providers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.model_switch_providers"
+   "target": "iris_cli.model_switch_providers"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "prewarm_picker_cache_async",
    "kind": "moved-lazy",
-   "target": "hermes_cli.model_switch_providers"
+   "target": "iris_cli.model_switch_providers"
   },
   {
-   "facade": "hermes_cli.model_switch",
+   "facade": "iris_cli.model_switch",
    "name": "time",
    "kind": "import",
    "target": "time"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "LMStudioLoadResult",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "NamedTuple",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "PROVIDER_GROUPS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_catalog_static"
+   "target": "iris_cli.models_catalog_static"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "ProviderEntry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_catalog_static"
+   "target": "iris_cli.models_catalog_static"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "atomic_json_write",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "base_url_host_matches",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "compute_sale_discount",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "ensure_lmstudio_model_loaded",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "fetch_ai_gateway_pricing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "fetch_lmstudio_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "fetch_models_with_pricing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "fetch_ollama_local_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "get_cached_nous_inference_base_url",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "get_close_matches",
    "kind": "import",
    "target": "difflib"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "get_pricing_for_provider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "group_providers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_catalog_static"
+   "target": "iris_cli.models_catalog_static"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "http",
    "kind": "import",
    "target": "http.client"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "is_nous_free_tier",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "lmstudio_model_reasoning_options",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "nous_catalog_url",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "nous_model_reasoning_capabilities",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "nous_policy_allowed_ids",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "ollama_model_supports_thinking",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "openrouter_model_reasoning_capabilities",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "parse_openrouter_reasoning_capabilities",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "peek_cached_pricing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "pricing_cache_scope",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "probe_lmstudio_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "probe_ollama_local_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "provider_group_for_slug",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_catalog_static"
+   "target": "iris_cli.models_catalog_static"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "refresh_reasoning_caps_async",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "restrict_to_nous_policy",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_pricing"
+   "target": "iris_cli.models_pricing"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "should_use_ollama_native_catalog",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_local"
+   "target": "iris_cli.models_local"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "url_origin",
    "kind": "moved-lazy",
-   "target": "hermes_cli.urllib_security"
+   "target": "iris_cli.urllib_security"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "validate_requested_model",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_validate"
+   "target": "iris_cli.models_validate"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "warm_nous_reasoning_caps_async",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.models",
+   "facade": "iris_cli.models",
    "name": "warm_openrouter_reasoning_caps_async",
    "kind": "moved-lazy",
-   "target": "hermes_cli.models_reasoning_caps"
+   "target": "iris_cli.models_reasoning_caps"
   },
   {
-   "facade": "hermes_cli.nous_billing",
+   "facade": "iris_cli.nous_billing",
    "name": "BILLING_MANAGE_SCOPE",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.nous_subscription",
+   "facade": "iris_cli.nous_subscription",
    "name": "managed_nous_tools_enabled",
    "kind": "moved-lazy",
    "target": "tools.tool_backend_helpers"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "CLIENT_ACTIVE_MARK",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "MODEL_CALL_PROFILE_MODEL",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "SCHEMA_KEY",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "SCHEMA_VERSION",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "SKILL_LIFECYCLE_MARK",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "SKILL_LOAD_MARK",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "TOOL_APPROVAL_MARK",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "TOOL_CALL_SCOPE",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "model_call_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "prepare_session_start",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "skill_lifecycle_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "skill_load_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "task_start_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "task_terminal_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "task_terminal_state",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "tool_approval_outcome",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "tool_category",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.observability.relay_shared_metrics",
+   "facade": "iris_cli.observability.relay_shared_metrics",
    "name": "tool_terminal_fields",
    "kind": "moved-lazy",
-   "target": "hermes_cli.observability.shared_metrics_contract"
+   "target": "iris_cli.observability.shared_metrics_contract"
   },
   {
-   "facade": "hermes_cli.onepassword_secrets_cli",
+   "facade": "iris_cli.onepassword_secrets_cli",
    "name": "Table",
    "kind": "import",
    "target": "rich.table"
   },
   {
-   "facade": "hermes_cli.onepassword_secrets_cli",
+   "facade": "iris_cli.onepassword_secrets_cli",
    "name": "masked_secret_prompt",
    "kind": "moved-lazy",
-   "target": "hermes_cli.secret_prompt"
+   "target": "iris_cli.secret_prompt"
   },
   {
-   "facade": "hermes_cli.onepassword_secrets_cli",
+   "facade": "iris_cli.onepassword_secrets_cli",
    "name": "sys",
    "kind": "import",
    "target": "sys"
   },
   {
-   "facade": "hermes_cli.platform_actions",
+   "facade": "iris_cli.platform_actions",
    "name": "Optional",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "CAPABILITY_REGISTRY",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugin_capabilities"
+   "target": "iris_cli.plugin_capabilities"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "ENTRY_POINT_CAPABILITIES_GROUP",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugins_discovery"
+   "target": "iris_cli.plugins_discovery"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "Iterable",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "LEGACY_RELAY_PLUGIN_KEYS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.relay_plugin_cutover"
+   "target": "iris_cli.relay_plugin_cutover"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "MAX_SYSTEM_PROMPT_SECTIONS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugins_dispatch"
+   "target": "iris_cli.plugins_dispatch"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "OBSERVER_SCHEMA_VERSION",
    "kind": "moved-lazy",
-   "target": "hermes_cli.middleware"
+   "target": "iris_cli.middleware"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "Type",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "VALID_CAPABILITY_IDS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugin_capabilities"
+   "target": "iris_cli.plugin_capabilities"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "cfg_get",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "contextmanager",
    "kind": "import",
    "target": "contextlib"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "contextvars",
    "kind": "import",
    "target": "contextvars"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "copy",
    "kind": "import",
    "target": "copy"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "fast_safe_load",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "format_system_prompt_section",
    "kind": "moved-lazy",
-   "target": "hermes_cli.plugins_dispatch"
+   "target": "iris_cli.plugins_dispatch"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "get_plugin_subscriptions",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.plugins",
-   "name": "reset_hermes_home_override",
+   "facade": "iris_cli.plugins",
+   "name": "reset_iris_home_override",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.plugins",
-   "name": "set_hermes_home_override",
+   "facade": "iris_cli.plugins",
+   "name": "set_iris_home_override",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "time",
    "kind": "import",
    "target": "time"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "unload_plugins",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.plugins",
+   "facade": "iris_cli.plugins",
    "name": "wraps",
    "kind": "import",
    "target": "functools"
   },
   {
-   "facade": "hermes_cli.plugins_cmd",
+   "facade": "iris_cli.plugins_cmd",
    "name": "importlib",
    "kind": "import",
    "target": "importlib.metadata"
   },
   {
-   "facade": "hermes_cli.profile_describer",
+   "facade": "iris_cli.profile_describer",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.profile_distribution",
+   "facade": "iris_cli.profile_distribution",
    "name": "is_excluded_skill_path",
    "kind": "moved-lazy",
    "target": "agent.skill_utils"
   },
   {
-   "facade": "hermes_cli.profiles",
+   "facade": "iris_cli.profiles",
    "name": "has_bundled_skills_opt_out",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.runtime_provider",
+   "facade": "iris_cli.runtime_provider",
    "name": "custom_provider_aliases",
    "kind": "moved-lazy",
-   "target": "hermes_cli.providers"
+   "target": "iris_cli.providers"
   },
   {
-   "facade": "hermes_cli.runtime_provider",
+   "facade": "iris_cli.runtime_provider",
    "name": "custom_provider_slug",
    "kind": "moved-lazy",
-   "target": "hermes_cli.providers"
+   "target": "iris_cli.providers"
   },
   {
-   "facade": "hermes_cli.runtime_provider",
+   "facade": "iris_cli.runtime_provider",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.security_advisories",
+   "facade": "iris_cli.security_advisories",
    "name": "render_doctor_section",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "Any",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "Dict",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "Optional",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "get_nous_subscription_features",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_subscription"
+   "target": "iris_cli.nous_subscription"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "get_optional_skills_dir",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "managed_nous_tools_enabled",
    "kind": "moved-lazy",
    "target": "tools.tool_backend_helpers"
   },
   {
-   "facade": "hermes_cli.setup",
+   "facade": "iris_cli.setup",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.slack_cli",
+   "facade": "iris_cli.slack_cli",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.sqlite_safe_read",
+   "facade": "iris_cli.sqlite_safe_read",
    "name": "SQLITE_HEADER_MAGIC",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "format_nous_portal_entitlement_message",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_account"
+   "target": "iris_cli.nous_account"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "get_nous_portal_account_info",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_account"
+   "target": "iris_cli.nous_account"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "get_nous_subscription_features",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_subscription"
+   "target": "iris_cli.nous_subscription"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "managed_nous_tools_enabled",
    "kind": "moved-lazy",
    "target": "tools.tool_backend_helpers"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "redact_key",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.status",
+   "facade": "iris_cli.status",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "DEFAULT_MANAGER_BOT",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "auto_setup_telegram_bot",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "secrets",
    "kind": "restored-import",
    "target": "secrets"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "_USERNAME_SLUG_ALPHABET",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of generate_bot_username)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "generate_username_slug",
    "kind": "restored-helper",
    "target": "(deleted; restored as a dependency of generate_bot_username)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "generate_bot_username",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "urllib",
    "kind": "restored-import",
    "target": "urllib.parse"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "generate_deep_link",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "generate_pairing_nonce",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "generate_username_slug",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "poll_for_token",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "poll_pairing_once",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "secrets",
    "kind": "import",
    "target": "secrets"
   },
   {
-   "facade": "hermes_cli.telegram_managed_bot",
+   "facade": "iris_cli.telegram_managed_bot",
    "name": "urllib",
    "kind": "import",
    "target": "urllib.parse"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "MANAGED_FEATURE_COVERAGE_CATEGORY",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_subscription"
+   "target": "iris_cli.nous_subscription"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "NOUS_MANAGED_PROVIDER",
    "kind": "moved-lazy",
    "target": "tools.tool_backend_helpers"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "base_url_hostname",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "fal_key_is_configured",
    "kind": "moved-lazy",
    "target": "tools.tool_backend_helpers"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "format_nous_portal_entitlement_message",
    "kind": "moved-lazy",
-   "target": "hermes_cli.nous_account"
+   "target": "iris_cli.nous_account"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "is_truthy_value",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "save_env_value",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "subprocess",
    "kind": "import",
    "target": "subprocess"
   },
   {
-   "facade": "hermes_cli.tools_config",
+   "facade": "iris_cli.tools_config",
    "name": "sys",
    "kind": "import",
    "target": "sys"
   },
   {
-   "facade": "hermes_cli.uninstall",
+   "facade": "iris_cli.uninstall",
    "name": "find_shell_configs",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.update_cmd",
+   "facade": "iris_cli.update_cmd",
    "name": "Optional",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.update_cmd",
+   "facade": "iris_cli.update_cmd",
    "name": "datetime",
    "kind": "import",
    "target": "datetime"
   },
   {
-   "facade": "hermes_cli.update_cmd",
+   "facade": "iris_cli.update_cmd",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.update_cmd",
+   "facade": "iris_cli.update_cmd",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.update_inventory",
+   "facade": "iris_cli.update_inventory",
    "name": "Path",
    "kind": "import",
    "target": "pathlib"
   },
   {
-   "facade": "hermes_cli.update_inventory",
+   "facade": "iris_cli.update_inventory",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.web_deps",
+   "facade": "iris_cli.web_deps",
    "name": "get_dashboard_health",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.web_deps",
+   "facade": "iris_cli.web_deps",
    "name": "get_session_token",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.web_deps",
+   "facade": "iris_cli.web_deps",
    "name": "has_valid_session_token",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.web_deps",
+   "facade": "iris_cli.web_deps",
    "name": "late_attr",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_cli.web_routers.cron",
+   "facade": "iris_cli.web_routers.cron",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.web_routers.mcp",
+   "facade": "iris_cli.web_routers.mcp",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.web_routers.sessions",
+   "facade": "iris_cli.web_routers.sessions",
    "name": "Any",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.web_routers.sessions",
+   "facade": "iris_cli.web_routers.sessions",
    "name": "Dict",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.web_routers.sessions",
+   "facade": "iris_cli.web_routers.sessions",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.web_routers.skills",
+   "facade": "iris_cli.web_routers.skills",
    "name": "LateState",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_deps"
+   "target": "iris_cli.web_deps"
   },
   {
-   "facade": "hermes_cli.web_routers.skills",
+   "facade": "iris_cli.web_routers.skills",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.web_routers.tools",
+   "facade": "iris_cli.web_routers.tools",
    "name": "LateState",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_deps"
+   "target": "iris_cli.web_deps"
   },
   {
-   "facade": "hermes_cli.web_routers.tools",
+   "facade": "iris_cli.web_routers.tools",
    "name": "logging",
    "kind": "import",
    "target": "logging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "AudioTranscriptionRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "AutomationBlueprintInstantiate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "BackupRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "BulkDeleteSessions",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CONFIG_SCHEMA",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_server_config"
+   "target": "iris_cli.web_server_config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ChatImageUpload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ConfigUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CredentialPoolAdd",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CronJobCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CronJobUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CuratorPause",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "CustomEndpointUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "DEFAULT_CONFIG",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "DebugShareRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "EnvVarDelete",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "EnvVarReveal",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "EnvVarUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "FontSetBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "FsWriteText",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitBranchSwitchBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitCommitBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitFileBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitPathBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitWorktreeAddBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "GitWorktreeRemoveBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "HookCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "HookDelete",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ImportRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "LearningNodeEdit",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "LearningNodeRef",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "List",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "Literal",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MCPCatalogInstall",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MCPEnabledToggle",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MCPServerCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MCPServersReplace",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ManagedDirectoryCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ManagedFileDelete",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ManagedFileUpload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ManagedFilesPolicy",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_server_files"
+   "target": "iris_cli.web_server_files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MemoryProviderConfigUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MemoryProviderSelect",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MemoryProviderSetupRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MemoryReset",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MessagingPlatformUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MoaConfigPayload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MoaModelSlot",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "MoaPresetPayload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ModelAssignment",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "OAuthSubmitBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "OPTIONAL_ENV_VARS",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "PairingApprove",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "PairingRevoke",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileActiveUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileDescribeAuto",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileDescriptionUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileModelUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileRename",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProfileSoulUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProviderConfigSchema",
    "kind": "moved-lazy",
    "target": "plugins.memory.config_schema"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ProviderField",
    "kind": "moved-lazy",
    "target": "plugins.memory.config_schema"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "PtyBridge",
    "kind": "moved-lazy",
-   "target": "hermes_cli.pty_bridge"
+   "target": "iris_cli.pty_bridge"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "PtySessionRegistry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.pty_session"
+   "target": "iris_cli.pty_session"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "PtyUnavailableError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.pty_bridge"
+   "target": "iris_cli.pty_bridge"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "RawConfigUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "RegistryFull",
    "kind": "moved-lazy",
-   "target": "hermes_cli.pty_session"
+   "target": "iris_cli.pty_session"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "STORAGE_HONCHO_HOST_BLOCK",
    "kind": "moved-lazy",
    "target": "plugins.memory.config_schema"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SessionImport",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SessionPrune",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SessionRename",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillContentUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillInstallRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillToggle",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillUninstallRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "SkillsUpdateRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "TTSLeaseRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "TTSSpeakRequest",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "TelegramOnboardingApply",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "TelegramOnboardingStart",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "TerminalBackendSelect",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ThemeSetBody",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ToolsetEnvUpdate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ToolsetModelSelect",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ToolsetPostSetup",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ToolsetProviderSelect",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ToolsetToggle",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "WebhookCreate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "WebhookEnabledToggle",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "WhatsAppOnboardingApply",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "WhatsAppOnboardingStart",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_models"
+   "target": "iris_cli.web_models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "activate_custom_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "add_credential_pool_entry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "add_mcp_server",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "apply_telegram_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "apply_whatsapp_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "approve_pairing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "atexit",
    "kind": "import",
    "target": "atexit"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "auth_mcp_server",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "base64",
    "kind": "import",
    "target": "base64"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "binascii",
    "kind": "import",
    "target": "binascii"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "bulk_delete_sessions_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "cancel_oauth_session",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "cancel_telegram_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "cancel_whatsapp_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "cfg_get",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "check_config_version",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
-   "name": "check_hermes_update",
+   "facade": "iris_cli.web_server",
+   "name": "check_iris_update",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "clear_model_endpoint_credentials",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "clear_pending_pairing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "coerce_provider_id",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "concurrent",
    "kind": "import",
    "target": "concurrent.futures"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "console_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.chat_ws"
+   "target": "iris_cli.web_routers.chat_ws"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "contextlib",
    "kind": "import",
    "target": "contextlib"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "contextmanager",
    "kind": "import",
    "target": "contextlib"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "count_empty_sessions_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_hook",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_managed_directory",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_profile_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_skill",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "create_webhook",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "cron_fire_webhook",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "custom_endpoint_key_env",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "dataclass",
    "kind": "import",
    "target": "dataclasses"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "datetime",
    "kind": "import",
    "target": "datetime"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_agent_plugin",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_custom_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_empty_sessions_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_hook",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_learning_node",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_managed_file",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_profile_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_session_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "delete_webhook",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "derive_gateway_busy",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "derive_gateway_drainable",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "describe_profile_auto_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "detect_install_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "disconnect_oauth_provider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "download_dashboard_backup",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "download_managed_file",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "enable_webhooks",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "env_var_enabled",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "events_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.chat_ws"
+   "target": "iris_cli.web_routers.chat_ws"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "export_session_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "find_provider_entry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "format_docker_update_message",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_default_cwd",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_download",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_git_root",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_list",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_read_data_url",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_read_text",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "fs_write_text",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "functools",
    "kind": "import",
    "target": "functools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "gateway_drain",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "gateway_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.chat_ws"
+   "target": "iris_cli.web_routers.chat_ws"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_action_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_active_profile_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_auxiliary_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_client_voice_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_computer_use_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_config_path",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_config_raw",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.analytics"
+   "target": "iris_cli.web_routers.analytics"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_cron_delivery_targets",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_curator_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_dashboard_font",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_dashboard_plugins",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_dashboard_themes",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_defaults",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_egress_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_elevenlabs_voices",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_env_path",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_env_vars",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_health",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
-   "name": "get_hermes_home",
+   "facade": "iris_cli.web_server",
+   "name": "get_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_learning_graph",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_learning_node",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_logs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_media",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_memory_provider_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.memory_providers"
+   "target": "iris_cli.web_routers.memory_providers"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_memory_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_messaging_platforms",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_moa_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_model_info",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_model_options",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_models_analytics",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.analytics"
+   "target": "iris_cli.web_routers.analytics"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_plugins_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_portal_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
-   "name": "get_process_hermes_home",
+   "facade": "iris_cli.web_server",
+   "name": "get_process_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_profile_setup_command",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_profile_soul",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_profiles_sessions",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_profiles_sessions_sidebar",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_provider_config_schema",
    "kind": "moved-lazy",
    "target": "plugins.memory.config_schema"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_recommended_default_model",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_running_pid",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_running_pid_cached",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_runtime_status_running_pid",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_schema",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_session_detail",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_session_latest_descendant",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_session_messages",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_session_stats",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_sessions",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_skill_content",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_skills",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_ssh_ownership",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_system_stats",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_telegram_onboarding_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_terminal_backends",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_toolset_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_toolset_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_toolsets",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_update_receipt",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_usage_analytics",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.analytics"
+   "target": "iris_cli.web_routers.analytics"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "get_whatsapp_onboarding_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_base_branches_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_branch_switch_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_branches_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_commit_context_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_commit_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_create_pr_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_file_diff_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_push_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_rev_parse_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_revert_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_review_diff_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_review_list_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_ship_info_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_stage_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_status_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_unstage_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_worktree_add_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_worktree_remove_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "git_worktrees_route",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.git"
+   "target": "iris_cli.web_routers.git"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "grant_computer_use_permissions",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "hashlib",
    "kind": "import",
    "target": "hashlib"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "import_sessions_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "importlib",
    "kind": "import",
    "target": "importlib.util"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "inspect",
    "kind": "import",
    "target": "inspect"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "install_mcp_catalog_entry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "install_skill_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "instantiate_blueprint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "ipaddress",
    "kind": "import",
    "target": "ipaddress"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "is_nix_install_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_checkpoints",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_credential_pool",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_cron_blueprints",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_cron_job_runs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_cron_jobs",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_custom_endpoints",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_hooks",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_managed_files",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_mcp_catalog",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_mcp_servers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_oauth_providers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_pairing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_profiles_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_skills_hub_sources",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "list_webhooks",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "load_env",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "math",
    "kind": "import",
    "target": "math"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "mcp_oauth_callback",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "mcp_oauth_flow_status",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "mimetypes",
    "kind": "import",
    "target": "mimetypes"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "normalize_updated_at",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "open_profile_terminal_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "parse_active_agents",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "pause_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "poll_oauth_session",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "post_agent_plugin_disable",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "post_agent_plugin_enable",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "post_agent_plugin_install",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "post_agent_plugin_update",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "post_plugin_visibility",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "preview_skill_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "prune_checkpoints",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "prune_sessions_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "pty_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.chat_ws"
+   "target": "iris_cli.web_routers.chat_ws"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "pub_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.chat_ws"
+   "target": "iris_cli.web_routers.chat_ws"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "put_plugin_providers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "queue",
    "kind": "import",
    "target": "queue"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "read_managed_file",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "read_raw_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "read_runtime_status",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "recommended_update_command_for_method",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "redact_key",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "remove_credential_pool_entry",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "remove_env_value",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "remove_env_var",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "remove_mcp_server",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "rename_profile_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "rename_session_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "replace_mcp_servers",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "rescan_dashboard_plugins",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "reset_memory",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "resolve_gateway_liveness",
    "kind": "moved-lazy",
    "target": "gateway.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "restart_gateway",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "resume_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "reveal_env_var",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "revoke_pairing",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_backup",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_config_migrate",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_curator",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_debug_share_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_doctor",
    "kind": "moved-lazy",
-   "target": "hermes_cli.doctor"
+   "target": "iris_cli.doctor"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_dump",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dump"
+   "target": "iris_cli.dump"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_import",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_import_upload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_prompt_size",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_security_audit",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "run_toolset_post_setup",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "save_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "save_env_value",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "save_toolset_env",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "scan_skill_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "search_sessions",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.sessions"
+   "target": "iris_cli.web_routers.sessions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "search_skills_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "select_terminal_backend",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "select_toolset_model",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "select_toolset_provider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "serve_plugin_asset",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_active_profile_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_curator_paused",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_dashboard_font",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_dashboard_theme",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.dashboard_ui"
+   "target": "iris_cli.web_routers.dashboard_ui"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_env_var",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_mcp_server_enabled",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_memory_provider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_moa_models",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_model_assignment",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.models"
+   "target": "iris_cli.web_routers.models"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "set_webhook_enabled",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "setup_memory_provider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.memory_providers"
+   "target": "iris_cli.web_routers.memory_providers"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "shlex",
    "kind": "import",
    "target": "shlex"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "shutil",
    "kind": "import",
    "target": "shutil"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "speak_stream_ws",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "speak_text",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "start_gateway",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "start_oauth_login",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "start_telegram_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "start_whatsapp_onboarding",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "stat",
    "kind": "import",
    "target": "stat"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "stop_gateway",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.ops"
+   "target": "iris_cli.web_routers.ops"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "stream_managed_file",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "submit_oauth_code",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.oauth"
+   "target": "iris_cli.web_routers.oauth"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "tempfile",
    "kind": "import",
    "target": "tempfile"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "test_mcp_server",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.mcp"
+   "target": "iris_cli.web_routers.mcp"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "test_messaging_platform",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "timezone",
    "kind": "import",
    "target": "datetime"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "toggle_skill",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "toggle_toolset",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.tools"
+   "target": "iris_cli.web_routers.tools"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "transcribe_audio_upload",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "trigger_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "tts_lease",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.audio"
+   "target": "iris_cli.web_routers.audio"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "uninstall_skill_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_config_raw",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.analytics"
+   "target": "iris_cli.web_routers.analytics"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_cron_job",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.cron"
+   "target": "iris_cli.web_routers.cron"
   },
   {
-   "facade": "hermes_cli.web_server",
-   "name": "update_hermes",
+   "facade": "iris_cli.web_server",
+   "name": "update_iris",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.actions"
+   "target": "iris_cli.web_routers.actions"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_learning_node",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.status"
+   "target": "iris_cli.web_routers.status"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_memory_provider_config",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.memory_providers"
+   "target": "iris_cli.web_routers.memory_providers"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_messaging_platform",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.messaging"
+   "target": "iris_cli.web_routers.messaging"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_profile_description_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_profile_model_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_profile_soul",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.profiles"
+   "target": "iris_cli.web_routers.profiles"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_skill_content",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "update_skills_hub",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.skills"
+   "target": "iris_cli.web_routers.skills"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "upload_chat_image",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "upload_managed_file",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "upload_managed_file_stream",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.files"
+   "target": "iris_cli.web_routers.files"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "upsert_custom_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "validate_custom_endpoint",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "validate_provider_credential",
    "kind": "moved-lazy",
-   "target": "hermes_cli.web_routers.config_env"
+   "target": "iris_cli.web_routers.config_env"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "windows_detach_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "write_platform_config_field",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "yaml",
    "kind": "import",
    "target": "yaml"
   },
   {
-   "facade": "hermes_cli.web_server",
+   "facade": "iris_cli.web_server",
    "name": "zipfile",
    "kind": "import",
    "target": "zipfile"
   },
   {
-   "facade": "hermes_cli.webhook",
+   "facade": "iris_cli.webhook",
    "name": "atomic_replace",
    "kind": "moved-lazy",
    "target": "utils"
   },
   {
-   "facade": "hermes_cli.webhook",
+   "facade": "iris_cli.webhook",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_cli.webhook",
+   "facade": "iris_cli.webhook",
    "name": "tempfile",
    "kind": "import",
    "target": "tempfile"
   },
   {
-   "facade": "hermes_cli.win_pty_bridge",
+   "facade": "iris_cli.win_pty_bridge",
    "name": "os",
    "kind": "import",
    "target": "os"
   },
   {
-   "facade": "hermes_logging",
+   "facade": "iris_logging",
    "name": "rotating_file_handlers",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "AUTO_VACUUM_MIN_FREELIST_RATIO",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "ActivityProvenance",
    "kind": "moved-lazy",
    "target": "agent.session_activity"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "CompressionSessionBusyError",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "CompressionSessionClosedError",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "DEFERRED_INDEX_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_CJK_STALE_KEY",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_CJK_TABLE_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_fts"
+   "target": "iris_state_fts"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_CJK_TRIGGER_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_fts"
+   "target": "iris_state_fts"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_REBUILD_DEFERRAL_KEY",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_STALE_KEY",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_STORAGE_VERSION",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "FTS_TRIGRAM_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "LEGACY_FTS_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "LEGACY_FTS_TRIGRAM_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "MAX_FTS5_QUERY_CHARS",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "MAX_SAFE_EXPORT_MESSAGES",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "MAX_SAFE_RESUME_MESSAGES",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "PERSISTENCE_ERROR_CAUSES",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SCHEMA_SQL",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SCHEMA_VERSION",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SESSION_STATUS_COMPLETE",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SESSION_STATUS_EMPTY",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SESSION_STATUS_ERROR",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SESSION_STATUS_INTERRUPTED",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SKILL_EXCERPT_JOINT",
    "kind": "moved-lazy",
    "target": "agent.skill_commands"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SKILL_SCAFFOLD_SQL_LIKE",
    "kind": "moved-lazy",
    "target": "agent.skill_commands"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "SessionTurnLeaseLostError",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "Set",
    "kind": "import",
    "target": "typing"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "WalUnsupportedError",
    "kind": "moved-lazy",
-   "target": "hermes_state_wal"
+   "target": "iris_state_wal"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "apply_durability_barriers",
    "kind": "moved-lazy",
-   "target": "hermes_state_repair"
+   "target": "iris_state_repair"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "classify_session_status",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "collect_state_db_stats",
    "kind": "moved-lazy",
-   "target": "hermes_state_dbfile"
+   "target": "iris_state_dbfile"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "contextlib",
    "kind": "import",
    "target": "contextlib"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "count_db_holders",
    "kind": "moved-lazy",
-   "target": "hermes_state_dbfile"
+   "target": "iris_state_dbfile"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "describe_skill_invocation",
    "kind": "moved-lazy",
    "target": "agent.skill_commands"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "errno",
    "kind": "import",
    "target": "errno"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "fts5_cjk_so_path",
    "kind": "moved-lazy",
-   "target": "hermes_state_fts"
+   "target": "iris_state_fts"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "is_advisory_lock_contention",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "is_automatic_end_reason",
    "kind": "moved-lazy",
-   "target": "hermes_state_common"
+   "target": "iris_state_common"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "is_disk_full_error",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "is_sqlite_wal_reset_vulnerable",
    "kind": "moved-lazy",
-   "target": "hermes_state_wal"
+   "target": "iris_state_wal"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "is_transient_sqlite_error",
    "kind": "moved-lazy",
-   "target": "hermes_state_errors"
+   "target": "iris_state_errors"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "iter_deleted_sqlite_sidecar_holders",
    "kind": "moved-lazy",
-   "target": "hermes_state_dbfile"
+   "target": "iris_state_dbfile"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "release_or_close",
    "kind": "moved-lazy",
-   "target": "hermes_state_registry"
+   "target": "iris_state_registry"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "report_startup_progress",
    "kind": "moved-lazy",
-   "target": "hermes_startup_watchdog"
+   "target": "iris_startup_watchdog"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "resolve_journal_mode",
    "kind": "moved-lazy",
-   "target": "hermes_state_wal"
+   "target": "iris_state_wal"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "resolve_synchronous_level",
    "kind": "moved-lazy",
-   "target": "hermes_state_wal"
+   "target": "iris_state_wal"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "sanitize_context",
    "kind": "moved-lazy",
    "target": "agent.memory_manager"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "sqlite_source_id",
    "kind": "moved-lazy",
-   "target": "hermes_state_wal"
+   "target": "iris_state_wal"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "struct",
    "kind": "import",
    "target": "struct"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "weakref",
    "kind": "import",
    "target": "weakref"
   },
   {
-   "facade": "hermes_state",
+   "facade": "iris_state",
    "name": "workspace_key",
    "kind": "moved-lazy",
-   "target": "hermes_state_sessions"
+   "target": "iris_state_sessions"
   },
   {
-   "facade": "hermes_state_registry",
+   "facade": "iris_state_registry",
    "name": "close_shared_session_dbs",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state_registry",
+   "facade": "iris_state_registry",
    "name": "get_shared_session_db",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state_registry",
+   "facade": "iris_state_registry",
    "name": "release_shared_session_db",
    "kind": "restored-def",
    "target": "(deleted; BASE body restored)"
   },
   {
-   "facade": "hermes_state_search",
+   "facade": "iris_state_search",
    "name": "json",
    "kind": "import",
    "target": "json"
   },
   {
-   "facade": "hermes_state_search",
+   "facade": "iris_state_search",
    "name": "os",
    "kind": "import",
    "target": "os"
@@ -7644,31 +7644,31 @@
    "facade": "plugins.dashboard_auth.basic",
    "name": "LoginStart",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.drain",
    "name": "LoginStart",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.nous",
    "name": "DashboardAuthProvider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.nous",
    "name": "InvalidCodeError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.nous",
    "name": "RefreshExpiredError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.nous",
@@ -7680,7 +7680,7 @@
    "facade": "plugins.dashboard_auth.nous",
    "name": "classify_jwks_lookup_error",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.nous",
@@ -7716,25 +7716,25 @@
    "facade": "plugins.dashboard_auth.self_hosted",
    "name": "DashboardAuthProvider",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.self_hosted",
    "name": "InvalidCodeError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.self_hosted",
    "name": "RefreshExpiredError",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.self_hosted",
    "name": "classify_jwks_lookup_error",
    "kind": "moved-lazy",
-   "target": "hermes_cli.dashboard_auth"
+   "target": "iris_cli.dashboard_auth"
   },
   {
    "facade": "plugins.dashboard_auth.self_hosted",
@@ -9030,7 +9030,7 @@
    "facade": "tools.approval",
    "name": "cfg_get",
    "kind": "moved-lazy",
-   "target": "hermes_cli.config"
+   "target": "iris_cli.config"
   },
   {
    "facade": "tools.approval",
@@ -9112,7 +9112,7 @@
   },
   {
    "facade": "tools.approval",
-   "name": "reset_hermes_interactive_context",
+   "name": "reset_iris_interactive_context",
    "kind": "moved-lazy",
    "target": "tools.approval_context"
   },
@@ -9130,7 +9130,7 @@
   },
   {
    "facade": "tools.approval",
-   "name": "set_hermes_interactive_context",
+   "name": "set_iris_interactive_context",
    "kind": "moved-lazy",
    "target": "tools.approval_context"
   },
@@ -9300,7 +9300,7 @@
    "facade": "tools.browser_tool",
    "name": "agent_browser_runnable",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
@@ -9346,15 +9346,15 @@
   },
   {
    "facade": "tools.browser_tool",
-   "name": "get_hermes_home_override",
+   "name": "get_iris_home_override",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
-   "name": "hermes_home_key",
+   "name": "iris_home_key",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
@@ -9372,7 +9372,7 @@
    "facade": "tools.browser_tool",
    "name": "node_tool_runnable",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
@@ -9388,15 +9388,15 @@
   },
   {
    "facade": "tools.browser_tool",
-   "name": "reset_hermes_home_override",
+   "name": "reset_iris_home_override",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
-   "name": "set_hermes_home_override",
+   "name": "set_iris_home_override",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.browser_tool",
@@ -9426,7 +9426,7 @@
    "facade": "tools.browser_tool",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
    "facade": "tools.clarify_gateway",
@@ -9864,7 +9864,7 @@
    "facade": "tools.environments.base",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
    "facade": "tools.environments.managed_modal",
@@ -10810,19 +10810,19 @@
   },
   {
    "facade": "tools.skills_hub",
-   "name": "HERMES_INDEX_TTL",
+   "name": "IRIS_INDEX_TTL",
    "kind": "moved-lazy",
    "target": "tools.skills_hub_search"
   },
   {
    "facade": "tools.skills_hub",
-   "name": "HERMES_INDEX_URL",
+   "name": "IRIS_INDEX_URL",
    "kind": "moved-lazy",
    "target": "tools.skills_hub_search"
   },
   {
    "facade": "tools.skills_hub",
-   "name": "HermesIndexSource",
+   "name": "IrisIndexSource",
    "kind": "moved-lazy",
    "target": "tools.skills_hub_official"
   },
@@ -11058,7 +11058,7 @@
    "facade": "tools.skills_hub",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
    "facade": "tools.skills_hub",
@@ -11302,9 +11302,9 @@
   },
   {
    "facade": "tools.skills_tool",
-   "name": "display_hermes_home",
+   "name": "display_iris_home",
    "kind": "moved-lazy",
-   "target": "hermes_constants"
+   "target": "iris_constants"
   },
   {
    "facade": "tools.skills_tool",
@@ -11676,7 +11676,7 @@
    "facade": "tools.transcription_tools",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
    "facade": "tools.tts_tool",
@@ -12022,7 +12022,7 @@
   },
   {
    "facade": "tools.tts_tool",
-   "name": "hermes_xai_user_agent",
+   "name": "iris_xai_user_agent",
    "kind": "moved-lazy",
    "target": "tools.xai_http"
   },
@@ -12162,7 +12162,7 @@
    "facade": "tools.tts_tool",
    "name": "windows_hide_flags",
    "kind": "moved-lazy",
-   "target": "hermes_cli._subprocess_compat"
+   "target": "iris_cli._subprocess_compat"
   },
   {
    "facade": "tools.url_safety",
@@ -12501,7 +12501,7 @@
    "target": "gateway.shutdown_watchdog"
   },
   {
-   "facade": "hermes_cli.observability.relay_runtime",
+   "facade": "iris_cli.observability.relay_runtime",
    "name": "*",
    "kind": "module-stub",
    "target": "agent.relay_runtime"

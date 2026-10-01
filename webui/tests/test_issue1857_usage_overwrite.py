@@ -122,7 +122,7 @@ def test_stream_completion_overwrites_session_usage_with_latest_turn(cleanup_tes
     fake_stream_id = "stream_issue1857_usage_overwrite"
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = mock.Mock(
         return_value={
             "provider": "openai",
@@ -134,10 +134,10 @@ def test_stream_completion_overwrites_session_usage_with_latest_turn(cleanup_tes
             "credential_pool": None,
         }
     )
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=None)
 
     # NOTE: We deliberately avoid mock.patch.dict(sys.modules, ...) here.
     # patch.dict tracks original keys at __enter__ and on __exit__ DELETES any
@@ -147,9 +147,9 @@ def test_stream_completion_overwrites_session_usage_with_latest_turn(cleanup_tes
     # downstream tests (notably tests/test_mcp_server.py via fastmcp imports).
     # Manual save/restore only touches the three keys we explicitly inject.
     _injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     _saved = {k: sys.modules.get(k, _MISSING) for k in _injected}
     sys.modules.update(_injected)

@@ -13,7 +13,7 @@ function assistantDisplayName(){
 }
 const INFLIGHT={};  // keyed by session_id while request in-flight
 const SESSION_QUEUES={};  // keyed by session_id for queued follow-up turns
-const MAX_UPLOAD_BYTES=(window.__HERMES_CONFIG__&&window.__HERMES_CONFIG__.maxUploadBytes)||20*1024*1024;
+const MAX_UPLOAD_BYTES=(window.__IRIS_CONFIG__&&window.__IRIS_CONFIG__.maxUploadBytes)||20*1024*1024;
 const MAX_UPLOAD_MB=Math.round(MAX_UPLOAD_BYTES/1024/1024);
 // Tracks which session's queue to drain in setBusy(false).
 // Set to activeSid just before setBusy(false) in done/error handlers so the
@@ -199,7 +199,7 @@ function initOfflineMonitor(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initOfflineMonitor,{once:true});
 else initOfflineMonitor();
 // Redirect to login when the server responds with 401 (auth session expired).
-// Handles iOS PWA standalone mode and keeps subpath mounts like /hermes/ from
+// Handles iOS PWA standalone mode and keeps subpath mounts like /iris/ from
 // escaping to the personal site root /login.
 // #5578: on a login-shaped page, reload 'login' WITHOUT a next (avoid self-nesting).
 function _redirectIfUnauth(res){if(res&&res.status===401){var _p=(window.location.pathname||'').replace(/\/+$/,'');if(/(?:^|\/)login$/.test(_p)){window.location.href='login';}else{window.location.href='login?next='+encodeURIComponent(window.location.pathname+window.location.search);}return true;}return false;}
@@ -209,7 +209,7 @@ function _getSessionQueue(sid, create=false){
   return SESSION_QUEUES[sid]||[];
 }
 function _queueStorageKey(sid){
-  return 'hermes-queue-'+sid;
+  return 'iris-queue-'+sid;
 }
 function _clearPersistedSessionQueue(sid){
   if(!sid) return;
@@ -329,7 +329,7 @@ function _renderUserFencedBlocks(text){
   const stashContext=(label,quote)=>{contextStash.push(sentContextHtml(label,quote));return '\x00UC'+(contextStash.length-1)+'\x00';};
   const stashSelectedContextBlocks=(value)=>{
     const lines=String(value||'').split('\n');
-    const marker='<!-- hermes-selected-context -->';
+    const marker='<!-- iris-selected-context -->';
     const out=[];
     for(let i=0;i<lines.length;i++){
       const labelMatch=lines[i].match(/^\*\*([^\n]{1,200}):\*\*\s*$/);
@@ -499,7 +499,7 @@ async function startCompressionRecovery(btn){
     const data=await api('/api/session/compression-recovery/start',{method:'POST',body:JSON.stringify({session_id:sourceSid})});
     const sid=data&&data.session&&data.session.session_id;
     if(!sid) throw new Error('Compression recovery did not return a session.');
-    try{localStorage.setItem('hermes-webui-session',sid);}catch(_){}
+    try{localStorage.setItem('iris-webui-session',sid);}catch(_){}
     if(typeof loadSession==='function') await loadSession(sid,{preserveActiveInput:false});
     else if(data.session){S.session=data.session;if(typeof _adoptRegenerationRevision==='function')_adoptRegenerationRevision(data.session);S.messages=data.session.messages||[];syncTopbar();renderMessages();}
     if(typeof renderSessionList==='function') await renderSessionList();
@@ -1987,7 +1987,7 @@ async function saveDashboardSettings(opts){
     if(opts.raiseOnError) throw err;
   }
 }
-function openHermesDashboard(event){
+function openIrisDashboard(event){
   if(event){event.preventDefault();event.stopPropagation();}
   const btn=event&&event.currentTarget?event.currentTarget:document.querySelector('[data-dashboard-link]');
   const url=(btn&&btn.dataset&&btn.dataset.dashboardUrl)||_dashboardBrowserUrl(_dashboardStatusCache);
@@ -2633,7 +2633,7 @@ const _CSV_EXTS=/\.csv$/i;
 const _EXCALIDRAW_EXTS=/\.excalidraw$/i;
 // ── Media playback speed controls ─────────────────────────────────────────
 const MEDIA_PLAYBACK_RATES=[0.5,0.75,1,1.25,1.5,2];
-const MEDIA_PLAYBACK_STORAGE_KEY='hermes-media-playback-rate';
+const MEDIA_PLAYBACK_STORAGE_KEY='iris-media-playback-rate';
 function _getStoredMediaPlaybackRate(){
   try{
     const raw=localStorage.getItem(MEDIA_PLAYBACK_STORAGE_KEY);
@@ -2993,8 +2993,8 @@ window.addEventListener('visibilitychange',()=>{
 // Dynamic model labels -- populated by populateModelDropdown(), fallback to static map
 let _dynamicModelLabels={};
 window._configuredModelBadges=window._configuredModelBadges||{};
-const MODEL_STATE_KEY='hermes-webui-model-state';
-const PENDING_SESSION_MODEL_PREFIX='hermes-webui-pending-session-model:';
+const MODEL_STATE_KEY='iris-webui-model-state';
+const PENDING_SESSION_MODEL_PREFIX='iris-webui-pending-session-model:';
 const PENDING_SESSION_MODEL_MAX_AGE_MS=10*60*1000;
 
 // ── Smart model resolver ────────────────────────────────────────────────────
@@ -3196,7 +3196,7 @@ function _readPersistedModelState(){
       }
     }
   }catch(_){}
-  const legacy=localStorage.getItem('hermes-webui-model');
+  const legacy=localStorage.getItem('iris-webui-model');
   if(!legacy) return null;
   return {model:legacy,model_provider:_providerFromModelValue(legacy)||null};
 }
@@ -3204,17 +3204,17 @@ function _writePersistedModelState(model, modelProvider){
   const value=String(model||'').trim();
   const provider=modelProvider?String(modelProvider).trim():(_providerFromModelValue(value)||null);
   if(!value){
-    localStorage.removeItem('hermes-webui-model');
+    localStorage.removeItem('iris-webui-model');
     localStorage.removeItem(MODEL_STATE_KEY);
     return;
   }
-  localStorage.setItem('hermes-webui-model', value);
+  localStorage.setItem('iris-webui-model', value);
   try{
     localStorage.setItem(MODEL_STATE_KEY, JSON.stringify({model:value,model_provider:provider||null}));
   }catch(_){}
 }
 function _clearPersistedModelState(){
-  localStorage.removeItem('hermes-webui-model');
+  localStorage.removeItem('iris-webui-model');
   localStorage.removeItem(MODEL_STATE_KEY);
 }
 function _pendingSessionModelKey(sessionId){
@@ -3860,10 +3860,10 @@ async function _fetchLiveModels(provider, sel, requestSeq=null){
     const added=_addLiveModelsToSelect(provider,data.models,sel);
     if(added>0){
       if(typeof syncModelChip==='function') syncModelChip();
-      console.debug('[hermes] Live models loaded for',provider+':',added,'new models added');
+      console.debug('[iris] Live models loaded for',provider+':',added,'new models added');
     }
   }catch(e){
-    console.debug('[hermes] Live model fetch failed for',provider,e.message);
+    console.debug('[iris] Live model fetch failed for',provider,e.message);
   }finally{
     _liveModelFetchPending.delete(provider);
   }
@@ -3871,7 +3871,7 @@ async function _fetchLiveModels(provider, sel, requestSeq=null){
 
 /**
  * Check if the given model ID belongs to a different provider than the one
- * currently configured in Hermes. Returns a warning string if mismatched,
+ * currently configured in Iris. Returns a warning string if mismatched,
  * or null if the selection looks compatible.
  *
  * Provider detection is intentionally loose — we compare the model's slash
@@ -3893,7 +3893,7 @@ function _checkProviderMismatch(modelId){
   const norm=p=>aliases[p]||p;
   if(norm(modelProvider)!==norm(ap)){
     return (window.t?window.t('provider_mismatch_warning',modelId,ap):
-      `"${modelId}" may not work with your configured provider (${ap}). Send anyway or run \`hermes model\` to switch.`);
+      `"${modelId}" may not work with your configured provider (${ap}). Send anyway or run \`iris model\` to switch.`);
   }
   return null;
 }
@@ -9239,15 +9239,15 @@ let _playingEdgeAudio=null;
 
 function _buildBrowserUtterance(text, btn){
   const utter=new SpeechSynthesisUtterance(text);
-  const savedVoice=localStorage.getItem('hermes-tts-voice');
+  const savedVoice=localStorage.getItem('iris-tts-voice');
   const voices=speechSynthesis.getVoices();
   if(savedVoice&&voices.length){
     const match=voices.find(v=>v.name===savedVoice);
     if(match) utter.voice=match;
   }
-  const savedRate=parseFloat(localStorage.getItem('hermes-tts-rate'));
+  const savedRate=parseFloat(localStorage.getItem('iris-tts-rate'));
   if(!isNaN(savedRate)) utter.rate=Math.min(2,Math.max(0.5,savedRate));
-  const savedPitch=parseFloat(localStorage.getItem('hermes-tts-pitch'));
+  const savedPitch=parseFloat(localStorage.getItem('iris-tts-pitch'));
   if(!isNaN(savedPitch)) utter.pitch=Math.min(2,Math.max(0,savedPitch));
   utter.onend=()=>{
     _ttsChunkIndex++;
@@ -9282,9 +9282,9 @@ function _playEdgeTtsChunked(text, btn){
       return;
     }
     const chunk=chunks[idx];
-    const voice=localStorage.getItem('hermes-tts-voice')||'zh-CN-XiaoxiaoNeural';
-    const savedRate=parseFloat(localStorage.getItem('hermes-tts-rate'));
-    const savedPitch=parseFloat(localStorage.getItem('hermes-tts-pitch'));
+    const voice=localStorage.getItem('iris-tts-voice')||'zh-CN-XiaoxiaoNeural';
+    const savedRate=parseFloat(localStorage.getItem('iris-tts-rate'));
+    const savedPitch=parseFloat(localStorage.getItem('iris-tts-pitch'));
     let rate='', pitch='';
     if(!isNaN(savedRate)){const pct=Math.round((savedRate-1)*100);const sign=pct>=0?'+':'';rate=sign+pct+'%';}
     if(!isNaN(savedPitch)){const hz=Math.round((savedPitch-1)*50);const sign=hz>=0?'+':'';pitch=sign+hz+'Hz';}
@@ -9348,7 +9348,7 @@ function speakMessage(btn){
   const clean=_stripForTTS(text);
   if(!clean) return;
 
-  const engine=localStorage.getItem('hermes-tts-engine')||'browser';
+  const engine=localStorage.getItem('iris-tts-engine')||'browser';
   if(engine==='openai'){
     _playOpenaiTts(clean, btn);
     return;
@@ -9361,9 +9361,9 @@ function speakMessage(btn){
     _playEdgeTtsChunked(clean, btn);
     return;
   }
-  // Extension-registered TTS engine (window.registerHermesTtsEngine). Synthesize
+  // Extension-registered TTS engine (window.registerIrisTtsEngine). Synthesize
   // via the extension, then play through the shared audio-buffer path.
-  if(typeof window._hermesTtsIsRegistered==='function' && window._hermesTtsIsRegistered(engine)){
+  if(typeof window._irisTtsIsRegistered==='function' && window._irisTtsIsRegistered(engine)){
     if(btn) btn.dataset.speaking='1';
     _ttsSpeaking=true;
     const _failReg=function(msg){
@@ -9372,11 +9372,11 @@ function speakMessage(btn){
       if(msg&&typeof showToast==='function') showToast(msg,4000,'error');
     };
     const _opts={
-      voice: localStorage.getItem('hermes-tts-voice')||'',
-      rate: parseFloat(localStorage.getItem('hermes-tts-rate')),
-      pitch: parseFloat(localStorage.getItem('hermes-tts-pitch')),
+      voice: localStorage.getItem('iris-tts-voice')||'',
+      rate: parseFloat(localStorage.getItem('iris-tts-rate')),
+      pitch: parseFloat(localStorage.getItem('iris-tts-pitch')),
     };
-    Promise.resolve(window._hermesTtsSynth(engine, clean, _opts))
+    Promise.resolve(window._irisTtsSynth(engine, clean, _opts))
       .then(function(buf){ return _playAudioBuf(buf, btn, 'TTS'); })
       .catch(function(e){ _failReg((e&&e.message)||'TTS engine failed'); });
     return;
@@ -9519,9 +9519,9 @@ function stopTTS(){
 }
 
 function autoReadLastAssistant(){
-  const engine=localStorage.getItem('hermes-tts-engine')||'browser';
+  const engine=localStorage.getItem('iris-tts-engine')||'browser';
   if(engine==='browser'&&!('speechSynthesis' in window)) return;
-  const pref=localStorage.getItem('hermes-tts-auto-read');
+  const pref=localStorage.getItem('iris-tts-auto-read');
   if(pref!=='true') return;
   // Find the last assistant message segment in the DOM
   const rows=document.querySelectorAll('.msg-row[data-role="assistant"], .assistant-segment[data-raw-text]');
@@ -9543,17 +9543,17 @@ function autoReadLastAssistant(){
     _playEdgeTtsChunked(clean, null);
     return;
   }
-  // Extension-registered TTS engine (window.registerHermesTtsEngine): synth via
+  // Extension-registered TTS engine (window.registerIrisTtsEngine): synth via
   // the extension, then play through the shared audio-buffer path. Mirrors the
   // registered-engine branch in speakMessage() so auto-read honors the selection.
-  if(typeof window._hermesTtsIsRegistered==='function' && window._hermesTtsIsRegistered(engine)){
+  if(typeof window._irisTtsIsRegistered==='function' && window._irisTtsIsRegistered(engine)){
     _ttsSpeaking=true;
     const _opts={
-      voice: localStorage.getItem('hermes-tts-voice')||'',
-      rate: parseFloat(localStorage.getItem('hermes-tts-rate')),
-      pitch: parseFloat(localStorage.getItem('hermes-tts-pitch')),
+      voice: localStorage.getItem('iris-tts-voice')||'',
+      rate: parseFloat(localStorage.getItem('iris-tts-rate')),
+      pitch: parseFloat(localStorage.getItem('iris-tts-pitch')),
     };
-    Promise.resolve(window._hermesTtsSynth(engine, clean, _opts))
+    Promise.resolve(window._irisTtsSynth(engine, clean, _opts))
       .then(function(buf){ return _playAudioBuf(buf, null, 'TTS'); })
       .catch(function(){ _ttsSpeaking=false; _playingEdgeAudio=null; });
     return;
@@ -9571,8 +9571,8 @@ function autoReadLastAssistant(){
 }
 
 // ── Reconnect banner (B4/B5: reload resilience) ──
-const INFLIGHT_KEY = 'hermes-webui-inflight'; // localStorage key for in-flight session tracking
-const INFLIGHT_STATE_KEY = 'hermes-webui-inflight-state'; // localStorage snapshots for mid-stream reload recovery
+const INFLIGHT_KEY = 'iris-webui-inflight'; // localStorage key for in-flight session tracking
+const INFLIGHT_STATE_KEY = 'iris-webui-inflight-state'; // localStorage snapshots for mid-stream reload recovery
 const INFLIGHT_STATE_DEFAULT_LIMITS = {
   maxSessions:8,
   messages:24,
@@ -10391,7 +10391,9 @@ function _formatUpdateTargetStatus(label,info){
 }
 function _formatManualUpdateInstruction(info){
   if(!(info&&info.no_git&&info.manual_update&&info.behind>0)) return null;
-  return t('settings_update_manual_docker','docker pull ghcr.io/nesquena/hermes-webui:latest');
+  // [CHANNEL-PENDING] Recommended image once this project publishes its own
+  // registry; the old ghcr.io/nesquena/iris-webui is an upstream dead link.
+  return t('settings_update_manual_docker','docker pull ghcr.io/x33834/iris-webui:latest');
 }
 function _formatUpdateCheckError(label,info){
   if(!info||!info.error) return null;
@@ -10472,7 +10474,7 @@ function toggleUpdateSummaryExpanded(){
   panel.classList.toggle('update-summary-expanded',expanded);
   _syncUpdateSummaryExpandButton(expanded);
 }
-const WHATS_NEW_SUMMARY_STORAGE_KEY='hermes-whats-new-generated-summaries';
+const WHATS_NEW_SUMMARY_STORAGE_KEY='iris-whats-new-generated-summaries';
 const WHATS_NEW_SUMMARY_STORAGE_MAX_BYTES=256*1024;
 function _summaryStorageByteLength(value){
   const text=typeof value==='string'?value:JSON.stringify(value);
@@ -10739,7 +10741,7 @@ function _i18nUpdateText(key, fallback){
 }
 function dismissUpdate(){
   const b=$('updateBanner');if(b)b.classList.remove('visible');
-  sessionStorage.setItem('hermes-update-dismissed','1');
+  sessionStorage.setItem('iris-update-dismissed','1');
 }
 function _isUpdateApplyNetworkError(error){
   if(error && error.status) return false;
@@ -10808,8 +10810,8 @@ async function applyUpdates(){
     }
     const stashConflictMessage=stashConflictMessages.join('\n\n');
     showToast(stashConflictMessage||'Update applied — restarting…',stashConflictMessages.length?10000:undefined,stashConflictMessages.length?'warning':undefined);
-    sessionStorage.removeItem('hermes-update-checked');
-    sessionStorage.removeItem('hermes-update-dismissed');
+    sessionStorage.removeItem('iris-update-checked');
+    sessionStorage.removeItem('iris-update-dismissed');
     _waitForServerThenReload({baselineServerIdentity});
   }catch(e){
     const msg=_formatUpdateApplyExceptionMessage(e);
@@ -10857,8 +10859,8 @@ async function applyClearUpdateLock(btn){
   try{
     const res=await api('/api/updates/clear_lock',{method:'POST',body:JSON.stringify({target}),timeoutMs:60000});
     if(res.ok){
-      sessionStorage.removeItem('hermes-update-checked');
-      sessionStorage.removeItem('hermes-update-dismissed');
+      sessionStorage.removeItem('iris-update-checked');
+      sessionStorage.removeItem('iris-update-dismissed');
       showToast('Update applied — restarting…');
       _waitForServerThenReload({});
     } else if(res.lock_held){
@@ -11004,8 +11006,8 @@ async function forceUpdate(btn){
       return;
     }
     showToast('Force update applied — restarting…');
-    sessionStorage.removeItem('hermes-update-checked');
-    sessionStorage.removeItem('hermes-update-dismissed');
+    sessionStorage.removeItem('iris-update-checked');
+    sessionStorage.removeItem('iris-update-dismissed');
     _waitForServerThenReload({baselineServerIdentity});
   }catch(e){
     if(errEl){errEl.textContent='Force update failed: '+e.message;errEl.style.display='block';}
@@ -11337,7 +11339,7 @@ function syncTopbar(){
     if(typeof _syncWorkspaceHeadingState==='function') _syncWorkspaceHeadingState();
     if(typeof syncModelChip==='function') syncModelChip();
     if(typeof syncTerminalButton==='function') syncTerminalButton();
-    if(typeof _syncHermesPanelSessionActions==='function') _syncHermesPanelSessionActions();
+    if(typeof _syncIrisPanelSessionActions==='function') _syncIrisPanelSessionActions();
     else {
       const sidebarName=$('sidebarWsName');
       if(sidebarName && sidebarName.textContent==='Workspace'){
@@ -11458,14 +11460,14 @@ function syncTopbar(){
   // Show Clear button only when session has messages
   const clearBtn=$('btnClearConv');
   if(clearBtn) clearBtn.style.display=(S.messages&&S.messages.filter(msg=>msg.role!=='tool').length>0)?'':'none';
-  if(typeof _syncHermesPanelSessionActions==='function') _syncHermesPanelSessionActions();
+  if(typeof _syncIrisPanelSessionActions==='function') _syncIrisPanelSessionActions();
   if(typeof syncWorkspaceDisplays==='function') syncWorkspaceDisplays();
   if(typeof syncTerminalButton==='function') syncTerminalButton();
   // modelSelect already set above
   // Update profile chip label.
   // The chip is the profile-SWITCHER trigger (it fronts the profile dropdown) and
   // governs where the next message / new chat routes — both follow the client
-  // active profile (the hermes_profile cookie, set only by /api/profile/switch).
+  // active profile (the iris_profile cookie, set only by /api/profile/switch).
   // It must therefore reflect S.activeProfile, NOT the loaded session's profile.
   // #3331 briefly keyed this on S.session.profile so the label would track the
   // session being browsed, but loadSession() never updates S.activeProfile, so
@@ -12903,7 +12905,7 @@ function _renderTransparentTurnFooter(turn, opts){
 // finalized into a settled assistant turn (the live attribute is removed in
 // _convertLiveActivityGroupToSettled / when liveAssistantTurn loses its id).
 let _liveActivityUserExpanded;
-const _activityDisclosureStoragePrefix='hermes-activity-disclosure:';
+const _activityDisclosureStoragePrefix='iris-activity-disclosure:';
 function _activityDisclosureStorageKey(activityKey){
   if(!activityKey||!S.session||!S.session.session_id) return null;
   return _activityDisclosureStoragePrefix+S.session.session_id+':'+activityKey;
@@ -13747,7 +13749,7 @@ function isLiveAnchorActivitySceneOwner(streamId){
   return !streamId||!current||String(streamId)===current;
 }
 function _projectLiveAnchorActivitySceneForStream(streamId, mode){
-  const api=(typeof window!=='undefined')?window.HermesAssistantTurnAnchors:null;
+  const api=(typeof window!=='undefined')?window.IrisAssistantTurnAnchors:null;
   const map=(typeof window!=='undefined')?window._liveAnchorRegistries:null;
   const registry=map&&streamId?map.get(streamId):null;
   if(!api||!registry||typeof api.projectAssistantTurnAnchorActivityScene!=='function') return null;
@@ -16228,7 +16230,7 @@ function _idLinkedHistoricalTurnScene(messages, turnStart, turnEnd, options){
   const end=Math.min(list.length,Math.max(start,Number(turnEnd)||0));
   const opts=options&&typeof options==='object'?options:{};
   const sessionId=String(opts.sessionId||opts.session_id||'').trim();
-  const api=(typeof window!=='undefined')?window.HermesAssistantTurnAnchors:null;
+  const api=(typeof window!=='undefined')?window.IrisAssistantTurnAnchors:null;
   if(!sessionId||!api||typeof api.projectAssistantTurnAnchorHistoricalTranscriptScene!=='function') return null;
 
   const declarations=[];
@@ -16936,7 +16938,7 @@ function _assistantTurnAnchorSettledFinalAnswer(message, content, context){
   const sceneFinal=_assistantAnchorSceneFinalAnswerText(message);
   const effectiveContent=String(content||'').trim()?content:sceneFinal;
   try{
-    const api=(typeof window!=='undefined')?window.HermesAssistantTurnAnchors:null;
+    const api=(typeof window!=='undefined')?window.IrisAssistantTurnAnchors:null;
     if(!api||typeof api.projectAssistantTurnAnchorSettledMessageFinalAnswer!=='function') return String(sceneFinal||'').trim()?sceneFinal:null;
     const result=api.projectAssistantTurnAnchorSettledMessageFinalAnswer(message,{
       session_id:context&&context.session_id,
@@ -21288,15 +21290,15 @@ function _syncWorkspaceHiddenToggle(){
 }
 function toggleWorkspaceHiddenFiles(value){
   S.showHiddenWorkspaceFiles=!!value;
-  try{localStorage.setItem('hermes-workspace-show-hidden-files',S.showHiddenWorkspaceFiles?'1':'0');}catch(_){}
+  try{localStorage.setItem('iris-workspace-show-hidden-files',S.showHiddenWorkspaceFiles?'1':'0');}catch(_){}
   _syncWorkspaceHiddenToggle();
   renderFileTree();
 }
-try{S.showHiddenWorkspaceFiles=localStorage.getItem('hermes-workspace-show-hidden-files')==='1';}catch(_){}
-try{S.workspaceSortKey=_normalizeWorkspaceSortKey(localStorage.getItem('hermes-workspace-sort-key'));}catch(_){S.workspaceSortKey=WORKSPACE_SORT_DEFAULT;}
+try{S.showHiddenWorkspaceFiles=localStorage.getItem('iris-workspace-show-hidden-files')==='1';}catch(_){}
+try{S.workspaceSortKey=_normalizeWorkspaceSortKey(localStorage.getItem('iris-workspace-sort-key'));}catch(_){S.workspaceSortKey=WORKSPACE_SORT_DEFAULT;}
 function setWorkspaceSortKey(value){
   S.workspaceSortKey=_normalizeWorkspaceSortKey(value);
-  try{localStorage.setItem('hermes-workspace-sort-key',S.workspaceSortKey);}catch(_){ }
+  try{localStorage.setItem('iris-workspace-sort-key',S.workspaceSortKey);}catch(_){ }
   _syncWorkspacePrefsIndicators();
   _syncWorkspaceSortMenuState();
   renderFileTree();

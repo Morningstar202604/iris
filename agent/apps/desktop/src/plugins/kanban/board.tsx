@@ -50,7 +50,7 @@ import {
   useQueryClient,
   useValue,
   WORKSPACE_PAGE_HEADER_AREA
-} from '@hermes/plugin-sdk'
+} from '@iris/plugin-sdk'
 import {
   type CSSProperties,
   type DragEvent as ReactDragEvent,

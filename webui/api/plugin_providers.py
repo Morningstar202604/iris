@@ -1,6 +1,6 @@
 """Helpers for model-provider plugins (``plugins/model-providers/<name>/``).
 
-The Hermes agent discovers these via ``providers.list_providers()`` and exposes
+The Iris agent discovers these via ``providers.list_providers()`` and exposes
 them in the CLI model picker.  WebUI must mirror that registry instead of
 relying only on the static ``_PROVIDER_DISPLAY`` / ``_PROVIDER_MODELS`` tables.
 

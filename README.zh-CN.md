@@ -1,15 +1,18 @@
-# ✦ Iris — 你的个人 AI 超级助手
+# ✦ Iris
 
-> **快 · 轻 · 完全属于你。**
-> 开源 **Hermes** 智能体框架的 Iris 发行版——全新重写的消费级 Web UI，叠加精简的本地优先内核。
-> 100% 协议驱动、不绑定厂商、不臃肿。只有你，和你的 AI。
+> **表面平静，心里有数。**
+> *一个本地优先的生产力助手。*
+>
+> - ⚡ **轻量快速** —— 秒级启动，精简运行时
+> - 🏠 **本地优先** —— 会话、记忆与文件都留在你的机器上
+> - 🔌 **开放无锁定** —— 任意 OpenAI 兼容端点，插件按需安装
+> - 🎯 **结果导向** —— 桌面与移动浏览器随时可用，以完成的事说话
 
 [English](README.md) · **简体中文**
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-3776AB.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)
-![Plugins](https://img.shields.io/badge/plugins-80%2B-6B8BFF.svg)
 [![官方仓库](https://img.shields.io/badge/✦%20Iris-gitcode.com%2Fbadhope%2Firis-4F6EF7)](https://gitcode.com/badhope/iris)
 [![下载](https://img.shields.io/badge/⬇%20下载最新版-12B76A)](https://gitcode.com/badhope/iris/releases)
 
@@ -39,13 +42,14 @@
 ## 🌐 官方仓库 · 先睹为快
 
 **→ [gitcode.com/badhope/iris](https://gitcode.com/badhope/iris)** — GitCode 官方主页：源码、发布、Issue，以及仓库内落地页（`docs/`）。
+**→ [github.com/X33834/iris](https://github.com/X33834/iris)** — 双轨发布孪生站（CI + Releases）。两站发布相同的 `v*` 标签，详见 [MIRROR.md](MIRROR.md)。
 
 **→ [在线落地页](https://x33834.github.io/iris)** — 交互式总览：截图、架构导览与一键下载。
 
 | 下载 | 格式 | 适用 |
 |---|---|---|
-| [⬇ 最新 Release — ZIP](https://gitcode.com/badhope/iris/releases) | ZIP | **Windows / macOS — 推荐** |
-| [⬇ 最新 Release — TAR.GZ](https://gitcode.com/badhope/iris/releases) | TAR.GZ | Linux / 服务器 — 完整源码树 |
+| [⬇ 最新 Release — ZIP（GitCode）](https://gitcode.com/badhope/iris/releases) · [GitHub](https://github.com/X33834/iris/releases) | ZIP | **Windows / macOS — 推荐** |
+| [⬇ 最新 Release — TAR.GZ（GitCode）](https://gitcode.com/badhope/iris/releases) · [GitHub](https://github.com/X33834/iris/releases) | TAR.GZ | Linux / 服务器 — 完整源码树 |
 
 > 从源码构建（`git clone` + `pip install -e ./agent`）永远获得最新修复。
 > Release 归档对应打标签的版本；本 README 刻意不写特性数量——项目持续更新，数字会过时。
@@ -55,8 +59,9 @@
 ## 🚀 快速开始 — 三步上手
 
 ```bash
-# 1. 克隆
-git clone https://gitcode.com/badhope/iris.git && cd iris
+# 1. 克隆（GitHub 为主；国内用 GitCode 镜像更快）
+git clone https://github.com/X33834/iris.git && cd iris
+# git clone https://gitcode.com/badhope/iris.git && cd iris
 
 # 2. 安装 agent 核心
 cd agent && pip install -e . && cd ..
@@ -105,7 +110,7 @@ Hermes 是出色的智能体框架——但越来越重。**Iris** 保留完整 
 ```mermaid
 flowchart LR
     U["🌐 Web UI<br/>聊天 · 设置 · 插件<br/>命令面板"] --> S["🐍 Python 服务端<br/>api/routes.py · 流式"]
-    S --> A["⚙️ Hermes Agent 核心<br/>工具 · 记忆 · 技能 · 定时"]
+    S --> A["⚙️ Iris Agent 核心<br/>工具 · 记忆 · 技能 · 定时"]
     S --> KB[("📚 知识库<br/>SQLite FTS5 · 中文检索")]
     S --> PM["🧩 插件管理器<br/>内置目录 · 按需"]
     S --> PL["🤖 协议层<br/>OpenAI 兼容"]
@@ -115,7 +120,7 @@ flowchart LR
 ```
 
 **两大组件，一个体验：**
-- `agent/` — 重构后的 Hermes 核心：工具、插件、记忆、技能、定时任务、协议路由
+- `agent/` — 重构后的 Iris 核心：工具、插件、记忆、技能、定时任务、协议路由
 - `webui/` — 现代控制面：聊天、设置、插件市场、知识库
 
 ---
@@ -136,7 +141,7 @@ flowchart LR
 
 ---
 
-## 🔄 与 Hermes 的关系
+## 🔄 与上游 Hermes 的关系
 
 Iris 是 **[Hermes](https://github.com/NousResearch/hermes-agent)**（Nous Research 的开源智能体框架）的
 **独立深度定制发行版**。我们：

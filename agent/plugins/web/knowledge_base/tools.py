@@ -7,7 +7,7 @@ import logging
 import sqlite3
 from pathlib import Path
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +15,14 @@ _DB_NAME = "knowledge.db"
 
 
 def _db_path() -> Path:
-    return get_hermes_home() / _DB_NAME
+    return get_iris_home() / _DB_NAME
 
 
 def _connect() -> sqlite3.Connection:
     con = sqlite3.connect(str(_db_path()), timeout=8)
     con.row_factory = sqlite3.Row
     try:
-        from hermes_state_fts import load_fts5_cjk_extension
+        from iris_state_fts import load_fts5_cjk_extension
         load_fts5_cjk_extension(con)
     except Exception:  # noqa: BLE001
         pass

@@ -1,6 +1,6 @@
 """Connector tool-gateway package: typed client-side plumbing for remote tools.
 
-This package owns everything hermes-agent needs to talk to the managed tool
+This package owns everything iris-agent needs to talk to the managed tool
 gateway's connector routes (search / schemas / execute / connections) and to
 merge remote execute results back into ``tool_call`` result arrays.
 

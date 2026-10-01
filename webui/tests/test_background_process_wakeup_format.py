@@ -22,7 +22,7 @@ def test_format_wakeup_prompt_handles_async_delegation(monkeypatch):
     to the agent-side tools.process_registry.format_process_notification.
 
     We inject a stub agent module so this validates the delegation WIRING
-    independent of whether the full hermes-agent package is importable in the
+    independent of whether the full iris-agent package is importable in the
     test environment (it isn't in WebUI-only CI shards).
     """
     import sys

@@ -53,7 +53,7 @@ def test_pgvector_password_is_generated_not_hardcoded(monkeypatch):
     env = run_args[run_args.index("-e") + 1]
     assert env.startswith("POSTGRES_PASSWORD=")
     password = env.split("=", 1)[1]
-    assert password != "hermes", "hardcoded weak password"
+    assert password != "iris", "hardcoded weak password"
     assert len(password) >= 20, "generated password must be unguessable"
     assert config["password"] == password, (
         "client config must use the generated password"

@@ -1,8 +1,8 @@
 """
-Plugin discovery and static serving for Hermes Web UI.
+Plugin discovery and static serving for Iris Web UI.
 
-Scans ~/.hermes/plugins/<name>/dashboard/ for manifest.json files,
-matching the official Hermes dashboard plugin format.
+Scans ~/.iris/plugins/<name>/dashboard/ for manifest.json files,
+matching the official Iris dashboard plugin format.
 
 Each plugin may have:
   dashboard/
@@ -38,7 +38,7 @@ _PLUGIN_STATIC_ROOTS: dict[str, Path] = {}
 
 
 def _get_plugin_base() -> Path:
-    return Path(os.environ.get("HERMES_WEBUI_PLUGINS_DIR", str(Path.home() / ".hermes" / "plugins")))
+    return Path(os.environ.get("IRIS_WEBUI_PLUGINS_DIR", str(Path.home() / ".iris" / "plugins")))
 
 
 def load_plugins() -> None:
@@ -186,7 +186,7 @@ def get_plugin_metadata() -> list[dict]:
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# Iris: 插件安装 / 卸载 / 启停管理（复用 hermes CLI，含安全扫描与依赖安装）
+# Iris: 插件安装 / 卸载 / 启停管理（复用 iris CLI，含安全扫描与依赖安装）
 # ────────────────────────────────────────────────────────────────────────────
 import shutil
 import subprocess
@@ -195,24 +195,24 @@ import sys
 _PLUGIN_CLI_TIMEOUT = 300  # 安装含依赖解析，给足超时
 
 
-def _hermes_cli_command() -> list[str]:
-    """Locate the ``hermes`` executable; fall back to ``python -m hermes_cli.main``."""
-    exe = shutil.which("hermes")
+def _iris_cli_command() -> list[str]:
+    """Locate the ``iris`` executable; fall back to ``python -m iris_cli.main``."""
+    exe = shutil.which("iris")
     if exe:
         return [exe]
-    return [sys.executable, "-m", "hermes_cli.main"]
+    return [sys.executable, "-m", "iris_cli.main"]
 
 
-def _hermes_cli_env() -> dict:
-    """子进程环境：`-m` 回退时把 hermes-agent 目录注入 PYTHONPATH。
+def _iris_cli_env() -> dict:
+    """子进程环境：`-m` 回退时把 iris-agent 目录注入 PYTHONPATH。
 
-    WebUI 与 hermes-agent 是独立仓库；当前进程的 sys.path 注入（api.config
+    WebUI 与 iris-agent 是独立仓库；当前进程的 sys.path 注入（api.config
     启动时 append）不会被子进程继承，必须通过 PYTHONPATH 显式传递，
-    否则 `python -m hermes_cli.main` 在子进程里 ModuleNotFoundError。
-    系统已安装 `hermes` 命令时无需注入（环境本来就能跑）。
+    否则 `python -m iris_cli.main` 在子进程里 ModuleNotFoundError。
+    系统已安装 `iris` 命令时无需注入（环境本来就能跑）。
     """
     env = dict(os.environ)
-    if shutil.which("hermes"):
+    if shutil.which("iris"):
         return env
     try:
         from api.config import _AGENT_DIR
@@ -227,15 +227,15 @@ def _hermes_cli_env() -> dict:
 
 
 def _run_plugin_cli(args: list[str], timeout: int = _PLUGIN_CLI_TIMEOUT) -> dict:
-    """Run ``hermes plugins <args>`` and return {ok, output, error, exit_code}.
+    """Run ``iris plugins <args>`` and return {ok, output, error, exit_code}.
 
-    失败时不抛异常——把 hermes CLI 的 stderr 原样回传，前端可展示具体原因。
+    失败时不抛异常——把 iris CLI 的 stderr 原样回传，前端可展示具体原因。
     """
     try:
         proc = subprocess.run(
-            _hermes_cli_command() + ["plugins"] + args,
+            _iris_cli_command() + ["plugins"] + args,
             capture_output=True, text=True, timeout=timeout,
-            env=_hermes_cli_env(),
+            env=_iris_cli_env(),
         )
         stdout = (proc.stdout or "").strip()
         stderr = (proc.stderr or "").strip()
@@ -243,13 +243,13 @@ def _run_plugin_cli(args: list[str], timeout: int = _PLUGIN_CLI_TIMEOUT) -> dict
         return {
             "ok": ok,
             "exit_code": proc.returncode,
-            "output": stdout or stderr or ("" if ok else "hermes plugins 命令失败"),
+            "output": stdout or stderr or ("" if ok else "iris plugins 命令失败"),
             "error": stderr if not ok else "",
         }
     except subprocess.TimeoutExpired:
-        return {"ok": False, "exit_code": -1, "output": "", "error": "hermes plugins 命令超时（安装依赖可能较慢，请重试）"}
+        return {"ok": False, "exit_code": -1, "output": "", "error": "iris plugins 命令超时（安装依赖可能较慢，请重试）"}
     except FileNotFoundError:
-        return {"ok": False, "exit_code": -1, "output": "", "error": "未找到 hermes 可执行文件（hermes-agent 未安装）"}
+        return {"ok": False, "exit_code": -1, "output": "", "error": "未找到 iris 可执行文件（iris-agent 未安装）"}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "exit_code": -1, "output": "", "error": f"插件命令执行失败: {exc}"}
 

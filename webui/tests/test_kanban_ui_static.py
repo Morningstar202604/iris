@@ -406,7 +406,7 @@ def test_kanban_assignee_dropdown_uses_select_not_freetext():
     assert 'id="kanbanTaskModalAssigneeHint"' in INDEX
     hint_idx = INDEX.find('id="kanbanTaskModalAssigneeHint"')
     hint_block = INDEX[hint_idx:hint_idx + 400]
-    assert "Hermes profile" in hint_block or "data-i18n=\"kanban_assignee_hint\"" in hint_block
+    assert "Iris profile" in hint_block or "data-i18n=\"kanban_assignee_hint\"" in hint_block
 
     # The populator function loads from /api/profiles and groups options.
     pop_match = re.search(
@@ -787,7 +787,7 @@ def test_kanban_ui_parity_polish_css_and_i18n_exist():
         ".kanban-card-stale-amber",
         ".kanban-card-stale-red",
         ".kanban-column.drop-target",
-        ".hermes-kanban-md",
+        ".iris-kanban-md",
     ):
         assert selector in STYLE
     locale_blocks = _locale_blocks_with_body(I18N)
@@ -1043,7 +1043,7 @@ def test_kanban_active_board_persisted_to_localstorage():
     """The last-viewed board slug must persist to localStorage so a refresh
     keeps the user on the same board."""
     assert "KANBAN_BOARD_LS_KEY" in PANELS
-    assert "'hermes-kanban-active-board'" in PANELS
+    assert "'iris-kanban-active-board'" in PANELS
     assert "_kanbanGetSavedBoard" in PANELS
     assert "_kanbanSetSavedBoard" in PANELS
 

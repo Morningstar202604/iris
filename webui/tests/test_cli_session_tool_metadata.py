@@ -11,7 +11,7 @@ import api.models as models
 def _patch_active_home(monkeypatch, home):
     import api.profiles as profiles
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: home)
     monkeypatch.setattr(profiles, "get_active_profile_name", lambda: None)
 
 
@@ -70,10 +70,10 @@ def _create_state_db_with_tool_turn(path, session_id="cli_tool_session_001"):
 
 
 def test_get_cli_session_messages_preserves_tool_call_metadata(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    _patch_active_home(monkeypatch, hermes_home)
-    expected_tool_calls = _create_state_db_with_tool_turn(hermes_home / "state.db")
+    iris_home = tmp_path / "iris"
+    iris_home.mkdir()
+    _patch_active_home(monkeypatch, iris_home)
+    expected_tool_calls = _create_state_db_with_tool_turn(iris_home / "state.db")
 
     messages = models.get_cli_session_messages("cli_tool_session_001")
 

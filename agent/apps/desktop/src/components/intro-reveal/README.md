@@ -7,10 +7,10 @@ brand briefly instead. Sound is on by default and respects the haptics mute
 preference. Fonts are the existing Collapse and JetBrains Mono faces.
 
 Eligibility is `guestOnboardingEnabled && !firstRunSkipped && !hasSeenIntroReveal()`.
-Electron sets the flag from `HERMES_GUEST_ONBOARDING=1` or `--guest-onboarding`.
+Electron sets the flag from `IRIS_GUEST_ONBOARDING=1` or `--guest-onboarding`.
 The gate queues the guided chat on completion; the chat gate acknowledges the
 free-tier notice as the cinematic starts. With the flag off, neither gate starts.
-`HERMES_SKIP_INTRO=1` turns the film off but keeps the guided chat: the gate
+`IRIS_SKIP_INTRO=1` turns the film off but keeps the guided chat: the gate
 records the film as watched and queues the guide directly.
 
 | Piece | Path |

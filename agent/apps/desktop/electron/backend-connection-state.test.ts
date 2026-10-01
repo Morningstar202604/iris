@@ -23,7 +23,7 @@ test('an invalidated remote attempt cannot publish a late descriptor', async () 
 
   const oldResult = oldProbe.promise.then(descriptor => {
     if (!state.isCurrentAttempt(oldAttempt)) {
-      throw new Error('Hermes backend start was superseded by a newer connection attempt.')
+      throw new Error('Iris backend start was superseded by a newer connection attempt.')
     }
 
     return descriptor

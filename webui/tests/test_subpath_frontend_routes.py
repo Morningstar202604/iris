@@ -1,4 +1,4 @@
-"""Regression tests for frontend routing under subpath mounts like /hermes/."""
+"""Regression tests for frontend routing under subpath mounts like /iris/."""
 from pathlib import Path
 
 
@@ -13,7 +13,7 @@ def test_workspace_api_401_redirect_uses_relative_login_path():
     src = read("static/workspace.js")
     assert "res.status===401" in src
     assert "window.location.href='login?next='" in src, (
-        "workspace api() must redirect to relative login?next= so /hermes/ "
+        "workspace api() must redirect to relative login?next= so /iris/ "
         "does not escape to the personal site root /login."
     )
     assert "window.location.href='/login?next='" not in src
@@ -39,7 +39,7 @@ def test_direct_frontend_fetches_are_relative_to_current_mount():
     for path in ("static/boot.js", "static/sessions.js", "static/ui.js"):
         src = read(path)
         assert "fetch('/api/" not in src, (
-            f"{path} must not fetch root /api/* because /hermes/ is subpath mounted."
+            f"{path} must not fetch root /api/* because /iris/ is subpath mounted."
         )
         assert 'fetch("/api/' not in src
     assert "fetch('/health'" not in read("static/ui.js")
@@ -66,11 +66,11 @@ def test_static_vendor_import_is_relative_to_current_mount():
     relative to the document URL. Bare specifier (no leading `./` or `/`)
     is invalid per ES module spec and breaks markdown streaming silently
     (#1849). Root-absolute (`/static/...`) escapes subpath mounts like
-    `/hermes/`. The `./` form satisfies both constraints.
+    `/iris/`. The `./` form satisfies both constraints.
     """
     src = read("static/index.html")
     assert "import * as smd from './static/vendor/smd.min.js'" in src
     # Bare specifier — broken per ES module spec (#1849)
     assert "import * as smd from 'static/vendor/smd.min.js'" not in src
-    # Root-absolute — breaks /hermes/ subpath mounts
+    # Root-absolute — breaks /iris/ subpath mounts
     assert "import * as smd from '/static/vendor/smd.min.js'" not in src

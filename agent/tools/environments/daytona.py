@@ -48,7 +48,7 @@ class DaytonaEnvironment(BaseEnvironment):
                            "Capping to 10GB.", disk_gib)
             disk_gib = 10
         resources = Resources(cpu=cpu, memory=memory_gib, disk=disk_gib)
-        labels, sandbox_name = {"hermes_task_id": task_id}, f"hermes-{task_id}"
+        labels, sandbox_name = {"iris_task_id": task_id}, f"iris-{task_id}"
 
         if self._persistent:
             try:
@@ -84,7 +84,7 @@ class DaytonaEnvironment(BaseEnvironment):
         logger.info("Daytona: resolved home to %s, cwd to %s", self._remote_home, self.cwd)
 
         self._sync_manager = FileSyncManager(
-            get_files_fn=lambda: iter_sync_files(f"{self._remote_home}/.hermes"),
+            get_files_fn=lambda: iter_sync_files(f"{self._remote_home}/.iris"),
             upload_fn=self._daytona_upload, delete_fn=self._daytona_delete,
             bulk_upload_fn=self._daytona_bulk_upload, bulk_download_fn=self._daytona_bulk_download)
         self._sync_manager.sync(force=True)
@@ -107,10 +107,10 @@ class DaytonaEnvironment(BaseEnvironment):
             [FileUpload(source=host_path, destination=remote_path) for host_path, remote_path in files])
 
     def _daytona_bulk_download(self, dest: Path) -> None:
-        """Download remote .hermes/ as a tar archive."""
-        rel_base = f"{self._remote_home}/.hermes".lstrip("/")
+        """Download remote .iris/ as a tar archive."""
+        rel_base = f"{self._remote_home}/.iris".lstrip("/")
         # PID-suffixed remote temp path avoids collisions if sync_back runs concurrently.
-        remote_tar = f"/tmp/.hermes_sync.{os.getpid()}.tar"  # no-tmp: ok — remote sandbox path
+        remote_tar = f"/tmp/.iris_sync.{os.getpid()}.tar"  # no-tmp: ok — remote sandbox path
         # --exclude: live sockets cannot be archived ("socket ignored") and must not fail the download.
         self._sandbox.process.exec(
             f"tar cf {shlex.quote(remote_tar)} --exclude='*.sock' -C / {shlex.quote(rel_base)}")

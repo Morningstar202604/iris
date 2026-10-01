@@ -43,7 +43,7 @@ def _result(output: str, returncode: int = 1) -> dict:
 
 
 class ManagedModalEnvironment(BaseEnvironment):
-    """Gateway-owned Modal sandbox with Hermes-compatible execute/cleanup."""
+    """Gateway-owned Modal sandbox with Iris-compatible execute/cleanup."""
 
     _stdin_mode = "payload"
     _CONNECT_TIMEOUT_SECONDS = _request_timeout_env("TERMINAL_MANAGED_MODAL_CONNECT_TIMEOUT_SECONDS", 1.0)

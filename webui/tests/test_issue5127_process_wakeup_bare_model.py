@@ -345,7 +345,7 @@ class TestReadProfileModelConfigWithExplicitProvider:
             profile = "testprof"
 
         monkeypatch.setattr(
-            "api.profiles.get_hermes_home_for_profile",
+            "api.profiles.get_iris_home_for_profile",
             lambda _p: str(profile_home),
         )
 
@@ -369,7 +369,7 @@ class TestReadProfileModelConfigWithExplicitProvider:
             profile = "testprof"
 
         monkeypatch.setattr(
-            "api.profiles.get_hermes_home_for_profile",
+            "api.profiles.get_iris_home_for_profile",
             lambda _p: str(profile_home),
         )
 

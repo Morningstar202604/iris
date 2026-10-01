@@ -1,10 +1,10 @@
 """Regression tests for state.db title de-dup on collision (#6964).
 
 Follow-up to #6892 (sync auto-generated session titles to state.db).
-When two WebUI sessions generate the SAME auto-title, hermes-agent's
+When two WebUI sessions generate the SAME auto-title, iris-agent's
 state.db uniqueness rule makes the second ``set_auto_title_if_empty``
 raise ValueError, which ``sync_session_title`` used to swallow at debug
-level -- leaving the second row blank in ``hermes sessions list``.
+level -- leaving the second row blank in ``iris sessions list``.
 These tests prove the collision path now de-duplicates (suffix variant)
 instead of leaving the row untitled, and that unique titles are unchanged.
 """
@@ -13,8 +13,8 @@ import pytest
 
 
 def _make_db(tmp_path):
-    hermes_state = pytest.importorskip("hermes_state")
-    SessionDB = hermes_state.SessionDB
+    iris_state = pytest.importorskip("iris_state")
+    SessionDB = iris_state.SessionDB
     return SessionDB(db_path=tmp_path / "state.db")
 
 

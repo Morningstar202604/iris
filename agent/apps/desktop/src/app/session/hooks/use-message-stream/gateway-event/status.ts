@@ -148,7 +148,7 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
     showAgentNotice(notice)
 
     // The urgent pair (access paused / restored) also breaks through as a
-    // native OS notification when Hermes is backgrounded; dispatch is gated
+    // native OS notification when Iris is backgrounded; dispatch is gated
     // by the user's notification prefs + backgrounded check.
     const native = nativeNoticeInput(notice, translateNow('notifications.native.creditsTitle'))
 
@@ -176,7 +176,7 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
   }
 
   if (event.type === 'error') {
-    const errorMessage = payload?.message || 'Hermes reported an error'
+    const errorMessage = payload?.message || 'Iris reported an error'
     const looksLikeProviderSetup = isProviderSetupErrorMessage(errorMessage)
 
     // The gateway's `error` event carries no error_surface (prompt_turn.py

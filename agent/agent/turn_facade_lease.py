@@ -52,7 +52,7 @@ class DurableTurnLease:
         """Create (not schedule) the liveness watchdog when configured: lease renewal is NOT
         evidence of progress; a silently stalled turn would renew forever."""
         try:
-            from hermes_cli.config import load_config_readonly
+            from iris_cli.config import load_config_readonly
 
             liveness_config = load_config_readonly() or {}
         except Exception:
@@ -268,10 +268,10 @@ def admit_durable_turn_lease(
         nonlocal waited
         waited = True
         agent._emit_status(
-            "⏳ Another Hermes process is using this session; "
+            "⏳ Another Iris process is using this session; "
             "waiting for it to finish before starting your turn..."
             if elapsed < 1.0 else
-            f"⏳ Still waiting for the other Hermes process on this session ({int(elapsed)}s)..."
+            f"⏳ Still waiting for the other Iris process on this session ({int(elapsed)}s)..."
         )
 
     if not db.acquire_session_turn_lease(
@@ -360,7 +360,7 @@ def _lease_not_acquired_result(agent, session_id: str, conversation_history) -> 
         )
         result = {
             "final_response": (
-                "Stopped waiting for another Hermes process on this session. "
+                "Stopped waiting for another Iris process on this session. "
                 "Your message was not processed."
             ),
             **base,
@@ -380,7 +380,7 @@ def _lease_not_acquired_result(agent, session_id: str, conversation_history) -> 
         return result
     # Fail closed like gateway TurnLeaseTimeoutError: surface a resend notice, not a bare TimeoutError.
     timeout_msg = (
-        "⏳ Another Hermes process kept this session busy too long. Your message was not "
+        "⏳ Another Iris process kept this session busy too long. Your message was not "
         "processed - wait for the other process to finish, then send it again."
     )
     logger.error("session turn lease wait timed out for %s", session_id)

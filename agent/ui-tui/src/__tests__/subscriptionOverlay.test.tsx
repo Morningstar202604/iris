@@ -1,7 +1,7 @@
 import { PassThrough } from 'stream'
 
-import { renderSync } from '@hermes/ink'
-import { stripAnsi } from '@hermes/shared/ansi'
+import { renderSync } from '@iris/ink'
+import { stripAnsi } from '@iris/shared/ansi'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -11,7 +11,7 @@ const inputHarness = vi.hoisted(() => ({
 
 // Stub useInput so the overlay doesn't try to enter raw mode under renderSync
 // (PassThrough stdin doesn't support it). Box/Text pass through to real Ink.
-vi.mock('@hermes/ink', async importOriginal => {
+vi.mock('@iris/ink', async importOriginal => {
   const mod = await importOriginal()
 
   return {

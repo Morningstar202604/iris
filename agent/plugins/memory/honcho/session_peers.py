@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("plugins.memory.honcho.session")
 
 _PEER_ID_HASH_ESCALATION_LENGTHS = (8, 12, 16, 24, 32, 64)
-# Author ids the bot-mode dispatcher assigns to other Hermes profiles (tools/bot_relay.py).
+# Author ids the bot-mode dispatcher assigns to other Iris profiles (tools/bot_relay.py).
 BOT_AUTHOR_PREFIX = "bot:"
 
 
@@ -24,7 +24,7 @@ def sanitize_peer_id(id_str: str) -> str:
 
 def assistant_peer_id_for(config: Any) -> str:
     """The agent's own peer ID from ``aiPeer``, as the session builder derives it."""
-    return sanitize_peer_id(getattr(config, "ai_peer", None) or "hermes-assistant")
+    return sanitize_peer_id(getattr(config, "ai_peer", None) or "iris-assistant")
 
 
 class HonchoPeerUnresolvedError(RuntimeError):

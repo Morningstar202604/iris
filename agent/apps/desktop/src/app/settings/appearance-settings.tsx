@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { Button } from '@/components/ui/button'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import type { DesktopMarketplaceSearchItem } from '@/global'
-import { saveHermesConfig } from '@/hermes'
+import { saveIrisConfig } from '@/iris'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Download, Loader2, Palette, Trash2 } from '@/lib/icons'
@@ -69,7 +69,7 @@ import { installVscodeThemeFromMarketplace } from '@/themes/install'
 import type { DesktopTheme } from '@/themes/types'
 import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/user-themes'
 
-import { setHermesConfigCache, useHermesConfigRecord } from '../hooks/use-config-record'
+import { setIrisConfigCache, useIrisConfigRecord } from '../hooks/use-config-record'
 
 import { appearanceSubpageForSetting, type AppearanceSubpageId } from './appearance-subpages'
 import { ChatFontSetting } from './chat-font-setting'
@@ -89,7 +89,7 @@ import { useDeepLinkHighlight } from './use-deep-link-highlight'
 function ResumeLastSessionSetting() {
   const { t } = useI18n()
   const a = t.settings.appearance
-  const configQuery = useHermesConfigRecord()
+  const configQuery = useIrisConfigRecord()
   const config = configQuery.data
   const writeScope = configQuery.writeScope
   const checked = (config?.display as { resume_last_session?: unknown } | undefined)?.resume_last_session !== false
@@ -100,17 +100,17 @@ function ResumeLastSessionSetting() {
     }
 
     const next = setNested(config, 'display.resume_last_session', on)
-    setHermesConfigCache(next)
+    setIrisConfigCache(next)
     // Sparse patch: PUT /api/config deep-merges, and echoing the cached
     // snapshot would overwrite keys other surfaces changed since it loaded.
-    void saveHermesConfig(setNested({}, 'display.resume_last_session', on), writeScope)
+    void saveIrisConfig(setNested({}, 'display.resume_last_session', on), writeScope)
       .then(result => {
         if (!result.ok) {
           throw new Error(t.settings.config.autosaveFailed)
         }
       })
       .catch(error => {
-        setHermesConfigCache(config)
+        setIrisConfigCache(config)
         notifyError(error, t.settings.config.autosaveFailed)
       })
   }
@@ -202,7 +202,7 @@ function MarketplaceThemeResults({
 
   const search = useQuery({
     enabled: debounced.length > 0,
-    queryFn: () => window.hermesDesktop?.themes?.searchMarketplace(debounced) ?? Promise.resolve([]),
+    queryFn: () => window.irisDesktop?.themes?.searchMarketplace(debounced) ?? Promise.resolve([]),
     queryKey: ['marketplace-themes-settings', debounced],
     staleTime: 5 * 60 * 1000
   })

@@ -2,13 +2,13 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useStatusSnapshot } from '@/app/shell/hooks/use-status-snapshot'
-import { getStatus } from '@/hermes'
+import { getStatus } from '@/iris'
 import { $setupReadyTick } from '@/store/live-sync'
 
 import { handleLifecycleEvent } from './lifecycle'
 import type { GatewayEventContext } from './types'
 
-vi.mock(import('@/hermes'), async importOriginal => ({
+vi.mock(import('@/iris'), async importOriginal => ({
   ...(await importOriginal()),
   getStatus: vi.fn()
 }))

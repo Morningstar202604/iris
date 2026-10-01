@@ -230,7 +230,7 @@ def _run_legacy_gateway_chat(tmp_path, monkeypatch, model):
         captured["body"] = req.data.decode("utf-8")
         return _FakeChatResponse()
 
-    monkeypatch.setenv("HERMES_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
+    monkeypatch.setenv("IRIS_WEBUI_GATEWAY_BASE_URL", "http://gateway.local")
     _stub_prefill(monkeypatch)
     monkeypatch.setattr(gateway_chat.urllib.request, "urlopen", fake_urlopen)
 

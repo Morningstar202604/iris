@@ -295,10 +295,10 @@ def test_webui_session_context_adds_gateway_like_metadata(monkeypatch, tmp_path)
             return gateway_state if name == "gateway_state.json" else tmp_path / name
 
     fake_constants = types.SimpleNamespace(
-        get_hermes_home=lambda: FakeHome(),
-        display_hermes_home=lambda: "/tmp/hermes-test-home",
+        get_iris_home=lambda: FakeHome(),
+        display_iris_home=lambda: "/tmp/iris-test-home",
     )
-    monkeypatch.setitem(sys.modules, "hermes_constants", fake_constants)
+    monkeypatch.setitem(sys.modules, "iris_constants", fake_constants)
 
     config_data = {
         "platforms": {

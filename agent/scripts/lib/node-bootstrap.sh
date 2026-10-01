@@ -7,26 +7,26 @@
 #
 # Strategy (first hit wins — respects the user's existing tooling):
 #   1. modern `node` already on PATH
-#   2. ~/.hermes/node/ from a prior Hermes-managed install
+#   2. ~/.iris/node/ from a prior Iris-managed install
 #   3. fnm, proto, nvm (in that order) if the user already uses a version manager
 #   4. Termux `pkg`, macOS Homebrew
-#   5. pinned nodejs.org tarball into ~/.hermes/node/ (always works, zero shell rc edits)
+#   5. pinned nodejs.org tarball into ~/.iris/node/ (always works, zero shell rc edits)
 #
 # Usage:
 #   source scripts/lib/node-bootstrap.sh
 #   ensure_node   # returns 0 on success, non-zero on failure
-#   if [ "$HERMES_NODE_AVAILABLE" = true ]; then ...; fi
+#   if [ "$IRIS_NODE_AVAILABLE" = true ]; then ...; fi
 #
 # Env inputs (set before sourcing to override defaults):
-#   HERMES_NODE_MIN_VERSION   (default: 20)   — accepted on PATH
-#   HERMES_NODE_TARGET_MAJOR  (default: 22)   — installed when we install
-#   HERMES_HOME               (default: $HOME/.hermes)
+#   IRIS_NODE_MIN_VERSION   (default: 20)   — accepted on PATH
+#   IRIS_NODE_TARGET_MAJOR  (default: 22)   — installed when we install
+#   IRIS_HOME               (default: $HOME/.iris)
 # ============================================================================
 
-HERMES_NODE_MIN_VERSION="${HERMES_NODE_MIN_VERSION:-20}"
-HERMES_NODE_TARGET_MAJOR="${HERMES_NODE_TARGET_MAJOR:-22}"
-HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
-HERMES_NODE_AVAILABLE=false
+IRIS_NODE_MIN_VERSION="${IRIS_NODE_MIN_VERSION:-20}"
+IRIS_NODE_TARGET_MAJOR="${IRIS_NODE_TARGET_MAJOR:-22}"
+IRIS_HOME="${IRIS_HOME:-$HOME/.iris}"
+IRIS_NODE_AVAILABLE=false
 
 # ---------------------------------------------------------------------------
 # Logging — prefer the host script's log_* helpers when present
@@ -57,17 +57,17 @@ _nb_get_link_dir() {
     fi
 }
 
-# Redirect a Hermes-managed Node's `npm install -g` to the command link dir
-# (already on PATH) instead of the default $HERMES_HOME/node/bin, which is off
+# Redirect a Iris-managed Node's `npm install -g` to the command link dir
+# (already on PATH) instead of the default $IRIS_HOME/node/bin, which is off
 # PATH and wiped on every Node upgrade. Scoped to the managed Node via its
 # prefix-local global npmrc; the user's other Node installs / ~/.npmrc are
 # untouched. Idempotent no-op when there's no managed npm.
 _nb_configure_npm_prefix() {
-    [ -x "$HERMES_HOME/node/bin/npm" ] || return 0
+    [ -x "$IRIS_HOME/node/bin/npm" ] || return 0
     local _link_dir
     _link_dir="$(_nb_get_link_dir)"
-    mkdir -p "$HERMES_HOME/node/etc"
-    printf 'prefix=%s\n' "$(dirname "$_link_dir")" > "$HERMES_HOME/node/etc/npmrc"
+    mkdir -p "$IRIS_HOME/node/etc"
+    printf 'prefix=%s\n' "$(dirname "$_link_dir")" > "$IRIS_HOME/node/etc/npmrc"
 }
 
 _nb_node_major() {
@@ -81,8 +81,8 @@ _nb_node_major() {
 # to the current floor when the manifest is unreadable (vendored copy of this
 # script, stripped install tree).
 _nb_npm_range() {
-    if [ -n "${HERMES_NPM_TARGET_RANGE:-}" ]; then
-        printf '%s\n' "$HERMES_NPM_TARGET_RANGE"
+    if [ -n "${IRIS_NPM_TARGET_RANGE:-}" ]; then
+        printf '%s\n' "$IRIS_NPM_TARGET_RANGE"
         return 0
     fi
     local repo_root manifest range
@@ -107,7 +107,7 @@ _nb_npm_range() {
 # 26.5.1 bundles npm 11.17.0, one minor below our own `engines.npm` floor of
 # >=12. With `engine-strict=true` in the repo .npmrc that is fatal, not a
 # warning, so a brand-new install died at the first `npm ci` with EBADENGINE.
-# The Python side recovers through hermes_cli/npm_engine.py; the installer path
+# The Python side recovers through iris_cli/npm_engine.py; the installer path
 # had no such rung, so provision the right npm here instead of reacting later.
 #
 # Three details are load-bearing, all mirroring upgrade_managed_npm():
@@ -123,7 +123,7 @@ _nb_npm_range() {
 # strictly better than no Node at all, and npm_engine.py still covers the
 # EBADENGINE that follows.
 _nb_ensure_bundled_npm_range() {
-    local npm_bin="$HERMES_HOME/node/bin/npm"
+    local npm_bin="$IRIS_HOME/node/bin/npm"
     [ -x "$npm_bin" ] || return 0
 
     local range have want
@@ -148,7 +148,7 @@ _nb_ensure_bundled_npm_range() {
         cd "$tmp_cwd" || exit 1
         CI=1 npm_config_min_release_age=0 \
             "$npm_bin" install --global \
-                --prefix "$HERMES_HOME/node" \
+                --prefix "$IRIS_HOME/node" \
                 "npm@$range" \
                 --no-fund --no-audit --progress=false >/dev/null 2>&1
     ); then
@@ -159,7 +159,7 @@ _nb_ensure_bundled_npm_range() {
 
     rm -rf "$tmp_cwd"
     _nb_warn "Could not upgrade bundled npm to $range — \`npm ci\` may fail with EBADENGINE."
-    _nb_warn "Fix manually: npm install -g --prefix \"$HERMES_HOME/node\" npm@\"$range\""
+    _nb_warn "Fix manually: npm install -g --prefix \"$IRIS_HOME/node\" npm@\"$range\""
     return 1
 }
 
@@ -177,7 +177,7 @@ _nb_node_is_prerelease() {
 _nb_have_modern_node() {
     command -v node >/dev/null 2>&1 || return 1
     _nb_node_is_prerelease && return 1
-    [ "$(_nb_node_major)" -ge "$HERMES_NODE_MIN_VERSION" ]
+    [ "$(_nb_node_major)" -ge "$IRIS_NODE_MIN_VERSION" ]
 }
 
 # ---------------------------------------------------------------------------
@@ -186,10 +186,10 @@ _nb_have_modern_node() {
 
 _nb_try_fnm() {
     command -v fnm >/dev/null 2>&1 || return 1
-    _nb_log "fnm detected — installing Node $HERMES_NODE_TARGET_MAJOR..."
+    _nb_log "fnm detected — installing Node $IRIS_NODE_TARGET_MAJOR..."
     eval "$(fnm env 2>/dev/null)" || true
-    fnm install "$HERMES_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
-    fnm use     "$HERMES_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
+    fnm install "$IRIS_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
+    fnm use     "$IRIS_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
     _nb_have_modern_node || return 1
     _nb_ok "Node $(node --version) activated via fnm"
     return 0
@@ -197,8 +197,8 @@ _nb_try_fnm() {
 
 _nb_try_proto() {
     command -v proto >/dev/null 2>&1 || return 1
-    _nb_log "proto detected — installing Node $HERMES_NODE_TARGET_MAJOR..."
-    proto install node "$HERMES_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
+    _nb_log "proto detected — installing Node $IRIS_NODE_TARGET_MAJOR..."
+    proto install node "$IRIS_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
     _nb_have_modern_node || return 1
     _nb_ok "Node $(node --version) activated via proto"
     return 0
@@ -209,9 +209,9 @@ _nb_try_nvm() {
     [ -s "$nvm_sh" ] || return 1
     # shellcheck source=/dev/null
     \. "$nvm_sh" >/dev/null 2>&1 || return 1
-    _nb_log "nvm detected — installing Node $HERMES_NODE_TARGET_MAJOR..."
-    nvm install "$HERMES_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
-    nvm use     "$HERMES_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
+    _nb_log "nvm detected — installing Node $IRIS_NODE_TARGET_MAJOR..."
+    nvm install "$IRIS_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
+    nvm use     "$IRIS_NODE_TARGET_MAJOR" >/dev/null 2>&1 || return 1
     _nb_have_modern_node || return 1
     _nb_ok "Node $(node --version) activated via nvm"
     return 0
@@ -234,10 +234,10 @@ _nb_try_brew() {
     [ "$(uname -s)" = "Darwin" ] || return 1
     command -v brew >/dev/null 2>&1 || return 1
     _nb_log "Installing Node via Homebrew..."
-    brew install "node@${HERMES_NODE_TARGET_MAJOR}" >/dev/null 2>&1 \
+    brew install "node@${IRIS_NODE_TARGET_MAJOR}" >/dev/null 2>&1 \
         || brew install node >/dev/null 2>&1 \
         || return 1
-    brew link --overwrite --force "node@${HERMES_NODE_TARGET_MAJOR}" >/dev/null 2>&1 || true
+    brew link --overwrite --force "node@${IRIS_NODE_TARGET_MAJOR}" >/dev/null 2>&1 || true
     _nb_have_modern_node || return 1
     _nb_ok "Node $(node --version) installed via Homebrew"
     return 0
@@ -270,21 +270,21 @@ _nb_install_bundled_node() {
             ;;
     esac
 
-    local index_url="https://nodejs.org/dist/latest-v${HERMES_NODE_TARGET_MAJOR}.x/"
+    local index_url="https://nodejs.org/dist/latest-v${IRIS_NODE_TARGET_MAJOR}.x/"
     local tarball=""
     # `tar xf` needs the xz binary for .tar.xz; minimal images ship tar without it (#11197).
     if command -v xz >/dev/null 2>&1; then
         tarball=$(curl -fsSL "$index_url" \
-            | grep -oE "node-v${HERMES_NODE_TARGET_MAJOR}\.[0-9]+\.[0-9]+-${node_os}-${node_arch}\.tar\.xz" \
+            | grep -oE "node-v${IRIS_NODE_TARGET_MAJOR}\.[0-9]+\.[0-9]+-${node_os}-${node_arch}\.tar\.xz" \
             | head -1)
     fi
     if [ -z "$tarball" ]; then
         tarball=$(curl -fsSL "$index_url" \
-            | grep -oE "node-v${HERMES_NODE_TARGET_MAJOR}\.[0-9]+\.[0-9]+-${node_os}-${node_arch}\.tar\.gz" \
+            | grep -oE "node-v${IRIS_NODE_TARGET_MAJOR}\.[0-9]+\.[0-9]+-${node_os}-${node_arch}\.tar\.gz" \
             | head -1)
     fi
     if [ -z "$tarball" ]; then
-        _nb_warn "Could not resolve Node $HERMES_NODE_TARGET_MAJOR binary for $node_os-$node_arch"
+        _nb_warn "Could not resolve Node $IRIS_NODE_TARGET_MAJOR binary for $node_os-$node_arch"
         return 1
     fi
 
@@ -295,7 +295,7 @@ _nb_install_bundled_node() {
         _nb_warn "Download failed"; rm -rf "$tmp"; return 1
     }
 
-    _nb_log "Extracting to $HERMES_HOME/node/..."
+    _nb_log "Extracting to $IRIS_HOME/node/..."
     if [[ "$tarball" == *.tar.xz ]]; then
         tar xf  "$tmp/$tarball" -C "$tmp" || { rm -rf "$tmp"; return 1; }
     else
@@ -322,30 +322,30 @@ _nb_install_bundled_node() {
             ;;
     esac
 
-    mkdir -p "$HERMES_HOME"
-    rm -rf "$HERMES_HOME/node"
-    mv "$extracted" "$HERMES_HOME/node"
+    mkdir -p "$IRIS_HOME"
+    rm -rf "$IRIS_HOME/node"
+    mv "$extracted" "$IRIS_HOME/node"
     rm -rf "$tmp"
 
     local _link_dir
     _link_dir="$(_nb_get_link_dir)"
-    # HERMES_NODE_SKIP_LINKS=1: the caller only wants the private managed tree
+    # IRIS_NODE_SKIP_LINKS=1: the caller only wants the private managed tree
     # (e.g. the EBADENGINE recovery provisioning a runtime alongside a working
     # system Node). Skipping the links keeps the user's own node/npm first on
     # PATH instead of shadowing them with ours.
-    if [ "${HERMES_NODE_SKIP_LINKS:-0}" != "1" ]; then
+    if [ "${IRIS_NODE_SKIP_LINKS:-0}" != "1" ]; then
         mkdir -p "$_link_dir"
-        ln -sf "$HERMES_HOME/node/bin/node" "$_link_dir/node"
-        ln -sf "$HERMES_HOME/node/bin/npm"  "$_link_dir/npm"
-        ln -sf "$HERMES_HOME/node/bin/npx"  "$_link_dir/npx"
+        ln -sf "$IRIS_HOME/node/bin/node" "$_link_dir/node"
+        ln -sf "$IRIS_HOME/node/bin/npm"  "$_link_dir/npm"
+        ln -sf "$IRIS_HOME/node/bin/npx"  "$_link_dir/npx"
     fi
 
     _nb_configure_npm_prefix
 
-    export PATH="$HERMES_HOME/node/bin:$PATH"
+    export PATH="$IRIS_HOME/node/bin:$PATH"
 
     _nb_have_modern_node || return 1
-    _nb_ok "Node $(node --version) installed to $HERMES_HOME/node/"
+    _nb_ok "Node $(node --version) installed to $IRIS_HOME/node/"
     # The tarball's bundled npm is usually below the repo's engines.npm floor.
     # Best-effort: an old npm still beats no Node.
     _nb_ensure_bundled_npm_range || true
@@ -353,16 +353,16 @@ _nb_install_bundled_node() {
 }
 
 # ---------------------------------------------------------------------------
-# Heal a broken Hermes-managed Node tree (partial upgrade / missing lib/)
+# Heal a broken Iris-managed Node tree (partial upgrade / missing lib/)
 # ---------------------------------------------------------------------------
 
 _nb_managed_tool_broken() {
     local tool="$1"
     local probe
     for probe in \
-        "$HERMES_HOME/node/bin/$tool" \
-        "$HERMES_HOME/node/${tool}.exe" \
-        "$HERMES_HOME/node/$tool"; do
+        "$IRIS_HOME/node/bin/$tool" \
+        "$IRIS_HOME/node/${tool}.exe" \
+        "$IRIS_HOME/node/$tool"; do
         if [ -x "$probe" ] || [ -f "$probe" ]; then
             if ! "$probe" --version >/dev/null 2>&1; then
                 return 0
@@ -372,19 +372,19 @@ _nb_managed_tool_broken() {
     return 1
 }
 
-# The managed node runs but is below HERMES_NODE_TARGET_MAJOR — an old tree
+# The managed node runs but is below IRIS_NODE_TARGET_MAJOR — an old tree
 # from a previous install (e.g. 22). Outdated heals the same way broken does,
 # so existing users get upgraded on the next heal probe, not just on a full
 # installer re-run. Mirrors _managed_node_tree_outdated() in
-# hermes_constants.py.
+# iris_constants.py.
 _nb_managed_node_outdated() {
     local probe ver major
-    for probe in "$HERMES_HOME/node/bin/node" "$HERMES_HOME/node/node"; do
+    for probe in "$IRIS_HOME/node/bin/node" "$IRIS_HOME/node/node"; do
         [ -x "$probe" ] || continue
         ver="$("$probe" --version 2>/dev/null)" || return 1
         major="${ver#v}"; major="${major%%.*}"
         case "$major" in ''|*[!0-9]*) return 1 ;; esac
-        [ "$major" -lt "$HERMES_NODE_TARGET_MAJOR" ] && return 0
+        [ "$major" -lt "$IRIS_NODE_TARGET_MAJOR" ] && return 0
         return 1
     done
     return 1
@@ -402,14 +402,14 @@ _nb_managed_node_needs_heal() {
 
 # Redownload the pinned nodejs.org tarball when a managed tree exists but
 # node/npm/npx fail a --version probe. No-op when the tree is healthy or
-# absent. Used by hermes_constants.find_hermes_node_executable() and safe
+# absent. Used by iris_constants.find_iris_node_executable() and safe
 # to call from install reruns.
 heal_managed_node() {
-    [ -d "$HERMES_HOME/node" ] || return 1
+    [ -d "$IRIS_HOME/node" ] || return 1
     if ! _nb_managed_node_needs_heal; then
         return 0
     fi
-    _nb_log "Hermes-managed Node is broken — redownloading to $HERMES_HOME/node/..."
+    _nb_log "Iris-managed Node is broken — redownloading to $IRIS_HOME/node/..."
     _nb_install_bundled_node
 }
 
@@ -418,7 +418,7 @@ heal_managed_node() {
 # ---------------------------------------------------------------------------
 
 ensure_node() {
-    HERMES_NODE_AVAILABLE=false
+    IRIS_NODE_AVAILABLE=false
 
     # Repair pre-existing managed installs where `npm install -g` lands off
     # PATH. No-op when there's no managed Node, so it's safe to run first.
@@ -426,15 +426,15 @@ ensure_node() {
 
     if _nb_have_modern_node; then
         _nb_ok "Node $(node --version) found"
-        HERMES_NODE_AVAILABLE=true
+        IRIS_NODE_AVAILABLE=true
         return 0
     fi
 
-    if [ -x "$HERMES_HOME/node/bin/node" ]; then
-        export PATH="$HERMES_HOME/node/bin:$PATH"
+    if [ -x "$IRIS_HOME/node/bin/node" ]; then
+        export PATH="$IRIS_HOME/node/bin:$PATH"
         if _nb_have_modern_node; then
-            _nb_ok "Node $(node --version) found (Hermes-managed)"
-            HERMES_NODE_AVAILABLE=true
+            _nb_ok "Node $(node --version) found (Iris-managed)"
+            IRIS_NODE_AVAILABLE=true
             # A tree from an older install still carries that Node major's
             # bundled npm, and the upgrade in _nb_install_bundled_node is
             # best-effort — one offline install leaves an at-target tree
@@ -447,18 +447,18 @@ ensure_node() {
     fi
 
     # Version managers first — respect the user's existing setup.
-    _nb_try_fnm   && { HERMES_NODE_AVAILABLE=true; return 0; }
-    _nb_try_proto && { HERMES_NODE_AVAILABLE=true; return 0; }
-    _nb_try_nvm   && { HERMES_NODE_AVAILABLE=true; return 0; }
+    _nb_try_fnm   && { IRIS_NODE_AVAILABLE=true; return 0; }
+    _nb_try_proto && { IRIS_NODE_AVAILABLE=true; return 0; }
+    _nb_try_nvm   && { IRIS_NODE_AVAILABLE=true; return 0; }
 
     # Platform package managers.
-    _nb_try_termux_pkg && { HERMES_NODE_AVAILABLE=true; return 0; }
-    _nb_try_brew       && { HERMES_NODE_AVAILABLE=true; return 0; }
+    _nb_try_termux_pkg && { IRIS_NODE_AVAILABLE=true; return 0; }
+    _nb_try_brew       && { IRIS_NODE_AVAILABLE=true; return 0; }
 
     # Last resort: pinned nodejs.org tarball.
-    _nb_install_bundled_node && { HERMES_NODE_AVAILABLE=true; return 0; }
+    _nb_install_bundled_node && { IRIS_NODE_AVAILABLE=true; return 0; }
 
     _nb_warn "Node.js install failed — TUI and browser tools will be unavailable."
-    _nb_warn "Install manually: https://nodejs.org/en/download/  (or: \`brew install node\`, \`fnm install $HERMES_NODE_TARGET_MAJOR\`, etc.)"
+    _nb_warn "Install manually: https://nodejs.org/en/download/  (or: \`brew install node\`, \`fnm install $IRIS_NODE_TARGET_MAJOR\`, etc.)"
     return 1
 }

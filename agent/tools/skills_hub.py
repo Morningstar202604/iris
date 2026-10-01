@@ -8,7 +8,7 @@ cache, lock file, taps and audit log. Install/uninstall/update live in
 ``skills_hub_search``, and the adapters in the other ``tools.skills_hub_*``
 siblings; import each name from its defining module.
 
-Used by hermes_cli/skills_hub.py for CLI commands and the /skills slash command.
+Used by iris_cli/skills_hub.py for CLI commands and the /skills slash command.
 """
 
 import json
@@ -23,7 +23,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from hermes_constants import get_hermes_home
+from iris_constants import get_iris_home
 from tools.url_safety import is_safe_url
 from tools.url_safety import create_ssrf_safe_client
 from tools.website_policy import check_website_access
@@ -52,18 +52,18 @@ def _path_resolver(name: str, parent: str, leaf: str):
     return resolve
 
 
-def _hermes_home() -> Path:
-    return get_hermes_home()
+def _iris_home() -> Path:
+    return get_iris_home()
 
 
-_skills_dir = _path_resolver("SKILLS_DIR", "HERMES_HOME", "skills")
+_skills_dir = _path_resolver("SKILLS_DIR", "IRIS_HOME", "skills")
 _hub_dir = _path_resolver("HUB_DIR", "SKILLS_DIR", ".hub")
 _lock_file = _path_resolver("LOCK_FILE", "HUB_DIR", "lock.json")
 _quarantine_dir = _path_resolver("QUARANTINE_DIR", "HUB_DIR", "quarantine")
 _audit_log = _path_resolver("AUDIT_LOG", "HUB_DIR", "audit.log")
 _taps_file = _path_resolver("TAPS_FILE", "HUB_DIR", "taps.json")
 _index_cache_dir = _path_resolver("INDEX_CACHE_DIR", "HUB_DIR", "index-cache")
-_DYNAMIC_PATH_RESOLVERS = {"HERMES_HOME": _hermes_home, **{
+_DYNAMIC_PATH_RESOLVERS = {"IRIS_HOME": _iris_home, **{
     r.__name__[1:].upper(): r
     for r in (_skills_dir, _hub_dir, _lock_file, _quarantine_dir, _audit_log, _taps_file, _index_cache_dir)
 }}
@@ -447,9 +447,9 @@ _PLUGIN_COMPAT_LAZY = {
     'GITHUB_TAP_PROVIDERS': ('tools.skills_hub_github', 'GITHUB_TAP_PROVIDERS'),
     'GitHubAuth': ('tools.skills_hub_github', 'GitHubAuth'),
     'GitHubSource': ('tools.skills_hub_github', 'GitHubSource'),
-    'HERMES_INDEX_TTL': ('tools.skills_hub_search', 'HERMES_INDEX_TTL'),
-    'HERMES_INDEX_URL': ('tools.skills_hub_search', 'HERMES_INDEX_URL'),
-    'HermesIndexSource': ('tools.skills_hub_official', 'HermesIndexSource'),
+    'IRIS_INDEX_TTL': ('tools.skills_hub_search', 'IRIS_INDEX_TTL'),
+    'IRIS_INDEX_URL': ('tools.skills_hub_search', 'IRIS_INDEX_URL'),
+    'IrisIndexSource': ('tools.skills_hub_official', 'IrisIndexSource'),
     'LobeHubSource': ('tools.skills_hub_sources', 'LobeHubSource'),
     'OptionalSkillSource': ('tools.skills_hub_official', 'OptionalSkillSource'),
     'ScanResult': ('tools.skills_guard', 'ScanResult'),
@@ -472,7 +472,7 @@ _PLUGIN_COMPAT_LAZY = {
     'source_url_for_bundle': ('tools.skills_hub_models', 'source_url_for_bundle'),
     'unified_search': ('tools.skills_hub_search', 'unified_search'),
     'uninstall_skill': ('tools.skills_hub_install', 'uninstall_skill'),
-    'windows_hide_flags': ('hermes_cli._subprocess_compat', 'windows_hide_flags'),
+    'windows_hide_flags': ('iris_cli._subprocess_compat', 'windows_hide_flags'),
 }
 
 _plugin_compat_prev_getattr = __getattr__
@@ -483,7 +483,7 @@ def __getattr__(name):  # PEP 562 — chained onto the module's own __getattr__
     if target is None:
         return _plugin_compat_prev_getattr(name)
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

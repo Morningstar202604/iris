@@ -35,7 +35,7 @@ beforeEach(() => {
   getConnectionConfig.mockResolvedValue(localScope)
   applyConnectionConfig.mockResolvedValue({ ...localScope, mode: 'remote', remoteUrl: 'https://box.example.com' })
   list.mockResolvedValue(emptyRegistry)
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { applyConnectionConfig, connections: { list }, getConnectionConfig }
   })

@@ -1,7 +1,7 @@
 """Tests for opt-in chunked transfer-encoding on SSE responses.
 
 See api/sse_chunked.py: behind a buffering reverse proxy (jupyter-server-proxy)
-unframed SSE is buffered until-close, so HERMES_WEBUI_SSE_CHUNKED opts into
+unframed SSE is buffered until-close, so IRIS_WEBUI_SSE_CHUNKED opts into
 explicit HTTP/1.1 chunk framing. Default off must preserve the historical
 unframed wire format byte-for-byte.
 """
@@ -38,7 +38,7 @@ def _dechunk(raw: bytes) -> bytes:
 
 
 def test_default_off_is_plain_end_headers(monkeypatch):
-    monkeypatch.delenv("HERMES_WEBUI_SSE_CHUNKED", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_SSE_CHUNKED", raising=False)
     assert chunked_sse_enabled() is False
 
     h = _Handler()
@@ -53,7 +53,7 @@ def test_default_off_is_plain_end_headers(monkeypatch):
 
 
 def test_flag_on_emits_chunked_frames_that_decode_back(monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_SSE_CHUNKED", "1")
+    monkeypatch.setenv("IRIS_WEBUI_SSE_CHUNKED", "1")
     assert chunked_sse_enabled() is True
 
     h = _Handler()
@@ -71,8 +71,8 @@ def test_flag_on_emits_chunked_frames_that_decode_back(monkeypatch):
 
 def test_truthy_values(monkeypatch):
     for val in ("1", "true", "TRUE", "yes", "On"):
-        monkeypatch.setenv("HERMES_WEBUI_SSE_CHUNKED", val)
+        monkeypatch.setenv("IRIS_WEBUI_SSE_CHUNKED", val)
         assert chunked_sse_enabled() is True
     for val in ("", "0", "false", "no", "off"):
-        monkeypatch.setenv("HERMES_WEBUI_SSE_CHUNKED", val)
+        monkeypatch.setenv("IRIS_WEBUI_SSE_CHUNKED", val)
         assert chunked_sse_enabled() is False

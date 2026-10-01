@@ -6,7 +6,7 @@ the locking, persistence and failure classification around that hook; the
 plugin owns only the token POST. This sibling module keeps that logic out of
 ``agent/credential_pool.py`` (near the size cap).
 
-Contract (documented in website/docs/developer-guide/model-provider-plugin.md):
+Contract (see ``plugins/model-providers/<name>/`` for provider plugin examples):
 
 * the hook returns a mapping of rotated values — dataclass field names
   (``access_token``, ``refresh_token``, ``expires_at_ms`` …) replace the row's
@@ -14,7 +14,7 @@ Contract (documented in website/docs/developer-guide/model-provider-plugin.md):
   natural token-endpoint shape) lands in ``entry.extra``; ``None``/empty = could not
   rotate and the pool benches the row like a failed refresh POST;
 * raising ``AuthError(..., relogin_required=True)`` (or a grant-dead OAuth code)
-  is terminal: the row goes DEAD with a WARNING naming ``hermes auth add``;
+  is terminal: the row goes DEAD with a WARNING naming ``iris auth add``;
   any other exception is transient and only benches the row.
 """
 
@@ -24,8 +24,8 @@ import logging
 from dataclasses import fields, replace
 from typing import TYPE_CHECKING, Any, Mapping, Optional, Tuple
 
-from hermes_cli.auth import _OAUTH_GRANT_DEAD_CODES
-from hermes_cli.auth_constants import AuthError
+from iris_cli.auth import _OAUTH_GRANT_DEAD_CODES
+from iris_cli.auth_constants import AuthError
 
 if TYPE_CHECKING:  # pragma: no cover
     from agent.credential_pool import CredentialPool, PooledCredential
@@ -85,7 +85,7 @@ def recover_failed_plugin_refresh(
         # the dead token every cooldown at DEBUG with no trace for the user.
         logger.warning(
             "%s refresh token for %s is terminally invalid (%s); the credential leaves rotation. "
-            "Re-run 'hermes auth add %s' to sign in again.",
+            "Re-run 'iris auth add %s' to sign in again.",
             pool.provider, entry.label or entry.id[:8], exc, pool.provider,
         )
         pool._mark_dead_refresh_grant(entry, exc)

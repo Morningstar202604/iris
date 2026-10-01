@@ -481,7 +481,7 @@ class TestIsValidImage:
 
 
 class TestAttachmentRootIntegration:
-    """Stage-361 regression: #2319 moved chat uploads to ~/.hermes/webui/attachments/<sid>/.
+    """Stage-361 regression: #2319 moved chat uploads to ~/.iris/webui/attachments/<sid>/.
 
     Pre-fix, _build_native_multimodal_message required uploads to be under
     workspace_root, which silently rejected every image upload from the new
@@ -496,7 +496,7 @@ class TestAttachmentRootIntegration:
         # Set up isolated attachment root
         attachment_root = tmp_path / "attachments"
         attachment_root.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(attachment_root))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(attachment_root))
 
         # The image lives in the attachment inbox, NOT in the workspace
         session_inbox = attachment_root / "sess123"
@@ -532,7 +532,7 @@ class TestAttachmentRootIntegration:
         """Paths outside BOTH allowed roots remain rejected — no security regression."""
         attachment_root = tmp_path / "attachments"
         attachment_root.mkdir()
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(attachment_root))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(attachment_root))
 
         workspace = tmp_path / "workspace"
         workspace.mkdir()
@@ -562,7 +562,7 @@ class TestAttachmentRootIntegration:
         """Workspace-resident images still work (backward compat with pre-#2319 uploads)."""
         attachment_root = tmp_path / "attachments"
         attachment_root.mkdir()
-        monkeypatch.setenv("HERMES_WEBUI_ATTACHMENT_DIR", str(attachment_root))
+        monkeypatch.setenv("IRIS_WEBUI_ATTACHMENT_DIR", str(attachment_root))
 
         workspace = tmp_path / "workspace"
         workspace.mkdir()

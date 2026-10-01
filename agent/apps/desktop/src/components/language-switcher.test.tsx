@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConfigRecord } from '@/hermes'
+import type { IrisConfigRecord } from '@/iris'
 import { type I18nConfigClient, I18nProvider } from '@/i18n'
 import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
 
@@ -17,7 +17,7 @@ describe('LanguageSwitcher', () => {
 
   it('persists language changes through display.language config', async () => {
     const saveConfig = vi.fn().mockResolvedValue({ ok: true })
-    const latestConfig: HermesConfigRecord = { display: { language: 'en', skin: 'slate' } }
+    const latestConfig: IrisConfigRecord = { display: { language: 'en', skin: 'slate' } }
 
     const configClient: I18nConfigClient = {
       getConfig: vi.fn().mockResolvedValue(latestConfig),

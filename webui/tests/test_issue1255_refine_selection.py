@@ -13,7 +13,7 @@ from tests.test_selected_context_user_render_runtime import _run_user_renderer
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MESSAGES_JS = Path(os.environ.get("HERMES_ISSUE1255_MESSAGES_JS") or (ROOT / "static" / "messages.js"))
+MESSAGES_JS = Path(os.environ.get("IRIS_ISSUE1255_MESSAGES_JS") or (ROOT / "static" / "messages.js"))
 I18N = (ROOT / "static" / "i18n.js").read_text(encoding="utf-8")
 NODE = shutil.which("node")
 
@@ -644,7 +644,7 @@ def test_refine_seeds_marker_free_draft_ending_in_localized_instruction_and_spac
         "> Second line\n\n"
         "Refine instruction: "
     )
-    assert "hermes-selected-context" not in out["composerValue"]
+    assert "iris-selected-context" not in out["composerValue"]
     assert out["selectionRange"] == [len(out["composerValue"]), len(out["composerValue"])]
     assert out["selectionStart"] == len(out["composerValue"])
     assert out["selectionEnd"] == len(out["composerValue"])
@@ -680,10 +680,10 @@ def test_refine_output_stays_marker_free_in_sent_user_rendering():
     out = _run_js("refine")
     rendered = _run_user_renderer(out["composerValue"])
 
-    assert "hermes-selected-context" not in out["composerValue"]
-    assert "hermes-selected-context" not in rendered
+    assert "iris-selected-context" not in out["composerValue"]
+    assert "iris-selected-context" not in rendered
     assert 'class="sent-selection-context"' not in rendered
-    assert "&lt;!-- hermes-selected-context --&gt;" not in rendered
+    assert "&lt;!-- iris-selected-context --&gt;" not in rendered
     assert "&gt; Quoted context" in rendered
     assert "Refine instruction: " in rendered
 

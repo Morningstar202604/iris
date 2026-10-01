@@ -2,7 +2,7 @@
 
 Earlier WebUI builds auto-detected unknown loopback hosts and persisted
 ``provider: "local"`` to ``config.yaml``. That value is not a registered
-provider in ``hermes_cli.auth.PROVIDER_REGISTRY``, so the agent's auxiliary
+provider in ``iris_cli.auth.PROVIDER_REGISTRY``, so the agent's auxiliary
 client (compression, vision, web extraction) raised
 ``"Provider 'local' is set in config.yaml but no API key was found"``
 mid-conversation when the context-compression threshold was hit.
@@ -17,7 +17,7 @@ healed automatically:
 2. ``resolve_model_provider()`` rewrites legacy ``"local"`` to ``"custom"``
    at read time, so existing configs route correctly without requiring the
    user to edit ``config.yaml`` by hand.
-3. ``set_hermes_default_model()`` refuses to persist ``"local"`` going
+3. ``set_iris_default_model()`` refuses to persist ``"local"`` going
    forward, so any other code path that tries to write it is also healed.
 4. The local alias table has ``"local" → "custom"`` for any consumer that
    normalises through ``_resolve_provider_alias``.
@@ -137,10 +137,10 @@ class TestResolveModelProviderHealsLegacyLocal:
             cfg.reload_config()
 
 
-# ── 3. set_hermes_default_model never persists 'local' ───────────────────
+# ── 3. set_iris_default_model never persists 'local' ───────────────────
 
 
-class TestSetHermesDefaultModelNeverPersistsLocal:
+class TestSetIrisDefaultModelNeverPersistsLocal:
     """Even if a caller (or a stale resolver) hands us ``provider='local'``,
     we must not write that value back to ``config.yaml``."""
 
@@ -162,11 +162,11 @@ class TestSetHermesDefaultModelNeverPersistsLocal:
         monkeypatch.setattr(cfg, "_get_config_path", lambda: cfgfile)
         cfg.reload_config()
         try:
-            cfg.set_hermes_default_model("qwen2.5-coder:14b")
+            cfg.set_iris_default_model("qwen2.5-coder:14b")
             saved = yaml.safe_load(cfgfile.read_text(encoding="utf-8"))
             persisted = saved.get("model", {}).get("provider", "")
             assert persisted != "local", (
-                f"set_hermes_default_model must rewrite 'local' on save — "
+                f"set_iris_default_model must rewrite 'local' on save — "
                 f"got {persisted!r}"
             )
             assert persisted == "custom"

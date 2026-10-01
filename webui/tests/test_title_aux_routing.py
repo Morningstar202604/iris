@@ -20,7 +20,7 @@ from tests._aux_client_helpers import auxiliary_client_modules, patch_tg_config
 
 @pytest.fixture(autouse=True)
 def _install_auxiliary_client_modules():
-    """Scope the synthetic hermes-agent modules to each test (#6630)."""
+    """Scope the synthetic iris-agent modules to each test (#6630)."""
     with auxiliary_client_modules():
         yield
 
@@ -248,7 +248,7 @@ class TestGenerateTitleRawViaAuxTimeout(unittest.TestCase):
     def test_configured_api_key_is_passed_to_aux_client(self):
         """Regression: explicit title_generation api_key must be forwarded.
 
-        Hermes Agent does not fall back to auxiliary.title_generation.api_key
+        Iris Agent does not fall back to auxiliary.title_generation.api_key
         once WebUI passes explicit provider/model/base_url values, so WebUI
         must forward the configured task api_key with the rest of the route.
         """
@@ -734,19 +734,19 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
 
         with patch.object(
             profiles,
-            'get_hermes_home_for_profile',
+            'get_iris_home_for_profile',
             side_effect=RuntimeError('profile lookup failed'),
         ):
-            with patch.dict(os.environ, {'HERMES_HOME': 'default-home'}, clear=False):
+            with patch.dict(os.environ, {'IRIS_HOME': 'default-home'}, clear=False):
                 with self.assertLogs('api.profiles', level='DEBUG') as logs:
                     with profiles.profile_env_for_background_worker(session, 'background title'):
-                        captured['HERMES_HOME'] = os.environ.get('HERMES_HOME')
+                        captured['IRIS_HOME'] = os.environ.get('IRIS_HOME')
 
         message_found = any(
             'Failed to resolve profile env for background title profile work' in record.getMessage()
             for record in logs.records
         )
-        self.assertEqual(captured['HERMES_HOME'], 'default-home')
+        self.assertEqual(captured['IRIS_HOME'], 'default-home')
         self.assertTrue(message_found)
         self.assertTrue(any(record.exc_info for record in logs.records))
 
@@ -766,7 +766,7 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
             snapshot = profiles.snapshot_skill_home_modules()
 
             imported_during_context = types.ModuleType('tools.skills_tool')
-            setattr(imported_during_context, 'HERMES_HOME', 'profile-home')
+            setattr(imported_during_context, 'IRIS_HOME', 'profile-home')
             setattr(imported_during_context, 'SKILLS_DIR', 'profile-home/skills')
             sys.modules['tools.skills_tool'] = imported_during_context
             setattr(tools_parent, 'skills_tool', imported_during_context)
@@ -809,21 +809,21 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
 
         original_skill_module = sys.modules.get('tools.skills_tool')
         fake_skill_module = types.ModuleType('tools.skills_tool')
-        setattr(fake_skill_module, 'HERMES_HOME', 'default-home')
+        setattr(fake_skill_module, 'IRIS_HOME', 'default-home')
         setattr(fake_skill_module, 'SKILLS_DIR', 'default-home/skills')
         sys.modules['tools.skills_tool'] = fake_skill_module
 
         def fake_aux_title(*args, **kwargs):
-            captured['hermes_home'] = os.environ.get('HERMES_HOME')
-            captured['skill_module_home'] = getattr(fake_skill_module, 'HERMES_HOME')
+            captured['iris_home'] = os.environ.get('IRIS_HOME')
+            captured['skill_module_home'] = getattr(fake_skill_module, 'IRIS_HOME')
             captured['skill_module_dir'] = getattr(fake_skill_module, 'SKILLS_DIR')
             return ('Profile Routed Title', 'llm_aux', '')
 
         events = []
         try:
-            with patch('api.profiles.get_hermes_home_for_profile', return_value='profile-home'):
+            with patch('api.profiles.get_iris_home_for_profile', return_value='profile-home'):
                 with patch('api.streaming._generate_llm_session_title_via_aux', side_effect=fake_aux_title):
-                    with patch.dict(os.environ, {'HERMES_HOME': 'default-home'}, clear=False):
+                    with patch.dict(os.environ, {'IRIS_HOME': 'default-home'}, clear=False):
                         _run_background_title_update(
                             session_id='profile-title-session',
                             user_text='This is a test message',
@@ -832,21 +832,21 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
                             put_event=lambda event_type, data: events.append((event_type, data)),
                             agent=None,
                         )
-                        captured['restored_hermes_home'] = os.environ.get('HERMES_HOME')
+                        captured['restored_iris_home'] = os.environ.get('IRIS_HOME')
         finally:
             if original_skill_module is None:
                 sys.modules.pop('tools.skills_tool', None)
             else:
                 sys.modules['tools.skills_tool'] = original_skill_module
 
-        self.assertEqual(captured.get('hermes_home'), 'profile-home')
+        self.assertEqual(captured.get('iris_home'), 'profile-home')
         self.assertEqual(str(captured.get('skill_module_home')), 'profile-home')
         self.assertEqual(
             Path(str(captured.get('skill_module_dir'))),
             Path('profile-home') / 'skills',
         )
-        self.assertEqual(captured.get('restored_hermes_home'), 'default-home')
-        self.assertEqual(fake_skill_module.HERMES_HOME, 'default-home')
+        self.assertEqual(captured.get('restored_iris_home'), 'default-home')
+        self.assertEqual(fake_skill_module.IRIS_HOME, 'default-home')
         self.assertEqual(fake_skill_module.SKILLS_DIR, 'default-home/skills')
         self.assertEqual(mock_session.title, 'Profile Routed Title')
 
@@ -859,9 +859,9 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
         import api.profiles as profiles
         from api.config import _thread_ctx
         try:
-            from hermes_cli import config as hermes_config
+            from iris_cli import config as iris_config
         except ModuleNotFoundError:
-            pytest.skip('hermes_cli is not installed in this CI environment')
+            pytest.skip('iris_cli is not installed in this CI environment')
 
         session = types.SimpleNamespace(profile='work')
         captured = {}
@@ -876,27 +876,27 @@ class TestBackgroundTitleProfileRouting(unittest.TestCase):
             with open(os.path.join(profile_home, 'config.yaml'), 'w', encoding='utf-8') as f:
                 f.write('model:\n  provider: profile-provider\n  default: profile-model\n')
 
-            with patch('api.profiles.get_hermes_home_for_profile', return_value=profile_home):
+            with patch('api.profiles.get_iris_home_for_profile', return_value=profile_home):
                 runtime_env = {
                     'PROFILE_ONLY_KEY': 'profile-only',
                     'OPENROUTER_API_KEY': 'profile-openrouter-key',
                 }
                 with patch('api.profiles.get_profile_runtime_env', return_value=runtime_env):
-                    with patch.dict(os.environ, {'HERMES_HOME': default_home, 'OPENROUTER_API_KEY': 'default-openrouter-key'}, clear=False):
+                    with patch.dict(os.environ, {'IRIS_HOME': default_home, 'OPENROUTER_API_KEY': 'default-openrouter-key'}, clear=False):
                         os.environ.pop('PROFILE_ONLY_KEY', None)
-                        hermes_config._LOAD_CONFIG_CACHE.clear()
+                        iris_config._LOAD_CONFIG_CACHE.clear()
                         with profiles.profile_env_for_background_worker(session, 'background title'):
-                            loaded = hermes_config.load_config()
+                            loaded = iris_config.load_config()
                             captured['loaded_provider'] = loaded.get('model', {}).get('provider')
-                            captured['process_home'] = os.environ.get('HERMES_HOME')
+                            captured['process_home'] = os.environ.get('IRIS_HOME')
                             captured['process_runtime_key'] = os.environ.get('PROFILE_ONLY_KEY')
                             captured['provider_credential'] = os.getenv('OPENROUTER_API_KEY')
-                            captured['thread_home'] = getattr(_thread_ctx, 'env', {}).get('HERMES_HOME')
+                            captured['thread_home'] = getattr(_thread_ctx, 'env', {}).get('IRIS_HOME')
                             captured['thread_runtime_key'] = getattr(_thread_ctx, 'env', {}).get('PROFILE_ONLY_KEY')
-                        captured['restored_home'] = os.environ.get('HERMES_HOME')
+                        captured['restored_home'] = os.environ.get('IRIS_HOME')
                         captured['restored_runtime_key'] = os.environ.get('PROFILE_ONLY_KEY')
                         captured['restored_provider_credential'] = os.environ.get('OPENROUTER_API_KEY')
-                        hermes_config._LOAD_CONFIG_CACHE.clear()
+                        iris_config._LOAD_CONFIG_CACHE.clear()
 
         self.assertEqual(captured['loaded_provider'], 'profile-provider')
         self.assertEqual(captured['process_home'], profile_home)

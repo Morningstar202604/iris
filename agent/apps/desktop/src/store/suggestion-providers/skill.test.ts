@@ -47,21 +47,21 @@ describe('skillPattern + skillHit', () => {
 
 describe('collidesWithWorkspace', () => {
   it('suppresses a skill named exactly like the cwd folder', () => {
-    expect(collidesWithWorkspace('hermes-agent', '/Users/b/www/hermes-agent')).toBe(true)
+    expect(collidesWithWorkspace('iris-agent', '/Users/b/www/iris-agent')).toBe(true)
   })
 
   it('suppresses inside worktree-suffixed folders too', () => {
-    expect(collidesWithWorkspace('hermes-agent', '/Users/b/www/hermes-agent-suggest')).toBe(true)
+    expect(collidesWithWorkspace('iris-agent', '/Users/b/www/iris-agent-suggest')).toBe(true)
   })
 
   it('does not suppress on substring-only overlap', () => {
     // "perf" inside "perfect-app" is not a homonym of the project.
     expect(collidesWithWorkspace('perf', '/Users/b/www/perfect-app')).toBe(false)
-    expect(collidesWithWorkspace('clean', '/Users/b/www/hermes-agent')).toBe(false)
+    expect(collidesWithWorkspace('clean', '/Users/b/www/iris-agent')).toBe(false)
   })
 
   it('never collides when detached (empty cwd)', () => {
-    expect(collidesWithWorkspace('hermes-agent', '')).toBe(false)
+    expect(collidesWithWorkspace('iris-agent', '')).toBe(false)
   })
 })
 
@@ -92,7 +92,7 @@ describe('skillTouchedInMessages', () => {
 
   it('matches qualified skill names (category/name, plugin:name)', () => {
     expect(
-      skillTouchedInMessages('hermes-agent-dev', [toolCall('skill_view', { name: 'github/hermes-agent-dev' })])
+      skillTouchedInMessages('iris-agent-dev', [toolCall('skill_view', { name: 'github/iris-agent-dev' })])
     ).toBe(true)
     expect(
       skillTouchedInMessages('writing-plans', [toolCall('skill_view', { name: 'superpowers:writing-plans' })])

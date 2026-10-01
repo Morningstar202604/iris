@@ -57,7 +57,7 @@ def _install_isolated_session_env(monkeypatch, tmp_path):
     monkeypatch.setattr(models, "SESSION_DIR", session_dir, raising=False)
     monkeypatch.setattr(models, "SESSION_INDEX_FILE", session_dir / "_index.json", raising=False)
     monkeypatch.setattr(models, "SESSIONS", OrderedDict(), raising=False)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(models, "_active_state_db_path", lambda: tmp_path / "state.db", raising=False)
     monkeypatch.setattr(routes, "_active_state_db_path", lambda: tmp_path / "state.db", raising=False)
     monkeypatch.setattr(config, "_evict_session_agent", lambda _sid: None, raising=False)

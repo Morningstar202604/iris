@@ -69,7 +69,7 @@ def test_notes_sources_shows_configured_third_party_note_servers_without_tool_in
 def test_external_notes_sources_drawer_is_default_off(monkeypatch):
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_EXTERNAL_NOTES_SOURCES", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTERNAL_NOTES_SOURCES", raising=False)
 
     assert routes._external_notes_sources_enabled({}) is False
     assert routes._external_notes_sources_enabled({"webui_external_notes_sources": False}) is False
@@ -78,11 +78,11 @@ def test_external_notes_sources_drawer_is_default_off(monkeypatch):
 def test_external_notes_sources_drawer_can_be_enabled_by_config_or_env(monkeypatch):
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_EXTERNAL_NOTES_SOURCES", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_EXTERNAL_NOTES_SOURCES", raising=False)
     assert routes._external_notes_sources_enabled({"webui_external_notes_sources": True}) is True
     assert routes._external_notes_sources_enabled({"external_notes_sources": "yes"}) is True
 
-    monkeypatch.setenv("HERMES_WEBUI_EXTERNAL_NOTES_SOURCES", "1")
+    monkeypatch.setenv("IRIS_WEBUI_EXTERNAL_NOTES_SOURCES", "1")
     assert routes._external_notes_sources_enabled({}) is True
 
 
@@ -94,20 +94,20 @@ def test_joplin_search_notes_returns_safe_snippets(monkeypatch):
         assert params["type"] == "note"
         return {"items": [{
             "id": "abc123def4567890",
-            "title": "Hermes Context",
-            "body": "This is a long Hermes context note with useful details.",
+            "title": "Iris Context",
+            "body": "This is a long Iris context note with useful details.",
             "parent_id": "folder123",
             "updated_time": 123,
         }]}
 
     monkeypatch.setattr(routes, "_joplin_api_get", fake_get)
 
-    results = routes._joplin_search_notes("Hermes")
+    results = routes._joplin_search_notes("Iris")
 
     assert results == [{
         "id": "abc123def4567890",
-        "title": "Hermes Context",
-        "snippet": "This is a long Hermes context note with useful details.",
+        "title": "Iris Context",
+        "snippet": "This is a long Iris context note with useful details.",
         "parent_id": "folder123",
         "updated_time": 123,
         "source": "joplin",
@@ -300,7 +300,7 @@ def test_joplin_recent_ai_notes_mirrors_webui_prefill_env_hook(monkeypatch, tmp_
     env_script = tmp_path / "env context.py"
     env_script.write_text('CURRENT_CONTEXT_ID = "5ba9ab822c344115939205ca4e8eaec0"\n', encoding="utf-8")
     monkeypatch.setattr(routes, "get_config", lambda: {"prefill_messages_script": str(legacy_script)})
-    monkeypatch.setenv("HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT", f'python3 "{env_script}"')
+    monkeypatch.setenv("IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT", f'python3 "{env_script}"')
 
     def fake_get(path, params=None):
         note_id = path.rsplit("/", 1)[-1]

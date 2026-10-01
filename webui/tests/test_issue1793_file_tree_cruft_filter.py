@@ -55,7 +55,7 @@ def test_hidden_file_toggle_invalidates_tree_render_without_refetch():
     body_end = UI_JS.index("\n}", body_start)
     body = UI_JS[body_start:body_end]
     assert "renderFileTree()" in body
-    assert "localStorage.setItem('hermes-workspace-show-hidden-files'" in body
+    assert "localStorage.setItem('iris-workspace-show-hidden-files'" in body
 
 
 # ── Kebab-affordance UX refinement ───────────────────────────────────────

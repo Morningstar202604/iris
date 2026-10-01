@@ -3,8 +3,8 @@
 <plist version="1.0">
 <dict>
   <key>NSAudioCaptureUsageDescription</key>
-  <string>Hermes launches the desktop app, which uses audio capture for voice conversations.</string>
+  <string>Iris launches the desktop app, which uses audio capture for voice conversations.</string>
   <key>NSMicrophoneUsageDescription</key>
-  <string>Hermes launches the desktop app, which uses the microphone for voice input and voice conversations.</string>
+  <string>Iris launches the desktop app, which uses the microphone for voice input and voice conversations.</string>
 </dict>
 </plist>

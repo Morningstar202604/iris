@@ -41,7 +41,7 @@ def test_captured_terminal_error_classifies_as_model_not_found_not_no_response()
     assert classified["type"] == "model_not_found", classified
     assert classified["type"] != "no_response"
     # Actionable guidance, and NOT the "try again" retry advice.
-    assert "hermes model" in classified["hint"].lower() or "settings" in classified["hint"].lower()
+    assert "iris model" in classified["hint"].lower() or "settings" in classified["hint"].lower()
     assert "try again in a moment" not in classified["hint"].lower()
 
 

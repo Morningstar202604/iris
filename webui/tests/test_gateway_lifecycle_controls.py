@@ -31,10 +31,10 @@ class _FakeHandler:
 
 
 def _fake_agent(tmp_path):
-    agent_dir = tmp_path / "hermes-agent"
-    cli_dir = agent_dir / "hermes_cli"
+    agent_dir = tmp_path / "iris-agent"
+    cli_dir = agent_dir / "iris_cli"
     cli_dir.mkdir(parents=True)
-    (cli_dir / "main.py").write_text("print('fake hermes cli')\n", encoding="utf-8")
+    (cli_dir / "main.py").write_text("print('fake iris cli')\n", encoding="utf-8")
     return agent_dir
 
 
@@ -84,7 +84,7 @@ def test_gateway_start_runs_profile_scoped_agent_cli_and_returns_status(monkeypa
     assert "stderr" not in data
     assert data["status"]["running"] is True
     cmd, kwargs = calls[0]
-    assert cmd[:2] == [sys.executable, str(agent_dir / "hermes_cli" / "main.py")]
+    assert cmd[:2] == [sys.executable, str(agent_dir / "iris_cli" / "main.py")]
     assert cmd[2:] == ["--profile", "work", "gateway", "start"]
     assert kwargs["cwd"] == str(agent_dir)
     assert kwargs["env"]["PYTHONUTF8"] == "1"
@@ -95,7 +95,7 @@ def test_gateway_start_runs_profile_scoped_agent_cli_and_returns_status(monkeypa
 
 def test_gateway_action_contention_returns_409_without_spawning(monkeypatch, tmp_path):
     """A second lifecycle action while one holds the lock returns 409 and does
-    NOT spawn an overlapping `hermes gateway` subprocess (server-side
+    NOT spawn an overlapping `iris gateway` subprocess (server-side
     single-flight guard)."""
     from api import config, routes
 
@@ -235,7 +235,7 @@ def test_gateway_lifecycle_missing_cli_returns_sanitized_error(monkeypatch, tmp_
     assert handler.status == 500
     assert data["ok"] is False
     assert data["action"] == "start"
-    assert data["error"] == "Hermes agent CLI entrypoint not found"
+    assert data["error"] == "Iris agent CLI entrypoint not found"
 
 
 def test_gateway_lifecycle_frontend_renders_valid_actions():

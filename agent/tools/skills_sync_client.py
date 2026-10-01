@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Skill Sync client -- the low-level sync layer (push objects + CAS a ref, pull the owner's
 HEAD, three-way merge on a 409). Driven by the debounced ``skill_manage`` push hook, the curator
-tick ``maybe_pull_skills`` and ``hermes sync``. Lives under tools/ so it never imports the CLI at
+tick ``maybe_pull_skills`` and ``iris sync``. Lives under tools/ so it never imports the CLI at
 module load; ``skills_sync_client_wire`` / ``skills_sync_client_org`` are re-exported here.
 ACCESS GATE (pre-launch): INERT unless the user is a Nous admin per the ``tool_gateway_admin``
 JWT claim (NAS's misleading name for the global portal-admin permission; replace before shipping).
 OPT-IN DEFAULT (provisional): local intent is the ``sync`` flag in ``.usage.json``; the DURABLE
-cross-device state is the ``sync-manifest`` blob in the plane. Only ~/.hermes/skills/ skills qualify."""
+cross-device state is the ``sync-manifest`` blob in the plane. Only ~/.iris/skills/ skills qualify."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def resolve_identity() -> Dict[str, Any]:
     ``owner`` is advisory (local ref naming; the server derives the real one). The JWT is decoded
     WITHOUT verification: safe, the claims only decide whether to attempt sync, never authz."""
     try:
-        from hermes_cli.auth import resolve_nous_runtime_credentials
+        from iris_cli.auth import resolve_nous_runtime_credentials
         creds = resolve_nous_runtime_credentials() or {}
     except Exception as e:
         raise SyncInertError(f"no Nous credentials: {e}") from e
@@ -57,8 +57,8 @@ def resolve_identity() -> Dict[str, Any]:
             "nous_admin": claims.get(NOUS_ADMIN_CLAIM) is True, "claims": claims}
 
 
-# Configuration -- env-first so Hermes Cloud can enable sync via environment alone. Every knob:
-# HERMES_SYNC_<KEY> env -> config.yaml ``sync.<key>`` -> default (base_url = the sync plane, NOT
+# Configuration -- env-first so Iris Cloud can enable sync via environment alone. Every knob:
+# IRIS_SYNC_<KEY> env -> config.yaml ``sync.<key>`` -> default (base_url = the sync plane, NOT
 # the inference URL; enabled; default_opt_in; org_auto_propose).
 DEFAULT_SYNC_BASE_URL = "https://gateway-gateway.nousresearch.com"
 
@@ -68,7 +68,7 @@ _TRUE, _FALSE = {"1", "true", "yes", "on"}, {"0", "false", "no", "off", ""}
 def _sync_config(key: str) -> Any:
     """``sync.<key>`` from config.yaml, or None. Lazy import: must not import the CLI at module load."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         return ((load_config() or {}).get("sync") or {}).get(key)
     except Exception as e:
         logger.debug("skills_sync_client: config sync.%s read failed: %s", key, e)
@@ -76,9 +76,9 @@ def _sync_config(key: str) -> Any:
 
 
 def resolve_sync_base_url() -> Optional[str]:
-    """HERMES_SYNC_BASE_URL -> ``sync.base_url`` -> production plane, without trailing slash
+    """IRIS_SYNC_BASE_URL -> ``sync.base_url`` -> production plane, without trailing slash
     (``/v1/sync/`` is appended by the client). None only if the default is blanked out."""
-    env = os.getenv("HERMES_SYNC_BASE_URL")
+    env = os.getenv("IRIS_SYNC_BASE_URL")
     if env and env.strip():
         return env.strip().rstrip("/")
     base = _sync_config("base_url")
@@ -104,25 +104,25 @@ def _sync_config_bool(env_var: str, config_key: str, *, default: bool) -> bool:
 
 def sync_feature_enabled() -> bool:
     """Master switch; the gate-and-swallow entrypoints ALSO require the Nous-admin gate and a base URL."""
-    return _sync_config_bool("HERMES_SYNC_ENABLED", "enabled", default=False)
+    return _sync_config_bool("IRIS_SYNC_ENABLED", "enabled", default=False)
 
 
 def sync_org_auto_propose() -> bool:
-    """False (default): edits to an org skill stay LOCAL until ``hermes sync propose``. True: every
+    """False (default): edits to an org skill stay LOCAL until ``iris sync propose``. True: every
     edit is proposed right away (an admin still approves unless the editor is one)."""
-    return _sync_config_bool("HERMES_SYNC_ORG_AUTO_PROPOSE", "org_auto_propose", default=False)
+    return _sync_config_bool("IRIS_SYNC_ORG_AUTO_PROPOSE", "org_auto_propose", default=False)
 
 
 def sync_default_opt_in() -> bool:
-    """False (default): opt-IN -- a skill syncs only after ``hermes sync enable`` or a plane manifest
-    opting it in. True: opt-OUT -- every eligible skill syncs unless disabled (Hermes Cloud default)."""
-    return _sync_config_bool("HERMES_SYNC_DEFAULT_OPT_IN", "default_opt_in", default=False)
+    """False (default): opt-IN -- a skill syncs only after ``iris sync enable`` or a plane manifest
+    opting it in. True: opt-OUT -- every eligible skill syncs unless disabled (Iris Cloud default)."""
+    return _sync_config_bool("IRIS_SYNC_DEFAULT_OPT_IN", "default_opt_in", default=False)
 
 
 # Local skill eligibility + the personal opt-in flag
 def _skills_dir() -> Path:
-    from hermes_constants import get_hermes_home
-    return get_hermes_home() / "skills"
+    from iris_constants import get_iris_home
+    return get_iris_home() / "skills"
 
 
 def _org_dir() -> Path:  # local mirror root for org skills (read-only by convention)
@@ -130,7 +130,7 @@ def _org_dir() -> Path:  # local mirror root for org skills (read-only by conven
 
 
 def _rel_to_skills_dir(skill_dir: Path) -> Optional[Path]:
-    """*skill_dir* relative to ~/.hermes/skills/, or None if outside/unresolvable."""
+    """*skill_dir* relative to ~/.iris/skills/, or None if outside/unresolvable."""
     try:
         return skill_dir.resolve().relative_to(_skills_dir().resolve())
     except (OSError, ValueError):
@@ -138,7 +138,7 @@ def _rel_to_skills_dir(skill_dir: Path) -> Optional[Path]:
 
 
 def _skill_rel_path(skill_name: str) -> Optional[PurePosixPath]:
-    """The skill's path relative to ~/.hermes/skills/ (posix), or None."""
+    """The skill's path relative to ~/.iris/skills/ (posix), or None."""
     from tools.skill_usage import _find_skill_dir
     skill_dir = _find_skill_dir(skill_name)
     rel = _rel_to_skills_dir(skill_dir) if skill_dir is not None else None
@@ -168,7 +168,7 @@ def list_synced_skill_names() -> List[str]:
 
 
 def _all_local_skill_names() -> List[str]:
-    """Every local skill name (dir under ~/.hermes/skills/ with SKILL.md; frontmatter ``name`` or dir name)."""
+    """Every local skill name (dir under ~/.iris/skills/ with SKILL.md; frontmatter ``name`` or dir name)."""
     names: List[str] = []
     root = _skills_dir()
     try:
@@ -220,13 +220,13 @@ def _default_device_label() -> str:
 
 
 def stable_device_id() -> str:
-    """Per-device label at ~/.hermes/skills/.sync_device_id. An existing file always wins; else seeded
-    from HERMES_SYNC_DEVICE_NAME (first use only, for Hermes Cloud) or a friendly default, then persisted."""
+    """Per-device label at ~/.iris/skills/.sync_device_id. An existing file always wins; else seeded
+    from IRIS_SYNC_DEVICE_NAME (first use only, for Iris Cloud) or a friendly default, then persisted."""
     with suppress(OSError):
         val = _device_id_path().read_text(encoding="utf-8").strip()
         if val:
             return val
-    val = (os.environ.get("HERMES_SYNC_DEVICE_NAME") or "").strip() or _default_device_label()
+    val = (os.environ.get("IRIS_SYNC_DEVICE_NAME") or "").strip() or _default_device_label()
     try:
         _write_device_id(val)
     except OSError as e:
@@ -252,7 +252,7 @@ def set_device_name(name: str) -> str:
 
 
 # Local sync STATE: last HEAD pushed/pulled + its root tree (FULL-digest namespace). Distinct from
-# the bundled manifest (skills_sync.py) and the plane's `sync-manifest`. ~/.hermes/skills/.sync_state.
+# the bundled manifest (skills_sync.py) and the plane's `sync-manifest`. ~/.iris/skills/.sync_state.
 _EMPTY_STATE: Dict[str, Any] = {"head": None, "skills": {}}
 
 
@@ -333,7 +333,7 @@ _NO_BASE_URL = {"ok": False, "reason": "no sync base url configured", "noop": Tr
 
 
 def push_skills(client: Optional[SyncClient] = None, *, skill_names: Optional[List[str]] = None,
-                identity: Optional[Dict[str, Any]] = None, message: str = "hermes skill sync") -> Dict[str, Any]:
+                identity: Optional[Dict[str, Any]] = None, message: str = "iris skill sync") -> Dict[str, Any]:
     """Push opted-in skills to ``refs/user/<owner>/HEAD`` (upload objects, CAS HEAD). 409 with an actual
     head -> three-way merge + one retry; 409 on a NON-EXISTENT ref (stale local head) -> CAS as a create."""
     identity, client = _personal_client(identity, client)
@@ -394,7 +394,7 @@ def _resolve_push_conflict(client: SyncClient, identity: Dict[str, Any], actual_
             client.cas_ref(conflict_ref, None, our_commit)
         return {"ok": False, "conflict": True, "conflict_ref": conflict_ref, "overlapping_skills": sorted(overlaps),
                 "actual_head": actual_head, "message": (f"{len(overlaps)} skill(s) changed on both sides; wrote "
-                                                        f"{conflict_ref}. Resolve out-of-band (hermes sync / NAS UI).")}
+                                                        f"{conflict_ref}. Resolve out-of-band (iris sync / NAS UI).")}
     # Merge commit (parents: actual, ours); re-add our objects so the merge push is self-contained.
     merge_objects = ObjectSet()
     merge_objects.objects |= objects.objects
@@ -459,7 +459,7 @@ def _gate_and_swallow(op: str, run: Callable[[Dict[str, Any]], Optional[Dict[str
         return None
 
 
-def maybe_push_skills(*, message: str = "hermes skill sync") -> Optional[Dict[str, Any]]:
+def maybe_push_skills(*, message: str = "iris skill sync") -> Optional[Dict[str, Any]]:
     """Best-effort push (debounced skill_manage hook). Never raises."""
     return _gate_and_swallow("maybe_push_skills", lambda identity: push_skills(
         identity=identity, message=message) if list_synced_skill_names() else None)
@@ -471,7 +471,7 @@ def maybe_pull_skills() -> Optional[Dict[str, Any]]:
 
 
 def sync_status() -> Dict[str, Any]:
-    """Snapshot for ``hermes sync status``; never raises. ``org_available`` False = not in a shared org."""
+    """Snapshot for ``iris sync status``; never raises. ``org_available`` False = not in a shared org."""
     status: Dict[str, Any] = {"nous_admin": False, "logged_in": False, "feature_enabled": sync_feature_enabled(),
                               "default_opt_in": sync_default_opt_in(), "base_url": resolve_sync_base_url(),
                               "opted_in_skills": [], "local_head": None, "owner": None, "org_available": False,
@@ -562,7 +562,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

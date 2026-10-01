@@ -94,7 +94,7 @@ describe('BlockerView', () => {
     $updateApply.set({
       applying: false,
       stage: 'error',
-      message: 'Update aborted: another Hermes process is using this installation.',
+      message: 'Update aborted: another Iris process is using this installation.',
       percent: null,
       error: 'venv-blocked',
       command: null,
@@ -112,7 +112,7 @@ describe('BlockerView', () => {
 
     await renderUpdatesOverlay()
 
-    expect(screen.getByText('Close other processes to update Hermes')).toBeTruthy()
+    expect(screen.getByText('Close other processes to update Iris')).toBeTruthy()
     expect(screen.getByText('python.exe')).toBeTruthy()
     expect(screen.queryByText('Update didn’t finish')).toBeNull()
   })
@@ -136,7 +136,7 @@ describe('BlockerView', () => {
       />
     )
 
-    expect(screen.getByText('Close other processes to update Hermes')).toBeTruthy()
+    expect(screen.getByText('Close other processes to update Iris')).toBeTruthy()
     expect(screen.getByText('python.exe')).toBeTruthy()
     expect(screen.getByText('PID 58636')).toBeTruthy()
     expect(screen.getByText(/can’t safely close these processes automatically/i)).toBeTruthy()

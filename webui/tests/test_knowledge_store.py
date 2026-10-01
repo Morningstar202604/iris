@@ -19,11 +19,11 @@ def knowledge_home(tmp_path, monkeypatch):
     """Put the store in a temp home for both the old env read and the resolver."""
     home = tmp_path / "kb-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("IRIS_HOME", str(home))
 
     import api.profiles as profiles
 
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: home)
 
     from api import knowledge
 
@@ -31,20 +31,20 @@ def knowledge_home(tmp_path, monkeypatch):
 
 
 def test_home_dir_follows_profile_resolver(tmp_path, monkeypatch):
-    base = tmp_path / ".hermes"
+    base = tmp_path / ".iris"
     (base / "profiles" / "p2").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_BASE_HOME", str(base))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.setenv("IRIS_BASE_HOME", str(base))
+    monkeypatch.delenv("IRIS_HOME", raising=False)
 
     import api.profiles as profiles
 
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", base)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", base)
     try:
         profiles.set_request_profile("p2")
         from api import knowledge
 
-        expected = profiles.get_hermes_home_for_profile("p2")
-        assert expected != Path.home() / ".hermes", (
+        expected = profiles.get_iris_home_for_profile("p2")
+        assert expected != Path.home() / ".iris", (
             "premise: resolver must differ from the fallback"
         )
         assert knowledge._home_dir() == expected
@@ -53,12 +53,12 @@ def test_home_dir_follows_profile_resolver(tmp_path, monkeypatch):
 
 
 def test_home_dir_uses_resolver_even_when_env_is_unset(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("IRIS_HOME", raising=False)
 
     import api.profiles as profiles
 
     resolved = tmp_path / "resolved-home"
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: resolved)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: resolved)
 
     from api import knowledge
 

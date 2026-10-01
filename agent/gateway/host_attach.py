@@ -1,6 +1,6 @@
 """Is there ONE live host gateway, and does it already serve this profile?
 
-Multiplex-only (Teknium ruling): exactly one MULTIPLEXING ``hermes gateway run`` per host, serving
+Multiplex-only (Teknium ruling): exactly one MULTIPLEXING ``iris gateway run`` per host, serving
 every profile; standalone per-profile gateways coexist until that migration is forced (#109417).
 The lifecycle verbs therefore answer a different question than they used to — not "does THIS home
 hold a ``gateway.pid``?" but "is the host process live, and is this profile in its served set?" —
@@ -56,7 +56,7 @@ REPLACE_HOST = "replace-host"
 
 def _normalize(name: str) -> str:
     try:
-        from hermes_cli.profiles import normalize_profile_name
+        from iris_cli.profiles import normalize_profile_name
 
         return normalize_profile_name(name or "default")
     except Exception:
@@ -105,9 +105,9 @@ class HostGateway:
 def _record_home(record) -> Path:
     """Home the owner was launched from. Records written before the field existed fall back to the
     default root — the home every pre-record multiplexer ran under."""
-    from hermes_constants import get_default_hermes_root
+    from iris_constants import get_default_iris_root
 
-    return Path(record.home) if getattr(record, "home", "") else Path(get_default_hermes_root())
+    return Path(record.home) if getattr(record, "home", "") else Path(get_default_iris_root())
 
 
 def _identify(home: Path) -> Optional[dict]:
@@ -137,13 +137,13 @@ def _identity_matches(identity, record, home: Path) -> bool:
     """
     if not isinstance(identity, dict) or identity.get("pid") != record.pid:
         return False
-    reported = identity.get("hermes_home")
+    reported = identity.get("iris_home")
     if not reported:
         return True  # older gateway: PID + a socket keyed by this home is all it can prove
     try:
-        from gateway.status import _same_hermes_home
+        from gateway.status import _same_iris_home
 
-        return bool(_same_hermes_home(Path(str(reported)), home))
+        return bool(_same_iris_home(Path(str(reported)), home))
     except Exception:
         return str(reported) == str(home)
 
@@ -247,7 +247,7 @@ def attach_message(gateway: HostGateway, profile: str) -> str:
         f"✓ The host gateway already serves profile '{profile}' — nothing to start.\n"
         f"  {gateway.describe()}\n"
         f"  One gateway per host serves every profile; manage it with "
-        f"`hermes -p {gateway.profile_label} gateway restart`.")
+        f"`iris -p {gateway.profile_label} gateway restart`.")
 
 
 def _unknown_served_message(gateway: HostGateway, profile: str) -> str:
@@ -257,8 +257,8 @@ def _unknown_served_message(gateway: HostGateway, profile: str) -> str:
         f"   Whether it will serve profile '{profile}' is unknown, so starting a second gateway\n"
         f"   now could double-bind this profile's platforms. Nothing was started; this is a\n"
         f"   transient state and a service supervisor will retry.\n"
-        f"   Take the host over:  hermes gateway run --replace\n"
-        f"   Start anyway:        hermes gateway run --force")
+        f"   Take the host over:  iris gateway run --replace\n"
+        f"   Start anyway:        iris gateway run --force")
 
 
 def _refuse_message(gateway: HostGateway, profile: str) -> str:
@@ -267,9 +267,9 @@ def _refuse_message(gateway: HostGateway, profile: str) -> str:
         f"   {gateway.describe()}\n"
         f"   Exactly one gateway per host serves every profile, so starting a second one\n"
         f"   would double-bind this profile's platforms.\n"
-        f"   Fold this profile into it:   hermes gateway migrate --multiplex\n"
-        f"   Or take the host over:       hermes gateway run --replace\n"
-        f"   Or start one anyway:         hermes gateway run --force")
+        f"   Fold this profile into it:   iris gateway migrate --multiplex\n"
+        f"   Or take the host over:       iris gateway run --replace\n"
+        f"   Or start one anyway:         iris gateway run --force")
 
 
 def standalone_rescan_message(profile: str) -> str:
@@ -286,7 +286,7 @@ def _coexisting_gateways(owner: Optional[HostGateway]):
     record, to ask every running profile gateway what it actually serves.
     """
     from gateway.status import live_gateway_pid_for_home
-    from hermes_cli.profiles import profiles_to_serve
+    from iris_cli.profiles import profiles_to_serve
 
     seen = {os.getpid()}
     if owner is not None:
@@ -310,7 +310,7 @@ def standalone_attach_decision(our_home: Path, owner: Optional[HostGateway]) -> 
 
     Shared by the initial attach check and the lock-losing race check.
     """
-    from hermes_cli.profiles import profile_is_standalone
+    from iris_cli.profiles import profile_is_standalone
 
     if not profile_is_standalone(our_home):
         return None
@@ -376,7 +376,7 @@ def decide(our_home: Path, *, replace: bool = False) -> HostAttachDecision:
         # the topology and the `gateway migrate --multiplex` path stays the way to converge.
         logger.warning(
             "Another profile's standalone gateway owns this host (%s); starting profile '%s' beside it. "
-            "Fold every profile onto one gateway with: hermes gateway migrate --multiplex",
+            "Fold every profile onto one gateway with: iris gateway migrate --multiplex",
             attached.describe(), profile)
         return HostAttachDecision(START, "")
     if not gateway.served_known:

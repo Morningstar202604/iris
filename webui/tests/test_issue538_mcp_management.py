@@ -44,7 +44,7 @@ class TestMcpList:
     """GET /api/mcp/servers — list with masked secrets."""
 
     @patch('api.routes.get_config_for_profile_home')
-    @patch('api.routes.get_active_hermes_home')
+    @patch('api.routes.get_active_iris_home')
     def test_returns_servers_list(self, mock_home, mock_cfg):
         mock_home.return_value = sentinel_home = object()
         mock_cfg.return_value = {'mcp_servers': SAMPLE_MCP}
@@ -56,7 +56,7 @@ class TestMcpList:
         mock_cfg.assert_called_once_with(sentinel_home)
 
     @patch('api.routes.get_config_for_profile_home')
-    @patch('api.routes.get_active_hermes_home')
+    @patch('api.routes.get_active_iris_home')
     def test_reads_active_profile_home_for_servers(self, mock_home, mock_cfg):
         mock_home.return_value = sentinel_home = object()
         mock_cfg.return_value = {'mcp_servers': {'active': SAMPLE_MCP['searxng']}}
@@ -67,7 +67,7 @@ class TestMcpList:
         mock_cfg.assert_called_once_with(sentinel_home)
 
     @patch('api.routes.get_config_for_profile_home')
-    @patch('api.routes.get_active_hermes_home')
+    @patch('api.routes.get_active_iris_home')
     def test_empty_config(self, mock_home, mock_cfg):
         mock_home.return_value = object()
         mock_cfg.return_value = {}
@@ -83,7 +83,7 @@ class TestMcpList:
 
     @patch('api.routes._mcp_runtime_status_by_name')
     @patch('api.routes.get_config_for_profile_home')
-    @patch('api.routes.get_active_hermes_home')
+    @patch('api.routes.get_active_iris_home')
     def test_list_payload_includes_status_tool_counts_and_safe_invalid_config(self, mock_home, mock_cfg, mock_runtime):
         mock_home.return_value = object()
         mock_cfg.return_value = {
@@ -143,7 +143,7 @@ class TestMcpList:
         assert _parse_mcp_enabled(0) is False
 
     def test_active_home_list_reads_external_config_override_used_by_writes(self, monkeypatch, tmp_path):
-        """HERMES_CONFIG_PATH outside the active home remains the read/write authority."""
+        """IRIS_CONFIG_PATH outside the active home remains the read/write authority."""
         from api import config, profiles, routes
 
         active_home = tmp_path / 'active-home'
@@ -158,9 +158,9 @@ class TestMcpList:
             yaml.safe_dump({'mcp_servers': {'override-srv': {'command': 'override'}}}, sort_keys=False),
             encoding='utf-8',
         )
-        monkeypatch.setenv('HERMES_CONFIG_PATH', str(override_path))
-        monkeypatch.setattr(profiles, 'get_active_hermes_home', lambda: active_home)
-        monkeypatch.setattr(routes, 'get_active_hermes_home', lambda: active_home)
+        monkeypatch.setenv('IRIS_CONFIG_PATH', str(override_path))
+        monkeypatch.setattr(profiles, 'get_active_iris_home', lambda: active_home)
+        monkeypatch.setattr(routes, 'get_active_iris_home', lambda: active_home)
         monkeypatch.setattr(routes, '_mcp_runtime_status_by_name', lambda: {})
         config.reload_config()
 

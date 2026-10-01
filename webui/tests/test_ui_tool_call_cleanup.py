@@ -407,7 +407,7 @@ class TestToolCallGroupingStatic:
         live_fn = _function_body(UI_JS, "appendLiveToolCard")
         thinking_fn = _function_body(UI_JS, "appendThinking")
         done_fn = (REPO / "static" / "messages.js").read_text(encoding="utf-8")
-        assert "hermes-activity-disclosure:" in UI_JS, (
+        assert "iris-activity-disclosure:" in UI_JS, (
             "Activity disclosure state should use a dedicated localStorage namespace."
         )
         assert "S.session.session_id" in key_fn, (

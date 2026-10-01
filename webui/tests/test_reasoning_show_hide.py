@@ -306,7 +306,7 @@ class TestReasoningCommand:
         )
 
     def test_cmd_reasoning_supports_all_cli_effort_levels(self):
-        """The effort-level set must match hermes_constants.VALID_REASONING_EFFORTS
+        """The effort-level set must match iris_constants.VALID_REASONING_EFFORTS
         + 'none' — i.e. the exact set the CLI accepts in /reasoning."""
         src = read('static/commands.js')
         m = re.search(r'function cmdReasoning\(.*?\n\}', src, re.DOTALL)
@@ -315,7 +315,7 @@ class TestReasoningCommand:
         for level in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'):
             assert f"'{level}'" in fn, (
                 f"cmdReasoning must accept '{level}' (CLI parity with "
-                f"hermes_constants.parse_reasoning_effort)"
+                f"iris_constants.parse_reasoning_effort)"
             )
 
     def test_reasoning_subargs_match_cli_levels(self):
@@ -353,10 +353,10 @@ class TestReasoningConfigHelpers:
         # Case-insensitive + trimmed
         assert parse_reasoning_effort('  HIGH  ') == {'enabled': True, 'effort': 'high'}
 
-    def test_valid_reasoning_efforts_matches_hermes_constants(self):
-        """Ensure our mirror stays in sync with hermes_constants."""
+    def test_valid_reasoning_efforts_matches_iris_constants(self):
+        """Ensure our mirror stays in sync with iris_constants."""
         from api.config import VALID_REASONING_EFFORTS
-        # Snapshot-style assertion: if hermes_constants adds a level, this
+        # Snapshot-style assertion: if iris_constants adds a level, this
         # test will fail fast so we know to update WebUI too.
         assert VALID_REASONING_EFFORTS == (
             'minimal', 'low', 'medium', 'high', 'xhigh', 'max'
@@ -433,7 +433,7 @@ class TestStreamingReasoningWiring:
         )
         assert "reasoning_config" in src and "'reasoning_config' in _agent_params" in src, (
             "api/streaming.py must guard the reasoning_config kwarg with "
-            "inspect.signature so older hermes-agent builds don't TypeError"
+            "inspect.signature so older iris-agent builds don't TypeError"
         )
 
 

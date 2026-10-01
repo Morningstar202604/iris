@@ -1,5 +1,5 @@
 """
-Regression tests for #895 (set_hermes_default_model strips @nous: prefix + blocks on live fetch)
+Regression tests for #895 (set_iris_default_model strips @nous: prefix + blocks on live fetch)
 and #894 (resolve_model_provider strips cross-namespace prefix for portal providers with base_url).
 """
 import threading
@@ -7,7 +7,7 @@ import pytest
 from pathlib import Path
 
 import api.config as config
-from api.config import resolve_model_provider, set_hermes_default_model
+from api.config import resolve_model_provider, set_iris_default_model
 
 
 # ── Shared fixture ──────────────────────────────────────────────────────────
@@ -83,17 +83,17 @@ class TestResolveModelProviderPortalPriority:
         assert p == "nous"
 
 
-# ── #895: set_hermes_default_model persists @provider: prefix ──────────────
+# ── #895: set_iris_default_model persists @provider: prefix ──────────────
 
 class TestSetDefaultModelPreservesAtPrefix:
 
     def test_at_nous_prefix_strips_to_bare_for_cli_compatibility(self, tmp_path, monkeypatch):
-        """set_hermes_default_model must persist the RESOLVED bare/slash form, not the
+        """set_iris_default_model must persist the RESOLVED bare/slash form, not the
         `@provider:` prefix. The `@provider:` syntax is a WebUI-internal routing hint;
-        the hermes-agent CLI reads `config.yaml -> model.default` directly and passes
+        the iris-agent CLI reads `config.yaml -> model.default` directly and passes
         it to the provider API verbatim (see run_agent.py:887 — aggregator providers
         like Nous skip normalize_model_for_provider, so the raw string flows through).
-        Storing `@nous:anthropic/...` would break any user who runs `hermes` in the
+        Storing `@nous:anthropic/...` would break any user who runs `iris` in the
         terminal right after saving via WebUI — the CLI would send the literal
         prefixed string to Nous and hit a 404. The Settings picker handles the bare
         form via the smart matcher in `_applyModelToDropdown()`.
@@ -111,7 +111,7 @@ class TestSetDefaultModelPreservesAtPrefix:
         except OSError:
             config._cfg_mtime = 0.0
 
-        result = set_hermes_default_model("@nous:anthropic/claude-opus-4.6")
+        result = set_iris_default_model("@nous:anthropic/claude-opus-4.6")
 
         # Result ack echoes the resolved bare/slash form (CLI-compatible)
         assert result.get("ok") is True
@@ -122,7 +122,7 @@ class TestSetDefaultModelPreservesAtPrefix:
 
         saved = yaml.safe_load(config_file.read_text(encoding="utf-8"))
         assert saved["model"]["default"] == "anthropic/claude-opus-4.6", (
-            f"Config must persist the resolved bare form so the hermes-agent CLI "
+            f"Config must persist the resolved bare form so the iris-agent CLI "
             f"can read it and pass it to the provider API: "
             f"{saved['model']['default']!r}"
         )
@@ -138,8 +138,8 @@ class TestSetDefaultModelPreservesAtPrefix:
         on both sides and picks the matching option.
         """
         js = (Path(__file__).resolve().parent.parent / "static" / "panels.js").read_text()
-        # Find the block that sets _settingsHermesDefaultModelOnOpen
-        anchor = "_settingsHermesDefaultModelOnOpen=(models&&models.default_model)||"
+        # Find the block that sets _settingsIrisDefaultModelOnOpen
+        anchor = "_settingsIrisDefaultModelOnOpen=(models&&models.default_model)||"
         idx = js.find(anchor)
         assert idx != -1, "Settings default-model initialisation not found in panels.js"
         block = js[idx:idx + 1200]
@@ -151,7 +151,7 @@ class TestSetDefaultModelPreservesAtPrefix:
         )
 
     def test_save_does_not_return_full_model_catalog(self, tmp_path, monkeypatch):
-        """set_hermes_default_model must return a lightweight ack, not call get_available_models (#895)."""
+        """set_iris_default_model must return a lightweight ack, not call get_available_models (#895)."""
         config_file = tmp_path / "config.yaml"
         config_file.write_text(
             "model:\n  provider: openrouter\n",
@@ -164,10 +164,10 @@ class TestSetDefaultModelPreservesAtPrefix:
         except OSError:
             config._cfg_mtime = 0.0
 
-        result = set_hermes_default_model("openai/gpt-5.4-mini")
+        result = set_iris_default_model("openai/gpt-5.4-mini")
         # Must be a simple dict with ok+model, NOT the full catalog (which has "groups")
         assert result.get("ok") is True
         assert "groups" not in result, (
-            "set_hermes_default_model must not return the full model catalog — "
+            "set_iris_default_model must not return the full model catalog — "
             "doing so triggers a live provider fetch that blocks the HTTP response"
         )

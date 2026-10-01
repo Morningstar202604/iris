@@ -5,7 +5,7 @@ The voice-mode loop used to hardcode:
   - _recognition.continuous = false (mic closes after each utterance)
 
 This module pins the fix: both values are now configurable via localStorage keys
-(hermes-voice-silence-ms, hermes-voice-continuous) with sensible defaults.
+(iris-voice-silence-ms, iris-voice-continuous) with sensible defaults.
 """
 
 import re
@@ -27,9 +27,9 @@ class TestVoiceModeSilenceMsConfig:
         # missing/invalid values) rather than one exact expression, so the impl
         # can be hardened (e.g. a min-floor clamp) without a brittle test break.
         assert re.search(
-            r"parseInt\s*\(\s*localStorage\.getItem\s*\(\s*'hermes-voice-silence-ms'\s*\)",
+            r"parseInt\s*\(\s*localStorage\.getItem\s*\(\s*'iris-voice-silence-ms'\s*\)",
             src,
-        ), "Voice mode must read the 'hermes-voice-silence-ms' localStorage key via parseInt."
+        ), "Voice mode must read the 'iris-voice-silence-ms' localStorage key via parseInt."
         # The 1800 default must remain the fallback for missing/invalid values.
         assert re.search(r"return\s*\(.*\)\?Math\.max\(200,_silenceMsRaw\):1800", src), (
             "Voice mode must keep 1800 as the default fallback so behavior is "
@@ -56,16 +56,16 @@ class TestVoiceModeContinuousConfig:
     def test_continuous_reads_local_storage(self):
         src = _boot_src()
         assert (
-            "_recognition.continuous=localStorage.getItem('hermes-voice-continuous')==='true'"
+            "_recognition.continuous=localStorage.getItem('iris-voice-continuous')==='true'"
             in src
         ), (
             "_recognition.continuous must read from localStorage key "
-            "'hermes-voice-continuous' with default false. "
+            "'iris-voice-continuous' with default false. "
             "Without this, users with natural mid-sentence pauses get cut off."
         )
 
     def test_continuous_true_behavior(self):
-        """When hermes-voice-continuous is 'true', the recognition stays open
+        """When iris-voice-continuous is 'true', the recognition stays open
         across pauses, so the silence timer is the sole arbiter of send timing."""
         src = _boot_src()
         # The continuous flag must not replace or disable the silence timer logic.

@@ -7,7 +7,7 @@ their backing state.db row was deleted.
 When a CLI/agent session is clicked in the WebUI sidebar it gets a WebUI-owned
 sidecar (`webui/sessions/<id>.json` + an `_index.json` row) so it can render and
 be reopened. From then on `all_sessions()` returns it independently of the agent
-`state.db`. If the user later deletes that session from the CLI / local Hermes
+`state.db`. If the user later deletes that session from the CLI / local Iris
 storage, nothing prunes the orphaned sidecar, so the stale row lingers in the
 sidebar forever — there is no WebUI delete affordance for CLI rows.
 

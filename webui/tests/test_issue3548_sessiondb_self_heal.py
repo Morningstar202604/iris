@@ -20,11 +20,11 @@ def test_session_db_helper_uses_request_state_db_path():
         def close(self):
             calls["closed"] = True
 
-    fake_state = types.ModuleType("hermes_state")
+    fake_state = types.ModuleType("iris_state")
     fake_state.SessionDB = FakeSessionDB
 
     with (
-        mock.patch.dict(sys.modules, {"hermes_state": fake_state}),
+        mock.patch.dict(sys.modules, {"iris_state": fake_state}),
         mock.patch.object(streaming.time, "sleep") as sleep,
     ):
         state_db_path = Path("/tmp/profile") / "state.db"
@@ -41,7 +41,7 @@ def test_session_db_helper_retries_transient_constructor_failure():
 
     state_db_path = Path("/tmp/profile/state.db")
     created = mock.Mock(name="session_db")
-    fake_state = types.ModuleType("hermes_state")
+    fake_state = types.ModuleType("iris_state")
     fake_random = mock.Mock()
     fake_random.uniform.return_value = 0.0
     fake_state.SessionDB = mock.Mock(
@@ -53,7 +53,7 @@ def test_session_db_helper_retries_transient_constructor_failure():
     )
 
     with (
-        mock.patch.dict(sys.modules, {"hermes_state": fake_state}),
+        mock.patch.dict(sys.modules, {"iris_state": fake_state}),
         mock.patch.object(streaming, "random", fake_random, create=True),
         mock.patch.object(streaming.time, "sleep") as sleep,
     ):
@@ -72,7 +72,7 @@ def test_session_db_helper_returns_none_after_exhausted_retries():
     import api.streaming as streaming
 
     state_db_path = Path("/tmp/profile/state.db")
-    fake_state = types.ModuleType("hermes_state")
+    fake_state = types.ModuleType("iris_state")
     fake_random = mock.Mock()
     fake_random.uniform.return_value = 0.0
     fake_state.SessionDB = mock.Mock(
@@ -80,7 +80,7 @@ def test_session_db_helper_returns_none_after_exhausted_retries():
     )
 
     with (
-        mock.patch.dict(sys.modules, {"hermes_state": fake_state}),
+        mock.patch.dict(sys.modules, {"iris_state": fake_state}),
         mock.patch.object(streaming, "random", fake_random, create=True),
         mock.patch.object(streaming.time, "sleep") as sleep,
     ):
@@ -100,11 +100,11 @@ def test_session_db_helper_does_not_retry_permanent_constructor_failure():
 
     state_db_path = Path("/tmp/profile/state.db")
     permanent_error = TypeError("unsupported SessionDB argument")
-    fake_state = types.ModuleType("hermes_state")
+    fake_state = types.ModuleType("iris_state")
     fake_state.SessionDB = mock.Mock(side_effect=permanent_error)
 
     with (
-        mock.patch.dict(sys.modules, {"hermes_state": fake_state}),
+        mock.patch.dict(sys.modules, {"iris_state": fake_state}),
         mock.patch.object(streaming, "random", mock.Mock(), create=True) as random,
         mock.patch.object(streaming.time, "sleep") as sleep,
     ):
@@ -121,11 +121,11 @@ def test_session_db_helper_does_not_retry_noncontention_operational_error():
 
     state_db_path = Path("/tmp/profile/state.db")
     permanent_error = sqlite3.OperationalError("locking protocol")
-    fake_state = types.ModuleType("hermes_state")
+    fake_state = types.ModuleType("iris_state")
     fake_state.SessionDB = mock.Mock(side_effect=permanent_error)
 
     with (
-        mock.patch.dict(sys.modules, {"hermes_state": fake_state}),
+        mock.patch.dict(sys.modules, {"iris_state": fake_state}),
         mock.patch.object(streaming, "random", mock.Mock(), create=True) as random,
         mock.patch.object(streaming.time, "sleep") as sleep,
     ):

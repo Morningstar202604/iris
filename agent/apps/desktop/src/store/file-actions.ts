@@ -1,4 +1,4 @@
-import { LOCAL_CONNECTION_ID } from '@hermes/shared'
+import { LOCAL_CONNECTION_ID } from '@iris/shared'
 import { atom } from 'nanostores'
 
 import { translateNow } from '@/i18n'

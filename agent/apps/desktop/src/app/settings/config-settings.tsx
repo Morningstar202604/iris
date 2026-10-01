@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getElevenLabsVoices, getHermesConfigSchema, saveHermesConfig } from '@/hermes'
+import { getElevenLabsVoices, getIrisConfigSchema, saveIrisConfig } from '@/iris'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { isSubmitEnter } from '@/lib/ime'
@@ -26,9 +26,9 @@ import { notify, notifyError } from '@/store/notifications'
 import { normalizeProfileKey } from '@/store/profile'
 import { repoDiscoveryPolicyFromConfig, repoDiscoveryPolicySignature, scanAndRecordRepos } from '@/store/projects'
 import { $settingsRequestProfile } from '@/store/settings-scope'
-import type { ConfigFieldSchema, HermesConfigRecord } from '@/types/hermes'
+import type { ConfigFieldSchema, IrisConfigRecord } from '@/types/iris'
 
-import { hermesConfigCacheWriter, useHermesConfigRecord } from '../hooks/use-config-record'
+import { irisConfigCacheWriter, useIrisConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 import { PanelEmpty } from '../overlays/panel'
 
@@ -102,18 +102,18 @@ function ConfigSettingsInner({
   // The editable draft is local (debounced autosave watches it), but it's seeded
   // from — and saved back through — the shared config cache, so edits are visible
   // in the MCP/model surfaces and reopening the page doesn't reload-flash.
-  const [config, setConfig] = useState<HermesConfigRecord | null>(null)
+  const [config, setConfig] = useState<IrisConfigRecord | null>(null)
 
   const {
     data: loadedConfig,
     isError: configLoadFailed,
     refetch: refetchConfig,
     writeScope
-  } = useHermesConfigRecord(scopeProfile)
+  } = useIrisConfigRecord(scopeProfile)
 
   // Writes land on the same cache key the query above reads (base key when
   // following the active profile, suffixed when a scope override is set).
-  const writeConfigCache = useMemo(() => hermesConfigCacheWriter(scopeProfile), [scopeProfile])
+  const writeConfigCache = useMemo(() => irisConfigCacheWriter(scopeProfile), [scopeProfile])
 
   const {
     data: schemaResponse,
@@ -123,8 +123,8 @@ function ConfigSettingsInner({
     // Base key when following the active profile (matches every pre-existing
     // consumer); suffixed only for an explicit scope override.
     queryKey:
-      scopeProfile == null ? ['hermes-config-schema'] : ['hermes-config-schema', normalizeProfileKey(scopeProfile)],
-    queryFn: () => getHermesConfigSchema(scopeProfile),
+      scopeProfile == null ? ['iris-config-schema'] : ['iris-config-schema', normalizeProfileKey(scopeProfile)],
+    queryFn: () => getIrisConfigSchema(scopeProfile),
     staleTime: 5 * 60 * 1000
   })
 
@@ -140,9 +140,9 @@ function ConfigSettingsInner({
   const configSeeded = useRef(false)
   // Snapshot of the record as it was when the draft was seeded. Autosave
   // diffs the draft against this (not against disk) so a field the user
-  // never touched — possibly changed out-of-band by `hermes config set`
+  // never touched — possibly changed out-of-band by `iris config set`
   // while this page sat open — is never resent with its stale value.
-  const configBaselineRef = useRef<HermesConfigRecord | null>(null)
+  const configBaselineRef = useRef<IrisConfigRecord | null>(null)
   // Serializes autosave requests so an older save that's still in flight can't
   // resolve after a newer one and re-advance the baseline / cache with stale
   // data — each save's diff+request only starts once the previous one lands.
@@ -212,7 +212,7 @@ function ConfigSettingsInner({
       saveQueueRef.current = saveQueueRef.current.then(async () => {
         try {
           const patch = diffConfig(configBaselineRef.current ?? {}, snapshot)
-          const result = await saveHermesConfig(patch, writeScope ?? scopeProfile)
+          const result = await saveIrisConfig(patch, writeScope ?? scopeProfile)
 
           if (!result.ok) {
             throw new Error(c.autosaveFailed)
@@ -254,13 +254,13 @@ function ConfigSettingsInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- copy is stable; avoid re-scheduling autosave on locale change
   }, [config, onConfigSaved, saveVersion, writeScope, scopeProfile])
 
-  const applyConfig = (next: HermesConfigRecord) => {
+  const applyConfig = (next: IrisConfigRecord) => {
     saveVersionRef.current += 1
     setConfig(next)
     setSaveVersion(saveVersionRef.current)
   }
 
-  const updateConfig = (next: HermesConfigRecord) => {
+  const updateConfig = (next: IrisConfigRecord) => {
     // Guard the single most destructive config edit: clearing the entire
     // "Enabled Toolsets" list silently disables memory, terminal, web search,
     // delegation, and most tools, and a stray select-all + Backspace can do it.

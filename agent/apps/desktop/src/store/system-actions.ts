@@ -1,11 +1,11 @@
 import { atom } from 'nanostores'
 
-import { getActionStatus, getStatus, restartGateway } from '@/hermes'
+import { getActionStatus, getStatus, restartGateway } from '@/iris'
 import { translateNow } from '@/i18n'
 import { sharedGatewayProfiles } from '@/lib/shared-gateway-restart'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import type { ActionResponse } from '@/types/hermes'
+import type { ActionResponse } from '@/types/iris'
 
 const POLL_ATTEMPTS = 18
 const POLL_INTERVAL_MS = 1200

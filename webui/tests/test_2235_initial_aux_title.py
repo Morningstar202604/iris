@@ -21,7 +21,7 @@ from tests._aux_client_helpers import auxiliary_client_modules, patch_tg_config
 
 @pytest.fixture(autouse=True)
 def _install_auxiliary_client_modules():
-    """Scope the synthetic hermes-agent modules to each test (#6630).
+    """Scope the synthetic iris-agent modules to each test (#6630).
 
     This file carried the same unscoped sys.modules.setdefault install as
     test_title_aux_routing.py, so it leaked the stub the same way.

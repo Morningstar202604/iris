@@ -16,7 +16,7 @@ WHY THIS EXISTS
   console error fires.
 
 SCOPE
-  Deliberately AGENT-FREE so it runs in CI (which does not install hermes-agent):
+  Deliberately AGENT-FREE so it runs in CI (which does not install iris-agent):
   it verifies the page loads and its JS initializes cleanly — it does NOT drive a
   full chat (that needs the agent + mock provider and runs in the private QA
   harness's golden-path E2E). This is the "does the app even come up without
@@ -92,22 +92,22 @@ def main():
         print(f"SETUP FAIL: server.py not found at {server_py}", file=sys.stderr)
         return 2
 
-    state_dir = tempfile.mkdtemp(prefix="hermes-browser-smoke-")
+    state_dir = tempfile.mkdtemp(prefix="iris-browser-smoke-")
     env = os.environ.copy()
     # Strip real provider keys so nothing leaks into the smoke server.
     for k in list(env):
         if k.endswith("_API_KEY"):
             env.pop(k, None)
     env.update({
-        "HERMES_WEBUI_PORT": str(PORT),
-        "HERMES_WEBUI_HOST": "127.0.0.1",
-        "HERMES_WEBUI_STATE_DIR": state_dir,
-        "HERMES_HOME": state_dir,
-        "HERMES_BASE_HOME": state_dir,
-        "HERMES_WEBUI_SKIP_ONBOARDING": "1",
+        "IRIS_WEBUI_PORT": str(PORT),
+        "IRIS_WEBUI_HOST": "127.0.0.1",
+        "IRIS_WEBUI_STATE_DIR": state_dir,
+        "IRIS_HOME": state_dir,
+        "IRIS_BASE_HOME": state_dir,
+        "IRIS_WEBUI_SKIP_ONBOARDING": "1",
         # Point agent discovery at a path that doesn't exist — the server is
         # designed to boot and serve the UI even when the agent is absent.
-        "HERMES_WEBUI_AGENT_DIR": os.path.join(state_dir, "no-agent"),
+        "IRIS_WEBUI_AGENT_DIR": os.path.join(state_dir, "no-agent"),
     })
 
     log = open(os.path.join(state_dir, "server.log"), "w")

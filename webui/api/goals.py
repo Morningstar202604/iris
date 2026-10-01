@@ -1,4 +1,4 @@
-"""WebUI bridge for Hermes persistent session goals."""
+"""WebUI bridge for Iris persistent session goals."""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 try:  # Exposed as a module attribute so tests can monkeypatch it directly.
-    from hermes_cli.goals import (  # type: ignore
+    from iris_cli.goals import (  # type: ignore
         CONTINUATION_PROMPT_TEMPLATE,
         DEFAULT_MAX_TURNS,
         GoalManager as _NativeGoalManager,
         GoalState,
         judge_goal,
     )
-except Exception:  # pragma: no cover - depends on installed hermes-agent
+except Exception:  # pragma: no cover - depends on installed iris-agent
     CONTINUATION_PROMPT_TEMPLATE = ""  # type: ignore
     DEFAULT_MAX_TURNS = 20  # type: ignore
     _NativeGoalManager = None  # type: ignore
@@ -32,7 +32,7 @@ _DB_CACHE: dict[str, Any] = {}
 
 
 def _default_max_turns() -> int:
-    """Return the configured /goal turn budget, defaulting to Hermes' 20 turns."""
+    """Return the configured /goal turn budget, defaulting to Iris' 20 turns."""
     try:
         from api import config as _config
 
@@ -50,10 +50,10 @@ def _meta_key(session_id: str) -> str:
 
 
 def _profile_db(profile_home: str | Path):
-    """Return a SessionDB pinned to *profile_home*, without reading HERMES_HOME.
+    """Return a SessionDB pinned to *profile_home*, without reading IRIS_HOME.
 
-    The upstream Hermes GoalManager persists through hermes_cli.goals.load_goal(),
-    which resolves SessionDB from process-global HERMES_HOME. WebUI sessions are
+    The upstream Iris GoalManager persists through iris_cli.goals.load_goal(),
+    which resolves SessionDB from process-global IRIS_HOME. WebUI sessions are
     profile-scoped and can run concurrently, so the WebUI bridge uses an explicit
     state.db path whenever the caller provides the session's profile home.
     """
@@ -63,7 +63,7 @@ def _profile_db(profile_home: str | Path):
     if cached is not None:
         return cached
     try:
-        from hermes_state import SessionDB  # type: ignore
+        from iris_state import SessionDB  # type: ignore
 
         db = SessionDB(db_path=home / "state.db")
     except Exception as exc:  # pragma: no cover - import/env dependent
@@ -74,12 +74,12 @@ def _profile_db(profile_home: str | Path):
 
 
 def _profile_home_context_api():
-    """Return the native context-local Hermes home setters when available."""
+    """Return the native context-local Iris home setters when available."""
     try:
-        from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    except Exception:  # pragma: no cover - depends on installed hermes-agent
+        from iris_constants import reset_iris_home_override, set_iris_home_override
+    except Exception:  # pragma: no cover - depends on installed iris-agent
         return None
-    return set_hermes_home_override, reset_hermes_home_override
+    return set_iris_home_override, reset_iris_home_override
 
 
 def _native_profile_context_api(profile_home: str | Path):
@@ -88,8 +88,8 @@ def _native_profile_context_api(profile_home: str | Path):
     if context_api is None:
         return None
     try:
-        from hermes_state import _default_db_path  # type: ignore
-    except Exception:  # pragma: no cover - depends on installed hermes-agent
+        from iris_state import _default_db_path  # type: ignore
+    except Exception:  # pragma: no cover - depends on installed iris-agent
         return None
     if not callable(_default_db_path):
         return None
@@ -98,11 +98,11 @@ def _native_profile_context_api(profile_home: str | Path):
     set_home, reset_home = context_api
     try:
         token = set_home(home)
-    except Exception:  # pragma: no cover - depends on installed hermes-agent
+    except Exception:  # pragma: no cover - depends on installed iris-agent
         return None
     try:
         resolved_db_path = Path(_default_db_path()).expanduser().resolve()
-    except Exception:  # pragma: no cover - depends on installed hermes-agent
+    except Exception:  # pragma: no cover - depends on installed iris-agent
         return None
     finally:
         reset_home(token)
@@ -123,10 +123,10 @@ class _ProfileGoalManager:
         context_api=None,
     ):
         if _NativeGoalManager is None:
-            raise RuntimeError("Hermes goal manager unavailable")
+            raise RuntimeError("Iris goal manager unavailable")
         context_api = context_api or _profile_home_context_api()
         if context_api is None:
-            raise RuntimeError("Hermes profile context unavailable")
+            raise RuntimeError("Iris profile context unavailable")
         self.session_id = session_id
         self.profile_home = Path(profile_home).expanduser().resolve()
         self._set_home, self._reset_home = context_api
@@ -158,18 +158,18 @@ class _ProfileGoalManager:
         return scoped_call
 
     def _restore_state(self, snapshot) -> None:
-        from hermes_cli.goals import save_goal  # type: ignore
+        from iris_cli.goals import save_goal  # type: ignore
 
         self._manager._state = snapshot
         self._scoped(save_goal, self.session_id, snapshot)
 
 
 class _LegacyProfileGoalManager:
-    """Explicit-DB fallback for Hermes versions without profile context."""
+    """Explicit-DB fallback for Iris versions without profile context."""
 
     def __init__(self, session_id: str, *, profile_home: str | Path, default_max_turns: int = 20):
         if GoalState is None:
-            raise RuntimeError("Hermes goal state unavailable")
+            raise RuntimeError("Iris goal state unavailable")
         self.session_id = session_id
         self.profile_home = Path(profile_home).expanduser().resolve()
         self.default_max_turns = int(default_max_turns or DEFAULT_MAX_TURNS or 20)
@@ -513,7 +513,7 @@ def restore_goal_state(session_id: str, snapshot: Any, *, profile_home: str | Pa
         mgr._save(snapshot)
         return
     try:
-        from hermes_cli.goals import save_goal  # type: ignore
+        from iris_cli.goals import save_goal  # type: ignore
 
         save_goal(str(session_id or ""), snapshot)
     except Exception as exc:  # pragma: no cover - native fallback only

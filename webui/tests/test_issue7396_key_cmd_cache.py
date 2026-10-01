@@ -11,7 +11,7 @@ _MISSING = object()
 
 
 class CommandTokenSource:
-    """Minimal stand-in for hermes-agent's callable key_cmd credential."""
+    """Minimal stand-in for iris-agent's callable key_cmd credential."""
 
     def __init__(self):
         self.calls = 0
@@ -140,7 +140,7 @@ def test_key_cmd_runtime_reaches_agent_construction_without_resolving_token():
     session.active_stream_id = stream_id
     event_queue = queue.Queue()
 
-    runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    runtime_module = types.ModuleType("iris_cli.runtime_provider")
     runtime_module.resolve_runtime_provider = mock.Mock(
         return_value={
             "provider": "my-gateway",
@@ -152,14 +152,14 @@ def test_key_cmd_runtime_reaches_agent_construction_without_resolving_token():
             "credential_pool": None,
         }
     )
-    hermes_cli = types.ModuleType("hermes_cli")
-    hermes_cli.runtime_provider = runtime_module
-    hermes_state = types.ModuleType("hermes_state")
-    hermes_state.SessionDB = mock.Mock(return_value=None)
+    iris_cli = types.ModuleType("iris_cli")
+    iris_cli.runtime_provider = runtime_module
+    iris_state = types.ModuleType("iris_state")
+    iris_state.SessionDB = mock.Mock(return_value=None)
     injected = {
-        "hermes_cli": hermes_cli,
-        "hermes_cli.runtime_provider": runtime_module,
-        "hermes_state": hermes_state,
+        "iris_cli": iris_cli,
+        "iris_cli.runtime_provider": runtime_module,
+        "iris_state": iris_state,
     }
     saved_modules = {name: sys.modules.get(name, _MISSING) for name in injected}
     sys.modules.update(injected)

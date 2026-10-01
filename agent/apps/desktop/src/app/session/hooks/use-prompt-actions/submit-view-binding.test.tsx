@@ -14,7 +14,7 @@ import {
   setSessions
 } from '@/store/session'
 import { clearAllSessionStates } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 import { useSessionStateCache } from '../use-session-state-cache'
 
@@ -22,7 +22,7 @@ import { clearSingleFlightSessionResumeState } from './single-flight-resume'
 
 import { usePromptActions } from '.'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/iris', () => ({
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getSession: vi.fn(),
   PROMPT_SUBMIT_REQUEST_TIMEOUT_MS: 1_800_000,

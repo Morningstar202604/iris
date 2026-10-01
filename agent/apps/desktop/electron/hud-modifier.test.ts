@@ -60,7 +60,7 @@ async function setup() {
   }
 
   const call = (name: string, value?: unknown, sender = event) =>
-    state.handlers.get(`hermes:hud-modifier:${name}`)(sender, value)
+    state.handlers.get(`iris:hud-modifier:${name}`)(sender, value)
 
   return { summon, event, call, install }
 }

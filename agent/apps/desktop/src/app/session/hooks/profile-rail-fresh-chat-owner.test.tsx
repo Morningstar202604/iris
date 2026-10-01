@@ -1,4 +1,4 @@
-import { type GatewayEvent, registryBackendScopeKey } from '@hermes/shared'
+import { type GatewayEvent, registryBackendScopeKey } from '@iris/shared'
 import { useStore } from '@nanostores/react'
 import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { useEffect, useMemo, useRef } from 'react'
@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vite
 
 import { createSessionRpcDispatcher } from '@/app/contrib/session-rpc-dispatcher'
 import { prepareDefaultNewSession } from '@/app/session/new-session-route'
-import { getSession } from '@/hermes'
+import { getSession } from '@/iris'
 import { $defaultProfileRoute } from '@/store/default-profile'
 import {
   activeGateway,
@@ -47,7 +47,7 @@ import {
 } from '@/store/session'
 import { foregroundSessionScopes } from '@/store/session-states'
 import { deferred } from '@/test/deferred'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/iris'
 
 import type { ClientSessionState } from '../../types'
 
@@ -156,9 +156,9 @@ function answer(socket: MockGateway, method: string, params: Record<string, unkn
   return {}
 }
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/iris', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  HermesGateway: class {
+  IrisGateway: class {
     connectUrl: null | string = null
     connectionState = 'closed'
     eventListeners = new Set<(event: GatewayEvent) => void>()
@@ -210,7 +210,7 @@ vi.mock('@/hermes', async importOriginal => ({
 }))
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { irisDesktop: unknown }).irisDesktop = {
     // v1 profile path (requestGatewayForProfile / ensureGatewayProfile): a
     // per-profile local backend that is NOT the registry entry.
     getConnection: vi.fn(async (profile: null | string) => {
@@ -422,7 +422,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
     $defaultProfileRoute.set(null)
     $activeGatewayProfile.set('default')
     vi.clearAllMocks()
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
   })
 
   /** Boot the exact field state: remote primary on `default`, `homelab` as
@@ -450,7 +450,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
     await waitFor(() => expect(activeGatewayProfileKey()).toBe('omar'))
     expect(activeGatewayConnectionId()).toBe(SOURCE_ID)
 
-    // The socket the registry dialed for homelab::omar (mocked HermesGateway
+    // The socket the registry dialed for homelab::omar (mocked IrisGateway
     // instances register themselves on construction).
     expect(sockets.length).toBeGreaterThan(0)
     const omarSocket = sockets.find(socket => socket.connectUrl?.includes(`:${OMAR_PORT}`))
@@ -504,7 +504,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
     expect(resolveNewChatOwnerRoute()).toEqual({ connectionId: SOURCE_ID, profile: 'omar' })
     await waitFor(() => expect(activeGatewayProfileKey()).toBe('omar'))
     expect(activeGatewayConnectionId()).toBe(SOURCE_ID)
-    expect(window.hermesDesktop.getConnection).not.toHaveBeenCalledWith('omar')
+    expect(window.irisDesktop.getConnection).not.toHaveBeenCalledWith('omar')
   })
 
   it.each([
@@ -519,7 +519,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
       await ensureGatewayAgent(SOURCE_ID, activeProfile)
       ownerPort = connectionId === null ? V1_PORT : OMAR_PORT
       const activation = deferred<void>()
-      const desktop = window.hermesDesktop!
+      const desktop = window.irisDesktop!
       vi.mocked(desktop.getConnectionFor!).mockClear()
       const getConnection = vi.mocked(desktop.getConnection).getMockImplementation()!
       const getConnectionFor = vi.mocked(desktop.getConnectionFor!).getMockImplementation()!
@@ -601,7 +601,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
 
     selectProfile('omar')
 
-    const desktop = window.hermesDesktop!
+    const desktop = window.irisDesktop!
 
     await waitFor(() =>
       expect(desktop.getConnectionFor).toHaveBeenCalledWith({ connectionId: SOURCE_ID, profile: 'omar' })
@@ -623,7 +623,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
 
     selectProfile('omar')
 
-    const desktop = window.hermesDesktop!
+    const desktop = window.irisDesktop!
 
     await waitFor(() => expect(desktop.getConnection).toHaveBeenCalledWith('omar'))
     expect(desktop.getConnectionFor).not.toHaveBeenCalledWith({ connectionId: 'local', profile: 'omar' })
@@ -816,7 +816,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
     await waitFor(() => expect(activeGatewayProfileKey()).toBe('omar'))
     expect(activeGatewayConnectionId()).toBeNull()
 
-    const desktop = window.hermesDesktop!
+    const desktop = window.irisDesktop!
 
     expect(desktop.getConnection).toHaveBeenCalledWith('omar')
     expect(desktop.getConnectionFor).not.toHaveBeenCalledWith({ connectionId: 'local', profile: 'omar' })

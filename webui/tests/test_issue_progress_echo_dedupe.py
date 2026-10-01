@@ -9,7 +9,7 @@ _MISSING = object()
 
 
 def test_visible_progress_token_reasoning_and_interim_are_deduped(cleanup_test_sessions):
-    """Progress text can arrive through three Hermes callbacks; WebUI must show it once.
+    """Progress text can arrive through three Iris callbacks; WebUI must show it once.
 
     Some runtimes emit a user-visible progress sentence as a normal token, mirror the
     same text through reasoning, and then report it through interim_assistant before
@@ -124,7 +124,7 @@ def test_visible_progress_token_reasoning_and_interim_are_deduped(cleanup_test_s
     fake_stream_id = "stream_issue_progress_echo_dedupe"
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     runtime_payload = {
         "provider": "openai",
         "base_url": None,
@@ -135,14 +135,14 @@ def test_visible_progress_token_reasoning_and_interim_are_deduped(cleanup_test_s
     }
     runtime_payload["api_" + "key"] = "***"
     fake_runtime_module.__dict__["resolve_runtime_provider"] = mock.Mock(return_value=runtime_payload)
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__dict__["runtime_provider"] = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__dict__["runtime_provider"] = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
     injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     saved = {k: sys.modules.get(k, _MISSING) for k in injected}
     sys.modules.update(injected)
@@ -288,7 +288,7 @@ def test_reasoning_then_interim_progress_marks_reasoning_echo(cleanup_test_sessi
     fake_stream_id = "stream_issue_reasoning_interim_echo"
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     runtime_payload = {
         "provider": "openai",
         "base_url": None,
@@ -299,14 +299,14 @@ def test_reasoning_then_interim_progress_marks_reasoning_echo(cleanup_test_sessi
     }
     runtime_payload["api_" + "key"] = "***"
     fake_runtime_module.__dict__["resolve_runtime_provider"] = mock.Mock(return_value=runtime_payload)
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__dict__["runtime_provider"] = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__dict__["runtime_provider"] = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
     injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     saved = {k: sys.modules.get(k, _MISSING) for k in injected}
     sys.modules.update(injected)
@@ -358,11 +358,11 @@ def test_final_answer_prefix_reasoning_echo_is_not_journaled_or_merged(cleanup_t
     from api.run_journal import read_run_events
 
     final_answer = (
-        "已按 Hermes WebUI workflow 在独立 worktree 完成，本地 review-ready；"
+        "已按 Iris WebUI workflow 在独立 worktree 完成，本地 review-ready；"
         "没有 push、没有开 PR、没有改真实 cron/config，也没有在主 checkout 实现。\n\n"
         "## 位置\n\n"
         "| 项 | 值 |\n|---|---|\n"
-        "| Worktree | `/Users/xuefusong/hermes-webui-worktrees/example` |\n"
+        "| Worktree | `/Users/xuefusong/iris-webui-worktrees/example` |\n"
         "| Branch | `fix/example` |\n\n"
         "## 根因\n\n"
         "Final Answer 正文已经作为 assistant token 流出，不应该再作为 reasoning/Worklog 事件出现。\n\n"
@@ -473,7 +473,7 @@ def test_final_answer_prefix_reasoning_echo_is_not_journaled_or_merged(cleanup_t
     fake_stream_id = "stream_issue_final_answer_reasoning_echo"
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     runtime_payload = {
         "provider": "openai",
         "base_url": None,
@@ -484,14 +484,14 @@ def test_final_answer_prefix_reasoning_echo_is_not_journaled_or_merged(cleanup_t
     }
     runtime_payload["api_" + "key"] = "***"
     fake_runtime_module.__dict__["resolve_runtime_provider"] = mock.Mock(return_value=runtime_payload)
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.__dict__["runtime_provider"] = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.__dict__["runtime_provider"] = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.__dict__["SessionDB"] = mock.Mock(return_value=None)
     injected = {
-        "hermes_cli": fake_hermes_cli,
-        "hermes_cli.runtime_provider": fake_runtime_module,
-        "hermes_state": fake_hermes_state,
+        "iris_cli": fake_iris_cli,
+        "iris_cli.runtime_provider": fake_runtime_module,
+        "iris_state": fake_iris_state,
     }
     saved = {k: sys.modules.get(k, _MISSING) for k in injected}
     sys.modules.update(injected)

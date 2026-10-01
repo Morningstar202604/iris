@@ -3,10 +3,10 @@ import type {
   ConnectionSettleReason,
   ConnectionUpdatePayload,
   ConnectorsConnectResult
-} from '@hermes/shared'
+} from '@iris/shared'
 import { atom } from 'nanostores'
 
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/iris'
 import { type ConnectionTarget, parseConnectionTarget } from '@/store/connection-request'
 
 import { invalidateConnectors } from './keys'

@@ -1,6 +1,6 @@
 """Persistent CDP supervisor for browser dialog + frame detection.
 
-One ``CDPSupervisor`` per Hermes ``task_id`` with a reachable CDP endpoint: one
+One ``CDPSupervisor`` per Iris ``task_id`` with a reachable CDP endpoint: one
 persistent WebSocket, ``Page`` / ``Runtime`` / ``Target`` events on every attached
 session (top page + auto-attached OOPIF / worker targets), pending dialogs + frame
 tree exposed via a thread-safe snapshot. Not in the tool schema — output reaches the
@@ -585,7 +585,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

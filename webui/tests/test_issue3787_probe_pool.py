@@ -42,7 +42,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
 
     def test_pool_creates_two_workers_per_home_key(self):
         """Pool should create exactly N=2 workers for each home key."""
-        home = Path.home() / ".hermes"
+        home = Path.home() / ".iris"
         worker = _get_account_usage_probe_worker(home)
         self.assertIsNotNone(worker)
         worker._lock.release()
@@ -134,7 +134,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
 
     def test_scoped_invalidation_only_flushes_active_home(self):
         """Scoped invalidation with provider_id should only flush active home."""
-        home1 = Path.home() / ".hermes"
+        home1 = Path.home() / ".iris"
         home2 = Path("/tmp/other_home")
 
         worker1 = _get_account_usage_probe_worker(home1)
@@ -149,7 +149,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
             initial_count = len(_account_usage_worker_pool)
             self.assertEqual(initial_count, 2)
 
-        with mock.patch("api.providers._get_hermes_home", return_value=home1):
+        with mock.patch("api.providers._get_iris_home", return_value=home1):
             invalidate_account_usage_status_cache(provider_id="anthropic")
             time.sleep(0.2)
 
@@ -160,7 +160,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
 
     def test_full_invalidation_flushes_all_workers(self):
         """Full invalidation (no provider_id) should flush all workers."""
-        home1 = Path.home() / ".hermes"
+        home1 = Path.home() / ".iris"
         home2 = Path("/tmp/other_home")
 
         worker1 = _get_account_usage_probe_worker(home1)
@@ -182,7 +182,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
 
     def test_cleanup_iterates_nested_worker_lists(self):
         """Cleanup should properly iterate over nested worker lists."""
-        home = Path.home() / ".hermes"
+        home = Path.home() / ".iris"
 
         worker = _get_account_usage_probe_worker(home)
         self.assertIsNotNone(worker)
@@ -248,7 +248,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
 
     def test_synchronous_close_flattens_nested_lists(self):
         """Synchronous close should flatten nested lists correctly."""
-        home = Path.home() / ".hermes"
+        home = Path.home() / ".iris"
 
         worker = _get_account_usage_probe_worker(home)
         self.assertIsNotNone(worker)
@@ -384,7 +384,7 @@ class TestProbeWorkerPoolPerHome(unittest.TestCase):
                 result["worker"]._lock.release()
 
         def run_invalidation():
-            with mock.patch("api.providers._get_hermes_home", return_value=home):
+            with mock.patch("api.providers._get_iris_home", return_value=home):
                 invalidate_account_usage_status_cache(provider_id="anthropic")
             invalidation_done.set()
 

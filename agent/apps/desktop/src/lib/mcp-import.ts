@@ -280,7 +280,7 @@ function fromClaudeAdd(tokens: string[]): McpImportEntry | null {
   return { config, name }
 }
 
-interface HermesAddFlags {
+interface IrisAddFlags {
   args: string[]
   auth: null | string
   command: null | string
@@ -291,7 +291,7 @@ interface HermesAddFlags {
 
 const ARGS_END = -1
 
-const emptyHermesFlags = (): HermesAddFlags => ({
+const emptyIrisFlags = (): IrisAddFlags => ({
   args: [],
   auth: null,
   command: null,
@@ -315,7 +315,7 @@ function readEnvPairs(env: Record<string, string>, tokens: string[], index: numb
   return i
 }
 
-function readHermesToken(flags: HermesAddFlags, tokens: string[], index: number): number {
+function readIrisToken(flags: IrisAddFlags, tokens: string[], index: number): number {
   const token = tokens[index]
 
   if (token === '--args') {
@@ -354,7 +354,7 @@ function readHermesToken(flags: HermesAddFlags, tokens: string[], index: number)
   return index
 }
 
-function hermesEntry(flags: HermesAddFlags): McpImportEntry | null {
+function irisEntry(flags: IrisAddFlags): McpImportEntry | null {
   const { args, auth, command, env, name, url } = flags
 
   if (!name || (!url && !command)) {
@@ -378,18 +378,18 @@ function hermesEntry(flags: HermesAddFlags): McpImportEntry | null {
   return { config, name }
 }
 
-function fromHermesAdd(tokens: string[]): McpImportEntry | null {
-  const flags = emptyHermesFlags()
+function fromIrisAdd(tokens: string[]): McpImportEntry | null {
+  const flags = emptyIrisFlags()
 
   for (let i = 3; i < tokens.length; i++) {
-    i = readHermesToken(flags, tokens, i)
+    i = readIrisToken(flags, tokens, i)
 
     if (i === ARGS_END) {
       break
     }
   }
 
-  return hermesEntry(flags)
+  return irisEntry(flags)
 }
 
 function fromCursorDeeplink(text: string): McpImportEntry[] | null {
@@ -493,8 +493,8 @@ function parseLine(line: string): McpImportEntry[] | null {
     return entry ? [entry] : null
   }
 
-  if (tokens[0] === 'hermes' && tokens[1] === 'mcp' && tokens[2] === 'add') {
-    const entry = fromHermesAdd(tokens)
+  if (tokens[0] === 'iris' && tokens[1] === 'mcp' && tokens[2] === 'add') {
+    const entry = fromIrisAdd(tokens)
 
     return entry ? [entry] : null
   }

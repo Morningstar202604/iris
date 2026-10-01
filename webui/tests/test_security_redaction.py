@@ -215,7 +215,7 @@ def test_redact_text_prefilter_routes_url_containing_strings_to_hard_redactor(te
 
     We test the *prefilter routing decision* here — `_might_contain_sensitive_text`
     must return True for any URL-shaped string — rather than asserting on the
-    specific output of the agent redactor (which varies between hermes-agent
+    specific output of the agent redactor (which varies between iris-agent
     versions and CI vs local installs).
     """
     import api.helpers as helpers
@@ -281,14 +281,14 @@ def test_redaction_masks_authorization_bot_value_without_breaking_code_structure
     snippet = (
         'headers = ["-H", '
         f'f"Authorization: Bot {token}", '
-        '"-H", "User-Agent: HermesBot/1.0"]'
+        '"-H", "User-Agent: IrisBot/1.0"]'
     )
 
     redacted = helpers._redact_value(snippet)
 
     assert token not in redacted
     assert 'f"Authorization: Bot ' in redacted
-    assert '", "-H", "User-Agent: HermesBot/1.0"]' in redacted
+    assert '", "-H", "User-Agent: IrisBot/1.0"]' in redacted
     ast.parse(redacted)
 
 
@@ -583,7 +583,7 @@ def test_fix_credential_permissions_corrects_loose_files(tmp_path, monkeypatch):
     google_file.write_text("{}")
     google_file.chmod(0o664)  # group-readable -- should be fixed
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
     fix_credential_permissions()
 
     import stat
@@ -604,7 +604,7 @@ def test_fix_credential_permissions_skips_correct_files(tmp_path, monkeypatch):
     env_file.write_text("SECRET=abc")
     env_file.chmod(0o600)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path))
 
     from api.startup import fix_credential_permissions
     fix_credential_permissions()

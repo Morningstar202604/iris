@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared/format'
+import { compactNumber } from '@iris/shared/format'
 
 import { usageBarsText } from '../../../components/overlayPrimitives.js'
 import { introMsg, toTranscriptMessages } from '../../../domain/messages.js'

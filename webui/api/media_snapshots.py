@@ -60,7 +60,7 @@ import re
 import threading
 from pathlib import Path
 
-logger = logging.getLogger("hermes.webui")
+logger = logging.getLogger("iris.webui")
 
 # Strict whole-string shape.  ``\\Z`` (not ``$``) so a terminal newline cannot
 # sneak past the gate; ``fullmatch`` is used at call sites.
@@ -70,7 +70,7 @@ _DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 DEFAULT_MAX_FILE_BYTES = 50 * 1024 * 1024          # 50 MB per snapshot
 DEFAULT_TOTAL_CAP_BYTES = 2 * 1024 * 1024 * 1024   # 2 GB total store
 
-_SNAPSHOT_DIR_ENV = "HERMES_WEBUI_MEDIA_SNAPSHOT_DIR"
+_SNAPSHOT_DIR_ENV = "IRIS_WEBUI_MEDIA_SNAPSHOT_DIR"
 
 # Capture and eviction run on the streaming worker thread; serialize them so
 # two concurrent settles cannot race the same tmp file or the quota scan.
@@ -80,7 +80,7 @@ def media_capture_allowed(path: Path) -> bool:
     """Allow-list predicate for snapshot capture (same gate as serve).
 
     True only when ``path`` is a regular file inside an allowed root and NOT
-    inside a denied Hermes-internal state location.  The deny half is the
+    inside a denied Iris-internal state location.  The deny half is the
     SAME predicate the ``/api/media`` serve path uses (``routes._media_deny_reason``,
     the #3234 state/profile deny set): anything the endpoint would refuse to
     serve is never captured in the first place — capture and serve can never
@@ -121,8 +121,8 @@ def _allowed_roots_for_capture() -> list[Path]:
     """Roots capture is permitted in — same shape as ``/api/media``'s list."""
     roots: list[Path] = []
     home = Path(os.path.expanduser("~"))
-    hermes_home = Path(os.getenv("HERMES_HOME", str(home / ".hermes"))).expanduser()
-    for candidate in (hermes_home, Path("/tmp"), home / ".hermes"):
+    iris_home = Path(os.getenv("IRIS_HOME", str(home / ".iris"))).expanduser()
+    for candidate in (iris_home, Path("/tmp"), home / ".iris"):
         try:
             resolved = candidate.resolve()
         except OSError:
@@ -346,14 +346,14 @@ def snapshot_servable_for_path(digest: str, target: Path) -> bool:
 
 def _total_cap_bytes() -> int:
     try:
-        return max(0, int(os.getenv("HERMES_WEBUI_MEDIA_SNAPSHOT_CAP_BYTES", "")))
+        return max(0, int(os.getenv("IRIS_WEBUI_MEDIA_SNAPSHOT_CAP_BYTES", "")))
     except ValueError:
         return DEFAULT_TOTAL_CAP_BYTES
 
 
 def _max_file_bytes() -> int:
     try:
-        return max(0, int(os.getenv("HERMES_WEBUI_MEDIA_SNAPSHOT_MAX_FILE_BYTES", "")))
+        return max(0, int(os.getenv("IRIS_WEBUI_MEDIA_SNAPSHOT_MAX_FILE_BYTES", "")))
     except ValueError:
         return DEFAULT_MAX_FILE_BYTES
 

@@ -1,11 +1,11 @@
 """Global emergency stop (ESTOP) — a resumable pause for NEW work only.
 
-``hermes pause`` writes a sentinel at ``$HERMES_HOME/ESTOP``; ``hermes resume``
+``iris pause`` writes a sentinel at ``$IRIS_HOME/ESTOP``; ``iris resume``
 removes it. While it exists the cron scheduler, kanban dispatcher and new gateway
 turns skip work; in-flight work is never killed. The check is one or two uncached
 ``os.stat`` calls (process home + fleet root when they differ). The body is optional
 JSON ``{"reason", "engaged_at"}``; a corrupt/empty file still counts as engaged
-(fail safe, e.g. ``touch ~/.hermes/ESTOP``). Ported from gastownhall/gastown estop.go (MIT).
+(fail safe, e.g. ``touch ~/.iris/ESTOP``). Ported from gastownhall/gastown estop.go (MIT).
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-# Same profile-aware / fleet-root resolvers the file-safety guards use (fail-open to ~/.hermes).
-from agent.file_safety import _hermes_home_path as _hermes_home, _hermes_root_path as _canonical_root
+# Same profile-aware / fleet-root resolvers the file-safety guards use (fail-open to ~/.iris).
+from agent.file_safety import _iris_home_path as _iris_home, _iris_root_path as _canonical_root
 
 SENTINEL_NAME = "ESTOP"
 
@@ -29,13 +29,13 @@ _logged_components: set[str] = set()
 
 
 def sentinel_path() -> Path:
-    """Path of the ESTOP sentinel this process would write on `hermes pause`."""
-    return _hermes_home() / SENTINEL_NAME
+    """Path of the ESTOP sentinel this process would write on `iris pause`."""
+    return _iris_home() / SENTINEL_NAME
 
 
 def _candidate_sentinel_paths() -> list:
     """Profile home first, then the fleet root if it is a different directory: a profile
-    gateway (HERMES_HOME=~/.hermes/profiles/<n>) must still honor an operator's ~/.hermes/ESTOP."""
+    gateway (IRIS_HOME=~/.iris/profiles/<n>) must still honor an operator's ~/.iris/ESTOP."""
     primary = sentinel_path()
     try:
         root = _canonical_root() / SENTINEL_NAME
@@ -116,7 +116,7 @@ def paused_reply() -> Optional[str]:
     if state is None:
         return None
     tag = f" ({state['reason']})" if state.get("reason") else ""
-    return f"⏸️ Hermes is paused{tag}. New work is on hold; run `hermes resume` to pick things back up."
+    return f"⏸️ Iris is paused{tag}. New work is on hold; run `iris resume` to pick things back up."
 
 
 def check_paused(component: str, logger: logging.Logger) -> bool:
@@ -132,7 +132,7 @@ def check_paused(component: str, logger: logging.Logger) -> bool:
         reason = (get_state() or {}).get("reason")
         suffix = f" (reason: {reason})" if reason else ""
         logger.info(
-            "%s dispatch paused by global emergency stop%s — remove with `hermes resume` (%s)",
+            "%s dispatch paused by global emergency stop%s — remove with `iris resume` (%s)",
             component, suffix, sentinel_path(),
         )
     return True

@@ -9,7 +9,7 @@ Covers:
   5. X-Forwarded-For private IP is trusted → allowed
   6. X-Forwarded-For public IP → still blocked
   7. X-Real-IP loopback → allowed
-  8. HERMES_WEBUI_ONBOARDING_OPEN=1 bypasses the check entirely
+  8. IRIS_WEBUI_ONBOARDING_OPEN=1 bypasses the check entirely
   9. Auth enabled → check skipped, any IP allowed
 """
 
@@ -35,7 +35,7 @@ from tests._pytest_port import BASE
 # unauthenticated `X-Forwarded-For` / `X-Real-IP` was trusted to establish
 # locality (`_xff or _xri or raw_ip`). As of #3758 (v0.51.307) the real gate
 # `api.routes._onboarding_request_is_local()` IGNORES forwarded headers unless
-# `HERMES_WEBUI_TRUST_FORWARDED_FOR=1`, and only loopback counts as local when an
+# `IRIS_WEBUI_TRUST_FORWARDED_FOR=1`, and only loopback counts as local when an
 # untrusted forwarded header is present. The authoritative trust-matrix tests now
 # live in `tests/test_security_review_fixes.py`. This mirror + its
 # `TestOnboardingIPLogic` cases are retained only as historical fast-path unit
@@ -126,7 +126,7 @@ class TestOnboardingIPLogic:
         assert _is_local_from_handler("172.20.0.1", xff="8.8.8.8", xri="127.0.0.1") is False
 
     def test_open_env_bypasses_check(self):
-        """HERMES_WEBUI_ONBOARDING_OPEN=1 allows any IP."""
+        """IRIS_WEBUI_ONBOARDING_OPEN=1 allows any IP."""
         assert _is_local_from_handler("8.8.8.8", open_env=True) is True
 
     def test_auth_enabled_bypasses_check(self):

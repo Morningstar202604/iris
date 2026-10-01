@@ -10,10 +10,10 @@
  *    the worker PID does not reach parents, so the lock could survive.
  *  - a single gateway.pid read misses multi-profile setups entirely.
  *
- * So we delegate to `hermes gateway stop --all`: the CLI discovers every
+ * So we delegate to `iris gateway stop --all`: the CLI discovers every
  * profile's gateway processes (launcher + worker) via find_gateway_pids,
  * drains in-flight agents (planned-stop marker -> resume_pending), and
- * force-kills survivors — the same logic `hermes update`'s
+ * force-kills survivors — the same logic `iris update`'s
  * _pause_windows_gateways_for_update relies on.
  *
  * Pure + dependency-injected so the launcher/worker and multi-profile
@@ -44,11 +44,11 @@ export const GATEWAY_STOP_TIMEOUT_MS = 20_000
  * with the injected spy), false when skipped (non-Windows / missing CLI).
  */
 export function stopGatewayBeforeUpdate(
-  hermesCliPath: string,
-  hermesHome: string,
+  irisCliPath: string,
+  irisHome: string,
   deps: StopGatewayBeforeUpdateDeps = {}
 ): boolean {
-  return runGatewayLifecycleCommand(hermesCliPath, ['gateway', 'stop', '--all'], deps)
+  return runGatewayLifecycleCommand(irisCliPath, ['gateway', 'stop', '--all'], deps)
 }
 
 /**
@@ -59,11 +59,11 @@ export function stopGatewayBeforeUpdate(
  * must mirror that on its abort paths, or a failed update strands every
  * profile's gateway stopped. Best-effort, never throws.
  */
-export function startGatewaysAfterUpdateAbort(hermesCliPath: string, deps: StopGatewayBeforeUpdateDeps = {}): boolean {
-  return runGatewayLifecycleCommand(hermesCliPath, ['gateway', 'start', '--all'], deps)
+export function startGatewaysAfterUpdateAbort(irisCliPath: string, deps: StopGatewayBeforeUpdateDeps = {}): boolean {
+  return runGatewayLifecycleCommand(irisCliPath, ['gateway', 'start', '--all'], deps)
 }
 
-function runGatewayLifecycleCommand(hermesCliPath: string, args: string[], deps: StopGatewayBeforeUpdateDeps): boolean {
+function runGatewayLifecycleCommand(irisCliPath: string, args: string[], deps: StopGatewayBeforeUpdateDeps): boolean {
   const isWindows = deps.isWindows ?? process.platform === 'win32'
 
   if (!isWindows) {
@@ -74,15 +74,15 @@ function runGatewayLifecycleCommand(hermesCliPath: string, args: string[], deps:
   const exec = deps.execFileSync ?? execFileSync
 
   if (deps.spy) {
-    deps.spy(hermesCliPath, args)
+    deps.spy(irisCliPath, args)
   }
 
-  if (!existsSync(hermesCliPath)) {
+  if (!existsSync(irisCliPath)) {
     return false
   }
 
   try {
-    exec(hermesCliPath, args, {
+    exec(irisCliPath, args, {
       timeout: GATEWAY_STOP_TIMEOUT_MS,
       windowsHide: true,
       stdio: 'ignore',

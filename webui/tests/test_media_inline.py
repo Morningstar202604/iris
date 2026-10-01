@@ -328,7 +328,7 @@ class TestMediaEndpointUnit(unittest.TestCase):
             self.assertFalse(
                 routes._path_is_within_root(
                     pathlib.Path("D:/outputs/card.png"),
-                    pathlib.Path("C:/Users/agent/.hermes"),
+                    pathlib.Path("C:/Users/agent/.iris"),
                 )
             )
 
@@ -342,10 +342,10 @@ class TestMediaEndpointUnit(unittest.TestCase):
             child.write_bytes(b"png")
             self.assertTrue(routes._path_is_within_root(child.resolve(), root))
 
-    def test_active_workspace_carveout_gated_against_hermes_roots(self):
+    def test_active_workspace_carveout_gated_against_iris_roots(self):
         """#3234: the active-workspace carve-out must NOT re-open the disclosure
         when the active workspace is pathologically set to a broad/internal root
-        ($HOME, ~/.hermes, a profile root, etc.). A state.db sitting under such a
+        ($HOME, ~/.iris, a profile root, etc.). A state.db sitting under such a
         workspace must still be denied (403), not served.
         """
         from api import routes
@@ -366,9 +366,9 @@ class TestMediaEndpointUnit(unittest.TestCase):
             wfile = _W()
 
         with tempfile.TemporaryDirectory() as home:
-            hermes_home = pathlib.Path(home) / ".hermes"
-            hermes_home.mkdir(parents=True)
-            secret = hermes_home / "state.db"
+            iris_home = pathlib.Path(home) / ".iris"
+            iris_home.mkdir(parents=True)
+            secret = iris_home / "state.db"
             secret.write_bytes(b"secret-state")
             target = secret.resolve()
 
@@ -376,15 +376,15 @@ class TestMediaEndpointUnit(unittest.TestCase):
             parsed = SimpleNamespace(
                 query=f"path={urllib.parse.quote(str(target))}", path="/api/media"
             )
-            with mock.patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}), \
-                 mock.patch.object(routes, "get_last_workspace", lambda: str(hermes_home)), \
+            with mock.patch.dict(os.environ, {"IRIS_HOME": str(iris_home)}), \
+                 mock.patch.object(routes, "get_last_workspace", lambda: str(iris_home)), \
                  mock.patch("api.auth.is_auth_enabled", lambda: False):
                 routes._handle_media(handler, parsed)
 
             self.assertEqual(
                 handler.status, 403,
                 "state.db must stay denied even when the active workspace IS the "
-                "Hermes home (carve-out must be gated against internal roots)",
+                "Iris home (carve-out must be gated against internal roots)",
             )
 
     def test_active_workspace_under_state_dir_serves_but_sessions_denied(self):
@@ -419,8 +419,8 @@ class TestMediaEndpointUnit(unittest.TestCase):
             b'\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
         )
         with tempfile.TemporaryDirectory() as home:
-            hermes_home = pathlib.Path(home) / ".hermes"
-            state_dir = hermes_home / "webui-state"
+            iris_home = pathlib.Path(home) / ".iris"
+            state_dir = iris_home / "webui-state"
             ws = state_dir / "workspace"
             sessions = state_dir / "sessions"
             ws.mkdir(parents=True)
@@ -431,8 +431,8 @@ class TestMediaEndpointUnit(unittest.TestCase):
             sess_file.write_text('{"messages":[]}', encoding="utf-8")
 
             env = {
-                "HERMES_HOME": str(hermes_home),
-                "HERMES_WEBUI_STATE_DIR": str(state_dir),
+                "IRIS_HOME": str(iris_home),
+                "IRIS_WEBUI_STATE_DIR": str(state_dir),
             }
             with mock.patch.dict(os.environ, env), \
                  mock.patch.object(routes, "get_last_workspace", lambda: str(ws)), \
@@ -488,7 +488,7 @@ class TestMediaEndpointUnit(unittest.TestCase):
             b'\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
         )
         with tempfile.TemporaryDirectory() as home:
-            base = pathlib.Path(home) / ".hermes"
+            base = pathlib.Path(home) / ".iris"
             p1_ws = base / "profiles" / "p1" / "workspace"
             p1_ws.mkdir(parents=True)
             (p1_ws / "shot.png").write_bytes(png_bytes)
@@ -498,11 +498,11 @@ class TestMediaEndpointUnit(unittest.TestCase):
             other_secret.parent.mkdir(parents=True)
             other_secret.write_text("{}", encoding="utf-8")
 
-            active = base / "profiles" / "p1"  # active profile HERMES_HOME
-            with mock.patch.dict(os.environ, {"HERMES_HOME": str(active)}), \
+            active = base / "profiles" / "p1"  # active profile IRIS_HOME
+            with mock.patch.dict(os.environ, {"IRIS_HOME": str(active)}), \
                  mock.patch.object(routes, "get_last_workspace", lambda: str(p1_ws)), \
                  mock.patch("api.auth.is_auth_enabled", lambda: False), \
-                 mock.patch("api.profiles._DEFAULT_HERMES_HOME", base):
+                 mock.patch("api.profiles._DEFAULT_IRIS_HOME", base):
                 # named-profile workspace media → served
                 h1 = _Handler()
                 routes._handle_media(h1, SimpleNamespace(
@@ -536,7 +536,7 @@ class TestMediaEndpointUnit(unittest.TestCase):
                     h4.status, 403,
                     "profile webui_state/sessions/*.json must be denied")
 
-    def test_media_allowed_roots_env_var_serves_outside_hermes_root(self):
+    def test_media_allowed_roots_env_var_serves_outside_iris_root(self):
         """MEDIA_ALLOWED_ROOTS must still allow legitimate outside-root media."""
         from api import routes
 
@@ -563,8 +563,8 @@ class TestMediaEndpointUnit(unittest.TestCase):
             b'\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
         )
         with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as extra:
-            hermes_home = pathlib.Path(home) / ".hermes"
-            hermes_home.mkdir(parents=True)
+            iris_home = pathlib.Path(home) / ".iris"
+            iris_home.mkdir(parents=True)
             outside_root = pathlib.Path(extra).resolve()
             image = outside_root / "settings_artifact.png"
             image.write_bytes(png_bytes)
@@ -572,11 +572,11 @@ class TestMediaEndpointUnit(unittest.TestCase):
             with mock.patch.dict(
                 os.environ,
                 {
-                    "HERMES_HOME": str(hermes_home),
+                    "IRIS_HOME": str(iris_home),
                     "MEDIA_ALLOWED_ROOTS": str(outside_root),
                 },
             ), mock.patch.object(
-                routes, "get_last_workspace", lambda: str(hermes_home / "workspace")
+                routes, "get_last_workspace", lambda: str(iris_home / "workspace")
             ), mock.patch(
                 "api.auth.is_auth_enabled", lambda: False
             ):
@@ -591,7 +591,7 @@ class TestMediaEndpointUnit(unittest.TestCase):
 
             self.assertEqual(
                 handler.status, 200,
-                "MEDIA_ALLOWED_ROOTS media outside Hermes roots must still serve",
+                "MEDIA_ALLOWED_ROOTS media outside Iris roots must still serve",
             )
 
     def test_media_endpoints_advertise_byte_range_support(self):
@@ -710,14 +710,14 @@ class TestMediaEndpointUnit(unittest.TestCase):
                 return self._W(self)
 
         with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as outside:
-            hermes_home = pathlib.Path(home) / ".hermes"
-            hermes_home.mkdir(parents=True)
-            ws = hermes_home / "workspace"
+            iris_home = pathlib.Path(home) / ".iris"
+            iris_home.mkdir(parents=True)
+            ws = iris_home / "workspace"
             ws.mkdir()
             html = pathlib.Path(outside) / "report.html"
             html.write_text("<h1>Report</h1>", encoding="utf-8")
             session = SimpleNamespace(messages=[{"role": "assistant", "content": f"MEDIA:{html}"}])
-            with mock.patch.dict(os.environ, {"HERMES_HOME": str(hermes_home), "MEDIA_ALLOWED_ROOTS": ""}), \
+            with mock.patch.dict(os.environ, {"IRIS_HOME": str(iris_home), "MEDIA_ALLOWED_ROOTS": ""}), \
                  mock.patch.object(routes, "get_last_workspace", lambda: str(ws)), \
                  mock.patch.object(routes, "get_session", return_value=session), \
                  mock.patch("api.auth.is_auth_enabled", lambda: False):
@@ -767,7 +767,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
         self.assertEqual(status, 400)
 
     def test_nonexistent_file_returns_404(self):
-        missing = _media_fixture_dir() / "__hermes_nonexistent_12345.png"
+        missing = _media_fixture_dir() / "__iris_nonexistent_12345.png"
         _, status, _ = self._get(
             "/api/media?path=" + urllib.parse.quote(str(missing))
         )
@@ -787,7 +787,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
             b'\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
         )
         with tempfile.NamedTemporaryFile(
-            suffix=".png", prefix="hermes_test_", dir=_media_fixture_dir(), delete=False
+            suffix=".png", prefix="iris_test_", dir=_media_fixture_dir(), delete=False
         ) as f:
             f.write(png_bytes)
             tmp_path = f.name
@@ -806,7 +806,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
         """MEDIA: audio paths stream inline and support byte ranges for playback."""
         audio_bytes = b"RIFF" + (b"\x00" * 256)
         with tempfile.NamedTemporaryFile(
-            suffix=".wav", prefix="hermes_test_", dir=_media_fixture_dir(), delete=False
+            suffix=".wav", prefix="iris_test_", dir=_media_fixture_dir(), delete=False
         ) as f:
             f.write(audio_bytes)
             tmp_path = f.name
@@ -831,9 +831,9 @@ class TestMediaEndpointIntegration(unittest.TestCase):
 
     def test_html_media_endpoint_inline_requires_csp_sandbox(self):
         """HTML opens inline only when requested and always carries CSP sandbox."""
-        html_bytes = b"<!doctype html><title>Hermes</title><script>window.ok=1</script>"
+        html_bytes = b"<!doctype html><title>Iris</title><script>window.ok=1</script>"
         with tempfile.NamedTemporaryFile(
-            suffix=".html", prefix="hermes_test_", dir=_media_fixture_dir(), delete=False
+            suffix=".html", prefix="iris_test_", dir=_media_fixture_dir(), delete=False
         ) as f:
             f.write(html_bytes)
             tmp_path = f.name
@@ -881,7 +881,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
 
     def test_webui_state_secret_files_denied(self):
         """#3234: /api/media must hard-deny WebUI state/secret files even though
-        they live under an allowed root (the whole Hermes home is allowed).
+        they live under an allowed root (the whole Iris home is allowed).
 
         An authenticated session rendering attacker-influenced agent output that
         emits a file://  or MEDIA: link to settings.json / state.db / auth.json
@@ -958,7 +958,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
         Regression for PR #6372 — ensures narrow MIME_MAP fix is live."""
         ts_bytes = b"const x: number = 42;\nconsole.log(x);\n"
         with tempfile.NamedTemporaryFile(
-            suffix=".ts", prefix="hermes_test_", dir=_media_fixture_dir(), delete=False
+            suffix=".ts", prefix="iris_test_", dir=_media_fixture_dir(), delete=False
         ) as f:
             f.write(ts_bytes)
             tmp_path = f.name
@@ -995,7 +995,7 @@ class TestMediaEndpointIntegration(unittest.TestCase):
         and attachment disposition. Regression for PR #6372."""
         tsx_bytes = b"const App: React.FC = () => <div>Hello</div>;\n"
         with tempfile.NamedTemporaryFile(
-            suffix=".tsx", prefix="hermes_test_", dir=_media_fixture_dir(), delete=False
+            suffix=".tsx", prefix="iris_test_", dir=_media_fixture_dir(), delete=False
         ) as f:
             f.write(tsx_bytes)
             tmp_path = f.name

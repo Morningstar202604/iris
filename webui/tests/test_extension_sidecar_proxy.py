@@ -40,7 +40,7 @@ class FakeHandler:
 def _allow_webui_local_origin(monkeypatch):
     # Custom-hostname deployments allowlist their origin explicitly since the
     # DNS-rebinding gate no longer trusts the request's own Host header.
-    monkeypatch.setenv("HERMES_WEBUI_ALLOWED_ORIGINS", "http://webui.local")
+    monkeypatch.setenv("IRIS_WEBUI_ALLOWED_ORIGINS", "http://webui.local")
 
 
 @pytest.fixture(autouse=True)
@@ -48,9 +48,9 @@ def _clear_extension_env(monkeypatch):
     from api import auth as auth_mod
 
     for name in (
-        "HERMES_WEBUI_EXTENSION_DIR",
-        "HERMES_WEBUI_EXTENSION_MANIFEST",
-        "HERMES_WEBUI_PASSWORD",
+        "IRIS_WEBUI_EXTENSION_DIR",
+        "IRIS_WEBUI_EXTENSION_MANIFEST",
+        "IRIS_WEBUI_PASSWORD",
     ):
         monkeypatch.delenv(name, raising=False)
     auth_mod._invalidate_password_hash_cache()
@@ -62,7 +62,7 @@ def _use_extension_state_dir(monkeypatch, tmp_path):
     tmp_path.mkdir(parents=True, exist_ok=True)
     state_dir = tmp_path / "webui-state"
     state_dir.mkdir()
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(state_dir))
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(state_dir))
     import api.extensions as extensions
 
     monkeypatch.setattr(extensions, "_extension_state_dir", lambda: state_dir)
@@ -78,13 +78,13 @@ def _configure_manifest_extension(monkeypatch, tmp_path, payload):
     root = tmp_path / "extensions"
     root.mkdir(parents=True, exist_ok=True)
     _write_manifest(root, payload)
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_DIR", str(root))
-    monkeypatch.setenv("HERMES_WEBUI_EXTENSION_MANIFEST", "extensions.json")
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_DIR", str(root))
+    monkeypatch.setenv("IRIS_WEBUI_EXTENSION_MANIFEST", "extensions.json")
     return state_dir, root
 
 
 def test_extension_sidecar_proxy_requires_webui_auth(monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "test-password")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "test-password")
 
     from api.auth import check_auth
 
@@ -982,7 +982,7 @@ def test_extension_sidecar_proxy_consent_route_fails_closed_auth_off(tmp_path, m
     # exercised end-to-end.
     from api import routes
 
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
     from api.auth import _invalidate_password_hash_cache, is_auth_enabled
     _invalidate_password_hash_cache()
     assert is_auth_enabled() is False
@@ -1042,7 +1042,7 @@ def _token_v1_manifest(monkeypatch, tmp_path, origin="http://127.0.0.1:17787"):
 
 
 def test_token_v1_injects_persisted_token_when_auth_enabled(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "pw")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "pw")
     from api.auth import _invalidate_password_hash_cache
     _invalidate_password_hash_cache()
     _token_v1_manifest(monkeypatch, tmp_path)
@@ -1066,7 +1066,7 @@ def test_token_v1_auth_off_blocks_consent_and_resolution_fail_closed(tmp_path, m
     # (unauthenticated) WebUI listener could otherwise self-grant consent and drive
     # the token-bearing proxy (a forwarding oracle); another local UID can reach the
     # listener without ever reading the 0600 token file.
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
     from api.auth import _invalidate_password_hash_cache, is_auth_enabled
     _invalidate_password_hash_cache()
     assert is_auth_enabled() is False
@@ -1086,7 +1086,7 @@ def test_token_v1_resolution_fails_closed_when_auth_disabled_after_consent(tmp_p
     # Defense in depth: even if a consent record somehow exists (e.g. granted while
     # auth was enabled, then auth turned off), the resolution path must ALSO fail
     # closed so a stale consent can't be exercised without WebUI auth.
-    monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "pw")
+    monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "pw")
     from api.auth import _invalidate_password_hash_cache, is_auth_enabled
     _invalidate_password_hash_cache()
     _token_v1_manifest(monkeypatch, tmp_path, origin="http://127.0.0.1:17787")
@@ -1100,7 +1100,7 @@ def test_token_v1_resolution_fails_closed_when_auth_disabled_after_consent(tmp_p
     assert is_auth_enabled() is True
     set_extension_sidecar_proxy_consent("templates", True)
     # Now disable auth and confirm resolution refuses the pre-existing consent.
-    monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
     _invalidate_password_hash_cache()
     assert is_auth_enabled() is False
     with pytest.raises(ExtensionSidecarProxyError) as exc:
@@ -1150,19 +1150,19 @@ def test_status_payload_flags_local_unprotected_when_auth_off(tmp_path, monkeypa
     assert proxy["posture"] == "local_unprotected"  # auth off -> panel warns pre-consent
 
 
-def test_inbound_x_hermes_header_is_stripped(monkeypatch):
+def test_inbound_x_iris_header_is_stripped(monkeypatch):
     from api.routes import _extension_sidecar_proxy_request_headers
 
     class H:
         headers = {
-            "X-Hermes-Sidecar-Token": "forged",
+            "X-Iris-Sidecar-Token": "forged",
             "X-Custom": "ok",
             "Cookie": "secret",
         }
 
     out = _extension_sidecar_proxy_request_headers(H())
     assert "X-Custom" in out
-    assert not any(k.lower().startswith("x-hermes-") for k in out)
+    assert not any(k.lower().startswith("x-iris-") for k in out)
     assert not any(k.lower() == "cookie" for k in out)
 
 
@@ -1194,7 +1194,7 @@ def test_token_module_persists_and_rotates(tmp_path, monkeypatch):
 
 def test_token_v1_route_injects_token_and_strips_response(monkeypatch):
     # The 5 most load-bearing lines: the injected token must reach the upstream
-    # Request, and any x-hermes-* on the response must be stripped before it
+    # Request, and any x-iris-* on the response must be stripped before it
     # reaches the browser. (Fable coreA item 3.)
     from api import routes
 
@@ -1205,7 +1205,7 @@ def test_token_v1_route_injects_token_and_strips_response(monkeypatch):
             self.status = 200
             self.headers = {
                 "Content-Type": "application/json",
-                "X-Hermes-Echo": "leak-me",  # must be stripped from client response
+                "X-Iris-Echo": "leak-me",  # must be stripped from client response
             }
 
         def read(self, *_a):
@@ -1251,6 +1251,6 @@ def test_token_v1_route_injects_token_and_strips_response(monkeypatch):
     )
     assert result is True
     # token injected on the way to the sidecar
-    assert captured["headers"].get("x-hermes-sidecar-token") == "injected-token-abc"
-    # token/x-hermes header stripped on the way back to the browser
-    assert handler.header("X-Hermes-Echo") is None
+    assert captured["headers"].get("x-iris-sidecar-token") == "injected-token-abc"
+    # token/x-iris header stripped on the way back to the browser
+    assert handler.header("X-Iris-Echo") is None

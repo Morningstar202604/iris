@@ -2,14 +2,14 @@
 Issue #803 (completes #798) — per-client profile isolation via cookie + thread-local.
 
 PR #800 fixed POST /api/session/new (client sends profile in body).
-PR #805 extends the fix to ALL endpoints: profile switches set a hermes_profile
+PR #805 extends the fix to ALL endpoints: profile switches set a iris_profile
 cookie, server.py reads it per-request into a thread-local, and the existing
 api/profiles.py helpers consult the thread-local before the process global.
 
 Covers:
   1. build_profile_cookie() / get_profile_cookie() roundtrip + validation
   2. set_request_profile() / get_active_profile_name() / clear_request_profile()
-  3. get_active_hermes_home() routes via thread-local
+  3. get_active_iris_home() routes via thread-local
   4. switch_profile(process_wide=False) does NOT mutate process globals
   5. Concurrent requests on different threads see independent profiles
 """
@@ -29,13 +29,13 @@ class TestProfileCookieHelpers:
     def test_build_profile_cookie_sets_value(self):
         from api.helpers import build_profile_cookie
         s = build_profile_cookie('alice')
-        assert 'hermes_profile=alice' in s
+        assert 'iris_profile=alice' in s
         assert 'HttpOnly' in s
         assert 'SameSite=Lax' in s
         assert 'Path=/' in s
 
     def test_build_profile_cookie_survives_stale_password_hash_cache(self, monkeypatch):
-        """#5588 regression: a prior test that set HERMES_WEBUI_PASSWORD populates
+        """#5588 regression: a prior test that set IRIS_WEBUI_PASSWORD populates
         api.auth's process-wide password-hash cache; if that cache leaks past the
         env-var teardown, is_auth_enabled() reads stale True and build_profile_cookie
         raises "requires a request handler when auth is enabled". Simulate the leak
@@ -46,22 +46,22 @@ class TestProfileCookieHelpers:
         import api.auth as auth
         from api.helpers import build_profile_cookie
         # Populate the cache as if an auth-enabled test just ran.
-        monkeypatch.setenv("HERMES_WEBUI_PASSWORD", "leak-check")
+        monkeypatch.setenv("IRIS_WEBUI_PASSWORD", "leak-check")
         auth._invalidate_password_hash_cache()
         assert auth.is_auth_enabled() is True  # cache now holds a hash
         # Env goes away (as monkeypatch would on teardown) but reset the cache the
         # way the autouse fixture does — auth must read as disabled again.
-        monkeypatch.delenv("HERMES_WEBUI_PASSWORD", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_PASSWORD", raising=False)
         auth._invalidate_password_hash_cache()
         assert auth.is_auth_enabled() is False
         # And the no-handler cookie build must not raise.
         s = build_profile_cookie('alice')
-        assert 'hermes_profile=alice' in s
+        assert 'iris_profile=alice' in s
 
     def test_build_profile_cookie_default_persists(self):
         from api.helpers import build_profile_cookie
         s = build_profile_cookie('default')
-        assert 'hermes_profile=default' in s
+        assert 'iris_profile=default' in s
         assert 'Max-Age=0' not in s
 
     def test_get_profile_cookie_returns_none_when_absent(self):
@@ -74,7 +74,7 @@ class TestProfileCookieHelpers:
         from api.helpers import get_profile_cookie
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
         handler = MagicMock()
-        handler.headers.get = lambda k, d='': 'hermes_profile=alice' if k == 'Cookie' else d
+        handler.headers.get = lambda k, d='': 'iris_profile=alice' if k == 'Cookie' else d
         assert get_profile_cookie(handler) == 'alice'
 
     def test_get_profile_cookie_requires_session_bound_signature_when_auth_enabled(self, monkeypatch):
@@ -88,7 +88,7 @@ class TestProfileCookieHelpers:
 
         handler = MagicMock()
         handler.headers.get = lambda k, d='': (
-            f'hermes_session={session_cookie}; hermes_profile={signed_profile}' if k == 'Cookie' else d
+            f'iris_session={session_cookie}; iris_profile={signed_profile}' if k == 'Cookie' else d
         )
         assert get_profile_cookie(handler) == 'alice'
 
@@ -98,7 +98,7 @@ class TestProfileCookieHelpers:
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: True)
         handler = MagicMock()
         handler.headers.get = lambda k, d='': (
-            'hermes_session=session-token.session-sig; hermes_profile=alice' if k == 'Cookie' else d
+            'iris_session=session-token.session-sig; iris_profile=alice' if k == 'Cookie' else d
         )
         assert get_profile_cookie(handler) is None
 
@@ -113,7 +113,7 @@ class TestProfileCookieHelpers:
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: True)
         handler = MagicMock()
         handler.headers.get = lambda k, d='': (
-            f'hermes_session={current_session}; hermes_profile={signed_profile}' if k == 'Cookie' else d
+            f'iris_session={current_session}; iris_profile={signed_profile}' if k == 'Cookie' else d
         )
         assert get_profile_cookie(handler) is None
 
@@ -125,10 +125,10 @@ class TestProfileCookieHelpers:
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: True)
         monkeypatch.setattr('api.auth.verify_session', lambda cookie: cookie == session_cookie)
         handler = MagicMock()
-        handler.headers.get = lambda k, d='': f'hermes_session={session_cookie}' if k == 'Cookie' else d
+        handler.headers.get = lambda k, d='': f'iris_session={session_cookie}' if k == 'Cookie' else d
 
         cookie = build_profile_cookie('alice', handler)
-        value = cookie.split('hermes_profile=', 1)[1].split(';', 1)[0]
+        value = cookie.split('iris_profile=', 1)[1].split(';', 1)[0]
         assert value != 'alice'
         assert verify_profile_cookie_value(value, session_cookie) == 'alice'
 
@@ -165,7 +165,7 @@ class TestProfileCookieHelpers:
         from api.helpers import get_profile_cookie
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
         handler = MagicMock()
-        handler.headers.get = lambda k, d='': 'hermes_profile=default' if k == 'Cookie' else d
+        handler.headers.get = lambda k, d='': 'iris_profile=default' if k == 'Cookie' else d
         assert get_profile_cookie(handler) == 'default'
 
     def test_get_profile_cookie_rejects_injection(self, monkeypatch):
@@ -174,7 +174,7 @@ class TestProfileCookieHelpers:
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
         for bad in ('../etc', 'a/b', 'name;DROP', 'WithCaps', 'has space', '.hidden'):
             handler = MagicMock()
-            handler.headers.get = lambda k, d='', v=bad: f'hermes_profile={v}' if k == 'Cookie' else d
+            handler.headers.get = lambda k, d='', v=bad: f'iris_profile={v}' if k == 'Cookie' else d
             assert get_profile_cookie(handler) is None, f"{bad!r} should be rejected"
 
     def test_get_profile_cookie_ignores_malformed_header(self):
@@ -185,27 +185,27 @@ class TestProfileCookieHelpers:
         result = get_profile_cookie(handler)
         assert result is None
 
-    def test_profile_cookie_name_defaults_to_hermes_profile(self, monkeypatch):
+    def test_profile_cookie_name_defaults_to_iris_profile(self, monkeypatch):
         from api.helpers import build_profile_cookie
 
         monkeypatch.delenv('WEBUI_PROFILE_COOKIE_NAME', raising=False)
 
         s = build_profile_cookie('alice')
-        assert 'hermes_profile=alice' in s
+        assert 'iris_profile=alice' in s
 
     def test_profile_cookie_name_can_be_isolated_per_webui_instance(self, monkeypatch):
         from api.helpers import build_profile_cookie, get_profile_cookie
 
-        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_social')
+        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_social')
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
 
         s = build_profile_cookie('writer')
-        assert 'hermes_profile_social=writer' in s
-        assert 'hermes_profile=writer' not in s
+        assert 'iris_profile_social=writer' in s
+        assert 'iris_profile=writer' not in s
 
         handler = MagicMock()
         handler.headers.get = lambda k, d='': (
-            'hermes_profile=wrong; hermes_profile_social=writer' if k == 'Cookie' else d
+            'iris_profile=wrong; iris_profile_social=writer' if k == 'Cookie' else d
         )
         assert get_profile_cookie(handler) == 'writer'
 
@@ -242,16 +242,16 @@ class TestProfileCookieHelpers:
         monkeypatch.delenv('WEBUI_PROFILE_COOKIE_NAME', raising=False)
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
         s = build_profile_cookie('alice')
-        assert 'hermes_profile=alice' in s
+        assert 'iris_profile=alice' in s
 
     def test_configured_profile_cookie_ignores_default_cookie_name(self, monkeypatch):
         from api.helpers import get_profile_cookie
 
-        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_main')
+        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_main')
         monkeypatch.setattr('api.auth.is_auth_enabled', lambda: False)
 
         handler = MagicMock()
-        handler.headers.get = lambda k, d='': 'hermes_profile=social_profile' if k == 'Cookie' else d
+        handler.headers.get = lambda k, d='': 'iris_profile=social_profile' if k == 'Cookie' else d
         assert get_profile_cookie(handler) is None
 
 
@@ -261,37 +261,37 @@ class TestProfileCookieNameResolution:
 
     def test_default_when_unset(self, monkeypatch):
         from api.helpers import PROFILE_COOKIE_NAME, get_profile_cookie_name
-        monkeypatch.delenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', raising=False)
+        monkeypatch.delenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', raising=False)
         monkeypatch.delenv('WEBUI_PROFILE_COOKIE_NAME', raising=False)
         assert get_profile_cookie_name() == PROFILE_COOKIE_NAME
 
     def test_canonical_env_overrides_default(self, monkeypatch):
         from api.helpers import get_profile_cookie_name
         monkeypatch.delenv('WEBUI_PROFILE_COOKIE_NAME', raising=False)
-        monkeypatch.setenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_alt')
-        assert get_profile_cookie_name() == 'hermes_profile_alt'
+        monkeypatch.setenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_alt')
+        assert get_profile_cookie_name() == 'iris_profile_alt'
 
     def test_legacy_env_still_honoured(self, monkeypatch):
         from api.helpers import get_profile_cookie_name
-        monkeypatch.delenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', raising=False)
-        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_legacy')
-        assert get_profile_cookie_name() == 'hermes_profile_legacy'
+        monkeypatch.delenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', raising=False)
+        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_legacy')
+        assert get_profile_cookie_name() == 'iris_profile_legacy'
 
     def test_canonical_takes_precedence_over_legacy(self, monkeypatch):
         from api.helpers import get_profile_cookie_name
-        monkeypatch.setenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', 'canonical')
+        monkeypatch.setenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', 'canonical')
         monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'legacy')
         assert get_profile_cookie_name() == 'canonical'
 
     def test_blank_canonical_falls_back_to_legacy(self, monkeypatch):
         from api.helpers import get_profile_cookie_name
-        monkeypatch.setenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', '   ')
-        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_legacy')
-        assert get_profile_cookie_name() == 'hermes_profile_legacy'
+        monkeypatch.setenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', '   ')
+        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_legacy')
+        assert get_profile_cookie_name() == 'iris_profile_legacy'
 
     def test_blank_envs_fall_back_to_default(self, monkeypatch):
         from api.helpers import PROFILE_COOKIE_NAME, get_profile_cookie_name
-        monkeypatch.setenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', '   ')
+        monkeypatch.setenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', '   ')
         monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', '')
         assert get_profile_cookie_name() == PROFILE_COOKIE_NAME
 
@@ -299,12 +299,12 @@ class TestProfileCookieNameResolution:
         # get_profile_cookie_name() runs on every request, so the deprecation
         # warning for the legacy env var must be emitted once per process.
         import api.helpers as helpers
-        monkeypatch.delenv('HERMES_WEBUI_PROFILE_COOKIE_NAME', raising=False)
-        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'hermes_profile_legacy')
+        monkeypatch.delenv('IRIS_WEBUI_PROFILE_COOKIE_NAME', raising=False)
+        monkeypatch.setenv('WEBUI_PROFILE_COOKIE_NAME', 'iris_profile_legacy')
         monkeypatch.setattr(helpers, '_legacy_profile_cookie_warned', False)
         with caplog.at_level(logging.WARNING, logger='api.helpers'):
             for _ in range(3):
-                assert helpers.get_profile_cookie_name() == 'hermes_profile_legacy'
+                assert helpers.get_profile_cookie_name() == 'iris_profile_legacy'
         warned = [r for r in caplog.records if 'deprecated' in r.getMessage()]
         assert len(warned) == 1
 
@@ -342,18 +342,18 @@ class TestThreadLocalProfileContext:
         p.clear_request_profile()
 
 
-# ── 3. get_active_hermes_home routes through TLS ─────────────────────────────
+# ── 3. get_active_iris_home routes through TLS ─────────────────────────────
 
-def test_get_active_hermes_home_respects_tls(tmp_path, monkeypatch):
+def test_get_active_iris_home_respects_tls(tmp_path, monkeypatch):
     import api.profiles as p
-    monkeypatch.setattr(p, '_DEFAULT_HERMES_HOME', tmp_path)
+    monkeypatch.setattr(p, '_DEFAULT_IRIS_HOME', tmp_path)
     profile_dir = tmp_path / 'profiles' / 'alice'
     profile_dir.mkdir(parents=True)
     try:
         p.set_request_profile('alice')
-        assert p.get_active_hermes_home() == profile_dir
+        assert p.get_active_iris_home() == profile_dir
         p.set_request_profile('default')
-        assert p.get_active_hermes_home() == tmp_path
+        assert p.get_active_iris_home() == tmp_path
     finally:
         p.clear_request_profile()
 
@@ -366,10 +366,10 @@ def test_switch_profile_process_wide_false_does_not_mutate_global():
 
     # Monkey in a fake profile listing so switch_profile finds 'alice'
     original_global = p._active_profile
-    original_env_home = os.environ.get('HERMES_HOME')
+    original_env_home = os.environ.get('IRIS_HOME')
 
     # We need a profile that exists to get past the validation path.
-    # Use 'default' — switch_profile accepts it without requiring hermes_cli.
+    # Use 'default' — switch_profile accepts it without requiring iris_cli.
     try:
         result = p.switch_profile('default', process_wide=False)
         # Global must not change
@@ -377,9 +377,9 @@ def test_switch_profile_process_wide_false_does_not_mutate_global():
             f"process_wide=False must not mutate _active_profile "
             f"(was {original_global!r}, now {p._active_profile!r})"
         )
-        # HERMES_HOME env must not change
-        assert os.environ.get('HERMES_HOME') == original_env_home, (
-            "process_wide=False must not mutate os.environ['HERMES_HOME']"
+        # IRIS_HOME env must not change
+        assert os.environ.get('IRIS_HOME') == original_env_home, (
+            "process_wide=False must not mutate os.environ['IRIS_HOME']"
         )
         # Response still shape-compatible
         assert isinstance(result, dict)

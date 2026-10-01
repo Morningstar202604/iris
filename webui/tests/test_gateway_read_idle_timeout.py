@@ -173,22 +173,22 @@ def test_eof_ends_iteration_cleanly():
 class TestReadTimeoutConfig:
 
     def test_default_is_600s(self, monkeypatch):
-        monkeypatch.delenv("HERMES_WEBUI_GATEWAY_READ_TIMEOUT", raising=False)
+        monkeypatch.delenv("IRIS_WEBUI_GATEWAY_READ_TIMEOUT", raising=False)
         assert _gateway_read_timeout_secs() == 600.0
         assert _GATEWAY_READ_TIMEOUT_DEFAULT == 600.0
 
     def test_env_override(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_GATEWAY_READ_TIMEOUT", "300")
+        monkeypatch.setenv("IRIS_WEBUI_GATEWAY_READ_TIMEOUT", "300")
         assert _gateway_read_timeout_secs() == 300.0
 
     def test_invalid_env_falls_back_to_default(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_GATEWAY_READ_TIMEOUT", "not-a-number")
+        monkeypatch.setenv("IRIS_WEBUI_GATEWAY_READ_TIMEOUT", "not-a-number")
         assert _gateway_read_timeout_secs() == 600.0
 
     def test_non_positive_env_falls_back_to_default(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_GATEWAY_READ_TIMEOUT", "0")
+        monkeypatch.setenv("IRIS_WEBUI_GATEWAY_READ_TIMEOUT", "0")
         assert _gateway_read_timeout_secs() == 600.0
 
     def test_negative_env_falls_back_to_default(self, monkeypatch):
-        monkeypatch.setenv("HERMES_WEBUI_GATEWAY_READ_TIMEOUT", "-5")
+        monkeypatch.setenv("IRIS_WEBUI_GATEWAY_READ_TIMEOUT", "-5")
         assert _gateway_read_timeout_secs() == 600.0

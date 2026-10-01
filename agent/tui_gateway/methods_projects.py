@@ -18,7 +18,7 @@ class _NoProject(Exception):
 
 
 def _projects_payload(conn) -> dict:
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     return {
         "projects": [p.to_dict() for p in pdb.list_projects(conn, include_archived=True)],
         "active_id": pdb.get_active_id(conn)}
@@ -32,7 +32,7 @@ def _projects_method(name: str):
         @_registry.profile_scoped
         def handler(rid, params: dict) -> dict:
             try:
-                from hermes_cli import projects_db as pdb
+                from iris_cli import projects_db as pdb
                 with pdb.connect_closing() as conn:
                     return fn(rid, params, pdb, conn)
             except _NoProject:
@@ -139,32 +139,32 @@ def _non_workspace_dirs() -> set[str]:
 
 def _is_repo_junk(root: str) -> bool:
     """A git root never auto-surfaced as a project: a non-workspace dir or anything under
-    HERMES_HOME. User-created projects pointing there are still honored."""
+    IRIS_HOME. User-created projects pointing there are still honored."""
     if not root:
         return True
-    from hermes_constants import get_hermes_home
+    from iris_constants import get_iris_home
     real = os.path.realpath(root)
-    hermes_home = os.path.realpath(str(get_hermes_home()))
+    iris_home = os.path.realpath(str(get_iris_home()))
     return (
         os.path.normcase(real) in _non_workspace_dirs()
-        or real == hermes_home
-        or real.startswith(hermes_home + os.sep))
+        or real == iris_home
+        or real.startswith(iris_home + os.sep))
 
 
 def _is_session_cwd_junk(cwd: str) -> bool:
-    """A non-git cwd that stays in flat Recents. A DESCENDANT of HERMES_HOME may be an
-    intentional prose/data workspace, so only HERMES_HOME itself is excluded here."""
+    """A non-git cwd that stays in flat Recents. A DESCENDANT of IRIS_HOME may be an
+    intentional prose/data workspace, so only IRIS_HOME itself is excluded here."""
     if not cwd:
         return True
-    from hermes_constants import get_hermes_home
+    from iris_constants import get_iris_home
     real = os.path.normcase(os.path.realpath(cwd))
-    hermes_home = os.path.normcase(os.path.realpath(str(get_hermes_home())))
-    return real in _non_workspace_dirs() or real == hermes_home
+    iris_home = os.path.normcase(os.path.realpath(str(get_iris_home())))
+    return real in _non_workspace_dirs() or real == iris_home
 
 
 def _repo_discovery_policy(raw: dict | None = None) -> dict:
     """Return the effective, profile-local Desktop repository scan policy."""
-    from hermes_cli.config import DEFAULT_CONFIG
+    from iris_cli.config import DEFAULT_CONFIG
     defaults = DEFAULT_CONFIG["desktop"]
     source = raw if isinstance(raw, dict) else (_load_cfg().get("desktop") or {})
     if not isinstance(source, dict):
@@ -198,7 +198,7 @@ def _repo_discovery_policy_key(policy: dict) -> str:
 
 
 def _repo_discovery_policy_is_default(policy: dict) -> bool:
-    from hermes_cli.config import DEFAULT_CONFIG
+    from iris_cli.config import DEFAULT_CONFIG
     return _repo_discovery_policy_key(policy) == _repo_discovery_policy_key(
         _repo_discovery_policy(DEFAULT_CONFIG["desktop"]))
 
@@ -210,12 +210,12 @@ def _scan_discovered_repos_remote(conn, policy: dict) -> bool:
     ``replace=True``; a partial/errored scan must MERGE, or a failed refresh blanks the sidebar.
 
     The desktop's native repo scan only runs on the local filesystem. On a remote gateway connection the
-    host must scan its own disk so repos with zero Hermes sessions still appear in the sidebar (#81723).
+    host must scan its own disk so repos with zero Iris sessions still appear in the sidebar (#81723).
     Mirrors the desktop's behavior: walk each root (bounded depth), find `.git` directories, record (root,
     label) pairs into the discovery cache.
     See #81723.
     """
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     roots = policy.get("roots") or []
     excludes = policy.get("exclude_paths") or []
     pairs: list[tuple[str, str | None]] = []
@@ -297,7 +297,7 @@ def _discover_repos_payload(
     if include_cached:
         # `last_seen` is scan time, not user activity — never fold it into `last_active`.
         try:
-            from hermes_cli import projects_db as pdb
+            from iris_cli import projects_db as pdb
             with (contextlib.nullcontext(conn) if conn is not None else pdb.connect_closing()) as c:
                 for entry in pdb.list_discovered_repos(c):
                     root = str(entry.get("root") or "")
@@ -347,7 +347,7 @@ def _project_tree_inputs(
     sessions = [_project_tree_row(r) for r in rows]
     # Parallel-warm the git cache so build_tree's resolver doesn't cold-probe each cwd in turn.
     git_probe.warm_roots(s["cwd"] for s in sessions if s.get("cwd"))
-    from hermes_cli import projects_db as pdb
+    from iris_cli import projects_db as pdb
     policy = _repo_discovery_policy()
     policy_key = _repo_discovery_policy_key(policy)
     with pdb.connect_closing() as conn:

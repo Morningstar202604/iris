@@ -1,7 +1,7 @@
 """Regression tests for issue #1447 — markdown heading visual hierarchy.
 
 Cygnus reported (Discord, May 1 2026, relayed by @AvidFuturist):
-    "Headings seem to be missing across the board in Hermes. They're there,
+    "Headings seem to be missing across the board in Iris. They're there,
      but all plaintext. They get lost so easily in all the plaintext."
 
 Pre-fix sizes (smaller-than-or-equal to body 14px):

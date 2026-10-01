@@ -26,9 +26,9 @@ Coverage
 3.  ``_detect_supervisor()`` returns the env-var name on each known supervisor
     (``INVOCATION_ID`` / ``JOURNAL_STREAM`` / ``NOTIFY_SOCKET`` /
     ``XPC_SERVICE_NAME`` / ``SUPERVISOR_ENABLED``)
-4.  ``_detect_supervisor()`` returns ``HERMES_WEBUI_FOREGROUND`` for the
+4.  ``_detect_supervisor()`` returns ``IRIS_WEBUI_FOREGROUND`` for the
     explicit opt-in, accepting ``1``/``true``/``yes``/``on`` (case-insensitive)
-5.  ``_detect_supervisor()`` ignores ``HERMES_WEBUI_FOREGROUND=0`` /
+5.  ``_detect_supervisor()`` ignores ``IRIS_WEBUI_FOREGROUND=0`` /
     ``=false`` / ``=`` and falls through to env-var probing
 6.  ``XPC_SERVICE_NAME`` noise filter: bare ``"0"`` and ``application.<id>``
     values do NOT trigger foreground (the macOS Terminal default state),
@@ -40,8 +40,8 @@ Coverage
 9.  Default ``main()`` path (no flag, clean env) still uses ``Popen``
 10. Foreground path chdir's to ``agent_dir or REPO_ROOT`` before execv (matches
     the cwd the legacy Popen uses)
-11. Foreground path exports ``HERMES_WEBUI_HOST`` / ``HERMES_WEBUI_PORT`` /
-    ``HERMES_WEBUI_AGENT_DIR`` / ``HERMES_WEBUI_STATE_DIR`` to ``os.environ``
+11. Foreground path exports ``IRIS_WEBUI_HOST`` / ``IRIS_WEBUI_PORT`` /
+    ``IRIS_WEBUI_AGENT_DIR`` / ``IRIS_WEBUI_STATE_DIR`` to ``os.environ``
     so the post-exec server picks them up
 12. Foreground path skips ``wait_for_health`` (no client to retry from)
 13. ``--foreground`` help text mentions launchd / systemd / supervisord
@@ -74,7 +74,7 @@ def clean_env(monkeypatch):
     """Strip all known supervisor env vars + resolved bootstrap vars so each
     test starts from a known-clean state.
 
-    The resolved-vars stripping (HERMES_WEBUI_HOST etc.) prevents leakage
+    The resolved-vars stripping (IRIS_WEBUI_HOST etc.) prevents leakage
     where a previous test's ``main()`` mutated ``os.environ`` and a later
     test re-imports ``bootstrap``, picking up the polluted defaults. With
     these stripped, ``DEFAULT_HOST`` / ``DEFAULT_PORT`` fall back to their
@@ -87,16 +87,16 @@ def clean_env(monkeypatch):
         "NOTIFY_SOCKET",
         "XPC_SERVICE_NAME",
         "SUPERVISOR_ENABLED",
-        "HERMES_WEBUI_FOREGROUND",
+        "IRIS_WEBUI_FOREGROUND",
         # Bootstrap-resolved env vars (mutated by main(), can leak across tests)
-        "HERMES_WEBUI_HOST",
-        "HERMES_WEBUI_PORT",
-        "HERMES_WEBUI_AGENT_DIR",
-        "HERMES_WEBUI_PYTHON",
-        "HERMES_WEBUI_DISABLE_LOCAL_VENV",
-        "HERMES_WEBUI_STATE_DIR",
-        "HERMES_WEBUI_SERVER_CWD",
-        "HERMES_HOME",
+        "IRIS_WEBUI_HOST",
+        "IRIS_WEBUI_PORT",
+        "IRIS_WEBUI_AGENT_DIR",
+        "IRIS_WEBUI_PYTHON",
+        "IRIS_WEBUI_DISABLE_LOCAL_VENV",
+        "IRIS_WEBUI_STATE_DIR",
+        "IRIS_WEBUI_SERVER_CWD",
+        "IRIS_HOME",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -161,21 +161,21 @@ class TestDetectSupervisor:
 
     @pytest.mark.parametrize("value", ["1", "true", "TRUE", "yes", "Yes", "on", "ON"])
     def test_explicit_opt_in_truthy_values(self, import_bootstrap, clean_env, monkeypatch, value):
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", value)
-        assert import_bootstrap._detect_supervisor() == "HERMES_WEBUI_FOREGROUND"
+        monkeypatch.setenv("IRIS_WEBUI_FOREGROUND", value)
+        assert import_bootstrap._detect_supervisor() == "IRIS_WEBUI_FOREGROUND"
 
     @pytest.mark.parametrize("value", ["0", "false", "FALSE", "no", "off", "", "  "])
     def test_explicit_opt_in_falsy_values_fall_through(self, import_bootstrap, clean_env, monkeypatch, value):
-        # When HERMES_WEBUI_FOREGROUND is falsy, we should NOT short-circuit on it.
+        # When IRIS_WEBUI_FOREGROUND is falsy, we should NOT short-circuit on it.
         # If no other supervisor var is set, returns None.
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", value)
+        monkeypatch.setenv("IRIS_WEBUI_FOREGROUND", value)
         assert import_bootstrap._detect_supervisor() is None
 
     def test_explicit_opt_in_takes_precedence_over_supervisor_var(self, import_bootstrap, clean_env, monkeypatch):
         # Both set → explicit flag wins (returned name reflects user intent).
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", "1")
+        monkeypatch.setenv("IRIS_WEBUI_FOREGROUND", "1")
         monkeypatch.setenv("INVOCATION_ID", "deadbeef")
-        assert import_bootstrap._detect_supervisor() == "HERMES_WEBUI_FOREGROUND"
+        assert import_bootstrap._detect_supervisor() == "IRIS_WEBUI_FOREGROUND"
 
 
 class TestXPCServiceNameNoiseFilter:
@@ -201,7 +201,7 @@ class TestXPCServiceNameNoiseFilter:
         )
 
     @pytest.mark.parametrize("real_value", [
-        "com.example.hermes-webui",
+        "com.example.iris-webui",
         "com.acme.production-server",
         "io.github.user.my-service",
     ])
@@ -239,12 +239,12 @@ class TestMainForegroundRouting:
         python_exe = sys.executable
         monkeypatch.setattr(bs, "ensure_supported_platform", lambda: None)
         monkeypatch.setattr(bs, "discover_agent_dir", lambda: tmp_path / "agent")
-        monkeypatch.setattr(bs, "hermes_command_exists", lambda: True)
+        monkeypatch.setattr(bs, "iris_command_exists", lambda: True)
         monkeypatch.setattr(bs, "discover_launcher_python", lambda *a: python_exe)
         monkeypatch.setattr(bs, "ensure_python_has_webui_deps", lambda *a, **kw: a[0])
         monkeypatch.setattr(bs, "wait_for_health", lambda *a, **kw: True)
         monkeypatch.setattr(bs, "open_browser", lambda *a, **kw: None)
-        monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(tmp_path / "state"))
+        monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(tmp_path / "state"))
         # Make agent_dir exist so chdir doesn't fail.
         (tmp_path / "agent").mkdir(parents=True, exist_ok=True)
         return bs
@@ -337,7 +337,7 @@ class TestMainForegroundRouting:
         bs = stub_main_dependencies
         monkeypatch.setattr(sys, "argv", ["bootstrap.py"])  # no --foreground flag
         monkeypatch.setattr(sys, "platform", "linux")
-        monkeypatch.setenv("HERMES_WEBUI_FOREGROUND", "1")
+        monkeypatch.setenv("IRIS_WEBUI_FOREGROUND", "1")
 
         execv_calls = []
         def fake_execv(path, argv):
@@ -351,12 +351,12 @@ class TestMainForegroundRouting:
             bs.main()
         assert len(execv_calls) == 1
 
-    def test_foreground_defaults_state_dir_to_hermes_home_webui(self, stub_main_dependencies, clean_env, monkeypatch, tmp_path):
+    def test_foreground_defaults_state_dir_to_iris_home_webui(self, stub_main_dependencies, clean_env, monkeypatch, tmp_path):
         bs = stub_main_dependencies
-        hermes_home = tmp_path / ".hermes" / "profiles" / "webui"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-        monkeypatch.delenv("HERMES_WEBUI_STATE_DIR", raising=False)
+        iris_home = tmp_path / ".iris" / "profiles" / "webui"
+        iris_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv("IRIS_HOME", str(iris_home))
+        monkeypatch.delenv("IRIS_WEBUI_STATE_DIR", raising=False)
         monkeypatch.setattr(sys, "argv", ["bootstrap.py", "--foreground"])
         monkeypatch.setattr(sys, "platform", "linux")
         monkeypatch.setattr(os, "chdir", lambda p: None)
@@ -370,7 +370,7 @@ class TestMainForegroundRouting:
         with pytest.raises(SystemExit):
             bs.main()
 
-        assert os.environ["HERMES_WEBUI_STATE_DIR"] == str(hermes_home / "webui")
+        assert os.environ["IRIS_WEBUI_STATE_DIR"] == str(iris_home / "webui")
 
 
 class TestForegroundEnvAndCwd:
@@ -384,13 +384,13 @@ class TestForegroundEnvAndCwd:
         agent_dir = tmp_path / "agent"
         agent_dir.mkdir()
         monkeypatch.setattr(bs, "discover_agent_dir", lambda: agent_dir)
-        monkeypatch.setattr(bs, "hermes_command_exists", lambda: True)
+        monkeypatch.setattr(bs, "iris_command_exists", lambda: True)
         monkeypatch.setattr(bs, "discover_launcher_python", lambda *a: python_exe)
         monkeypatch.setattr(bs, "ensure_python_has_webui_deps", lambda *a, **kw: a[0])
         monkeypatch.setattr(bs, "wait_for_health", lambda *a, **kw: True)
         monkeypatch.setattr(bs, "open_browser", lambda *a, **kw: None)
         # State-dir + every var we care about is captured.
-        monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(tmp_path / "state"))
+        monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(tmp_path / "state"))
         return bs, agent_dir
 
     def test_foreground_chdirs_to_agent_dir_before_exec(self, setup, monkeypatch, clean_env):
@@ -414,7 +414,7 @@ class TestForegroundEnvAndCwd:
         bs, _agent_dir = setup
         workspace = tmp_path / "workspace"
         workspace.mkdir()
-        monkeypatch.setenv("HERMES_WEBUI_SERVER_CWD", str(workspace))
+        monkeypatch.setenv("IRIS_WEBUI_SERVER_CWD", str(workspace))
         monkeypatch.setattr(sys, "argv", ["bootstrap.py", "--foreground"])
         monkeypatch.setattr(sys, "platform", "linux")
 
@@ -435,7 +435,7 @@ class TestForegroundEnvAndCwd:
         bs, _agent_dir = setup
         workspace = tmp_path / "workspace-win"
         workspace.mkdir()
-        monkeypatch.setenv("HERMES_WEBUI_SERVER_CWD", str(workspace))
+        monkeypatch.setenv("IRIS_WEBUI_SERVER_CWD", str(workspace))
         monkeypatch.setattr(sys, "argv", ["bootstrap.py", "--foreground"])
         monkeypatch.setattr(sys, "platform", "win32")
         monkeypatch.setattr(os, "chdir", lambda p: None)
@@ -470,11 +470,11 @@ class TestForegroundEnvAndCwd:
 
         # Post-execv server.py inherits these — verify we set them on os.environ
         # (not just a local copy).
-        assert os.environ["HERMES_WEBUI_HOST"] == "0.0.0.0"
-        assert os.environ["HERMES_WEBUI_PORT"] == "9119"
-        assert os.environ["HERMES_WEBUI_AGENT_DIR"] == str(agent_dir)
+        assert os.environ["IRIS_WEBUI_HOST"] == "0.0.0.0"
+        assert os.environ["IRIS_WEBUI_PORT"] == "9119"
+        assert os.environ["IRIS_WEBUI_AGENT_DIR"] == str(agent_dir)
         # state-dir was already set by the fixture; verify it survived.
-        assert "HERMES_WEBUI_STATE_DIR" in os.environ
+        assert "IRIS_WEBUI_STATE_DIR" in os.environ
 
     def test_foreground_does_not_call_wait_for_health(self, setup, monkeypatch, clean_env):
         bs, _ = setup
@@ -513,10 +513,10 @@ class TestForegroundExecutabilityGuard:
         bad_python.chmod(0o644)  # NOT executable
         monkeypatch.setattr(bs, "ensure_supported_platform", lambda: None)
         monkeypatch.setattr(bs, "discover_agent_dir", lambda: agent_dir)
-        monkeypatch.setattr(bs, "hermes_command_exists", lambda: True)
+        monkeypatch.setattr(bs, "iris_command_exists", lambda: True)
         monkeypatch.setattr(bs, "discover_launcher_python", lambda *a: str(bad_python))
         monkeypatch.setattr(bs, "ensure_python_has_webui_deps", lambda *a, **kw: a[0])
-        monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(tmp_path / "state"))
+        monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(tmp_path / "state"))
         return bs
 
     def test_non_executable_python_raises_runtime_error(self, setup_with_bad_python, monkeypatch, clean_env):
@@ -544,10 +544,10 @@ def test_package_python_discovers_agent_before_skip_install_gate(import_bootstra
     python_exe = sys.executable
     execv_calls = []
 
-    monkeypatch.setenv("HERMES_WEBUI_PYTHON", python_exe)
-    monkeypatch.setenv("HERMES_WEBUI_DISABLE_LOCAL_VENV", "1")
-    monkeypatch.setenv("HERMES_WEBUI_STATE_DIR", str(state_dir))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("IRIS_WEBUI_PYTHON", python_exe)
+    monkeypatch.setenv("IRIS_WEBUI_DISABLE_LOCAL_VENV", "1")
+    monkeypatch.setenv("IRIS_WEBUI_STATE_DIR", str(state_dir))
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path / "iris-home"))
     monkeypatch.setenv("PYTHONPATH", str(agent_dir))
     monkeypatch.setenv("PATH", "")
     monkeypatch.setattr(bs, "REPO_ROOT", tmp_path / "webui")
@@ -564,11 +564,11 @@ def test_package_python_discovers_agent_before_skip_install_gate(import_bootstra
 
     monkeypatch.setattr(os, "execv", fake_execv)
 
-    with patch.object(bs, "install_hermes_agent") as mock_install, patch.object(bs.venv, "EnvBuilder") as mock_builder, pytest.raises(SystemExit):
+    with patch.object(bs, "install_iris_agent") as mock_install, patch.object(bs.venv, "EnvBuilder") as mock_builder, pytest.raises(SystemExit):
         bs.main()
 
     assert execv_calls == [(python_exe, [python_exe, str(bs.REPO_ROOT / "server.py")])]
-    assert os.environ["HERMES_WEBUI_AGENT_DIR"] == str(agent_dir.resolve())
+    assert os.environ["IRIS_WEBUI_AGENT_DIR"] == str(agent_dir.resolve())
     mock_install.assert_not_called()
     mock_builder.assert_not_called()
 
@@ -577,16 +577,16 @@ def test_package_python_without_agent_stays_fail_closed(import_bootstrap, clean_
     bs = import_bootstrap
     python_exe = sys.executable
 
-    monkeypatch.setenv("HERMES_WEBUI_PYTHON", python_exe)
-    monkeypatch.setenv("HERMES_WEBUI_DISABLE_LOCAL_VENV", "1")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("IRIS_WEBUI_PYTHON", python_exe)
+    monkeypatch.setenv("IRIS_WEBUI_DISABLE_LOCAL_VENV", "1")
+    monkeypatch.setenv("IRIS_HOME", str(tmp_path / "iris-home"))
     monkeypatch.setenv("PATH", "")
     monkeypatch.setattr(bs, "REPO_ROOT", tmp_path / "webui")
     monkeypatch.setattr(bs.Path, "home", classmethod(lambda cls: tmp_path / "home"))
     monkeypatch.setattr(bs, "ensure_supported_platform", lambda: None)
     monkeypatch.setattr(sys, "argv", ["bootstrap.py", "--foreground", "--skip-agent-install"])
 
-    with patch.object(bs, "_agent_dir_from_python", return_value=None) as mock_probe, patch.object(bs, "install_hermes_agent") as mock_install, patch.object(bs.venv, "EnvBuilder") as mock_builder, patch.object(os, "execv") as mock_execv, pytest.raises(RuntimeError, match="Hermes Agent was not found"):
+    with patch.object(bs, "_agent_dir_from_python", return_value=None) as mock_probe, patch.object(bs, "install_iris_agent") as mock_install, patch.object(bs.venv, "EnvBuilder") as mock_builder, patch.object(os, "execv") as mock_execv, pytest.raises(RuntimeError, match="Iris Agent was not found"):
         bs.main()
 
     mock_probe.assert_called_once_with(python_exe)

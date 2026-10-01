@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@iris/shared'
 
 /** Session ids the gateway has told us are gone. A session-scoped RPC against a
  *  runtime the gateway no longer holds fails 4001 "session not found" — terminal

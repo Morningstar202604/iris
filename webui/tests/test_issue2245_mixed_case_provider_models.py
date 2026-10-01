@@ -35,15 +35,15 @@ def _isolate_models_cache(tmp_path, monkeypatch):
     config.invalidate_models_cache()
 
 
-def _stub_hermes_cli(monkeypatch):
-    """Stub hermes_cli so no real CLI/agent calls happen."""
-    fake_models = types.ModuleType("hermes_cli.models")
+def _stub_iris_cli(monkeypatch):
+    """Stub iris_cli so no real CLI/agent calls happen."""
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: []
     fake_models.provider_model_ids = lambda _pid: []
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {"key_source": "none"}
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(
         config,
         "_get_auth_store_path",
@@ -78,7 +78,7 @@ def _with_config(cfg_dict: dict):
 def test_mixed_case_provider_key_produces_configured_models(monkeypatch):
     """A provider key like ``CLIPpoxy`` must feed its configured models into
     the picker after canonicalisation to ``clippoxy``."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     restore = _with_config(
@@ -130,7 +130,7 @@ def test_mixed_case_provider_key_produces_configured_models(monkeypatch):
 def test_underscore_provider_key_produces_configured_models(monkeypatch):
     """A provider key like ``snake_case_provider`` must canonicalise to
     ``snake-case-provider`` and still surface its configured models."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     restore = _with_config(
@@ -180,7 +180,7 @@ def test_underscore_provider_key_produces_configured_models(monkeypatch):
 def test_builtin_provider_still_resolves(monkeypatch):
     """A built-in provider like ``anthropic`` must still resolve through the
     same branch without regression."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     restore = _with_config(
@@ -217,7 +217,7 @@ def test_builtin_provider_still_resolves(monkeypatch):
 def test_provider_models_fallback_when_no_config_key(monkeypatch):
     """A provider in _PROVIDER_MODELS but NOT in cfg["providers"] must
     still fall back to the static model list."""
-    _stub_hermes_cli(monkeypatch)
+    _stub_iris_cli(monkeypatch)
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
     restore = _with_config(

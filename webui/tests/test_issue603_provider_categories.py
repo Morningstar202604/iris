@@ -90,7 +90,7 @@ class TestProviderCatalog:
             assert meta["default_base_url"], f"Provider {pid} missing default_base_url"
 
     def test_google_uses_gemini_key(self):
-        """Google Gemini must use 'gemini' as provider ID (matches Hermes CLI)."""
+        """Google Gemini must use 'gemini' as provider ID (matches Iris CLI)."""
         assert "gemini" in _SUPPORTED_PROVIDER_SETUPS
         assert "google" not in _SUPPORTED_PROVIDER_SETUPS
 
@@ -206,7 +206,7 @@ class TestApplyBaseURL:
         env_path = str(tmp_path / ".env")
 
         monkeypatch.setattr("api.onboarding._get_config_path", lambda: config_path)
-        monkeypatch.setattr("api.onboarding._get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr("api.onboarding._get_active_iris_home", lambda: tmp_path)
         monkeypatch.setattr("api.onboarding._load_yaml_config", lambda p: {})
         monkeypatch.setattr(
             "api.onboarding._normalize_model_for_provider", lambda prov, m: m
@@ -236,7 +236,7 @@ class TestApplyBaseURL:
         config_path = str(tmp_path / "config.yaml")
 
         monkeypatch.setattr("api.onboarding._get_config_path", lambda: config_path)
-        monkeypatch.setattr("api.onboarding._get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr("api.onboarding._get_active_iris_home", lambda: tmp_path)
         monkeypatch.setattr("api.onboarding._load_yaml_config", lambda p: {})
         monkeypatch.setattr(
             "api.onboarding._normalize_model_for_provider", lambda prov, m: m
@@ -260,11 +260,11 @@ class TestApplyBaseURL:
         assert saved_cfg["model"]["base_url"] == "https://api.openai.com/v1"
 
     def test_base_url_stripped_for_anthropic(self, tmp_path, monkeypatch):
-        """Anthropic should NOT have base_url in config (Hermes knows the URL)."""
+        """Anthropic should NOT have base_url in config (Iris knows the URL)."""
         config_path = str(tmp_path / "config.yaml")
 
         monkeypatch.setattr("api.onboarding._get_config_path", lambda: config_path)
-        monkeypatch.setattr("api.onboarding._get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr("api.onboarding._get_active_iris_home", lambda: tmp_path)
         monkeypatch.setattr("api.onboarding._load_yaml_config", lambda p: {})
         monkeypatch.setattr(
             "api.onboarding._normalize_model_for_provider", lambda prov, m: m
@@ -335,7 +335,7 @@ class TestApplyBaseURLSpecialized:
         model = self._PROVIDER_DEFAULT_MODELS.get(provider, "test-model")
 
         monkeypatch.setattr("api.onboarding._get_config_path", lambda: config_path)
-        monkeypatch.setattr("api.onboarding._get_active_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr("api.onboarding._get_active_iris_home", lambda: tmp_path)
         monkeypatch.setattr("api.onboarding._load_yaml_config", lambda p: {})
         monkeypatch.setattr("api.onboarding._normalize_model_for_provider", lambda prov, m: m)
         monkeypatch.setattr("api.onboarding._write_env_file", lambda p, d: None)

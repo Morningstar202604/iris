@@ -1,5 +1,5 @@
 """Real-profile local browsing: snapshot the user's default Chromium profile into a
-hermes-owned copy, launch the real browser binary on it, and attach agent-browser.
+iris-owned copy, launch the real browser binary on it, and attach agent-browser.
 
 State (``_REAL_PROFILE_SESSION``, ``_real_profile_cdp_lock``, ``_real_profile_cdp_cache``,
 ``_real_profile_chrome_procs``) lives in ``tools.browser_tool``; it is read
@@ -40,7 +40,7 @@ def _cdp_http_ready(http_cdp: str) -> bool:
 def _real_profile_daemon_env() -> dict:
     """Reaper-visible socket dir + ``owner_pid`` claim like every other lane (agent-browser's
     default dir is invisible to the reaper — #100855). The daemon-side idle timeout is dropped:
-    Chrome is launched by Hermes, not the daemon, so a self-exiting daemon would leave Chrome
+    Chrome is launched by Iris, not the daemon, so a self-exiting daemon would leave Chrome
     holding the copy dir under the next snapshot overlay."""
     _bt = _origin()
     socket_dir = _session._prepare_session_socket_dir(_bt._REAL_PROFILE_SESSION)
@@ -128,7 +128,7 @@ def _real_profile_unsupported_reason(browser) -> Optional[str]:
     A pre-release channel lives in a profile dir we don't resolve; normalizing to the stable
     family would drive a DIFFERENT profile/account (wrong-principal bug), so refuse rather than guess.
     """
-    from hermes_cli.browser_connect import UNSUPPORTED_CHANNEL
+    from iris_cli.browser_connect import UNSUPPORTED_CHANNEL
     if browser is None:
         return (_RP + "your default browser is not a supported Chromium browser (Chrome, Edge, Brave, "
                 "Brave Origin, Chromium). Real-profile browsing requires a Chromium default; set one or turn the toggle off.")
@@ -142,10 +142,10 @@ def _real_profile_unsupported_reason(browser) -> Optional[str]:
 def _real_profile_snapshot_error(err: str) -> str:
     """User-facing message for a failed profile snapshot; a locked profile adds the approved-close
     command, which the agent must ASK the user about first (it quits their browser)."""
-    from hermes_cli.browser_connect import _PROFILE_LOCKED_PREFIX
+    from iris_cli.browser_connect import _PROFILE_LOCKED_PREFIX
     if err and err.startswith(_PROFILE_LOCKED_PREFIX):
         return (err[len(_PROFILE_LOCKED_PREFIX):] + " To close it (only after the user approves — it "
-                "quits their browser and loses unsaved tabs), run: `hermes browser close-profile`, then retry.")
+                "quits their browser and loses unsaved tabs), run: `iris browser close-profile`, then retry.")
     return f"{_RP}{err}"
 
 
@@ -236,7 +236,7 @@ def _real_profile_cdp() -> tuple:
         # Consent is off: delete any snapshot store (copies of cookies/logins) so
         # revoking consent actually removes the credential copies.
         try:
-            from hermes_cli.browser_connect import cleanup_real_profile_snapshots
+            from iris_cli.browser_connect import cleanup_real_profile_snapshots
             cleanup_real_profile_snapshots()
         except Exception as e:
             _bt.logger.debug("real-profile cleanup-on-consent-off failed: %s", e)
@@ -249,7 +249,7 @@ def _real_profile_cdp() -> tuple:
         return None, (_RP + "browser.engine is set to 'lightpanda', which cannot load a real Chromium profile. "
                       "Set browser.engine to 'auto' or 'chrome' to use real-profile browsing, or turn the toggle off.")
 
-    from hermes_cli.browser_connect import (chromium_executable, detect_default_chromium,
+    from iris_cli.browser_connect import (chromium_executable, detect_default_chromium,
                                             real_profile_copy_dir, snapshot_real_profile)
 
     with _bt._real_profile_cdp_lock:
@@ -268,7 +268,7 @@ def _real_profile_cdp() -> tuple:
 
         # Reuse BEFORE writing anything. CRITICAL: the snapshot overlay (truncates/rewrites
         # Cookies / Login Data) must NOT run while a live copy-browser (maybe from a previous
-        # hermes process) holds the user-data-dir open — that corrupts the databases.
+        # iris process) holds the user-data-dir open — that corrupts the databases.
         copy_dir = real_profile_copy_dir(browser)
         existing = _agent_browser_get_cdp(_bt._REAL_PROFILE_SESSION)
         if existing and _cdp_http_ready(existing) and _cdp_on_data_dir(existing, copy_dir):
@@ -276,7 +276,7 @@ def _real_profile_cdp() -> tuple:
             return existing, None
         if existing:  # stale/wrong-dir session: close it so nothing holds the dir open
             _agent_browser_close_session(_bt._REAL_PROFILE_SESSION)
-        # A Chrome from an earlier hermes process can still hold the copy dir after its attach
+        # A Chrome from an earlier iris process can still hold the copy dir after its attach
         # daemon was reaped (that owner died). Re-attach to it rather than overlay a live profile;
         # if the daemon cannot attach, fail closed — never snapshot over an open profile. Not ours
         # to terminate (no Popen handle): it lives until the user closes it, by design.

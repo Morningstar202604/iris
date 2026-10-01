@@ -233,7 +233,7 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
   const gateway = useStore($gateway)
   const [submitting, setSubmitting] = useState<ApprovalChoice | null>(null)
   const submittingRef = useRef(false)
-  // "Always allow" persists the pattern to ~/.hermes/config.yaml permanently, so
+  // "Always allow" persists the pattern to ~/.iris/config.yaml permanently, so
   // it goes through a confirm step rather than firing straight from the menu.
   const [confirmAlways, setConfirmAlways] = useState(false)
 

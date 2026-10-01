@@ -1,4 +1,4 @@
-# Hermes Web UI: Browser Testing Plan
+# Iris Web UI: Browser Testing Plan
 
 > This document is for manual browser testing by you or by a Claude browser agent.
 > It covers user-facing features of the UI across current releases.
@@ -114,7 +114,7 @@ that breaks the page for everyone).
 `tests/browser_conversation_lifecycle.py` adds a public deterministic
 multi-row lifecycle gate. It drives the real composer and real WebUI server in Chromium,
 while a localhost-only fixture supplies reasoning, tool, process, and final/error
-events through the existing Hermes Gateway Runs API. The gate now covers both
+events through the existing Iris Gateway Runs API. The gate now covers both
 normal and terminal-error proof-matrix rows, asserting semantic activity during
 live streaming, after settlement, and after hard reload, including
 transcript-backed `activity_scene_v1` persistence and zero unexpected browser
@@ -218,7 +218,7 @@ Work through sections in order. Each section builds on the previous.
 ## Section 1: Initial Load and Empty State
 
 ### T1.1: Fresh Load Shows Empty State
-SETUP: Clear localStorage (DevTools > Application > Local Storage > delete hermes-webui-session) or open in incognito.
+SETUP: Clear localStorage (DevTools > Application > Local Storage > delete iris-webui-session) or open in incognito.
 STEPS:
   1. Navigate to http://localhost:8787
 EXPECT:
@@ -226,7 +226,7 @@ EXPECT:
   - Sidebar begins directly with the icon tab row; there is no dedicated branding header
   - Center area shows "What can I help with?" heading with suggestion buttons
   - Session list in sidebar is empty or shows existing sessions
-  - Sidebar footer shows a single "Hermes WebUI" control-center button
+  - Sidebar footer shows a single "Iris WebUI" control-center button
   - No session is highlighted active
   - Send button is present but there is no input focus by default
 FAIL: Page shows error, blank white screen, or auto-creates a new session without user action.
@@ -239,7 +239,7 @@ EXPECT:
   - A new session is created automatically (since none existed)
   - The text "What files are in this workspace?" appears as the user message
   - Thinking dots appear below the user message
-  - After a few seconds, Hermes responds
+  - After a few seconds, Iris responds
 FAIL: Button does nothing, error appears, or page crashes.
 
 ---
@@ -267,7 +267,7 @@ EXPECT:
   - Thinking dots (three animated dots) appear below
   - Send button becomes disabled (grayed out)
   - A red stop button appears in the composer footer while the turn is running
-  - Within 10-30 seconds, Hermes responds with a three-word greeting
+  - Within 10-30 seconds, Iris responds with a three-word greeting
   - Thinking dots disappear
   - Send button re-enables and the stop button disappears
   - Session title in sidebar updates to reflect the first message
@@ -393,8 +393,8 @@ STEPS:
 EXPECT:
   - Upload progress bar briefly appears
   - User message shows the message text plus a file badge with the filename
-  - Hermes responds describing or reading the file content
-FAIL: Upload fails, file badge never appears, Hermes does not mention the file.
+  - Iris responds describing or reading the file content
+FAIL: Upload fails, file badge never appears, Iris does not mention the file.
 
 ### T4.3: Drag and Drop a File
 SETUP: Active session, a file ready on your desktop.
@@ -606,7 +606,7 @@ FAIL: Dialog does not appear, path not saved, error on invalid path.
 ### T7.1: Dangerous Command Shows Approval Card
 SETUP: Active session with a test-workspace (NOT a production directory).
 STEPS:
-  1. Type: "Run the command: rm -rf /tmp/hermes_test_delete_me"
+  1. Type: "Run the command: rm -rf /tmp/iris_test_delete_me"
   2. Send the message
 EXPECT:
   - Thinking dots appear
@@ -628,14 +628,14 @@ EXPECT:
 FAIL: Command executes despite deny, card stays up, error.
 
 ### T7.3: Allow Once Executes the Command
-SETUP: Create a safe test: type "Run: touch /tmp/hermes_approval_test.txt"
+SETUP: Create a safe test: type "Run: touch /tmp/iris_approval_test.txt"
 STEPS:
   1. Send the message
   2. When approval card appears, click "Allow once"
 EXPECT:
   - Approval card disappears
   - Agent continues and reports the command ran successfully
-  - Verify: open a terminal and run: ls /tmp/hermes_approval_test.txt
+  - Verify: open a terminal and run: ls /tmp/iris_approval_test.txt
 FAIL: Command blocked after Allow once, card stays, error.
 
 ---
@@ -645,10 +645,10 @@ FAIL: Command blocked after Allow once, card stays, error.
 ### T8.1: Download Conversation as Markdown
 SETUP: A session with at least 2 messages (1 user + 1 assistant).
 STEPS:
-  1. Click the "Hermes" button in the sidebar footer
+  1. Click the "Iris" button in the sidebar footer
   2. In the Control Center modal, click "Transcript"
 EXPECT:
-  - Browser downloads a .md file named hermes-{session_id}.md
+  - Browser downloads a .md file named iris-{session_id}.md
   - Opening the file shows the conversation in markdown format:
     ## user
     (message text)
@@ -659,13 +659,13 @@ FAIL: No download triggered, file is empty, file is corrupted JSON instead of ma
 ### T8.2: Create and Revoke a Public Share Link
 SETUP: A session with at least 2 visible messages (1 user + 1 assistant).
 STEPS:
-  1. Click the "Hermes" button in the sidebar footer
+  1. Click the "Iris" button in the sidebar footer
   2. In the Conversation section, click "Share"
 EXPECT:
   - A public `/share/<token>` page opens in a new tab
   - The link is copied to the clipboard
   - The Conversation section meta line shows that a public share is active
-  - The shared page uses the current Hermes theme/skin and shows only a read-only transcript snapshot
+  - The shared page uses the current Iris theme/skin and shows only a read-only transcript snapshot
 FAIL: No link opens, the page requires login unexpectedly, or the shared page exposes workspace/profile/live controls.
 
 STEPS:
@@ -742,8 +742,8 @@ FAIL: Sidebar causes layout overflow or blocks chat.
 ### T11.3: Structured Log Output
 SETUP: SSH access to the server.
 STEPS:
-  1. In a terminal: tail -f ~/.hermes/webui/bootstrap-8787.log
-     (or tail -f ~/.hermes/webui.log when launched through `ctl.sh`)
+  1. In a terminal: tail -f ~/.iris/webui/bootstrap-8787.log
+     (or tail -f ~/.iris/webui.log when launched through `ctl.sh`)
   2. In browser: perform any action (load page, send message, click file)
 EXPECT:
   - Log entries appear in terminal as JSON: {"ts":"...","method":"GET","path":"/health","status":200,"ms":0.1}
@@ -767,7 +767,7 @@ FAIL: Multiple messages sent while one is in flight.
 ### T12.2: Upload Failure Shows Status
 SETUP: Active session.
 STEPS:
-  1. Try to attach a file larger than the configured upload limit (20MB by default; overridden by `HERMES_WEBUI_MAX_UPLOAD_MB` if set)
+  1. Try to attach a file larger than the configured upload limit (20MB by default; overridden by `IRIS_WEBUI_MAX_UPLOAD_MB` if set)
 EXPECT:
   - Status bar shows an error message about file size or the upload is rejected
   - The chat is not broken (can still send messages)
@@ -828,8 +828,8 @@ If you are a Claude agent with browser access, follow these instructions:
    d. Record PASS or FAIL with a brief note on what you observed.
 3. For tests requiring file uploads: use the browser's file picker; you may need to
    create test files in /tmp first via terminal.
-4. For T7.x (approval tests): the agent running inside Hermes needs to detect a
-   dangerous command. Ask Hermes to "run: rm -rf /tmp/test_hermes_approval" and watch
+4. For T7.x (approval tests): the agent running inside Iris needs to detect a
+   dangerous command. Ask Iris to "run: rm -rf /tmp/test_iris_approval" and watch
    for the card. The actual rm will not run in a safe test workspace.
 5. Skip T9.1 (reconnect banner) unless you can precisely time a page reload during an
    active SSE stream.
@@ -1264,7 +1264,7 @@ SETUP: A chat session with at least one message.
 STEPS:
   1. Hover over any chat message (user or assistant)
 EXPECT:
-  - A small clipboard icon appears in the message header row (right side of "You" or "Hermes")
+  - A small clipboard icon appears in the message header row (right side of "You" or "Iris")
   - Icon is not visible when not hovering
 FAIL: No icon ever appears, always visible.
 
@@ -1371,11 +1371,11 @@ FAIL: Text labels showing alongside icons causing overflow, "Spaces" tab cut off
 
 ### T25.2: Message Role Labels are Softer
 EXPECT:
-  - "You" and "Hermes" labels appear in slightly muted blue/gold (not full-brightness)
+  - "You" and "Iris" labels appear in slightly muted blue/gold (not full-brightness)
   - Labels use Title Case not ALL CAPS
   - Role icons are circles (not squares) with a subtle border
   - The role label area does not visually overpower the message content below
-FAIL: Bright gold "HERMES" and blue "YOU" in caps drawing eye away from content.
+FAIL: Bright gold "IRIS" and blue "YOU" in caps drawing eye away from content.
 
 ### T25.3: Code Blocks Have a Connected Language Header
 EXPECT:
@@ -1517,10 +1517,10 @@ FAIL: Job created, form doesn't close.
 ### T28.1: JSON Export Button Downloads File
 SETUP: Active session with at least a few messages.
 STEPS:
-  1. Click the "Hermes" button in the sidebar footer
+  1. Click the "Iris" button in the sidebar footer
   2. In the Control Center modal, click "JSON"
 EXPECT:
-  - Browser downloads a file named hermes-{session_id}.json
+  - Browser downloads a file named iris-{session_id}.json
   - Opening the file shows valid JSON with: session_id, title, messages array,
     workspace, model, created_at, updated_at
   - messages array contains objects with role and content fields
@@ -1729,7 +1729,7 @@ STEPS:
 EXPECT:
   - All messages after the edited message are removed
   - The edited text is sent as a new user message
-  - Hermes streams a fresh response
+  - Iris streams a fresh response
 FAIL: Old messages remain, double messages, crash.
 
 ---
@@ -1750,7 +1750,7 @@ STEPS:
 EXPECT:
   - The last assistant message is removed
   - The previous user message is re-sent
-  - Hermes streams a new response
+  - Iris streams a new response
 FAIL: Both messages removed, wrong message sent, crash.
 
 ---
@@ -1760,14 +1760,14 @@ FAIL: Both messages removed, wrong message sent, crash.
 ### T34.1: Clear Button Appears When Session Has Messages
 SETUP: Session with at least one message.
 EXPECT:
-  - The "Hermes" button is visible in the sidebar footer
+  - The "Iris" button is visible in the sidebar footer
   - Opening the Control Center shows a "Clear" action in the Conversation section
   - The Clear action is disabled when there is no active session or no messages
 FAIL: Button always visible, never visible.
 
 ### T34.2: Clear Wipes Messages and Resets Title
 STEPS:
-  1. Click the "Hermes" button in the sidebar footer
+  1. Click the "Iris" button in the sidebar footer
   2. Click "Clear" in the Conversation section
   3. Confirm the modal
 EXPECT:
@@ -1791,7 +1791,7 @@ FAIL: Messages cleared despite cancel.
 ## Section 35: Syntax Highlighting (Sprint 8)
 
 ### T35.1: Code Blocks Have Syntax Colors
-SETUP: Ask Hermes something that produces a code response (e.g. "Show me a Python hello world").
+SETUP: Ask Iris something that produces a code response (e.g. "Show me a Python hello world").
 EXPECT:
   - The code block has syntax-colored tokens (keywords in one color, strings in another)
   - NOT all plain white/gray monospace text
@@ -1838,7 +1838,7 @@ Manual-only for Sprint 8:
 ### T36.1: Typing While Busy Queues the Message
 SETUP: Active session, a response is currently streaming (thinking dots visible).
 STEPS:
-  1. While Hermes is responding, type a new message and press Enter
+  1. While Iris is responding, type a new message and press Enter
 EXPECT:
   - Input clears immediately
   - A small toast appears: "Queued: [your message]"
@@ -1904,7 +1904,7 @@ Each has automated API-level tests in `tests/test_sprint{N}.py`.
 - Switch model. Send a message. Verify response uses selected model.
 
 ### Sprint 12: Settings + Pin + Import
-- Click the "Hermes WebUI" button in the sidebar footer. Control Center overlay opens with vertical section tabs on the left.
+- Click the "Iris WebUI" button in the sidebar footer. Control Center overlay opens with vertical section tabs on the left.
 - Change default model, save. Restart server. Verify setting persisted.
 - Pin a session (star icon in hover overlay). Verify it floats to top of list.
 - Export session as JSON. Import it back. Verify messages restored.
@@ -1961,7 +1961,7 @@ Each has automated API-level tests in `tests/test_sprint{N}.py`.
 
 ### Sprint 19: Auth + Security
 - No password set: everything works as normal. No login page.
-- Set `HERMES_WEBUI_PASSWORD=test` env var. Restart. All pages redirect to `/login`.
+- Set `IRIS_WEBUI_PASSWORD=test` env var. Restart. All pages redirect to `/login`.
 - Login page: minimal card, password field, "Sign in" button.
 - Enter correct password → redirected to `/`. Cookie set (24h).
 - Enter wrong password → error message, stay on login page.
@@ -2008,14 +2008,14 @@ Each has automated API-level tests in `tests/test_sprint{N}.py`.
 - Create profile → appears in list and dropdown.
 - Delete profile → confirmation modal. Auto-switches to default if deleting active.
 - Attempt switch while agent busy → blocked with toast message.
-- With hermes-agent not installed → only default profile shown, graceful fallback.
+- With iris-agent not installed → only default profile shown, graceful fallback.
 
 ---
 
 ## Slash command parity (manual checklist)
 
-For each batch-1 command, run via webui slash menu AND via `hermes` CLI in the
-same `HERMES_HOME` (when applicable) and verify identical effect.
+For each batch-1 command, run via webui slash menu AND via `iris` CLI in the
+same `IRIS_HOME` (when applicable) and verify identical effect.
 
 - [ ] `/help` — dropdown lists 25+ commands; selecting `/help` posts an assistant message listing them.
 - [ ] `/new` (and alias `/reset`) — starts fresh session.

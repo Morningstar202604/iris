@@ -27,7 +27,7 @@ class TestServerGuardRejectsNesting:
         assert guard("/login") == "/"
         assert guard("/session/login") == "/"
         assert guard("/session/login/") == "/"
-        assert guard("/hermes/session/login") == "/"  # subpath mount
+        assert guard("/iris/session/login") == "/"  # subpath mount
 
     def test_rejects_nested_next_chain(self):
         nested = "/session/login?next=/session/login%3Fnext%3D/session/login"
@@ -39,7 +39,7 @@ class TestServerGuardRejectsNesting:
         # explosion signature). Detection is by the decoded leading PATH.
         assert guard("/session/login%3Fnext%3D/y") == "/"
         assert guard("/session/login%253Fnext%253D/y") == "/"
-        assert guard("/hermes/session/login%3Fnext%3D/y") == "/"
+        assert guard("/iris/session/login%3Fnext%3D/y") == "/"
 
     def test_rejects_deeply_encoded_login_chain(self):
         # #5579 gate: a 6+-level percent-encoded login chain must still collapse —

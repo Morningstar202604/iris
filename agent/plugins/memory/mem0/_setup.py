@@ -17,16 +17,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from hermes_constants import get_hermes_home  # noqa: F401 — patched by tests
+from iris_constants import get_iris_home  # noqa: F401 — patched by tests
 
 from ._oss_providers import EMBEDDER_PROVIDERS, KNOWN_DIMS, LLM_PROVIDERS, SECTION_REGISTRIES, VECTOR_PROVIDERS, validate_oss_config, vector_default_config
 
 _OLLAMA_URL = "http://localhost:11434"
-_PGVECTOR_CONTAINER, _PGVECTOR_IMAGE = "hermes-pgvector", "pgvector/pgvector:pg17"
+_PGVECTOR_CONTAINER, _PGVECTOR_IMAGE = "iris-pgvector", "pgvector/pgvector:pg17"
 
 
 def _curses_select(title: str, items: list[tuple[str, str]], default: int = 0) -> int:
-    from hermes_cli.curses_ui import curses_radiolist
+    from iris_cli.curses_ui import curses_radiolist
     return curses_radiolist(title, [f"{label}  {desc}" if desc else label for label, desc in items], selected=default, cancel_returns=default)
 
 
@@ -50,13 +50,13 @@ def _http_get(url: str, path: str, timeout: int):
     return urllib.request.urlopen(urllib.request.Request(f"{url.rstrip('/')}{path}", method="GET"), timeout=timeout)
 
 
-def _prompt_api_key(label: str, env_var: str, hermes_home: str) -> str:
+def _prompt_api_key(label: str, env_var: str, iris_home: str) -> str:
     """Prompt for API key, showing masked existing value if found."""
     existing = os.environ.get(env_var, "")
     if not existing:
         from agent.secret_scope import load_env_file
 
-        existing = load_env_file(Path(hermes_home) / ".env").get(env_var, "")
+        existing = load_env_file(Path(iris_home) / ".env").get(env_var, "")
     hint = f" (current: {_masked(existing)}, blank to keep)" if existing else ""
     return getpass.getpass(f"  {label} API key{hint}: ").strip()
 
@@ -150,31 +150,31 @@ def _write_env(env_path: Path, env_writes: dict[str, str]) -> None:
 
 def _activate_provider(config: dict) -> None:
     """Point config.yaml's memory.provider at mem0."""
-    from hermes_cli.config import save_config
+    from iris_cli.config import save_config
     config["memory"]["provider"] = "mem0"
     save_config(config)
 
 
-def _persist_provider_config(hermes_home: str, config: dict, provider_config: dict, env_writes: dict[str, str], label: str, key_line: str, server: str | None = None) -> None:
+def _persist_provider_config(iris_home: str, config: dict, provider_config: dict, env_writes: dict[str, str], label: str, key_line: str, server: str | None = None) -> None:
     """Shared platform/self-hosted tail: activate, write mem0.json (0600), then .env, then a saved summary."""
     _activate_provider(config)
     from plugins.memory.mem0 import Mem0MemoryProvider
-    Mem0MemoryProvider().save_config(provider_config, hermes_home)
+    Mem0MemoryProvider().save_config(provider_config, iris_home)
     if env_writes:
-        _write_env(Path(hermes_home) / ".env", env_writes)
+        _write_env(Path(iris_home) / ".env", env_writes)
     if server:
         _check_selfhosted_server(server)
     print("\n".join(["", f"  Memory provider: {label}", *([f"  Server: {server}"] if server else []), "  Activation saved to config.yaml", "  Provider config saved",
                      *([f"  {key_line}"] if env_writes else []), "", "  Start a new session to activate.", ""]))
 
 
-def _setup_platform(hermes_home: str, config: dict, flags: dict[str, str]) -> None:
+def _setup_platform(iris_home: str, config: dict, flags: dict[str, str]) -> None:
     """Platform mode setup — prompts for API key (secret -> .env), user/agent ids and rerank (-> mem0.json)."""
     from utils import read_json_or_empty
-    provider_config = read_json_or_empty(Path(hermes_home) / "mem0.json")
+    provider_config = read_json_or_empty(Path(iris_home) / "mem0.json")
     print("\n  Configuring mem0:\n")
     env_writes = _api_key_writes(flags, "Mem0 Platform API key", url="https://app.mem0.ai")
-    for key, desc, default in (("user_id", "User identifier", "hermes-user"), ("agent_id", "Agent identifier", "hermes")):
+    for key, desc, default in (("user_id", "User identifier", "iris-user"), ("agent_id", "Agent identifier", "iris")):
         if val := _prompt(desc, default=str(provider_config.get(key) or default)):
             provider_config[key] = val
     choices = ["true", "false"]
@@ -188,8 +188,8 @@ def _setup_platform(hermes_home: str, config: dict, flags: dict[str, str]) -> No
     provider_config.update(mode="platform", host="")
     # _load_config() also seeds ``host`` from MEM0_HOST (.env); the file clear can't help there, so warn.
     if os.environ.get("MEM0_HOST", "").strip():
-        print(f"\n  ⚠ MEM0_HOST is set in your environment ({os.environ['MEM0_HOST']}). It overrides platform mode — remove it from ~/.hermes/.env (or unset it) or Hermes will keep routing to the self-hosted server.")
-    _persist_provider_config(hermes_home, config, provider_config, env_writes, "mem0", "API keys saved to .env")
+        print(f"\n  ⚠ MEM0_HOST is set in your environment ({os.environ['MEM0_HOST']}). It overrides platform mode — remove it from ~/.iris/.env (or unset it) or Iris will keep routing to the self-hosted server.")
+    _persist_provider_config(iris_home, config, provider_config, env_writes, "mem0", "API keys saved to .env")
 
 
 def _check_selfhosted_server(host: str) -> None:
@@ -204,10 +204,10 @@ def _check_selfhosted_server(host: str) -> None:
         print(f"  ⚠ Could not reach {host} — check the URL and that the server is running.")
 
 
-def _setup_selfhosted(hermes_home: str, config: dict, flags: dict[str, str]) -> None:
+def _setup_selfhosted(iris_home: str, config: dict, flags: dict[str, str]) -> None:
     """Self-hosted mode — point at an existing Mem0 server: URL -> mem0.json, key -> .env (MEM0_API_KEY)."""
     from utils import read_json_or_empty
-    provider_config = read_json_or_empty(Path(hermes_home) / "mem0.json")
+    provider_config = read_json_or_empty(Path(iris_home) / "mem0.json")
     print("\n  Configuring mem0 (self-hosted server):\n")
     host = flags.get("host") or _prompt("Mem0 server URL (e.g. http://localhost:8888)", default=provider_config.get("host") or None)
     if not host:
@@ -215,13 +215,13 @@ def _setup_selfhosted(hermes_home: str, config: dict, flags: dict[str, str]) -> 
         return
     host = host.rstrip("/")
     env_writes = _api_key_writes(flags, "Server API key", fresh_label="Server API key (blank if AUTH_DISABLED)")
-    user_id = flags.get("user_id") or _prompt("User identifier", default=provider_config.get("user_id") or "hermes-user")
-    agent_id = _prompt("Agent identifier", default=provider_config.get("agent_id") or "hermes")
+    user_id = flags.get("user_id") or _prompt("User identifier", default=provider_config.get("user_id") or "iris-user")
+    agent_id = _prompt("Agent identifier", default=provider_config.get("agent_id") or "iris")
     if flags.get("dry_run"):
         _print_dry_run(f"host={host}, user_id={user_id}, agent_id={agent_id}", env_writes, lambda: _check_selfhosted_server(host))
         return
     provider_config.update(mode="platform", host=host, user_id=user_id, agent_id=agent_id)  # routing: oss > host > platform
-    _persist_provider_config(hermes_home, config, provider_config, env_writes, "mem0 (self-hosted)", "API key saved to .env", server=host)
+    _persist_provider_config(iris_home, config, provider_config, env_writes, "mem0 (self-hosted)", "API key saved to .env", server=host)
 
 
 def _print_oss_summary(oss_config: dict, env_writes: dict, dry_run: bool = False) -> None:
@@ -237,12 +237,12 @@ def _print_oss_summary(oss_config: dict, env_writes: dict, dry_run: bool = False
     print("\n".join(lines))
 
 
-def _finish_oss(hermes_home: str, config: dict, oss_config: dict, env_writes: dict[str, str], user_id: str, agent_id: str, pgvector_config: dict | None = None) -> None:
+def _finish_oss(iris_home: str, config: dict, oss_config: dict, env_writes: dict[str, str], user_id: str, agent_id: str, pgvector_config: dict | None = None) -> None:
     """Shared OSS tail: write secrets + mem0.json, install deps, activate, check, summarize."""
     from utils import read_json_or_empty
     if env_writes:
-        _write_env(Path(hermes_home) / ".env", env_writes)
-    config_path = Path(hermes_home) / "mem0.json"  # merge-write, plain text (platform path uses save_config's 0600 atomic write)
+        _write_env(Path(iris_home) / ".env", env_writes)
+    config_path = Path(iris_home) / "mem0.json"  # merge-write, plain text (platform path uses save_config's 0600 atomic write)
     config_path.write_text(json.dumps({**read_json_or_empty(config_path), "mode": "oss", "user_id": user_id, "agent_id": agent_id, "oss": oss_config}, indent=2) + "\n", encoding="utf-8")
     _install_provider_deps(oss_config["llm"]["provider"], oss_config["embedder"]["provider"], oss_config["vector_store"]["provider"])
     if pgvector_config:
@@ -252,10 +252,10 @@ def _finish_oss(hermes_home: str, config: dict, oss_config: dict, env_writes: di
     _print_oss_summary(oss_config, env_writes)
 
 
-def _setup_oss(hermes_home: str, config: dict, flags: dict[str, str]) -> None:
+def _setup_oss(iris_home: str, config: dict, flags: dict[str, str]) -> None:
     """OSS mode — non-interactive when --mode was given, otherwise curses pickers."""
     if not flags.get("_mode_from_flag"):
-        _setup_oss_interactive(hermes_home, config)
+        _setup_oss_interactive(iris_home, config)
         return
     oss_config, env_writes = build_oss_config(flags)
     if errors := validate_oss_config(oss_config):
@@ -266,7 +266,7 @@ def _setup_oss(hermes_home: str, config: dict, flags: dict[str, str]) -> None:
         _run_connectivity_checks(oss_config)
         print("  [dry-run] No files written.\n")
         return
-    _finish_oss(hermes_home, config, oss_config, env_writes, flags.get("user_id") or os.getenv("USER", "hermes-user"), "hermes")
+    _finish_oss(iris_home, config, oss_config, env_writes, flags.get("user_id") or os.getenv("USER", "iris-user"), "iris")
 
 
 def _docker(*args: str, timeout: int, **kwargs) -> subprocess.CompletedProcess:
@@ -384,7 +384,7 @@ def _wait_for_port(host: str, port: int, timeout: int = 15) -> None:
 _VECTOR_DESCRIPTIONS = {"qdrant": lambda cfg: cfg.get("path", "local storage"), "pgvector": lambda cfg: f"{cfg.get('host', 'localhost')}:{cfg.get('port', 5432)}"}
 
 
-def _configure_model_provider(kind: str, registry: dict, hermes_home: str, env_writes: dict[str, str], llm: tuple[str, dict] | None = None) -> tuple[str, dict, str, str | None]:
+def _configure_model_provider(kind: str, registry: dict, iris_home: str, env_writes: dict[str, str], llm: tuple[str, dict] | None = None) -> tuple[str, dict, str, str | None]:
     """Pick an LLM/embedder provider, collect its key, and (for Ollama) model + URL -> (id, definition, model, url).
     For the embedder (``llm`` given), a provider shared with the LLM reuses the LLM key instead of prompting again."""
     items = [(v["label"], f"{v.get('default_model', '')} ({v['default_url']})" if v.get("default_url") else v.get("default_model", "")) for v in registry.values()]
@@ -393,7 +393,7 @@ def _configure_model_provider(kind: str, registry: dict, hermes_home: str, env_w
     model, url = pdef["default_model"], pdef.get("default_url")
     if pdef["needs_key"]:
         if llm is None or pid != llm[0]:
-            if key := _prompt_api_key(pdef["label"] if llm is None else f"{pdef['label']} embedder", pdef["env_var"], hermes_home):
+            if key := _prompt_api_key(pdef["label"] if llm is None else f"{pdef['label']} embedder", pdef["env_var"], iris_home):
                 env_writes[pdef["env_var"]] = key
         elif llm[1].get("env_var") in env_writes:
             env_writes[pdef["env_var"]] = env_writes[llm[1]["env_var"]]
@@ -403,10 +403,10 @@ def _configure_model_provider(kind: str, registry: dict, hermes_home: str, env_w
     return pid, pdef, model, url
 
 
-def _setup_oss_interactive(hermes_home: str, config: dict) -> None:
+def _setup_oss_interactive(iris_home: str, config: dict) -> None:
     env_writes: dict[str, str] = {}
-    llm_id, llm_def, llm_model, llm_url = _configure_model_provider("LLM", LLM_PROVIDERS, hermes_home, env_writes)
-    embedder_id, _, embedder_model, embedder_url = _configure_model_provider("Embedder", EMBEDDER_PROVIDERS, hermes_home, env_writes, llm=(llm_id, llm_def))
+    llm_id, llm_def, llm_model, llm_url = _configure_model_provider("LLM", LLM_PROVIDERS, iris_home, env_writes)
+    embedder_id, _, embedder_model, embedder_url = _configure_model_provider("Embedder", EMBEDDER_PROVIDERS, iris_home, env_writes, llm=(llm_id, llm_def))
     vector_items = [(v["label"], _VECTOR_DESCRIPTIONS.get(pid, lambda cfg: pid)(vector_default_config(pid))) for pid, v in VECTOR_PROVIDERS.items()]
     vector_id = list(VECTOR_PROVIDERS)[_curses_select("Vector Store", vector_items, 0)]
     # Auto-setup: ensure Ollama is running and models are pulled; ensure pgvector is reachable (offer Docker if not).
@@ -418,8 +418,8 @@ def _setup_oss_interactive(hermes_home: str, config: dict) -> None:
         pg = {k: _input(f"PostgreSQL {label}", d) for k, label, d in (("user", "user", os.getenv("USER", "postgres")), ("host", "host", "localhost"), ("port", "port", "5432"), ("dbname", "database", "postgres"))}
         pg_password = getpass.getpass("  PostgreSQL password (blank if none): ").strip()
         pgvector_config = {**pg, "port": int(pg["port"]), **({"password": pg_password} if pg_password else {})}
-    user_id = _input("User ID", os.getenv("USER", "hermes-user"))
-    agent_id = _input("Agent ID", "hermes")
+    user_id = _input("User ID", os.getenv("USER", "iris-user"))
+    agent_id = _input("Agent ID", "iris")
     flags = {
         "oss_llm": llm_id, "oss_llm_model": llm_model, "oss_llm_url": llm_url or "",
         "oss_llm_key": env_writes.get(llm_def["env_var"], "") if llm_def.get("env_var") else "",
@@ -428,7 +428,7 @@ def _setup_oss_interactive(hermes_home: str, config: dict) -> None:
     }
     flags.update({f"oss_vector_{key}": str(val) for key, val in (pgvector_config or {}).items() if val})
     oss_config, _ = build_oss_config(flags)
-    _finish_oss(hermes_home, config, oss_config, env_writes, user_id, agent_id, pgvector_config)
+    _finish_oss(iris_home, config, oss_config, env_writes, user_id, agent_id, pgvector_config)
 
 
 def _install_provider_deps(llm_id: str, embedder_id: str, vector_id: str) -> None:
@@ -436,7 +436,7 @@ def _install_provider_deps(llm_id: str, embedder_id: str, vector_id: str) -> Non
     for dep in sorted(deps):
         print(f"  Installing {dep}...")
         try:
-            # Environment-aware install: sealed hosted venvs redirect to the durable data-volume target instead of /opt/hermes.
+            # Environment-aware install: sealed hosted venvs redirect to the durable data-volume target instead of /opt/iris.
             from tools.lazy_deps import install_specs
             outcome = install_specs([dep], timeout=60)
         except Exception:
@@ -499,8 +499,8 @@ _MODE_ITEMS = [("Platform", "Mem0 Cloud API (lightweight, just needs an API key)
 _MODE_PICKER = (_setup_platform, _setup_selfhosted, _setup_oss)
 
 
-def post_setup(hermes_home: str, config: dict) -> None:
-    """Entry point for `hermes memory setup`: routes on --mode (platform / selfhosted / oss), else shows a picker.
+def post_setup(iris_home: str, config: dict) -> None:
+    """Entry point for `iris memory setup`: routes on --mode (platform / selfhosted / oss), else shows a picker.
     OSS is non-interactive only when the mode came from the flag."""
     with suppress(ImportError):  # mem0ai must meet the minimum version from plugin.yaml
         import mem0
@@ -512,7 +512,7 @@ def post_setup(hermes_home: str, config: dict) -> None:
     flags["_mode_from_flag"] = handler is not None
     if handler is None:
         handler = _MODE_PICKER[_curses_select("  Select mode", _MODE_ITEMS, 0)]
-    handler(hermes_home, config, flags)
+    handler(iris_home, config, flags)
 
 
 # ---- BEGIN PLUGIN-COMPAT (revert-scheduled; see COMPAT_MANIFEST.md) ----

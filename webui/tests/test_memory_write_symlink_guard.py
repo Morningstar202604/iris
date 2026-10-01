@@ -7,7 +7,7 @@ mirrors the symlink-rejection hardening shipped for skills/plugins
 (#4217/#4234/#4240).
 
 Per maintainer decision, a symlinked *parent memories directory* is deliberately
-NOT rejected here (symlinking the whole .hermes/memories dir is a legitimate
+NOT rejected here (symlinking the whole .iris/memories dir is a legitimate
 setup); only the concrete target file is guarded.
 """
 
@@ -27,7 +27,7 @@ class _FakeHandler:
 
 def _patch_memory_routes(monkeypatch, home):
     cap = {}
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: home)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: home)
     monkeypatch.setattr(routes, "j", lambda h, o: (cap.__setitem__("ok", o), True)[1])
     monkeypatch.setattr(
         routes,

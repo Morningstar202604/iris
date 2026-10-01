@@ -124,7 +124,7 @@ def test_selected_text_reply_styles_and_i18n_exist_for_all_locales():
     ui = read("static/ui.js")
     assert "data-selected-context" in ui
     assert "const stashSelectedContextBlocks=(value)=>" in ui
-    assert "<!-- hermes-selected-context -->" in ui
+    assert "<!-- iris-selected-context -->" in ui
     assert "only blocks carrying the internal marker get custom treatment" in ui
     assert "position:fixed" in css
     assert "visibility:hidden" in css

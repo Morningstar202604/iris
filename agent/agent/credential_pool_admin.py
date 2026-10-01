@@ -121,7 +121,7 @@ class CredentialPoolAdminMixin:
             self._entries.append(entry)
             borrowed_ids = getattr(self, "_borrowed_root_ids", None)
             if borrowed_ids:
-                # ``hermes -p <profile> auth add <single-use provider>``: the
+                # ``iris -p <profile> auth add <single-use provider>``: the
                 # profile claims its OWN credential. Persist only profile-owned
                 # rows — copying the borrowed root grant alongside would fork
                 # its single-use refresh token (#100339). Once the profile owns

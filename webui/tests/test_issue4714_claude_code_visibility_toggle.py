@@ -238,7 +238,7 @@ def test_cli_sessions_cache_key_varies_with_claude_code_toggle(monkeypatch):
     calls = []
 
     def fake_resolve(source_filter=None):
-        return Path("D:/tmp/hermes"), Path("D:/tmp/hermes/state.db"), "default", ("ctx", source_filter or "")
+        return Path("D:/tmp/iris"), Path("D:/tmp/iris/state.db"), "default", ("ctx", source_filter or "")
 
     def fake_load(_home, _db_path, _profile, **kwargs):
         include = kwargs["include_claude_code"]

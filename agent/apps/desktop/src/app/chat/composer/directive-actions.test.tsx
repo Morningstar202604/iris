@@ -8,7 +8,7 @@ import { $previewTabs, closeRightRail } from '@/store/preview'
 import { ComposerDirectiveActions } from './directive-actions'
 import { refChipElement } from './rich-editor'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { irisDesktop?: Window['irisDesktop'] }
 
 const openSession = vi.fn()
 
@@ -49,7 +49,7 @@ afterEach(() => {
   cleanup()
   document.body.replaceChildren()
   closeRightRail()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.irisDesktop
   openSession.mockReset()
   vi.useRealTimers()
 })
@@ -68,7 +68,7 @@ describe('ComposerDirectiveActions', () => {
   it('opens a url in the in-app browser rather than navigating the app', async () => {
     const openExternal = vi.fn().mockResolvedValue(undefined)
 
-    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.irisDesktop = { openExternal } as unknown as Window['irisDesktop']
 
     const editor = mountEditor([{ kind: 'url', value: 'https://example.com/docs' }])
 
@@ -85,7 +85,7 @@ describe('ComposerDirectiveActions', () => {
   it('sends the pill to the system browser on the platform open-elsewhere modifier', () => {
     const openExternal = vi.fn().mockResolvedValue(undefined)
 
-    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.irisDesktop = { openExternal } as unknown as Window['irisDesktop']
 
     const editor = mountEditor([{ kind: 'url', value: 'https://example.com/docs' }])
 

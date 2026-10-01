@@ -7,12 +7,12 @@ extends coverage to the related fixes shipped alongside #1428:
 
 - All compose files reference the same UID/GID source (`${UID}` / `${GID}`)
 - All compose files document the bind-mount permission escape hatches
-  (`HERMES_SKIP_CHMOD`, `HERMES_HOME_MODE`) inline so users hit by #1389
+  (`IRIS_SKIP_CHMOD`, `IRIS_HOME_MODE`) inline so users hit by #1389
   or #1399 see the fix in the file they're reading
 - The `.env.docker.example` template ships and documents the same vars
 - `docs/docker.md` exists and covers the multi-container architecture
-- Stale README references to `/root/.hermes` are gone (the agent images
-  use `/home/hermes/.hermes`)
+- Stale README references to `/root/.iris` are gone (the agent images
+  use `/home/iris/.iris`)
 """
 
 from __future__ import annotations
@@ -28,20 +28,20 @@ REPO = Path(__file__).resolve().parents[1]
 def test_two_container_compose_aligns_agent_uid_with_webui():
     """REGRESSION (#1399, fixed in #1428): the two-container compose file
     must align the agent's UID/GID with the webui's. Before #1428 the
-    agent had no HERMES_UID/HERMES_GID at all and used the image default
+    agent had no IRIS_UID/IRIS_GID at all and used the image default
     of 10000, while the webui used 1000 — bind-mounted files written by
     the agent were unreadable by the webui."""
     src = (REPO / "docker-compose.two-container.yml").read_text(encoding="utf-8")
 
-    # Agent must declare HERMES_UID/HERMES_GID
-    assert "HERMES_UID=${UID:-1000}" in src, (
-        "two-container: hermes-agent must set HERMES_UID=${UID:-1000} so it "
+    # Agent must declare IRIS_UID/IRIS_GID
+    assert "IRIS_UID=${UID:-1000}" in src, (
+        "two-container: iris-agent must set IRIS_UID=${UID:-1000} so it "
         "matches the webui's WANTED_UID=${UID:-1000}. Before #1428 the agent "
         "ran as the image default (10000), causing PermissionError on the "
-        "shared hermes-home volume."
+        "shared iris-home volume."
     )
-    assert "HERMES_GID=${GID:-1000}" in src, (
-        "two-container: hermes-agent must set HERMES_GID=${GID:-1000}"
+    assert "IRIS_GID=${GID:-1000}" in src, (
+        "two-container: iris-agent must set IRIS_GID=${GID:-1000}"
     )
 
     # WebUI must use ${UID}/${GID} (same source)
@@ -56,13 +56,13 @@ def test_three_container_compose_aligns_all_three_services():
     webui defaulted to 1000."""
     src = (REPO / "docker-compose.three-container.yml").read_text(encoding="utf-8")
 
-    # Agent + dashboard both use HERMES_UID/HERMES_GID with ${UID:-1000} as source
+    # Agent + dashboard both use IRIS_UID/IRIS_GID with ${UID:-1000} as source
     # (Two occurrences each — once per service)
-    assert src.count("HERMES_UID=${UID:-1000}") >= 2, (
-        "three-container: both hermes-agent and hermes-dashboard must set "
-        "HERMES_UID=${UID:-1000}"
+    assert src.count("IRIS_UID=${UID:-1000}") >= 2, (
+        "three-container: both iris-agent and iris-dashboard must set "
+        "IRIS_UID=${UID:-1000}"
     )
-    assert src.count("HERMES_GID=${GID:-1000}") >= 2
+    assert src.count("IRIS_GID=${GID:-1000}") >= 2
 
     # WebUI uses WANTED_UID=${UID:-1000}
     assert "WANTED_UID=${UID:-1000}" in src
@@ -70,11 +70,11 @@ def test_three_container_compose_aligns_all_three_services():
 
     # The pre-#1428 default of 10000 must NOT appear anywhere
     # (negative-pattern guard prevents revert)
-    assert "HERMES_UID:-10000" not in src, (
-        "Pre-#1428 default (HERMES_UID:-10000) must not return — that's the "
+    assert "IRIS_UID:-10000" not in src, (
+        "Pre-#1428 default (IRIS_UID:-10000) must not return — that's the "
         "bug shape. All UIDs should pull from ${UID:-1000}."
     )
-    assert "HERMES_GID:-10000" not in src
+    assert "IRIS_GID:-10000" not in src
 
 
 def test_single_container_compose_uses_same_uid_source():
@@ -89,18 +89,18 @@ def test_single_container_compose_uses_same_uid_source():
 
 
 def test_compose_files_document_skip_chmod_escape_hatch():
-    """Every compose file must mention HERMES_SKIP_CHMOD inline so users
+    """Every compose file must mention IRIS_SKIP_CHMOD inline so users
     hit by #1389 (the auth.json/.env chmod-override bug) can find the fix
     in the file they're reading. The fix shipped in v0.50.254 but Docker
     users may not be reading CHANGELOGs."""
     for fname in ("docker-compose.yml", "docker-compose.two-container.yml", "docker-compose.three-container.yml"):
         src = (REPO / fname).read_text(encoding="utf-8")
-        assert "HERMES_SKIP_CHMOD" in src, (
-            f"{fname}: must document HERMES_SKIP_CHMOD as a bind-mount "
+        assert "IRIS_SKIP_CHMOD" in src, (
+            f"{fname}: must document IRIS_SKIP_CHMOD as a bind-mount "
             f"escape hatch so users hit by #1389 find the fix inline."
         )
-        assert "HERMES_HOME_MODE" in src, (
-            f"{fname}: must document HERMES_HOME_MODE alongside HERMES_SKIP_CHMOD"
+        assert "IRIS_HOME_MODE" in src, (
+            f"{fname}: must document IRIS_HOME_MODE alongside IRIS_SKIP_CHMOD"
         )
 
 
@@ -115,8 +115,8 @@ def test_env_docker_example_exists():
     src = p.read_text(encoding="utf-8")
 
     # Must document the critical vars
-    for var in ("UID", "GID", "HERMES_HOME", "HERMES_WORKSPACE",
-                "HERMES_WEBUI_PASSWORD", "HERMES_SKIP_CHMOD", "HERMES_HOME_MODE"):
+    for var in ("UID", "GID", "IRIS_HOME", "IRIS_WORKSPACE",
+                "IRIS_WEBUI_PASSWORD", "IRIS_SKIP_CHMOD", "IRIS_HOME_MODE"):
         assert var in src, (
             f".env.docker.example must document {var} — without it, users "
             f"hit by the related failure mode have no in-template hint."
@@ -141,24 +141,24 @@ def test_docs_docker_md_exists_and_covers_failure_modes():
         )
 
     # Must explicitly link the alternate single-container community image
-    assert "sunnysktsang/hermes-suite" in src, (
+    assert "sunnysktsang/iris-suite" in src, (
         "docs/docker.md should point Podman 3.4 / multi-arch users to the "
         "community all-in-one image as a documented escape hatch."
     )
 
 
-# ── 5: stale /root/.hermes references removed from README ──────────────────
+# ── 5: stale /root/.iris references removed from README ──────────────────
 
 
-def test_readme_no_stale_root_hermes_path():
+def test_readme_no_stale_root_iris_path():
     """REGRESSION: the README's two-container Docker section used to claim
-    'the agent writes to /root/.hermes' which is wrong — current agent
-    images use /home/hermes/.hermes. Stale paths confuse users reading
+    'the agent writes to /root/.iris' which is wrong — current agent
+    images use /home/iris/.iris. Stale paths confuse users reading
     the README to debug their own setup."""
     src = (REPO / "README.md").read_text(encoding="utf-8")
-    assert "/root/.hermes" not in src, (
-        "README.md must not reference /root/.hermes — the current agent "
-        "image uses /home/hermes/.hermes. Stale paths in docs are worse "
+    assert "/root/.iris" not in src, (
+        "README.md must not reference /root/.iris — the current agent "
+        "image uses /home/iris/.iris. Stale paths in docs are worse "
         "than no docs at all."
     )
 
@@ -204,30 +204,30 @@ def test_multi_container_webui_points_at_gateway_service():
     for fname in ("docker-compose.two-container.yml", "docker-compose.three-container.yml"):
         path = REPO / fname
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        env = data["services"]["hermes-webui"]["environment"]
-        assert "HERMES_API_URL=http://hermes-agent:8642" in env, (
-            f"{fname}: hermes-webui must point at hermes-agent over the compose "
+        env = data["services"]["iris-webui"]["environment"]
+        assert "IRIS_API_URL=http://iris-agent:8642" in env, (
+            f"{fname}: iris-webui must point at iris-agent over the compose "
             "network so gateway health and scheduled ticking work in multi-container setups."
         )
 
 
-# ── 7: agent vs webui HERMES_HOME_MODE semantic asymmetry ──────────────────
+# ── 7: agent vs webui IRIS_HOME_MODE semantic asymmetry ──────────────────
 
 
 def test_agent_service_does_not_recommend_invalid_home_mode():
-    """REGRESSION (Opus pre-release advisor): the WebUI's HERMES_HOME_MODE
+    """REGRESSION (Opus pre-release advisor): the WebUI's IRIS_HOME_MODE
     is a credential-file threshold (0640 = allow group bits). The agent's
-    HERMES_HOME_MODE is a DIRECTORY mode (default 0700). 0640 on a directory
+    IRIS_HOME_MODE is a DIRECTORY mode (default 0700). 0640 on a directory
     has no owner-execute bit, so the agent can't traverse its own home and
-    bricks. The agent service blocks must NOT recommend HERMES_HOME_MODE=0640
+    bricks. The agent service blocks must NOT recommend IRIS_HOME_MODE=0640
     as their example value."""
     import re
 
     BAD_VALUES = (
-        "HERMES_HOME_MODE=0640",
-        "HERMES_HOME_MODE=0644",
-        "HERMES_HOME_MODE=0600",
-        "HERMES_HOME_MODE=0660",
+        "IRIS_HOME_MODE=0640",
+        "IRIS_HOME_MODE=0644",
+        "IRIS_HOME_MODE=0600",
+        "IRIS_HOME_MODE=0660",
     )
 
     for fname in ("docker-compose.two-container.yml", "docker-compose.three-container.yml"):
@@ -235,7 +235,7 @@ def test_agent_service_does_not_recommend_invalid_home_mode():
 
         # Find each agent/dashboard service block by name and slice to the next
         # top-level service or root key.
-        for service_name in ("hermes-agent", "hermes-dashboard"):
+        for service_name in ("iris-agent", "iris-dashboard"):
             service_marker = "  " + service_name + ":"
             idx = src.find(service_marker)
             if idx == -1:
@@ -250,7 +250,7 @@ def test_agent_service_does_not_recommend_invalid_home_mode():
             for bad in BAD_VALUES:
                 assert bad not in block, (
                     f"{fname} service `{service_name}` recommends `{bad}` — "
-                    f"the agent's HERMES_HOME_MODE applies to the HERMES_HOME "
+                    f"the agent's IRIS_HOME_MODE applies to the IRIS_HOME "
                     f"directory, and a mode without owner-execute prevents "
                     f"traversal. Use 0750 (group-traversable) or 0701 (x-only). "
                     f"See Opus pre-release advisor finding for v0.50.260."
@@ -259,25 +259,25 @@ def test_agent_service_does_not_recommend_invalid_home_mode():
 
 def test_compose_files_warn_about_home_mode_asymmetry():
     """The compose files must explicitly warn about the WebUI vs agent
-    HERMES_HOME_MODE semantic asymmetry so users don't copy the WebUI's
+    IRIS_HOME_MODE semantic asymmetry so users don't copy the WebUI's
     valid 0640 value into the agent service."""
     for fname in ("docker-compose.two-container.yml", "docker-compose.three-container.yml"):
         src = (REPO / fname).read_text(encoding="utf-8").lower()
         # Look for a comment that distinguishes directory mode from credential file mode
         assert "directory" in src and "credential" in src, (
-            f"{fname} must contain comments explaining that HERMES_HOME_MODE "
+            f"{fname} must contain comments explaining that IRIS_HOME_MODE "
             f"means different things for the agent (directory mode) vs the "
             f"WebUI (credential file threshold)."
         )
 
 
 def test_env_docker_example_warns_about_home_mode_asymmetry():
-    """The .env.docker.example template must warn that HERMES_HOME_MODE has
+    """The .env.docker.example template must warn that IRIS_HOME_MODE has
     different semantics across services."""
     src = (REPO / ".env.docker.example").read_text(encoding="utf-8")
     assert "MULTI-CONTAINER WARNING" in src, (
         ".env.docker.example must include a MULTI-CONTAINER WARNING about "
-        "the HERMES_HOME_MODE semantic asymmetry between WebUI and agent."
+        "the IRIS_HOME_MODE semantic asymmetry between WebUI and agent."
     )
 
 
@@ -287,10 +287,10 @@ def test_env_docker_example_warns_about_home_mode_asymmetry():
 def test_docs_docker_warns_about_sudo_compose_home_expansion():
     """REGRESSION (#3006): the Docker guide must explain that
     `sudo docker compose` can expand `${HOME}` to `/root`, mounting the wrong
-    `.hermes` directory into the container."""
+    `.iris` directory into the container."""
     src = (REPO / "docs" / "docker.md").read_text(encoding="utf-8")
     assert "sudo docker compose" in src
-    assert "/root/.hermes" in src
+    assert "/root/.iris" in src
     assert "sudo -E docker compose" in src
     assert "docker group" in src
 

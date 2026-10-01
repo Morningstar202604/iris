@@ -8,7 +8,7 @@ The env-var detection block in ``api/config.py`` previously mapped
 ``_PROVIDER_MODELS`` (9 models: gpt-5.5, gpt-5.4, codex-specific
 variants, etc.) but no automatic detection path.
 
-Note (cross-tool): hermes-agent's ``openai-codex`` provider config
+Note (cross-tool): iris-agent's ``openai-codex`` provider config
 declares ``auth_type="oauth_external"`` with a default
 ``inference_base_url=https://chatgpt.com/backend-api/codex`` — the same
 ``OPENAI_API_KEY`` does NOT actually authenticate the default Codex
@@ -32,9 +32,9 @@ def test_openai_api_key_env_var_path_detects_openai_codex(monkeypatch):
     env-var block must add *both* "openai" and "openai-codex" to
     detected_providers.
 
-    The primary OAuth detection path (hermes_cli.auth) handles Codex for
-    users who ran `hermes auth login openai-codex`. This test covers the
-    fallback path for environments where hermes_cli is not available or
+    The primary OAuth detection path (iris_cli.auth) handles Codex for
+    users who ran `iris auth login openai-codex`. This test covers the
+    fallback path for environments where iris_cli is not available or
     Codex OAuth has not been configured — users will see picker entries but
     need Codex OAuth to actually use them (#1189 known limitation).
     """

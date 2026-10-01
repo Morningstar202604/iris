@@ -1,4 +1,4 @@
-"""Helpers for WebUI-managed Hermes Agent git worktrees."""
+"""Helpers for WebUI-managed Iris Agent git worktrees."""
 
 from __future__ import annotations
 
@@ -346,34 +346,34 @@ def _setup_agent_worktree(repo_root: str) -> dict:
         import importlib.util
         from pathlib import Path
 
-        from api.config import _AGENT_DIR  # Hermes Agent source root
+        from api.config import _AGENT_DIR  # Iris Agent source root
 
         # Use importlib to load cli.py from its absolute path instead of a bare
         # ``from cli import _setup_worktree``.  The bare import is vulnerable to
         # namespace-package shadowing — any third-party package (e.g. the ``cli``
         # namespace shipped by stringzilla) that creates a cli/ directory in
-        # site-packages will preempt the real hermes-agent/cli.py module.
+        # site-packages will preempt the real iris-agent/cli.py module.
         cli_path = str(Path(_AGENT_DIR) / "cli.py")
         spec = importlib.util.spec_from_file_location(
-            "hermes_cli_worktree", cli_path,
+            "iris_cli_worktree", cli_path,
         )
         if spec is None or spec.loader is None:
             raise RuntimeError(
-                f"Could not locate hermes-agent worktree helper at {cli_path}"
+                f"Could not locate iris-agent worktree helper at {cli_path}"
             )
         cli_mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cli_mod)
         _setup_worktree = cli_mod._setup_worktree
     except Exception as exc:
-        raise RuntimeError("Hermes Agent worktree helper is unavailable") from exc
+        raise RuntimeError("Iris Agent worktree helper is unavailable") from exc
     output = StringIO()
     with redirect_stdout(output), redirect_stderr(output):
         info = _setup_worktree(repo_root)
     emitted = output.getvalue().strip()
     if emitted:
-        logger.debug("Hermes Agent worktree helper output: %s", emitted)
+        logger.debug("Iris Agent worktree helper output: %s", emitted)
     if not info:
-        raise RuntimeError("Hermes Agent failed to create a git worktree")
+        raise RuntimeError("Iris Agent failed to create a git worktree")
     return info
 
 
@@ -383,7 +383,7 @@ def create_worktree_for_workspace(workspace: str | Path) -> dict:
     path = info.get("path")
     branch = info.get("branch")
     if not path or not branch:
-        raise RuntimeError("Hermes Agent returned incomplete worktree metadata")
+        raise RuntimeError("Iris Agent returned incomplete worktree metadata")
     return {
         "path": str(Path(path).expanduser().resolve()),
         "branch": str(branch),

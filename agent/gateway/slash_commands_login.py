@@ -14,7 +14,7 @@ from uuid import uuid4
 
 from gateway.run_agent_cache import _first_agent
 from gateway.slash_access import policy_for_source
-from hermes_cli import anon_auth
+from iris_cli import anon_auth
 
 logger = logging.getLogger("gateway.run")
 
@@ -52,7 +52,7 @@ class GatewayLoginCommandsMixin:
         executor = getattr(self, "_login_exec", None)
         if executor is None or getattr(executor, "_shutdown", False):
             executor = self._login_exec = concurrent.futures.ThreadPoolExecutor(
-                max_workers=1, thread_name_prefix="hermes-login")
+                max_workers=1, thread_name_prefix="iris-login")
         return executor
 
     async def _run_login_blocking(self, func):

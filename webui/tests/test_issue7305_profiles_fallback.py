@@ -1,5 +1,5 @@
-"""#7305: GET /api/profiles must never 500 when the hermes-agent source is not
-importable (two-container Docker / HERMES_WEBUI_CHAT_BACKEND=gateway).
+"""#7305: GET /api/profiles must never 500 when the iris-agent source is not
+importable (two-container Docker / IRIS_WEBUI_CHAT_BACKEND=gateway).
 
 Contract pinned here: when ``agent.skill_utils`` is missing, the WebUI reports
 the skill stats as *unknown* — a stable ``(0, 0)`` — instead of counting skills
@@ -91,12 +91,12 @@ def agent_absent(monkeypatch):
 
 
 @pytest.fixture()
-def hermes_cli_absent(monkeypatch):
-    """Simulate the same deployment's other half: no ``hermes_cli`` either."""
+def iris_cli_absent(monkeypatch):
+    """Simulate the same deployment's other half: no ``iris_cli`` either."""
     real_import = builtins.__import__
 
     def _no_cli(name, *args, **kwargs):
-        if name == "hermes_cli" or str(name).startswith("hermes_cli."):
+        if name == "iris_cli" or str(name).startswith("iris_cli."):
             raise ImportError(f"{name} not mounted (simulated two-container Docker)")
         return real_import(name, *args, **kwargs)
 
@@ -131,7 +131,7 @@ def test_default_profile_dict_never_raises_without_agent(tmp_path, agent_absent,
     """_default_profile_dict() (the fallback row for GET /api/profiles) must
     return a usable row with unknown skill stats instead of raising."""
     home = _write_profile(tmp_path)
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", home)
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", home)
 
     row = profiles._default_profile_dict()
 
@@ -144,14 +144,14 @@ def test_default_profile_dict_never_raises_without_agent(tmp_path, agent_absent,
 
 
 def test_list_profiles_api_isolated_mode_without_agent_or_cli(
-    tmp_path, agent_absent, hermes_cli_absent, monkeypatch
+    tmp_path, agent_absent, iris_cli_absent, monkeypatch
 ):
     """The #7305 path end to end: isolated profile mode with neither
-    agent.skill_utils nor hermes_cli importable must still return the
+    agent.skill_utils nor iris_cli importable must still return the
     default-only row instead of propagating ImportError out of the route."""
     home = _write_profile(tmp_path, dir_name="default")
     monkeypatch.setattr(profiles, "_is_isolated_profile_mode", lambda: True)
-    monkeypatch.setattr(profiles, "_INITIAL_HERMES_HOME", str(home))
+    monkeypatch.setattr(profiles, "_INITIAL_IRIS_HOME", str(home))
 
     rows = profiles.list_profiles_api()
 

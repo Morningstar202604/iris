@@ -1,6 +1,6 @@
 """Regression tests for the state.db structured-content sentinel.
 
-hermes_state stores list/dict message content as a NUL-sentinel JSON string.
+iris_state stores list/dict message content as a NUL-sentinel JSON string.
 While the WebUI projector left it undecoded, an uploaded image's base64 data
 URI reached the transcript as literal text -- one unbreakable ~65k-character
 run -- and the browser spent minutes computing its min-content width.

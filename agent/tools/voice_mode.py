@@ -23,8 +23,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-from hermes_constants import is_termux as _is_termux_environment
-from hermes_platform.host.runtime import is_wsl
+from iris_constants import is_termux as _is_termux_environment
+from iris_platform.host.runtime import is_wsl
 from tools.voice_mode_transcript import _voice_config, is_voice_stop_phrase, is_whisper_hallucination
 
 # ── Recording parameters ──
@@ -34,7 +34,7 @@ DTYPE = "int16"
 SAMPLE_WIDTH = 2  # bytes per sample (int16)
 SILENCE_RMS_THRESHOLD = 200  # RMS below this = silence (int16 range 0-32767)
 SILENCE_DURATION_SECONDS = 3.0  # continuous silence before auto-stop
-_TEMP_DIR = os.path.join(tempfile.gettempdir(), "hermes_voice")
+_TEMP_DIR = os.path.join(tempfile.gettempdir(), "iris_voice")
 
 
 # ── Lazy audio imports ──
@@ -291,14 +291,14 @@ def detect_audio_environment() -> dict:
         report("Running over SSH with a reachable PulseAudio/PipeWire sound server",
                "Running over SSH -- no audio devices available.\n"
                "  If a sound server (PulseAudio/PipeWire) is running on this host,\n"
-               "  point Hermes at it, e.g.:\n"
+               "  point Iris at it, e.g.:\n"
                "    export XDG_RUNTIME_DIR=/run/user/$(id -u)\n"
                "    # or: export PULSE_SERVER=unix:$XDG_RUNTIME_DIR/pulse/native")
 
     # Docker/Podman container detection — honor host audio forwarding. When the user mounts a
     # PulseAudio/PipeWire socket into the container and points PULSE_SERVER / PIPEWIRE_REMOTE at it, audio
     # works fine (issue #21203). Only block when no forwarding is configured.
-    from hermes_constants import is_container
+    from iris_constants import is_container
     if is_container():
         report("Running inside container (Docker/Podman/LXC) with host audio forwarding",
                "Running inside container (Docker/Podman/LXC) -- no audio devices.\n"
@@ -1026,7 +1026,7 @@ def _wsl_powershell_player_cmd(file_path: str) -> Optional[List[str]]:
         win_tmp_wsl = _out(["wslpath", "-u", _out(["cmd.exe", "/c", "echo %TEMP%"])])
         if not win_tmp_wsl:
             return None
-        wsl_wav = os.path.join(win_tmp_wsl, f"hermes-tts-{uuid.uuid4().hex[:8]}.wav")
+        wsl_wav = os.path.join(win_tmp_wsl, f"iris-tts-{uuid.uuid4().hex[:8]}.wav")
         win_wav = _out(["wslpath", "-w", wsl_wav])
         if not win_wav:
             return None
@@ -1060,9 +1060,9 @@ def _run_system_player(cmd: List[str]) -> bool:
     try:
         # Sibling of the TTS/STT credential scrub: players must not inherit tokens/keys.
         # See #56332, #70342.
-        from tools.environments.local import hermes_subprocess_env
+        from tools.environments.local import iris_subprocess_env
         proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
-                                env=hermes_subprocess_env(inherit_credentials=False))
+                                env=iris_subprocess_env(inherit_credentials=False))
         _set_active_playback(proc)
         proc.wait(timeout=300)
         rc = proc.returncode
@@ -1270,9 +1270,9 @@ DEFAULT_BARGE_MULTIPLIER = 3.0  # over the quiet floor: 300 * 3 = 900 vs 3000+ s
 
 
 def _vad_log(msg: str) -> None:
-    """VAD diagnostic: logger.debug, plus stderr when HERMES_VOICE_DEBUG=1 (live tuning)."""
+    """VAD diagnostic: logger.debug, plus stderr when IRIS_VOICE_DEBUG=1 (live tuning)."""
     logger.debug(msg)
-    if os.environ.get("HERMES_VOICE_DEBUG", "").strip() == "1":
+    if os.environ.get("IRIS_VOICE_DEBUG", "").strip() == "1":
         with suppress(Exception):
             print(f"[voice-vad] {msg}", file=sys.stderr, flush=True)
 
@@ -1423,7 +1423,7 @@ def _check_plugin_stt_provider(provider: str) -> bool:
         return False
     try:
         from agent.transcription_registry import get_provider
-        from hermes_cli.plugins import _ensure_plugins_discovered
+        from iris_cli.plugins import _ensure_plugins_discovered
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)
         if plugin_provider is None:
@@ -1566,7 +1566,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

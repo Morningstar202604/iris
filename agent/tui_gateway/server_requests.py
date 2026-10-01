@@ -118,7 +118,7 @@ def _unanswerable(method: str, sid: str) -> bool:
     if _answerable(sid):
         return False
     logger.info("server request %s for %s not sent: the attached client predates server→client requests "
-                "(update the Hermes app)", method, sid)
+                "(update the Iris app)", method, sid)
     return True
 
 

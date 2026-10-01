@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read which OS window sits directly underneath the Hermes desktop window.
+"""Read which OS window sits directly underneath the Iris desktop window.
 
 The window list lives with the OS, so this round-trips through the gateway's
 blocking-prompt bridge like `read_terminal`: ``window.read.request`` -> the renderer's
@@ -13,9 +13,9 @@ from tools.registry import registry
 
 
 def read_window_below_tool(callback: Optional[Callable] = None) -> str:
-    """Return the window underneath the Hermes window as a JSON string."""
+    """Return the window underneath the Iris window as a JSON string."""
     return read_pane(callback, (), (
-        "read_window_below is only available in the Hermes desktop app.",
+        "read_window_below is only available in the Iris desktop app.",
         "",
         "Failed to read the window below: ",
         "Could not determine the window underneath (the desktop app did "
@@ -26,7 +26,7 @@ def read_window_below_tool(callback: Optional[Callable] = None) -> str:
 READ_WINDOW_BELOW_SCHEMA = {
     "name": "read_window_below",
     "description": (
-        "Identify the app window directly behind the Hermes desktop window "
+        "Identify the app window directly behind the Iris desktop window "
         "(what the user is working in). JSON: {window: {app, title, bounds, "
         "id}, frontmost, platform}. title may be empty when the OS withholds "
         "it (noted in `note`); where windows cannot be enumerated at all, "
@@ -65,7 +65,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

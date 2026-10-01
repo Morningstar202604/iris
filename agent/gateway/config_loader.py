@@ -1,7 +1,7 @@
 """config.yaml / gateway.json → ``GatewayConfig.from_dict`` schema (the ``load_gateway_config`` phases).
 
 Precedence for top-level keys: key-presence at the TOP LEVEL of config.yaml wins; the nested
-``gateway.<key>`` form (what ``hermes config set gateway.<key>`` produces) is consulted only when the
+``gateway.<key>`` form (what ``iris config set gateway.<key>`` produces) is consulted only when the
 top-level key is absent — not merely falsy/mistyped — so a present-but-empty top-level value is never
 silently replaced by the nested one. Both overwrite whatever legacy gateway.json set.
 """
@@ -36,7 +36,7 @@ def load_legacy_gateway_json(home: Path) -> Any:
 
 # --- top-level key bridging ----------------------------------------------------
 #
-# Top-level settings are also accepted nested under ``gateway:`` (what ``hermes config set
+# Top-level settings are also accepted nested under ``gateway:`` (what ``iris config set
 # gateway.<key>`` produces). This loader builds gw_data FLAT and never forwards the yaml ``gateway:``
 # section, so even keys GatewayConfig.from_dict can fall back on itself (loop_watchdog*,
 # multiplex_profiles, ...) must be bridged here or they are silently ignored on real startup.
@@ -395,7 +395,7 @@ def read_yaml_layers(home: Path) -> dict:
         with open(config_yaml_path, encoding="utf-8") as f:
             yaml_cfg = fast_safe_load(f) or {}
 
-    from hermes_cli.config import _expand_env_vars
+    from iris_cli.config import _expand_env_vars
 
     # ${VAR} / ${env:VAR} expansion — the same primitive the CLI loader applies, so platform
     # adapter settings (webhook secret, api_server key, teams credentials) arrive resolved
@@ -404,8 +404,8 @@ def read_yaml_layers(home: Path) -> dict:
     yaml_cfg = _expand_env_vars(yaml_cfg)
 
     # Managed scope: overlay administrator-pinned values (this loader bypasses
-    # hermes_cli.config.load_config, so managed quick_commands / stt would otherwise be ignored).
-    from hermes_cli import managed_scope
+    # iris_cli.config.load_config, so managed quick_commands / stt would otherwise be ignored).
+    from iris_cli import managed_scope
     return managed_scope.apply_managed_overlay(yaml_cfg)
 
 
@@ -421,7 +421,7 @@ def load_yaml_layer(home: Path, gw_data: dict) -> None:
     platforms_data = merge_platform_sections(yaml_cfg, gateway_section, gw_data)
 
     try:
-        from hermes_cli.plugins import discover_plugins
+        from iris_cli.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry as registry
     except Exception as e:

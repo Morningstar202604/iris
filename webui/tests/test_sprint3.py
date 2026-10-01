@@ -83,7 +83,7 @@ def test_skills_list():
 
     Resilient to test-isolation pollution: the threshold checks > 0 with a
     skip-on-empty escape hatch. The original > 0 threshold was correct on
-    a clean test server (which symlinks the real ~/.hermes/skills with 100+
+    a clean test server (which symlinks the real ~/.iris/skills with 100+
     entries) but flaky in the full suite because some sibling test
     can shift the server's SKILLS_DIR resolution mid-suite (sprint29
     test-security-skill cleanup, sprint31 profile create/switch, etc.).
@@ -149,7 +149,7 @@ def test_skills_search_returns_subset():
 
     Resilient to test-isolation pollution: the threshold checks > 0 with a
     skip-on-empty escape hatch. The original > 5 threshold was correct on
-    a clean test server (which symlinks the real ~/.hermes/skills with 100+
+    a clean test server (which symlinks the real ~/.iris/skills with 100+
     entries) but flaky in the full suite because some sibling test
     (sprint29 saves a skill, sprint31 creates a profile, etc.) can shift
     the server's SKILLS_DIR resolution mid-suite.

@@ -99,8 +99,8 @@ def test_api_rejects_hung_fetch_with_timeout_and_toast():
     script = textwrap.dedent(
         f"""
         const events=[];
-        global.document={{baseURI:'http://example.test/hermes/'}};
-        global.location={{href:'http://example.test/hermes/',pathname:'/hermes/',search:''}};
+        global.document={{baseURI:'http://example.test/iris/'}};
+        global.location={{href:'http://example.test/iris/',pathname:'/iris/',search:''}};
         global.window={{location:global.location}};
         global.showToast=(msg,ms,type)=>events.push({{msg:String(msg),ms,type}});
         global.fetch=(url,opts)=>new Promise(()=>{{
@@ -131,8 +131,8 @@ def test_api_rejects_stalled_response_body_with_timeout():
     script = textwrap.dedent(
         f"""
         const events=[];
-        global.document={{baseURI:'http://example.test/hermes/'}};
-        global.location={{href:'http://example.test/hermes/',pathname:'/hermes/',search:''}};
+        global.document={{baseURI:'http://example.test/iris/'}};
+        global.location={{href:'http://example.test/iris/',pathname:'/iris/',search:''}};
         global.window={{location:global.location}};
         global.showToast=(msg,ms,type)=>events.push({{msg:String(msg),ms,type}});
         global.fetch=(url,opts)=>Promise.resolve({{
@@ -166,8 +166,8 @@ def test_api_can_suppress_timeout_toast_for_background_pollers():
     script = textwrap.dedent(
         f"""
         const events=[];
-        global.document={{baseURI:'http://example.test/hermes/'}};
-        global.location={{href:'http://example.test/hermes/',pathname:'/hermes/',search:''}};
+        global.document={{baseURI:'http://example.test/iris/'}};
+        global.location={{href:'http://example.test/iris/',pathname:'/iris/',search:''}};
         global.window={{location:global.location}};
         global.showToast=(msg,ms,type)=>events.push({{msg:String(msg),ms,type}});
         global.fetch=(url,opts)=>new Promise(()=>{{

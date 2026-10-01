@@ -80,23 +80,23 @@ def _trusted_env(
     logout_url=None,
 ):
     for key in (
-        "HERMES_WEBUI_TRUSTED_AUTH_HEADER",
-        "HERMES_WEBUI_TRUSTED_GROUPS_HEADER",
-        "HERMES_WEBUI_GROUP_PROFILE_MAP",
-        "HERMES_WEBUI_TRUSTED_PROXY_CIDRS",
-        "HERMES_WEBUI_TRUSTED_AUTH_LOGOUT_URL",
+        "IRIS_WEBUI_TRUSTED_AUTH_HEADER",
+        "IRIS_WEBUI_TRUSTED_GROUPS_HEADER",
+        "IRIS_WEBUI_GROUP_PROFILE_MAP",
+        "IRIS_WEBUI_TRUSTED_PROXY_CIDRS",
+        "IRIS_WEBUI_TRUSTED_AUTH_LOGOUT_URL",
     ):
         monkeypatch.delenv(key, raising=False)
     if header is not None:
-        monkeypatch.setenv("HERMES_WEBUI_TRUSTED_AUTH_HEADER", header)
+        monkeypatch.setenv("IRIS_WEBUI_TRUSTED_AUTH_HEADER", header)
     if groups_header is not None:
-        monkeypatch.setenv("HERMES_WEBUI_TRUSTED_GROUPS_HEADER", groups_header)
+        monkeypatch.setenv("IRIS_WEBUI_TRUSTED_GROUPS_HEADER", groups_header)
     if group_map is not None:
-        monkeypatch.setenv("HERMES_WEBUI_GROUP_PROFILE_MAP", json.dumps(group_map))
+        monkeypatch.setenv("IRIS_WEBUI_GROUP_PROFILE_MAP", json.dumps(group_map))
     if proxy_cidrs is not None:
-        monkeypatch.setenv("HERMES_WEBUI_TRUSTED_PROXY_CIDRS", proxy_cidrs)
+        monkeypatch.setenv("IRIS_WEBUI_TRUSTED_PROXY_CIDRS", proxy_cidrs)
     if logout_url is not None:
-        monkeypatch.setenv("HERMES_WEBUI_TRUSTED_AUTH_LOGOUT_URL", logout_url)
+        monkeypatch.setenv("IRIS_WEBUI_TRUSTED_AUTH_LOGOUT_URL", logout_url)
 
 
 def test_trusted_header_only_enables_auth_gate(monkeypatch):
@@ -137,7 +137,7 @@ def test_malformed_trusted_proxy_cidr_rejects_existing_trusted_session(monkeypat
     _trusted_env(monkeypatch, proxy_cidrs="bad-cidr")
     cookie = auth.create_session(auth_type="trusted", username="alice")
     handler = _Handler(
-        headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice"},
+        headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice"},
         client_address=("10.0.0.5", 12345),
     )
 
@@ -172,20 +172,20 @@ def test_allowlisted_peer_header_creates_trusted_session(monkeypatch):
     assert result is True
     assert handler.status is None
     pending = getattr(handler, "_pending_set_cookies", [])
-    assert any(cookie.startswith("hermes_session=") for cookie in pending)
-    assert not any(cookie.startswith("hermes_profile=") for cookie in pending)
+    assert any(cookie.startswith("iris_session=") for cookie in pending)
+    assert not any(cookie.startswith("iris_profile=") for cookie in pending)
 
 
 def test_group_map_binds_profile(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
     )
     handler = _Handler(
         headers={
             "Remote-User": "alice",
-            "Remote-Groups": "hermes_devops,ai_users",
+            "Remote-Groups": "iris_devops,ai_users",
         }
     )
 
@@ -196,7 +196,7 @@ def test_group_map_binds_profile(monkeypatch):
     assert info["bound_profile"] == "devops"
     cookie_value = handler._trusted_auth_session_cookie_value
     assert auth.session_bound_profile(cookie_value) == "devops"
-    assert any(cookie.startswith("hermes_profile=") for cookie in handler._pending_set_cookies)
+    assert any(cookie.startswith("iris_profile=") for cookie in handler._pending_set_cookies)
 
 
 def test_group_map_prefers_mapping_order_over_header_order(monkeypatch):
@@ -232,7 +232,7 @@ def test_trusted_groups_header_value_accepts_separator_variants(
     monkeypatch, raw_header, expected
 ):
     _trusted_env(monkeypatch, groups_header="Remote-Groups")
-    monkeypatch.delenv("HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", raising=False)
     handler = _Handler(headers={"Remote-User": "alice", "Remote-Groups": raw_header})
 
     assert auth._trusted_groups_header_value(handler) == expected
@@ -245,7 +245,7 @@ def test_trusted_groups_pipe_is_literal_by_default(monkeypatch):
     group name legitimately contains a '|' must not be silently re-split into
     two groups (which could change its profile binding)."""
     _trusted_env(monkeypatch, groups_header="Remote-Groups")
-    monkeypatch.delenv("HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", raising=False)
     handler = _Handler(
         headers={"Remote-User": "alice", "Remote-Groups": "admins|developpeur"}
     )
@@ -268,9 +268,9 @@ def test_trusted_groups_pipe_is_literal_by_default(monkeypatch):
     ],
 )
 def test_trusted_groups_pipe_separator_opt_in(monkeypatch, raw_header, expected):
-    """With HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR set, '|' also splits."""
+    """With IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR set, '|' also splits."""
     _trusted_env(monkeypatch, groups_header="Remote-Groups")
-    monkeypatch.setenv("HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", "1")
+    monkeypatch.setenv("IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", "1")
     handler = _Handler(headers={"Remote-User": "alice", "Remote-Groups": raw_header})
 
     assert auth._trusted_groups_header_value(handler) == expected
@@ -293,11 +293,11 @@ def test_group_map_accepts_pipe_separated_header_value(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
     )
-    monkeypatch.setenv("HERMES_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", "1")
+    monkeypatch.setenv("IRIS_WEBUI_TRUSTED_GROUPS_PIPE_SEPARATOR", "1")
     handler = _Handler(
-        headers={"Remote-User": "alice", "Remote-Groups": "hermes_devops|other_group"}
+        headers={"Remote-User": "alice", "Remote-Groups": "iris_devops|other_group"}
     )
 
     info = auth.ensure_trusted_auth_session(handler)
@@ -328,7 +328,7 @@ def test_group_map_without_match_binds_default(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
     )
     handler = _Handler(
         headers={
@@ -344,13 +344,13 @@ def test_group_map_without_match_binds_default(monkeypatch):
 
 
 def test_bound_profile_mismatch_rejected(monkeypatch):
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
     cookie = auth.create_session(
         auth_type="trusted",
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     monkeypatch.setattr("api.profiles.get_active_profile_name", lambda: "coworkers")
 
     result = auth.check_auth(handler, SimpleNamespace(path="/api/sessions", query=""))
@@ -361,13 +361,13 @@ def test_bound_profile_mismatch_rejected(monkeypatch):
 
 
 def test_bound_profile_match_allowed(monkeypatch):
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
     cookie = auth.create_session(
         auth_type="trusted",
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     monkeypatch.setattr("api.profiles.get_active_profile_name", lambda: "devops")
 
     result = auth.check_auth(handler, SimpleNamespace(path="/api/sessions", query=""))
@@ -382,8 +382,8 @@ def test_profile_switch_rejects_other_bound_profile(monkeypatch):
         username="alice",
         bound_profile="devops",
     )
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     handler.command = "POST"
     monkeypatch.setattr("api.profiles.get_active_profile_name", lambda: "devops")
     monkeypatch.setattr(routes, "_check_csrf", lambda _handler: True)
@@ -400,12 +400,12 @@ def test_first_trusted_profile_switch_rejection_keeps_session_cookies(monkeypatc
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
     )
     handler = _Handler(
         headers={
             "Remote-User": "alice",
-            "Remote-Groups": "hermes_devops",
+            "Remote-Groups": "iris_devops",
         }
     )
     handler.command = "POST"
@@ -420,19 +420,19 @@ def test_first_trusted_profile_switch_rejection_keeps_session_cookies(monkeypatc
     set_cookies = handler.header_values("Set-Cookie")
     assert handler.status == 403
     assert handler.json_body()["error"] == "Profile is bound to the current session"
-    assert any(cookie.startswith("hermes_session=") for cookie in set_cookies)
-    assert any(cookie.startswith("hermes_profile=") for cookie in set_cookies)
-    assert len([cookie for cookie in set_cookies if cookie.startswith("hermes_session=")]) == 1
+    assert any(cookie.startswith("iris_session=") for cookie in set_cookies)
+    assert any(cookie.startswith("iris_profile=") for cookie in set_cookies)
+    assert len([cookie for cookie in set_cookies if cookie.startswith("iris_session=")]) == 1
 
 
 def test_profile_switch_accepts_bound_profile(monkeypatch):
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
     cookie = auth.create_session(
         auth_type="trusted",
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     handler.command = "POST"
     monkeypatch.setattr("api.profiles.get_active_profile_name", lambda: "devops")
     monkeypatch.setattr(routes, "_check_csrf", lambda _handler: True)
@@ -445,17 +445,17 @@ def test_profile_switch_accepts_bound_profile(monkeypatch):
 
     assert handler.status == 200
     assert handler.json_body()["profile"] == "devops"
-    assert any(value.startswith("hermes_profile=") for value in handler.header_values("Set-Cookie"))
+    assert any(value.startswith("iris_profile=") for value in handler.header_values("Set-Cookie"))
 
 
 def test_auth_status_reports_trusted_session_fields(monkeypatch):
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
     cookie = auth.create_session(
         auth_type="trusted",
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     monkeypatch.setattr(auth, "_passkey_feature_flag_enabled", lambda: False)
     monkeypatch.setattr("api.passkeys.registered_credentials", lambda: [])
 
@@ -478,7 +478,7 @@ def test_auth_status_rejects_trusted_cookie_when_proxy_cidr_is_malformed(monkeyp
         bound_profile="devops",
     )
     handler = _Handler(
-        headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice"},
+        headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice"},
         client_address=("10.0.0.5", 12345),
     )
     monkeypatch.setattr(auth, "_passkey_feature_flag_enabled", lambda: False)
@@ -527,7 +527,7 @@ def test_existing_trusted_session_rotates_for_current_identity(monkeypatch):
     )
     handler = _Handler(
         headers={
-            "Cookie": f"hermes_session={cookie}",
+            "Cookie": f"iris_session={cookie}",
             "Remote-User": "bob",
             "Remote-Groups": "bob-group",
         }
@@ -547,7 +547,7 @@ def test_trusted_reconciliation_cache_resets_between_requests(monkeypatch):
 
     assert auth.check_auth(handler, SimpleNamespace(path="/api/sessions", query="")) is True
     alice_cookie = handler._trusted_auth_session_cookie_value
-    handler.headers = {"Cookie": f"hermes_session={alice_cookie}", "Remote-User": "bob"}
+    handler.headers = {"Cookie": f"iris_session={alice_cookie}", "Remote-User": "bob"}
     handler._pending_set_cookies = []
     auth.reset_trusted_auth_request_state(handler)
 
@@ -572,8 +572,8 @@ def test_reset_clears_pending_cookies_across_keepalive_requests(monkeypatch):
     handler = _Handler()
 
     # Request N queues an auth cookie but the response is never flushed.
-    auth._queue_pending_cookie(handler, "hermes_session=stale-value; Path=/")
-    assert handler._pending_set_cookies == ["hermes_session=stale-value; Path=/"]
+    auth._queue_pending_cookie(handler, "iris_session=stale-value; Path=/")
+    assert handler._pending_set_cookies == ["iris_session=stale-value; Path=/"]
 
     # Request N+1 begins on the same reused handler.
     auth.reset_trusted_auth_request_state(handler)
@@ -598,7 +598,7 @@ def test_auth_status_reports_reconciled_trusted_identity(monkeypatch):
     )
     handler = _Handler(
         headers={
-            "Cookie": f"hermes_session={cookie}",
+            "Cookie": f"iris_session={cookie}",
             "Remote-User": "bob",
             "Remote-Groups": "bob-group",
         }
@@ -618,7 +618,7 @@ def test_auth_status_reports_reconciled_trusted_identity(monkeypatch):
 def test_existing_trusted_session_without_header_is_invalidated(monkeypatch):
     _trusted_env(monkeypatch)
     cookie = auth.create_session(auth_type="trusted", username="alice")
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}"})
 
     assert auth.check_auth(handler, SimpleNamespace(path="/api/sessions", query="")) is False
     assert handler.status == 401
@@ -631,7 +631,7 @@ def test_untrusted_existing_trusted_session_is_rejected_by_all_consumers(monkeyp
 
     protected_cookie = auth.create_session(auth_type="trusted", username="alice")
     protected = _Handler(
-        headers={**headers, "Cookie": f"hermes_session={protected_cookie}"},
+        headers={**headers, "Cookie": f"iris_session={protected_cookie}"},
         client_address=("10.0.0.5", 12345),
     )
     assert auth.check_auth(protected, SimpleNamespace(path="/api/sessions", query="")) is False
@@ -640,7 +640,7 @@ def test_untrusted_existing_trusted_session_is_rejected_by_all_consumers(monkeyp
 
     status_cookie = auth.create_session(auth_type="trusted", username="alice")
     status = _Handler(
-        headers={**headers, "Cookie": f"hermes_session={status_cookie}"},
+        headers={**headers, "Cookie": f"iris_session={status_cookie}"},
         client_address=("10.0.0.5", 12345),
     )
     monkeypatch.setattr(auth, "_passkey_feature_flag_enabled", lambda: False)
@@ -651,7 +651,7 @@ def test_untrusted_existing_trusted_session_is_rejected_by_all_consumers(monkeyp
 
     switch_cookie = auth.create_session(auth_type="trusted", username="alice")
     switch = _Handler(
-        headers={**headers, "Cookie": f"hermes_session={switch_cookie}"},
+        headers={**headers, "Cookie": f"iris_session={switch_cookie}"},
         client_address=("10.0.0.5", 12345),
     )
     switch.command = "POST"
@@ -667,18 +667,18 @@ def test_untrusted_existing_trusted_session_is_rejected_by_all_consumers(monkeyp
 
 
 def test_trusted_session_rehydrates_bound_profile_cookie(monkeypatch):
-    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"hermes_devops": "devops"})
+    _trusted_env(monkeypatch, groups_header="Remote-Groups", group_map={"iris_devops": "devops"})
     cookie = auth.create_session(
         auth_type="trusted",
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
 
     assert auth.check_auth(handler, SimpleNamespace(path="/api/sessions", query="")) is True
     assert profiles.get_active_profile_name() == "devops"
     profile_cookie = next(
-        cookie_header for cookie_header in handler._pending_set_cookies if cookie_header.startswith("hermes_profile=")
+        cookie_header for cookie_header in handler._pending_set_cookies if cookie_header.startswith("iris_profile=")
     )
     profile_value = profile_cookie.split("=", 1)[1].split(";", 1)[0]
     assert auth.verify_profile_cookie_value(profile_value, cookie) == "devops"
@@ -694,7 +694,7 @@ def test_first_trusted_shell_response_includes_csrf_token(monkeypatch):
     routes.handle_get(handler, SimpleNamespace(path="/", query=""))
 
     cookie_value = handler._trusted_auth_session_cookie_value
-    assert any(cookie.startswith("hermes_session=") for cookie in handler.header_values("Set-Cookie"))
+    assert any(cookie.startswith("iris_session=") for cookie in handler.header_values("Set-Cookie"))
     assert handler.body_text() == f"csrfToken:{json.dumps(auth.csrf_token_for_session(cookie_value))}"
 
 
@@ -702,7 +702,7 @@ def test_logout_clears_auth_and_profile_cookies(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
         logout_url="https://auth.example.com/logout",
     )
     cookie = auth.create_session(
@@ -710,7 +710,7 @@ def test_logout_clears_auth_and_profile_cookies(monkeypatch):
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}", "Remote-User": "alice", "Remote-Groups": "hermes_devops"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}", "Remote-User": "alice", "Remote-Groups": "iris_devops"})
     handler.command = "POST"
     monkeypatch.setattr("api.profiles.get_active_profile_name", lambda: "devops")
     monkeypatch.setattr(routes, "_check_csrf", lambda _handler: True)
@@ -722,8 +722,8 @@ def test_logout_clears_auth_and_profile_cookies(monkeypatch):
     assert payload["ok"] is True
     assert payload["trusted_logout_url"] == "https://auth.example.com/logout"
     set_cookies = handler.header_values("Set-Cookie")
-    assert any(cookie.startswith("hermes_session=") and "Max-Age=0" in cookie for cookie in set_cookies)
-    assert any(cookie.startswith("hermes_profile=") and "Max-Age=0" in cookie and "SameSite=Lax" in cookie for cookie in set_cookies)
+    assert any(cookie.startswith("iris_session=") and "Max-Age=0" in cookie for cookie in set_cookies)
+    assert any(cookie.startswith("iris_profile=") and "Max-Age=0" in cookie and "SameSite=Lax" in cookie for cookie in set_cookies)
     assert auth.verify_session(cookie) is False
 
 
@@ -741,7 +741,7 @@ def test_logout_identity_rotation_preserves_csrf_validation(monkeypatch):
     )
     handler = _Handler(
         headers={
-            "Cookie": f"hermes_session={cookie}",
+            "Cookie": f"iris_session={cookie}",
             "Remote-User": "bob",
             "Remote-Groups": "bob-group",
             auth.CSRF_HEADER_NAME: auth.csrf_token_for_session(cookie),
@@ -762,8 +762,8 @@ def test_logout_identity_rotation_preserves_csrf_validation(monkeypatch):
     assert auth.verify_session(cookie) is False
     assert auth.verify_session(handler._trusted_auth_session_cookie_value) is False
     set_cookies = handler.header_values("Set-Cookie")
-    assert any(cookie_header.startswith("hermes_session=") and "Max-Age=0" in cookie_header for cookie_header in set_cookies)
-    assert any(cookie_header.startswith("hermes_profile=") and "Max-Age=0" in cookie_header for cookie_header in set_cookies)
+    assert any(cookie_header.startswith("iris_session=") and "Max-Age=0" in cookie_header for cookie_header in set_cookies)
+    assert any(cookie_header.startswith("iris_profile=") and "Max-Age=0" in cookie_header for cookie_header in set_cookies)
 
 
 def test_unconfigured_remote_user_header_is_ordinary_header(monkeypatch):
@@ -779,12 +779,12 @@ def test_trusted_auth_owner_contract(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
     )
     handler = _Handler(
         headers={
             "Remote-User": "alice",
-            "Remote-Groups": "hermes_devops,ai_users",
+            "Remote-Groups": "iris_devops,ai_users",
         }
     )
 
@@ -812,7 +812,7 @@ def test_consumers_route_through_auth_owner(monkeypatch):
     _trusted_env(
         monkeypatch,
         groups_header="Remote-Groups",
-        group_map={"hermes_devops": "devops"},
+        group_map={"iris_devops": "devops"},
         logout_url="https://auth.example.com/logout",
     )
     cookie = auth.create_session(
@@ -820,7 +820,7 @@ def test_consumers_route_through_auth_owner(monkeypatch):
         username="alice",
         bound_profile="devops",
     )
-    handler = _Handler(headers={"Cookie": f"hermes_session={cookie}"})
+    handler = _Handler(headers={"Cookie": f"iris_session={cookie}"})
     handler.command = "POST"
     calls = []
 

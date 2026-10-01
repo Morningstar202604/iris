@@ -1,11 +1,11 @@
-"""#5311 follow-up: OpenCode Go uses the live Hermes CLI catalog again.
+"""#5311 follow-up: OpenCode Go uses the live Iris CLI catalog again.
 
 Background: #5611 made WebUI skip the live ``/v1/models`` probe for OpenCode Go
 because the probe returned public-catalog models not enabled on the Go tier.
-That premise no longer holds: Hermes core v0.20.5 (commit fcbd1076, tag
+That premise no longer holds: Iris core v0.20.5 (commit fcbd1076, tag
 v2026.8.19) ships a Go-specific provider profile that probes
 ``https://opencode.ai/zen/go/v1/models`` directly and merges results
-live-first with its curated Go list (hermes_cli/models.py, #49129). With the
+live-first with its curated Go list (iris_cli/models.py, #49129). With the
 correct Go-tier endpoint in core, WebUI should delegate like every other
 provider (#1240): live catalog first, the curated static ``_PROVIDER_MODELS``
 list as offline fallback only.
@@ -32,7 +32,7 @@ def _scrub_provider_env(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def _install_fake_hermes_cli(
+def _install_fake_iris_cli(
     monkeypatch,
     *,
     provider_id: str,
@@ -40,12 +40,12 @@ def _install_fake_hermes_cli(
     core_version: str = "0.20.5",
     raise_on_lookup: bool = False,
 ):
-    """Install a hermes_cli stub that reports one authenticated provider."""
-    fake_pkg = types.ModuleType("hermes_cli")
+    """Install a iris_cli stub that reports one authenticated provider."""
+    fake_pkg = types.ModuleType("iris_cli")
     fake_pkg.__path__ = []
     fake_pkg.__version__ = core_version
 
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": provider_id, "authenticated": True}
     ]
@@ -60,7 +60,7 @@ def _install_fake_hermes_cli(
 
     fake_models.provider_model_ids = provider_model_ids
 
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
 
     def get_auth_status(pid):
         if pid == provider_id:
@@ -69,9 +69,9 @@ def _install_fake_hermes_cli(
 
     fake_auth.get_auth_status = get_auth_status
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.delitem(sys.modules, "agent.credential_pool", raising=False)
     monkeypatch.delitem(sys.modules, "agent", raising=False)
     config.invalidate_models_cache()
@@ -79,9 +79,9 @@ def _install_fake_hermes_cli(
 
 
 def _configure(monkeypatch, tmp_path, *, provider: str, providers: dict | None = None):
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir()
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: hermes_home)
+    iris_home = tmp_path / "iris-home"
+    iris_home.mkdir()
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: iris_home)
     monkeypatch.setattr(config, "_get_config_path", lambda: tmp_path / "missing-config.yaml")
     monkeypatch.setattr(config, "_models_cache_path", tmp_path / "models_cache.json")
     monkeypatch.setattr(
@@ -107,14 +107,14 @@ def _ids(group: dict) -> list[str]:
 
 
 def test_opencode_go_probes_live_catalog(monkeypatch, tmp_path):
-    """The Go picker group must come from the live Hermes CLI catalog.
+    """The Go picker group must come from the live Iris CLI catalog.
 
     ``sentinel-go-model`` is intentionally absent from every static list. If
     WebUI special-cases OpenCode Go away from the live probe again (the #5611
     stopgap), the sentinel disappears and this test fails.
     """
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="opencode-go",
         live_ids=["sentinel-go-model", "kimi-k3"],
@@ -134,7 +134,7 @@ def test_opencode_go_probes_live_catalog(monkeypatch, tmp_path):
 def test_opencode_go_old_core_ignores_nonempty_generic_catalog(monkeypatch, tmp_path):
     """Pre-v0.20.5 cores must not leak their generic public catalog into Go."""
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="opencode-go",
         live_ids=["go-ineligible-old-core-sentinel"],
@@ -154,7 +154,7 @@ def test_opencode_go_old_core_ignores_nonempty_generic_catalog(monkeypatch, tmp_
 def test_opencode_go_static_fallback_when_probe_fails(monkeypatch, tmp_path):
     """Offline / CLI failure must fall back to the curated static list."""
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="opencode-go",
         live_ids=[],
@@ -176,7 +176,7 @@ def test_opencode_go_config_allowlist_still_wins(monkeypatch, tmp_path):
     """An explicit ``providers.opencode-go.models`` allowlist remains the
     local source of truth (#644) and is not bypassed by the live probe."""
     _scrub_provider_env(monkeypatch)
-    calls = _install_fake_hermes_cli(
+    calls = _install_fake_iris_cli(
         monkeypatch,
         provider_id="opencode-go",
         live_ids=["sentinel-go-model"],
@@ -196,8 +196,8 @@ def test_opencode_go_config_allowlist_still_wins(monkeypatch, tmp_path):
 
 
 # ── Static fallback list contract ─────────────────────────────────────
-# The remaining tests pin the offline fallback list itself to Hermes core's
-# current curated contract (hermes_cli/models_catalog_static.py, core main
+# The remaining tests pin the offline fallback list itself to Iris core's
+# current curated contract (iris_cli/models_catalog_static.py, core main
 # 2026-09-10; the list originated in v0.20.5, commit fcbd1076). Core owns
 # the sync duty against the live
 # https://opencode.ai/zen/go/v1/models endpoint and
@@ -274,16 +274,16 @@ def test_opencode_go_static_models_match_installed_core_curated_list():
     """
     import pytest
 
-    hermes_cli = pytest.importorskip(
-        "hermes_cli", reason="hermes-agent is not a WebUI test dependency"
+    iris_cli = pytest.importorskip(
+        "iris_cli", reason="iris-agent is not a WebUI test dependency"
     )
-    if not config._hermes_cli_supports_opencode_go_live_catalog():
-        pytest.skip(f"installed hermes-agent {hermes_cli.__version__} predates v0.20.5")
-    models_mod = pytest.importorskip("hermes_cli.models")
+    if not config._iris_cli_supports_opencode_go_live_catalog():
+        pytest.skip(f"installed iris-agent {iris_cli.__version__} predates v0.20.5")
+    models_mod = pytest.importorskip("iris_cli.models")
     installed = list(models_mod._PROVIDER_MODELS["opencode-go"])
     if "ox-alpha-free" in installed:
         pytest.skip(
-            "installed hermes-agent catalog predates core's 2026-09-09 sync "
+            "installed iris-agent catalog predates core's 2026-09-09 sync "
             "(still lists relay-delisted 'ox-alpha-free'); equality binds "
             "once a release carrying that sync is installed"
         )

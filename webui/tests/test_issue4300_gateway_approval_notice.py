@@ -38,7 +38,7 @@ def test_gateway_chat_once_per_session_guard_pattern():
 def test_gateway_chat_event_payload_contains_type_and_message():
     """Verify the event payload has type and message fields."""
     assert "approval_type = \"approval_gateway_unsupported\"" in GATEWAY_CHAT
-    assert "approval_message = \"Approvals require a newer gateway. Upgrade the connected Hermes gateway to enable this.\"" in GATEWAY_CHAT
+    assert "approval_message = \"Approvals require a newer gateway. Upgrade the connected Iris gateway to enable this.\"" in GATEWAY_CHAT
 
 
 def test_messages_js_handles_approval_gateway_unsupported_event():

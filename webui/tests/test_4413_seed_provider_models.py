@@ -1,4 +1,4 @@
-"""Regression tests for #4413 — provider-model seeder from hermes_cli.
+"""Regression tests for #4413 — provider-model seeder from iris_cli.
 
 Covers three defects identified in PR review:
 
@@ -22,7 +22,7 @@ import pytest
 
 REPO = pathlib.Path(__file__).parent.parent
 sys.path.insert(0, str(REPO))
-sys.path.insert(0, str(REPO.parent / ".hermes" / "hermes-agent"))
+sys.path.insert(0, str(REPO.parent / ".iris" / "iris-agent"))
 
 from api.config import (
     _PROVIDER_MODELS,
@@ -48,11 +48,11 @@ def restore_providers():
 
 
 def _patch_core_pm(fake_pm: dict):
-    """Patch ``hermes_cli.models._PROVIDER_MODELS`` with *fake_pm*."""
-    # Build a fake hermes_cli.models module with just _PROVIDER_MODELS.
+    """Patch ``iris_cli.models._PROVIDER_MODELS`` with *fake_pm*."""
+    # Build a fake iris_cli.models module with just _PROVIDER_MODELS.
     fake_module = mock.MagicMock()
     fake_module._PROVIDER_MODELS = fake_pm
-    return mock.patch.dict(sys.modules, {"hermes_cli.models": fake_module})
+    return mock.patch.dict(sys.modules, {"iris_cli.models": fake_module})
 
 
 # ── Test 1: seeder actually adds missing models (catches NameError) ──────────
@@ -101,9 +101,9 @@ class TestSeederAddsMissingModels:
             f"glm-5.2 appears {zai_ids.count('glm-5.2')} times — should be 1"
         )
 
-    def test_no_op_without_hermes_cli(self, restore_providers):
-        """Seeder must be a no-op (not raise) when hermes_cli is unavailable."""
-        with mock.patch.dict(sys.modules, {"hermes_cli.models": None}):
+    def test_no_op_without_iris_cli(self, restore_providers):
+        """Seeder must be a no-op (not raise) when iris_cli is unavailable."""
+        with mock.patch.dict(sys.modules, {"iris_cli.models": None}):
             # Should silently return without error
             _seed_provider_models_from_core()
 
@@ -160,7 +160,7 @@ class TestAliasedProviderMerge:
 # ── Test 3: exception narrowing ─────────────────────────────────────────────
 
 class TestExceptionNarrowing:
-    """The seeder's hermes_cli import should only catch ImportError, not all
+    """The seeder's iris_cli import should only catch ImportError, not all
     exceptions (which would hide real bugs like the NameError)."""
 
     def test_does_not_swallow_runtime_errors(self, restore_providers):
@@ -173,7 +173,7 @@ class TestExceptionNarrowing:
                 side_effect=RuntimeError("deliberate failure"),
             ):
                 # The seeder itself should NOT catch RuntimeError — it only
-                # catches ImportError for the optional hermes_cli import.
+                # catches ImportError for the optional iris_cli import.
                 with pytest.raises(RuntimeError, match="deliberate failure"):
                     _seed_provider_models_from_core()
 

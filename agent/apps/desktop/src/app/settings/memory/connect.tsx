@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/hermes'
+import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/iris'
 import { Check, ExternalLink, Loader2 } from '@/lib/icons'
 import { notifyError } from '@/store/notifications'
-import type { MemoryProviderOAuthStatus } from '@/types/hermes'
+import type { MemoryProviderOAuthStatus } from '@/types/iris'
 
 const POLL_MS = 1500
 const POLL_TIMEOUT_MS = 120_000

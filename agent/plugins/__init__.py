@@ -1,1 +1,1 @@
-# Hermes plugins package
+# Iris plugins package

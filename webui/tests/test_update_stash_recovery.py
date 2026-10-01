@@ -59,7 +59,7 @@ def test_pull_failure_untracked_overwrite_flags_conflict(tmp_path):
     assert result['conflict'] is True
     assert result['message'].startswith('Pull failed:')
     assert 'untracked working tree files would be overwritten' in result['message']
-    assert ['stash', 'push', '-m', 'hermes-update-autostash'] not in call_log
+    assert ['stash', 'push', '-m', 'iris-update-autostash'] not in call_log
     assert len(restart_calls) == 0
 
 
@@ -156,7 +156,7 @@ def test_stash_apply_conflict_preserves_stash(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Already up to date.', True
@@ -194,7 +194,7 @@ def test_stash_apply_reset_failure_returns_error(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Already up to date.', True
@@ -233,7 +233,7 @@ def test_stash_apply_success_drops_and_restarts(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Already up to date.', True
@@ -269,7 +269,7 @@ def test_stash_apply_success_discloses_drop_failure(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Already up to date.', True
@@ -304,7 +304,7 @@ def test_pull_failure_stash_apply_recovery(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Some unrecognized git error', False
@@ -342,7 +342,7 @@ def test_pull_failure_stash_apply_recovery_discloses_drop_failure(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Some unrecognized git error', False
@@ -375,7 +375,7 @@ def test_pull_failure_stash_apply_recovery_warns_before_diverged_reset(tmp_path)
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Not possible to fast-forward, aborting.', False
@@ -410,7 +410,7 @@ def test_pull_failure_stash_apply_conflict_cleans_worktree(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Some unrecognized git error', False
@@ -450,7 +450,7 @@ def test_pull_failure_stash_apply_conflict_preserves_diverged_flag(tmp_path):
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Not possible to fast-forward, aborting.', False
@@ -483,7 +483,7 @@ def test_pull_failure_stash_apply_conflict_reset_failure_returns_error(tmp_path)
             return '', True
         if args == ['status', '--porcelain', '--untracked-files=no']:
             return 'M modified_file.py', True
-        if args == ['stash', 'push', '-m', 'hermes-update-autostash']:
+        if args == ['stash', 'push', '-m', 'iris-update-autostash']:
             return '', True
         if args[:2] == ['pull', '--ff-only']:
             return 'Some unrecognized git error', False

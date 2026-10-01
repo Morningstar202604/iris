@@ -81,14 +81,14 @@ def test_model_provider_name_resolves_to_named_custom_slug():
 
 def test_available_models_drops_base_url_derived_custom_slug(monkeypatch):
     """A stale agent catalog slug must not create a second local custom group."""
-    fake_models = types.ModuleType("hermes_cli.models")
+    fake_models = types.ModuleType("iris_cli.models")
     fake_models.list_available_providers = lambda: [
         {"id": "custom:local-(127.0.0.1:11434)", "authenticated": True},
     ]
-    fake_auth = types.ModuleType("hermes_cli.auth")
+    fake_auth = types.ModuleType("iris_cli.auth")
     fake_auth.get_auth_status = lambda _pid: {"key_source": "config_yaml"}
-    monkeypatch.setitem(sys.modules, "hermes_cli.models", fake_models)
-    monkeypatch.setitem(sys.modules, "hermes_cli.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "iris_cli.models", fake_models)
+    monkeypatch.setitem(sys.modules, "iris_cli.auth", fake_auth)
     monkeypatch.setattr(config, "_get_auth_store_path", lambda: config.Path("/tmp/does-not-exist-auth.json"))
     monkeypatch.setattr("socket.getaddrinfo", lambda *a, **k: [])
 
@@ -593,16 +593,16 @@ def _setup_production_composed_runtime(
     fake_session.active_stream_id = fake_stream_id
     fake_queue = queue.Queue()
 
-    fake_runtime_module = types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = mock.Mock(return_value=dict(runtime_dict))
-    fake_hermes_cli = types.ModuleType("hermes_cli")
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    fake_hermes_state = types.ModuleType("hermes_state")
-    fake_hermes_state.SessionDB = mock.Mock(return_value=object())
+    fake_iris_cli = types.ModuleType("iris_cli")
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    fake_iris_state = types.ModuleType("iris_state")
+    fake_iris_state.SessionDB = mock.Mock(return_value=object())
 
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
-    monkeypatch.setitem(sys.modules, "hermes_state", fake_hermes_state)
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
+    monkeypatch.setitem(sys.modules, "iris_state", fake_iris_state)
 
     monkeypatch.setattr(
         api.oauth,
@@ -1083,7 +1083,7 @@ def test_agent_cache_signature_tracks_the_resolved_bundle(monkeypatch):
 def _run_composed_send(monkeypatch, cfg_dict, runtime_dict, session_id, before_send=None):
     """Drive ONE production-composed streaming send; return the constructor kwargs.
 
-    ``before_send`` runs after the fake ``hermes_cli.runtime_provider`` module is
+    ``before_send`` runs after the fake ``iris_cli.runtime_provider`` module is
     installed, so a test can hang extra runtime helpers (the credential-pool
     lookup) off it before resolution happens.
     """
@@ -1362,7 +1362,7 @@ def test_exact_list_row_pool_credential_and_pool_object_both_survive(monkeypatch
     seen = {}
 
     def _before_send():
-        runtime_module = sys.modules["hermes_cli.runtime_provider"]
+        runtime_module = sys.modules["iris_cli.runtime_provider"]
 
         def _try_resolve_from_custom_pool(
             base_url, provider_label, api_mode_override=None, provider_name=None
@@ -1557,15 +1557,15 @@ def _setup_route_consumer_runtime(
     runtime_dict = copy.deepcopy(
         _ROUTE_KEYED_RUNTIME if runtime_dict is None else runtime_dict
     )
-    fake_runtime_module = _types.ModuleType("hermes_cli.runtime_provider")
+    fake_runtime_module = _types.ModuleType("iris_cli.runtime_provider")
     fake_runtime_module.resolve_runtime_provider = mock.Mock(
         return_value=runtime_dict
     )
-    fake_hermes_cli = _types.ModuleType("hermes_cli")
-    fake_hermes_cli.__path__ = []
-    fake_hermes_cli.runtime_provider = fake_runtime_module
-    monkeypatch.setitem(sys.modules, "hermes_cli", fake_hermes_cli)
-    monkeypatch.setitem(sys.modules, "hermes_cli.runtime_provider", fake_runtime_module)
+    fake_iris_cli = _types.ModuleType("iris_cli")
+    fake_iris_cli.__path__ = []
+    fake_iris_cli.runtime_provider = fake_runtime_module
+    monkeypatch.setitem(sys.modules, "iris_cli", fake_iris_cli)
+    monkeypatch.setitem(sys.modules, "iris_cli.runtime_provider", fake_runtime_module)
     monkeypatch.setattr(
         api.oauth,
         "resolve_runtime_provider_with_anthropic_env_lock",
@@ -2333,7 +2333,7 @@ def test_unowned_named_slug_fails_closed_at_the_first_streaming_resolution(monke
 # ── declared-but-unresolved credentials are NOT keyless ──────────────────────
 
 
-_MISSING_ENV_VAR = "HERMES_TEST_1806_UNSET_CREDENTIAL"
+_MISSING_ENV_VAR = "IRIS_TEST_1806_UNSET_CREDENTIAL"
 
 
 def _clear_credential_env(monkeypatch):
@@ -3654,11 +3654,11 @@ def test_sync_chat_route_answers_400_on_unroutable_custom_provider(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# The standard Hermes v12 config shape: a RAW ``providers:<key>`` record
+# The standard Iris v12 config shape: a RAW ``providers:<key>`` record
 #
 # Everything above this point describes a config that spells a named custom
 # provider one of the two ways the WebUI itself writes: a ``custom_providers[]``
-# row, or a ``providers['custom:<slug>']`` key. Hermes v12 writes neither. Its
+# row, or a ``providers['custom:<slug>']`` key. Iris v12 writes neither. Its
 # config is
 #
 #     model:
@@ -3684,7 +3684,7 @@ def test_sync_chat_route_answers_400_on_unroutable_custom_provider(
 
 _V12_URL = "https://v12-raw-url-sentinel.example/v1"
 _V12_KEY = "v12-raw-key-sentinel"
-_V12_KEY_ENV = "HERMES_TEST_1806_V12_OMNI_KEY"
+_V12_KEY_ENV = "IRIS_TEST_1806_V12_OMNI_KEY"
 
 
 def _v12_raw_cfg(record, *, key="omni", model_provider="custom:omni"):
@@ -4489,7 +4489,7 @@ def test_v12_cache_signature_tracks_the_provider_configuration(monkeypatch, reco
 
 # ── the WebUI and the installed Agent must select the SAME bundle ────────────
 #
-# ``hermes_cli`` is not importable here, so the oracle below is written from the
+# ``iris_cli`` is not importable here, so the oracle below is written from the
 # Agent's documented algorithm rather than by calling it — and deliberately NOT
 # by calling ``api.config``'s mirrors of it, which would make the comparison a
 # tautology. Two independent implementations agreeing on the same config is the
@@ -4499,7 +4499,7 @@ def test_v12_cache_signature_tracks_the_provider_configuration(monkeypatch, reco
 
 
 def _oracle_agent_aliases(display_name, provider_key):
-    """``hermes_cli.providers.custom_provider_aliases()``, reimplemented."""
+    """``iris_cli.providers.custom_provider_aliases()``, reimplemented."""
     aliases = set()
     for value in (display_name, provider_key):
         raw = str(value or "").strip().lower()
@@ -4519,7 +4519,7 @@ def _oracle_agent_aliases(display_name, provider_key):
 
 
 def _oracle_agent_enabled(record):
-    """``hermes_cli.config_providers.is_provider_enabled()``, reimplemented."""
+    """``iris_cli.config_providers.is_provider_enabled()``, reimplemented."""
     flag = record.get("enabled", True)
     if isinstance(flag, bool):
         return flag

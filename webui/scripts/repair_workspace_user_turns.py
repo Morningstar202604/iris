@@ -159,7 +159,7 @@ def repair_state_db(state_db: Path, backup_dir: Path | None = None, dry_run: boo
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sessions-dir", type=Path, help="WebUI sidecar session directory")
-    parser.add_argument("--state-db", type=Path, help="Hermes SQLite state.db path")
+    parser.add_argument("--state-db", type=Path, help="Iris SQLite state.db path")
     parser.add_argument("--backup-dir", type=Path, help="Directory for backups before mutation")
     parser.add_argument("--dry-run", action="store_true", help="Report changes without writing")
     args = parser.parse_args()

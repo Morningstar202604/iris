@@ -1,4 +1,4 @@
-"""Regression coverage for Hermes Agent source changes during a WebUI process lifetime."""
+"""Regression coverage for Iris Agent source changes during a WebUI process lifetime."""
 
 from __future__ import annotations
 
@@ -44,11 +44,11 @@ def changed_agent_checkout(monkeypatch, tmp_path):
     module_path.write_text("class AIAgent: revision = 'changed'\n", encoding="utf-8")
     _git(agent_root, "commit", "-qam", "changed")
 
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    iris_home = tmp_path / "home"
+    iris_home.mkdir()
     venv_root = tmp_path / "separate-install"
     (venv_root / "venv" / "bin").mkdir(parents=True)
-    monkeypatch.setattr(agent_runtime, "_HERMES_HOME", hermes_home)
+    monkeypatch.setattr(agent_runtime, "_IRIS_HOME", iris_home)
     monkeypatch.setattr(agent_runtime, "_AGENT_PYTHON", venv_root / "venv" / "bin" / "python")
     workers = []
 
@@ -72,7 +72,7 @@ def changed_agent_checkout(monkeypatch, tmp_path):
 
     monkeypatch.setattr(routes, "_get_or_materialize_session", no_session_mutation)
     return types.SimpleNamespace(
-        root=agent_root, home=hermes_home, venv_root=venv_root, workers=workers,
+        root=agent_root, home=iris_home, venv_root=venv_root, workers=workers,
         request=lambda: routes._handle_chat_start(object(), {"session_id": "stale-session"}),
     )
 
@@ -104,7 +104,7 @@ def test_unverified_update_keeps_manual_409_without_restart(
 ):
     """Readable HEAD and lifecycle markers never authorize process replacement."""
     checkout = changed_agent_checkout
-    marker = checkout.home / ".hermes-update-in-progress"
+    marker = checkout.home / ".iris-update-in-progress"
     if marker_state in {"active", "failed-exit", "interrupted-exit"}:
         marker.write_text(f"{os.getpid()}\n{time.time()}\n", encoding="utf-8")
         if marker_state != "active":
@@ -145,7 +145,7 @@ def test_unverified_update_keeps_manual_409_without_restart(
     assert payload["retryable"] is True
     assert payload["restart_scheduled"] is False
     assert payload["agent_update_state"] == diagnostic
-    assert "Restart Hermes WebUI manually" in payload["error"]
+    assert "Restart Iris WebUI manually" in payload["error"]
     assert "success" not in payload["error"].lower()
 
 
@@ -157,7 +157,7 @@ def test_final_read_cannot_authorize_restart_without_atomic_handoff(
 
     checkout = changed_agent_checkout
     read_revision = agent_runtime._read_agent_revision
-    marker = checkout.home / ".hermes-update-in-progress"
+    marker = checkout.home / ".iris-update-in-progress"
     revision_reads = []
 
     def read_then_start_update(*args, **kwargs):
@@ -211,12 +211,12 @@ def test_async_compression_preserves_manual_restart_diagnostics(
         assert payload["retryable"] is True
         assert payload["restart_scheduled"] is False
         assert payload["agent_update_state"] == "incomplete"
-        assert "Restart Hermes WebUI manually" in payload["error"]
+        assert "Restart Iris WebUI manually" in payload["error"]
     assert checkout.workers == []
 
 
 def test_loaded_agent_runtime_fails_closed_after_source_revision_changes(tmp_path: Path):
-    agent_dir = tmp_path / "hermes-agent"
+    agent_dir = tmp_path / "iris-agent"
     agent_dir.mkdir()
     (agent_dir / "run_agent.py").write_text(
         "class AIAgent:\n    revision = 'before'\n",
@@ -231,11 +231,11 @@ def test_loaded_agent_runtime_fails_closed_after_source_revision_changes(tmp_pat
         """
 import sys
 
-# On a machine where hermes_agent is installed as an editable package, setuptools
-# registers a meta-path finder (__editable___hermes_agent_*_finder) that maps
+# On a machine where iris_agent is installed as an editable package, setuptools
+# registers a meta-path finder (__editable___iris_agent_*_finder) that maps
 # `run_agent` -> the real on-disk agent module. That finder runs BEFORE the
 # PYTHONPATH-based PathFinder, so it would shadow the synthetic per-test agent
-# dir this test points HERMES_WEBUI_AGENT_DIR at (the real AIAgent has no
+# dir this test points IRIS_WEBUI_AGENT_DIR at (the real AIAgent has no
 # `.revision` attribute). Drop any such editable finder + purge cached agent
 # modules so `import run_agent` resolves from the test's agent_dir on PYTHONPATH.
 # On CI (no editable install) this is a harmless no-op.
@@ -243,7 +243,7 @@ sys.meta_path[:] = [
     _f for _f in sys.meta_path
     if "__editable__" not in type(_f).__module__ and "__editable__" not in getattr(_f, "__module__", "")
 ]
-for _m in ("run_agent", "hermes_state", "agent", "tools"):
+for _m in ("run_agent", "iris_state", "agent", "tools"):
     sys.modules.pop(_m, None)
 
 from pathlib import Path
@@ -252,7 +252,7 @@ import subprocess
 import api.streaming as streaming
 from api import agent_runtime
 
-agent_dir = Path(__file__).parent / "hermes-agent"
+agent_dir = Path(__file__).parent / "iris-agent"
 assert agent_runtime._AGENT_DIR == agent_dir.resolve()
 assert streaming._get_ai_agent().revision == "before"
 
@@ -274,15 +274,15 @@ try:
     streaming._get_ai_agent()
 except RuntimeError as exc:
     message = str(exc)
-    assert "Hermes Agent was updated" in message
-    assert "Restart Hermes WebUI manually" in message
+    assert "Iris Agent was updated" in message
+    assert "Restart Iris WebUI manually" in message
 else:
     raise AssertionError("stale in-process AIAgent was reused after its source revision changed")
 
 try:
     agent_runtime.require_ai_agent_class()
 except agent_runtime.AgentRuntimeChangedError as exc:
-    assert "Restart Hermes WebUI manually" in str(exc)
+    assert "Restart Iris WebUI manually" in str(exc)
 else:
     raise AssertionError("unguarded AIAgent import was allowed after its source revision changed")
 """.strip()
@@ -293,9 +293,9 @@ else:
     env = os.environ.copy()
     env.update(
         {
-            "HERMES_WEBUI_AGENT_DIR": str(agent_dir),
-            "HERMES_HOME": str(tmp_path / "hermes-home"),
-            "HERMES_WEBUI_STATE_DIR": str(tmp_path / "webui-state"),
+            "IRIS_WEBUI_AGENT_DIR": str(agent_dir),
+            "IRIS_HOME": str(tmp_path / "iris-home"),
+            "IRIS_WEBUI_STATE_DIR": str(tmp_path / "webui-state"),
             "PYTHONPATH": os.pathsep.join((str(REPO), str(agent_dir))),
         }
     )
@@ -431,7 +431,7 @@ def test_untracked_loaded_module_inside_outer_git_repo_is_non_git(
     from api import agent_runtime
 
     outer_repo = tmp_path / "outer-repo"
-    module_dir = outer_repo / "installed" / "hermes-agent"
+    module_dir = outer_repo / "installed" / "iris-agent"
     module_dir.mkdir(parents=True)
     module_file = module_dir / "run_agent.py"
     module_file.write_text("class AIAgent: pass\n", encoding="utf-8")
@@ -540,15 +540,15 @@ def test_live_agent_update_marker_reports_active(monkeypatch, tmp_path):
     """A fresh marker owned by a live PID means the Agent update is active."""
     from api import agent_runtime
 
-    hermes_home = tmp_path / "hermes-home"
-    agent_root = tmp_path / "hermes-agent"
-    hermes_home.mkdir()
+    iris_home = tmp_path / "iris-home"
+    agent_root = tmp_path / "iris-agent"
+    iris_home.mkdir()
     agent_root.mkdir()
-    (hermes_home / ".hermes-update-in-progress").write_text(
+    (iris_home / ".iris-update-in-progress").write_text(
         f"{os.getpid()}\n{time.time()}\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(agent_runtime, "_HERMES_HOME", hermes_home)
+    monkeypatch.setattr(agent_runtime, "_IRIS_HOME", iris_home)
     monkeypatch.setattr(agent_runtime, "_AGENT_SOURCE_DIR", agent_root)
     monkeypatch.setattr(agent_runtime, "_AGENT_PYTHON", None)
 
@@ -559,12 +559,12 @@ def test_dead_or_over_age_agent_update_marker_is_stale(monkeypatch, tmp_path):
     """A dead or over-age owner does not prove update completion."""
     from api import agent_runtime
 
-    hermes_home = tmp_path / "hermes-home"
-    agent_root = tmp_path / "hermes-agent"
-    hermes_home.mkdir()
+    iris_home = tmp_path / "iris-home"
+    agent_root = tmp_path / "iris-agent"
+    iris_home.mkdir()
     agent_root.mkdir()
-    marker = hermes_home / ".hermes-update-in-progress"
-    monkeypatch.setattr(agent_runtime, "_HERMES_HOME", hermes_home)
+    marker = iris_home / ".iris-update-in-progress"
+    monkeypatch.setattr(agent_runtime, "_IRIS_HOME", iris_home)
     monkeypatch.setattr(agent_runtime, "_AGENT_SOURCE_DIR", agent_root)
     monkeypatch.setattr(agent_runtime, "_AGENT_PYTHON", None)
 
@@ -590,12 +590,12 @@ def test_agent_recovery_markers_block_automatic_restart(
     """Agent recovery markers report an incomplete environment."""
     from api import agent_runtime
 
-    hermes_home = tmp_path / "hermes-home"
-    agent_root = tmp_path / "hermes-agent"
-    hermes_home.mkdir()
+    iris_home = tmp_path / "iris-home"
+    agent_root = tmp_path / "iris-agent"
+    iris_home.mkdir()
     agent_root.mkdir()
     (agent_root / marker_name).write_text("incomplete\n", encoding="utf-8")
-    monkeypatch.setattr(agent_runtime, "_HERMES_HOME", hermes_home)
+    monkeypatch.setattr(agent_runtime, "_IRIS_HOME", iris_home)
     monkeypatch.setattr(agent_runtime, "_AGENT_SOURCE_DIR", agent_root)
     monkeypatch.setattr(agent_runtime, "_AGENT_PYTHON", None)
 
@@ -774,7 +774,7 @@ def test_runner_owned_start_run_does_not_enter_local_stream_barrier(monkeypatch)
             }
 
     session = types.SimpleNamespace(session_id="session-1", profile=None)
-    monkeypatch.setenv("HERMES_WEBUI_RUNTIME_ADAPTER", "runner-local")
+    monkeypatch.setenv("IRIS_WEBUI_RUNTIME_ADAPTER", "runner-local")
     monkeypatch.setattr("api.runtime_adapter.runtime_adapter_enabled", lambda: False)
     monkeypatch.setattr("api.runtime_adapter.runtime_adapter_runner_enabled", lambda: True)
     monkeypatch.setattr(routes, "_runtime_runner_client_factory", lambda: RunnerClient())

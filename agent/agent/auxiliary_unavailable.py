@@ -14,7 +14,7 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from hermes_time import safe_strftime
+from iris_time import safe_strftime
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,8 @@ def _quarantined_nous_error(exc: BaseException) -> BaseException:
     carries the message and code the user needs (#42177). ``format_auth_error`` appends the
     remediation sentence with a space, so an unterminated message reads "Invalid refresh token Run …".
     """
-    from hermes_cli.auth import AuthError, get_provider_auth_state
-    from hermes_cli.auth_nous import _terminal_quarantine_marker
+    from iris_cli.auth import AuthError, get_provider_auth_state
+    from iris_cli.auth_nous import _terminal_quarantine_marker
 
     with contextlib.suppress(Exception):
         marker = _terminal_quarantine_marker(get_provider_auth_state("nous") or {})
@@ -60,13 +60,13 @@ def pool_cooldown_message(provider_id: str) -> Optional[str]:
 
     ``resolve_provider_client()`` returns ``None`` both when no credential exists and when every
     pool entry sits in a 429/quota cooldown, so the raise sites could only say "no credentials
-    were found. Run hermes auth add …" — wrong on both counts for a valid OAuth grant that is
+    were found. Run iris auth add …" — wrong on both counts for a valid OAuth grant that is
     merely rate-limited (#56810). Read the persisted pool state (no seeding, no writes) and name
     the cooldown and its reset time instead; ``None`` when the pool is empty or a credential is
     usable (the caller keeps the missing-credential diagnostic).
     """
     from agent.credential_pool import STATUS_DEAD, PooledCredential, _exhausted_until
-    from hermes_cli.auth import read_credential_pool
+    from iris_cli.auth import read_credential_pool
 
     entries = []
     with contextlib.suppress(Exception):
@@ -86,8 +86,8 @@ def pool_cooldown_message(provider_id: str) -> Optional[str]:
              else f"all {len(live)} credentials are")
     return (f"Provider '{provider_id}' is set in config.yaml but {which} cooling down after a "
             f"rate limit / quota error (429); the next one resets at {when}. Wait for the reset, "
-            f"add another credential with `hermes auth add {provider_id}`, or switch to a "
-            "different provider with `hermes model`.")
+            f"add another credential with `iris auth add {provider_id}`, or switch to a "
+            "different provider with `iris model`.")
 
 
 def missing_provider_credentials_message(provider_id: str) -> str:
@@ -104,7 +104,7 @@ def missing_provider_credentials_message(provider_id: str) -> str:
         return cooldown
     pconfig = None
     with contextlib.suppress(Exception):
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from iris_cli.auth import PROVIDER_REGISTRY
         pconfig = PROVIDER_REGISTRY.get(provider_id)
     env_vars = tuple(getattr(pconfig, "api_key_env_vars", None) or ())
     problem, remedy = "no API key was found", ""
@@ -113,10 +113,10 @@ def missing_provider_credentials_message(provider_id: str) -> str:
     elif pconfig is None:
         remedy = f"Set the {provider_id.upper().replace('-', '_')}_API_KEY environment variable"
     elif str(pconfig.auth_type).startswith("oauth"):
-        problem, remedy = "no credentials were found", f"Run `hermes auth add {provider_id}` to sign in"
+        problem, remedy = "no credentials were found", f"Run `iris auth add {provider_id}` to sign in"
     else:
         problem = "no credentials were found"
-    switch = "switch to a different provider with `hermes model`."
+    switch = "switch to a different provider with `iris model`."
     return (f"Provider '{provider_id}' is set in config.yaml but {problem}. "
             + (f"{remedy}, or {switch}" if remedy else switch.capitalize()))
 
@@ -129,7 +129,7 @@ def _nous_credential_present(exc: BaseException) -> bool:
     """
     if getattr(exc, "code", None):
         return True
-    from hermes_cli.auth import get_provider_auth_state
+    from iris_cli.auth import get_provider_auth_state
 
     with contextlib.suppress(Exception):
         return bool(get_provider_auth_state("nous"))
@@ -139,10 +139,10 @@ def _nous_credential_present(exc: BaseException) -> bool:
 def record_nous_credential_failure(exc: BaseException) -> str:
     """Remember *exc* as the latest Nous credential failure.
 
-    Logged once per distinct message: WARNING when a real credential failed, DEBUG when Hermes was
+    Logged once per distinct message: WARNING when a real credential failed, DEBUG when Iris was
     simply never logged into Nous.
     """
-    from hermes_cli.auth import format_auth_error
+    from iris_cli.auth import format_auth_error
 
     exc = _quarantined_nous_error(exc)
     message = format_auth_error(exc) if isinstance(exc, Exception) else str(exc)

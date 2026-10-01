@@ -11,7 +11,7 @@ ctl.sh-started server).
 
 Guards under test:
 - start refuses when anything already answers HTTP(S) on the target port.
-- start refuses when the hermes-webui systemd unit is active on our port or
+- start refuses when the iris-webui systemd unit is active on our port or
   mid-auto-restart (activating), instead of racing its next respawn.
 - start reports failure (and cleans the PID file) when the spawned server dies
   during the startup window instead of printing success after 0.15s.
@@ -163,7 +163,7 @@ def _write_fake_port_tools(fake_bin: Path, pid_listens: bool) -> None:
 
 def _guard_env(fake_bin: Path | None = None, **extra: str) -> dict[str, str]:
     env = {
-        "HERMES_WEBUI_CTL_ALLOW_LAUNCHD_CONFLICT": "1",
+        "IRIS_WEBUI_CTL_ALLOW_LAUNCHD_CONFLICT": "1",
     }
     if fake_bin is not None:
         env["PATH"] = f"{bash_path(fake_bin)}{os.pathsep}{os.environ.get('PATH', '')}"
@@ -180,15 +180,15 @@ def test_start_refuses_when_port_already_serving(tmp_path):
             tmp_path,
             "start",
             env=_guard_env(
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
             ),
             timeout=15,
         )
         combined = result.stdout + result.stderr
         assert result.returncode == 2, combined
         assert "already responding" in combined
-        assert not (tmp_path / ".hermes" / "webui.pid").exists()
+        assert not (tmp_path / ".iris" / "webui.pid").exists()
     finally:
         _stop_proc(server)
 
@@ -204,8 +204,8 @@ def test_start_refuses_even_when_squatter_answers_http_errors(tmp_path):
             tmp_path,
             "start",
             env=_guard_env(
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
             ),
             timeout=15,
         )
@@ -234,7 +234,7 @@ def test_start_refuses_when_systemd_unit_is_auto_restarting(tmp_path):
     assert result.returncode == 2, combined
     assert "activating" in combined
     assert "systemctl" in combined
-    assert not (tmp_path / ".hermes" / "webui.pid").exists()
+    assert not (tmp_path / ".iris" / "webui.pid").exists()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="systemd is a Linux/POSIX path")
@@ -253,7 +253,7 @@ def test_start_refuses_when_systemd_unit_active_on_our_port(tmp_path):
     combined = result.stdout + result.stderr
     assert result.returncode == 2, combined
     assert "4242" in combined
-    assert not (tmp_path / ".hermes" / "webui.pid").exists()
+    assert not (tmp_path / ".iris" / "webui.pid").exists()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="systemd is a Linux/POSIX path")
@@ -276,8 +276,8 @@ def test_start_allows_alternate_port_while_systemd_unit_auto_restarts(tmp_path):
             "start",
             env=_guard_env(
                 fake_bin,
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_PYTHON=str(fake_python),
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_PYTHON=str(fake_python),
                 FAKE_PYTHON_LOG=str(fake_log),
             ),
             timeout=15,
@@ -285,7 +285,7 @@ def test_start_allows_alternate_port_while_systemd_unit_auto_restarts(tmp_path):
         combined = result.stdout + result.stderr
         assert "Refusing to start" not in combined, combined
         assert result.returncode == 0, combined
-        pid_file = tmp_path / ".hermes" / "webui.pid"
+        pid_file = tmp_path / ".iris" / "webui.pid"
         if pid_file.exists():
             started_pid = int(pid_file.read_text().strip())
     finally:
@@ -318,8 +318,8 @@ def test_systemd_pid_port_check_requires_and_semantics(tmp_path):
             "start",
             env=_guard_env(
                 fake_bin,
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_PYTHON=str(fake_python),
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_PYTHON=str(fake_python),
                 FAKE_PYTHON_LOG=str(fake_log),
                 FAKE_LSOF_OR_EXIT="0",
                 FAKE_LSOF_AND_EXIT="1",
@@ -329,7 +329,7 @@ def test_systemd_pid_port_check_requires_and_semantics(tmp_path):
         combined = result.stdout + result.stderr
         assert "Refusing to start" not in combined, combined
         assert result.returncode == 0, combined
-        pid_file = tmp_path / ".hermes" / "webui.pid"
+        pid_file = tmp_path / ".iris" / "webui.pid"
         if pid_file.exists():
             started_pid = int(pid_file.read_text().strip())
     finally:
@@ -351,7 +351,7 @@ def test_start_on_default_port_allowed_when_unit_configured_elsewhere(tmp_path):
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     _write_fake_systemctl(
-        fake_bin, "activating", environment="HERMES_WEBUI_PORT=9999"
+        fake_bin, "activating", environment="IRIS_WEBUI_PORT=9999"
     )
 
     fake_python = tmp_path / "fake-python"
@@ -365,8 +365,8 @@ def test_start_on_default_port_allowed_when_unit_configured_elsewhere(tmp_path):
             "start",
             env=_guard_env(
                 fake_bin,
-                HERMES_WEBUI_PORT="8787",
-                HERMES_WEBUI_PYTHON=str(fake_python),
+                IRIS_WEBUI_PORT="8787",
+                IRIS_WEBUI_PYTHON=str(fake_python),
                 FAKE_PYTHON_LOG=str(fake_log),
             ),
             timeout=15,
@@ -374,7 +374,7 @@ def test_start_on_default_port_allowed_when_unit_configured_elsewhere(tmp_path):
         combined = result.stdout + result.stderr
         assert "Refusing to start" not in combined, combined
         assert result.returncode == 0, combined
-        pid_file = tmp_path / ".hermes" / "webui.pid"
+        pid_file = tmp_path / ".iris" / "webui.pid"
         if pid_file.exists():
             started_pid = int(pid_file.read_text().strip())
     finally:
@@ -393,13 +393,13 @@ def test_start_refuses_when_unit_configured_for_requested_alternate_port(tmp_pat
     fake_bin.mkdir()
     port = _free_port()
     _write_fake_systemctl(
-        fake_bin, "activating", environment=f"HERMES_WEBUI_PORT={port}"
+        fake_bin, "activating", environment=f"IRIS_WEBUI_PORT={port}"
     )
 
     result = run_ctl(
         tmp_path,
         "start",
-        env=_guard_env(fake_bin, HERMES_WEBUI_PORT=str(port)),
+        env=_guard_env(fake_bin, IRIS_WEBUI_PORT=str(port)),
         timeout=15,
     )
     combined = result.stdout + result.stderr
@@ -433,7 +433,7 @@ def test_unmanaged_instance_commands_survive_inherit_errexit(
             command,
             env=_guard_env(
                 fake_bin,
-                HERMES_WEBUI_PORT=str(port),
+                IRIS_WEBUI_PORT=str(port),
                 BASHOPTS="inherit_errexit",
             ),
             timeout=15,
@@ -464,8 +464,8 @@ def test_start_proceeds_when_systemd_unit_inactive(tmp_path):
             "start",
             env=_guard_env(
                 fake_bin,
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_PYTHON=str(fake_python),
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_PYTHON=str(fake_python),
                 FAKE_PYTHON_LOG=str(fake_log),
             ),
             timeout=15,
@@ -473,7 +473,7 @@ def test_start_proceeds_when_systemd_unit_inactive(tmp_path):
         combined = result.stdout + result.stderr
         assert "Refusing to start" not in combined, combined
         assert result.returncode == 0, combined
-        started_pid = int((tmp_path / ".hermes" / "webui.pid").read_text().strip())
+        started_pid = int((tmp_path / ".iris" / "webui.pid").read_text().strip())
     finally:
         if started_pid:
             try:
@@ -498,17 +498,17 @@ def test_start_reports_failure_when_server_dies_during_startup(tmp_path):
         tmp_path,
         "start",
         env=_guard_env(
-            HERMES_WEBUI_PORT=str(port),
-            HERMES_WEBUI_PYTHON=str(dying_python),
-            HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+            IRIS_WEBUI_PORT=str(port),
+            IRIS_WEBUI_PYTHON=str(dying_python),
+            IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
         ),
         timeout=15,
     )
     combined = result.stdout + result.stderr
     assert result.returncode == 1, combined
     assert "failed to stay running" in combined
-    assert "Started Hermes WebUI" not in combined
-    assert not (tmp_path / ".hermes" / "webui.pid").exists()
+    assert "Started Iris WebUI" not in combined
+    assert not (tmp_path / ".iris" / "webui.pid").exists()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX daemon guards")
@@ -519,7 +519,7 @@ def test_status_reports_unmanaged_running_instance(tmp_path):
         result = run_ctl(
             tmp_path,
             "status",
-            env=_guard_env(HERMES_WEBUI_PORT=str(port)),
+            env=_guard_env(IRIS_WEBUI_PORT=str(port)),
             timeout=15,
         )
         combined = result.stdout + result.stderr
@@ -552,7 +552,7 @@ def test_unmanaged_instance_commands_survive_missing_listener_diagnostics(
         result = run_ctl(
             tmp_path,
             command,
-            env=_guard_env(fake_bin, HERMES_WEBUI_PORT=str(port)),
+            env=_guard_env(fake_bin, IRIS_WEBUI_PORT=str(port)),
             timeout=15,
         )
         combined = result.stdout + result.stderr
@@ -572,7 +572,7 @@ def test_stop_warns_about_unmanaged_instance_and_leaves_it_alone(tmp_path):
         result = run_ctl(
             tmp_path,
             "stop",
-            env=_guard_env(HERMES_WEBUI_PORT=str(port)),
+            env=_guard_env(IRIS_WEBUI_PORT=str(port)),
             timeout=15,
         )
         combined = result.stdout + result.stderr
@@ -598,8 +598,8 @@ def test_port_guard_ignores_http_proxy_env(tmp_path):
             tmp_path,
             "start",
             env=_guard_env(
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
                 # Dead proxy: any probe routed through it sees no responder.
                 http_proxy="http://127.0.0.1:1",
                 https_proxy="http://127.0.0.1:1",
@@ -656,9 +656,9 @@ def test_start_health_probe_ignores_all_proxy_env(tmp_path):
             tmp_path,
             "start",
             env=_guard_env(
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_PYTHON=str(health_server),
-                HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_PYTHON=str(health_server),
+                IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
                 # A live local server must still win when both proxy spellings
                 # route clients to a dead endpoint.
                 ALL_PROXY="http://127.0.0.1:1",
@@ -669,7 +669,7 @@ def test_start_health_probe_ignores_all_proxy_env(tmp_path):
             timeout=15,
         )
         combined = result.stdout + result.stderr
-        pid_file = tmp_path / ".hermes" / "webui.pid"
+        pid_file = tmp_path / ".iris" / "webui.pid"
         if pid_file.exists():
             started_pid = int(pid_file.read_text().strip())
         assert result.returncode == 0, combined
@@ -684,7 +684,7 @@ def test_start_health_probe_ignores_all_proxy_env(tmp_path):
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX daemon guards")
 def test_ipv6_host_probe_builds_bracketed_url(tmp_path):
-    """HERMES_WEBUI_HOST='::1' must probe http://[::1]:port — the unbracketed
+    """IRIS_WEBUI_HOST='::1' must probe http://[::1]:port — the unbracketed
     literal is rejected by curl/wget and the running instance is missed."""
     if not socket.has_ipv6:
         pytest.skip("no IPv6 support")
@@ -733,9 +733,9 @@ def test_ipv6_host_probe_builds_bracketed_url(tmp_path):
             tmp_path,
             "start",
             env=_guard_env(
-                HERMES_WEBUI_HOST="::1",
-                HERMES_WEBUI_PORT=str(port),
-                HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+                IRIS_WEBUI_HOST="::1",
+                IRIS_WEBUI_PORT=str(port),
+                IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
             ),
             timeout=15,
         )
@@ -748,7 +748,7 @@ def test_ipv6_host_probe_builds_bracketed_url(tmp_path):
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX daemon guards")
 def test_zero_start_grace_still_monitors_startup(tmp_path):
-    """HERMES_WEBUI_START_GRACE=0 must not disable the startup watch — that
+    """IRIS_WEBUI_START_GRACE=0 must not disable the startup watch — that
     would restore the exact stale-PID-on-early-death behavior being fixed."""
     dying_python = tmp_path / "dying-python"
     dying_python.write_text(
@@ -762,17 +762,17 @@ def test_zero_start_grace_still_monitors_startup(tmp_path):
         tmp_path,
         "start",
         env=_guard_env(
-            HERMES_WEBUI_PORT=str(port),
-            HERMES_WEBUI_PYTHON=str(dying_python),
-            HERMES_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
-            HERMES_WEBUI_START_GRACE="0",
+            IRIS_WEBUI_PORT=str(port),
+            IRIS_WEBUI_PYTHON=str(dying_python),
+            IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT="1",
+            IRIS_WEBUI_START_GRACE="0",
         ),
         timeout=15,
     )
     combined = result.stdout + result.stderr
     assert result.returncode == 1, combined
     assert "failed to stay running" in combined
-    assert not (tmp_path / ".hermes" / "webui.pid").exists()
+    assert not (tmp_path / ".iris" / "webui.pid").exists()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX daemon guards")
@@ -782,14 +782,14 @@ def test_stop_warns_using_saved_binding_from_state_file(tmp_path):
     about the unmanaged instance."""
     port = _free_port()
     server = _start_dummy_http_server(port)
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "webui.ctl.env").write_text(
+    iris_home = tmp_path / ".iris"
+    iris_home.mkdir()
+    (iris_home / "webui.ctl.env").write_text(
         f"PID=999999\nHOST=127.0.0.1\nPORT={port}\n",
         encoding="utf-8",
     )
     try:
-        # No HERMES_WEBUI_PORT in the environment: the probe target must come
+        # No IRIS_WEBUI_PORT in the environment: the probe target must come
         # from the saved state file.
         result = run_ctl(tmp_path, "stop", env=_guard_env(), timeout=15)
         combined = result.stdout + result.stderr

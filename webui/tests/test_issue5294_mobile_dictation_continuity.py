@@ -176,7 +176,7 @@ class TestDesktopStaysOneShot:
 
     def test_desktop_optout_flag_forces_one_shot_even_on_coarse_pointer(self, driver_path):
         # An explicit 'false' opt-out must win even on a touch/coarse device.
-        out = _run(driver_path, coarse=True, store={"hermes-mic-continuous": "false"})
+        out = _run(driver_path, coarse=True, store={"iris-mic-continuous": "false"})
         assert out["continuousAfterEnsure"] is False
         assert out["restarted"] is False
 
@@ -203,7 +203,7 @@ class TestMobileKeepsSessionAlive:
 
     def test_desktop_optin_flag_enables_continuity(self, driver_path):
         # An explicit 'true' opt-in makes a non-coarse (desktop) device continuous.
-        out = _run(driver_path, coarse=False, store={"hermes-mic-continuous": "true"})
+        out = _run(driver_path, coarse=False, store={"iris-mic-continuous": "true"})
         assert out["continuousAfterEnsure"] is True
         assert out["restarted"] is True
 

@@ -2,7 +2,7 @@ import { atom } from 'nanostores'
 
 import { persistBoolean, storedBoolean } from '@/lib/storage'
 
-const HIDE_THREAD_TIMELINE_STORAGE_KEY = 'hermes.desktop.hideThreadTimeline'
+const HIDE_THREAD_TIMELINE_STORAGE_KEY = 'iris.desktop.hideThreadTimeline'
 
 /** Desktop-local appearance preference, shared by all threads in this window. */
 export const $hideThreadTimeline = atom(storedBoolean(HIDE_THREAD_TIMELINE_STORAGE_KEY, false))

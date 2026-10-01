@@ -1,7 +1,7 @@
-"""Expose hermes-agent's COMMAND_REGISTRY to the webui frontend.
+"""Expose iris-agent's COMMAND_REGISTRY to the webui frontend.
 
-This module is the single integration point with hermes_cli.commands.
-If hermes-agent is unavailable the endpoint degrades to an empty list
+This module is the single integration point with iris_cli.commands.
+If iris-agent is unavailable the endpoint degrades to an empty list
 so the frontend can still load with WEBUI_ONLY commands.
 """
 from __future__ import annotations
@@ -77,18 +77,18 @@ def _normalize_agent_command_name(command: str) -> str:
 def list_commands(_registry=None) -> list[dict[str, Any]]:
     """Return COMMAND_REGISTRY entries as JSON-friendly dicts.
 
-    Returns empty list if hermes_cli is not installed (graceful
+    Returns empty list if iris_cli is not installed (graceful
     degradation -- the frontend has its own fallback minimum set).
 
     Args:
         _registry: Optional injected registry for testing. When None
-            (production), imports COMMAND_REGISTRY from hermes_cli.
+            (production), imports COMMAND_REGISTRY from iris_cli.
     """
     if _registry is None:
         try:
-            from hermes_cli.commands import COMMAND_REGISTRY as _registry
+            from iris_cli.commands import COMMAND_REGISTRY as _registry
         except ImportError:
-            logger.warning("hermes_cli.commands not importable -- /api/commands returns []")
+            logger.warning("iris_cli.commands not importable -- /api/commands returns []")
             return []
 
     out: list[dict[str, Any]] = []
@@ -110,7 +110,7 @@ def list_commands(_registry=None) -> list[dict[str, Any]]:
 
     # Include plugin-registered slash commands
     try:
-        from hermes_cli.plugins import get_plugin_commands
+        from iris_cli.plugins import get_plugin_commands
         plugin_cmds = get_plugin_commands() or {}
         existing_names = {c['name'] for c in out}
         for cmd_name, cmd_info in plugin_cmds.items():
@@ -224,9 +224,9 @@ def execute_agent_command(command: str) -> str:
 
 
 def _run_codex_runtime_command(arg_string: str) -> str:
-    """Execute Hermes' shared Codex runtime switch for the active profile."""
+    """Execute Iris' shared Codex runtime switch for the active profile."""
     try:
-        from hermes_cli.codex_runtime_switch import apply, parse_args
+        from iris_cli.codex_runtime_switch import apply, parse_args
     except Exception as exc:
         logger.warning("Codex runtime switch unavailable", exc_info=True)
         raise RuntimeError("Codex runtime switch unavailable") from exc
@@ -358,7 +358,7 @@ def _run_reload_skills_command() -> str:
 
 
 def _run_credits_command() -> str:
-    """Render Hermes' shared credits view for the WebUI slash-command path."""
+    """Render Iris' shared credits view for the WebUI slash-command path."""
     try:
         from agent.account_usage import build_credits_view
     except Exception:
@@ -372,7 +372,7 @@ def _run_credits_command() -> str:
         return "Couldn't fetch credits right now."
 
     if not getattr(view, "logged_in", False):
-        return "Not logged into Nous. Run `hermes auth login nous` in Hermes CLI, then try /credits again."
+        return "Not logged into Nous. Run `iris auth login nous` in Iris CLI, then try /credits again."
 
     lines = ["💳 **Nous credits**"]
     for line in tuple(getattr(view, "balance_lines", ()) or ()):
@@ -394,7 +394,7 @@ def _run_credits_command() -> str:
 
 
 def _load_config_for_moa_resolution() -> dict:
-    from hermes_cli.config import load_config
+    from iris_cli.config import load_config
 
     cfg = load_config()
     return cfg if isinstance(cfg, dict) else {}
@@ -402,11 +402,11 @@ def _load_config_for_moa_resolution() -> dict:
 
 def resolve_moa_config(preset: str | None = None) -> dict:
     try:
-        from hermes_cli.moa_config import moa_usage, normalize_moa_config
+        from iris_cli.moa_config import moa_usage, normalize_moa_config
     except ImportError as exc:
-        raise RuntimeError("MoA runtime unavailable (hermes-agent not installed or too old)") from exc
+        raise RuntimeError("MoA runtime unavailable (iris-agent not installed or too old)") from exc
     try:
-        from hermes_cli.moa_config import resolve_moa_preset
+        from iris_cli.moa_config import resolve_moa_preset
     except ImportError:
         resolve_moa_preset = None
 
@@ -444,7 +444,7 @@ def execute_plugin_command(command: str) -> str:
 
     Unknown commands raise ``KeyError`` so the HTTP layer can return 404.
     Plugin handler failures are returned as output text instead of surfacing as
-    transport errors, matching Hermes' existing slash-command UX.
+    transport errors, matching Iris' existing slash-command UX.
     """
 
     raw = str(command or "").strip()
@@ -459,7 +459,7 @@ def execute_plugin_command(command: str) -> str:
         raise ValueError("command is required")
 
     try:
-        from hermes_cli.plugins import (
+        from iris_cli.plugins import (
             get_plugin_command_handler,
             resolve_plugin_command_result,
         )

@@ -75,10 +75,10 @@ class ExtensionSidecarProxyError(Exception):
 
 
 EXTENSION_ROUTE_PREFIX = "/extensions/"
-_EXTENSION_DIR_ENV = "HERMES_WEBUI_EXTENSION_DIR"
-_EXTENSION_SCRIPT_URLS_ENV = "HERMES_WEBUI_EXTENSION_SCRIPT_URLS"
-_EXTENSION_STYLESHEET_URLS_ENV = "HERMES_WEBUI_EXTENSION_STYLESHEET_URLS"
-_EXTENSION_MANIFEST_ENV = "HERMES_WEBUI_EXTENSION_MANIFEST"
+_EXTENSION_DIR_ENV = "IRIS_WEBUI_EXTENSION_DIR"
+_EXTENSION_SCRIPT_URLS_ENV = "IRIS_WEBUI_EXTENSION_SCRIPT_URLS"
+_EXTENSION_STYLESHEET_URLS_ENV = "IRIS_WEBUI_EXTENSION_STYLESHEET_URLS"
+_EXTENSION_MANIFEST_ENV = "IRIS_WEBUI_EXTENSION_MANIFEST"
 _ALLOWED_ASSET_PREFIXES = ("/extensions/", "/static/")
 _SIDECAR_WARNING_SOURCE = "manifest:sidecars"
 _DEFAULT_SIDECAR_HEALTH_PATH = "/health"
@@ -97,8 +97,8 @@ _GALLERY_INSTALL_STATE_FILENAME = "extension-install-manifest.json"
 _MAX_INSTALL_MANIFEST_BYTES = 128 * 1024
 _MAX_GALLERY_INSTALLED_IDS = 256
 _MAX_ZIP_DOWNLOAD_BYTES = 32 * 1024 * 1024
-_REGISTRY_URL = "https://hermes-webui.github.io/hermes-webui-extensions/registry.json"
-_REGISTRY_ALLOWED_DOWNLOAD_HOSTS = frozenset({"hermes-webui.github.io"})
+_REGISTRY_URL = "https://iris-webui.github.io/iris-webui-extensions/registry.json"
+_REGISTRY_ALLOWED_DOWNLOAD_HOSTS = frozenset({"iris-webui.github.io"})
 _REGISTRY_CACHE: dict = {}
 _REGISTRY_LOCK = threading.Lock()
 _REGISTRY_TTL_SECONDS = 300
@@ -218,7 +218,7 @@ _TEXT_MIME_TYPES = {"text/css", "application/javascript", "text/html", "image/sv
 def _default_extension_root() -> Path:
     """WebUI-managed default extension directory under the state dir.
 
-    Used when ``HERMES_WEBUI_EXTENSION_DIR`` is unset so one-click gallery
+    Used when ``IRIS_WEBUI_EXTENSION_DIR`` is unset so one-click gallery
     install works out of the box on a single-user self-hosted instance with no
     environment setup. It lives alongside sessions/settings in the WebUI-owned
     state dir, which is a different trust domain from "a user-writable directory
@@ -232,7 +232,7 @@ def _extension_root() -> Optional[Path]:
     """Return the active extension directory, or None when none is available.
 
     Resolution order:
-    1. ``HERMES_WEBUI_EXTENSION_DIR`` when set — must be an existing directory,
+    1. ``IRIS_WEBUI_EXTENSION_DIR`` when set — must be an existing directory,
        otherwise None (the admin owns that path; we never auto-create it).
     2. Otherwise the WebUI-managed default (``STATE_DIR/extensions``) when it
        already exists. The first gallery install creates it on demand
@@ -257,7 +257,7 @@ def _extension_root() -> Optional[Path]:
 def _writable_extension_root() -> Optional[Path]:
     """Resolve the extension root for writes, bootstrapping the managed default.
 
-    When ``HERMES_WEBUI_EXTENSION_DIR`` is set we use it as-is (the admin owns
+    When ``IRIS_WEBUI_EXTENSION_DIR`` is set we use it as-is (the admin owns
     it; it must already exist). When unset we create and return the
     WebUI-managed default so a fresh install can install an extension with zero
     configuration — plug and play.
@@ -281,7 +281,7 @@ def _writable_extension_root() -> Optional[Path]:
 def _extension_root_status() -> Tuple[Optional[Path], bool, bool]:
     """Return (root, configured, valid) without exposing the configured path.
 
-    With no ``HERMES_WEBUI_EXTENSION_DIR`` the WebUI-managed default is always
+    With no ``IRIS_WEBUI_EXTENSION_DIR`` the WebUI-managed default is always
     available as an install target, so ``configured`` is True (extensions are
     no longer "not configured" out of the box). ``valid`` reflects whether that
     managed directory currently exists — it is created on the first install.
@@ -329,7 +329,7 @@ def _extension_state_dir() -> Path:
 
         return Path(STATE_DIR)
     except Exception:
-        return Path(os.getenv("HERMES_WEBUI_STATE_DIR", str(Path.home() / ".hermes" / "webui"))).expanduser()
+        return Path(os.getenv("IRIS_WEBUI_STATE_DIR", str(Path.home() / ".iris" / "webui"))).expanduser()
 
 
 def _extension_state_file() -> Path:
@@ -1436,7 +1436,7 @@ def get_extension_status() -> Dict[str, Any]:
         "sidecar_count": 0,
     }
     # Only warn about an unavailable directory when the admin explicitly set
-    # HERMES_WEBUI_EXTENSION_DIR to a path that is missing/not-a-dir. The
+    # IRIS_WEBUI_EXTENSION_DIR to a path that is missing/not-a-dir. The
     # WebUI-managed default simply not existing yet (pre-first-install) is the
     # normal opt-in state, not a misconfiguration worth surfacing.
     env_dir_set = bool(os.getenv(_EXTENSION_DIR_ENV, "").strip())
@@ -2041,8 +2041,8 @@ def inject_extension_tags(index_html: str) -> str:
     }
     runtime_json = json.dumps(runtime_config, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     runtime_tag = (
-        "<script>window.__HERMES_EXTENSION_CONFIG__={};"
-        "if(window.HermesExtensionSettings)window.HermesExtensionSettings.primeFromStatus(window.__HERMES_EXTENSION_CONFIG__);"
+        "<script>window.__IRIS_EXTENSION_CONFIG__={};"
+        "if(window.IrisExtensionSettings)window.IrisExtensionSettings.primeFromStatus(window.__IRIS_EXTENSION_CONFIG__);"
         "</script>"
     ).format(runtime_json)
 

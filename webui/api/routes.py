@@ -1,5 +1,5 @@
 """
-Hermes Web UI -- Route handlers for GET and POST endpoints.
+Iris Web UI -- Route handlers for GET and POST endpoints.
 Extracted from server.py (Sprint 11) so server.py is a thin shell.
 """
 
@@ -477,7 +477,7 @@ from api.profiles import (  # noqa: F401, E402  (re-export)
     _SKILLS_STATS_CACHE,
     get_active_profile_name,
     get_active_profile_name as _get_active_profile_name,
-    get_active_hermes_home,
+    get_active_iris_home,
     list_profiles_api,
     profile_scope_for_detached_worker,
 )
@@ -525,7 +525,7 @@ def _session_visible_to_active_profile(session_profile, handler=None) -> bool:
     """Return whether a detail-load session belongs to the active profile.
 
     Real request handlers must enforce the same profile boundary as
-    /api/sessions, even when the request has no hermes_profile cookie and the
+    /api/sessions, even when the request has no iris_profile cookie and the
     process-level active profile is the default/root profile. Direct unit-callers
     without a request handler keep the historical metadata-load behavior.
     """
@@ -538,11 +538,11 @@ def _session_visible_to_active_profile(session_profile, handler=None) -> bool:
 
 
 def _is_profile_agnostic_foreign_session(cli_meta) -> bool:
-    """Return whether a foreign-session row lives outside the Hermes profile tree.
+    """Return whether a foreign-session row lives outside the Iris profile tree.
 
     Claude Code transcripts are scanned straight out of ``~/.claude/projects``
     by ``get_claude_code_sessions()``, which stamps ``profile: None`` on every
-    row because the JSONL files belong to no Hermes profile at all. The sidebar
+    row because the JSONL files belong to no Iris profile at all. The sidebar
     lists them under whichever profile is active, but ``_profiles_match``
     coerces ``None`` to ``'default'``, so the detail-load profile gate 404s
     every one of them as soon as the active profile is a named (non-root) one —
@@ -562,7 +562,7 @@ def _is_profile_agnostic_foreign_session(cli_meta) -> bool:
         str(cli_meta.get("source_tag") or "").strip().lower(),
         str(cli_meta.get("raw_source") or "").strip().lower(),
     }
-    # Profile-less external-agent rows that live outside the Hermes profile tree.
+    # Profile-less external-agent rows that live outside the Iris profile tree.
     # Claude Code: scanned from ~/.claude/projects; Codex: scanned from ~/.codex/
     profile_agnostic_sources = {CLAUDE_CODE_SOURCE}
     try:
@@ -695,25 +695,25 @@ def _guard_request_session_visibility(handler, parsed, body=None, method="GET") 
 
 
 def _active_skills_dir() -> Path:
-    """Return the skills directory for the request's active Hermes profile.
+    """Return the skills directory for the request's active Iris profile.
 
     WebUI profile switches are cookie/thread-local scoped, so the agent
     module-level ``tools.skills_tool.SKILLS_DIR`` can still point at the server
     startup profile. Skills UI endpoints must derive the directory from
-    ``get_active_hermes_home()`` for every request instead of reading that
+    ``get_active_iris_home()`` for every request instead of reading that
     process-global constant.
     """
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        return Path(get_active_hermes_home()) / "skills"
+        return Path(get_active_iris_home()) / "skills"
     except Exception:
         try:
             from tools.skills_tool import SKILLS_DIR
 
             return Path(SKILLS_DIR)
         except Exception:
-            return Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser() / "skills"
+            return Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser() / "skills"
 
 
 def _skill_path_within(base_dir: Path, candidate: Path) -> bool:
@@ -800,16 +800,16 @@ def _active_profile_config_path() -> Path:
 
     Skills endpoints are profile-scoped UI actions: both the visible disabled
     toggle state and toggle writes must follow the cookie/thread-local active
-    Hermes home, not process-global HERMES_HOME or HERMES_CONFIG_PATH values
+    Iris home, not process-global IRIS_HOME or IRIS_CONFIG_PATH values
     captured at server startup.
     """
     test_override_module = getattr(_get_config_path, "__module__", "")
     if test_override_module != "api.config":
         return _get_config_path()
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        return Path(get_active_hermes_home()) / "config.yaml"
+        return Path(get_active_iris_home()) / "config.yaml"
     except Exception:
         return _get_config_path()
 
@@ -818,7 +818,7 @@ def _get_disabled_skill_names_for_profile() -> set:
     """Read disabled skill names from the active profile's config.yaml.
 
     Unlike ``tools.skills_tool._get_disabled_skill_names`` which reads from
-    the process-global ``HERMES_HOME``, this uses ``_get_config_path()`` which
+    the process-global ``IRIS_HOME``, this uses ``_get_config_path()`` which
     resolves against the WebUI's active profile.  Checks
     ``skills.platform_disabled.webui`` first, falling back to
     ``skills.disabled``.
@@ -845,14 +845,14 @@ def _get_disabled_skill_names_for_profile() -> set:
 def _parse_config_string_list(value) -> list:
     """Decode a config value that may hold a JSON-array string into a list.
 
-    ``hermes config set`` (and JSON-mode editor saves) store lists as quoted
+    ``iris config set`` (and JSON-mode editor saves) store lists as quoted
     JSON strings (``'[\"a\",\"b\"]'`` or the Python-literal ``\"['a']\"``), so a
     disabled list read from ``config.yaml`` can arrive as a single string
     instead of a YAML list. Treating it as one literal name makes the Skills
     panel show every skill as enabled and makes the toggle write a destructive
-    single-entry list (hermes-webui#7120).
+    single-entry list (iris-webui#7120).
 
-    Reuses ``agent.skill_utils.parse_config_string_list`` (hermes-agent #86661
+    Reuses ``agent.skill_utils.parse_config_string_list`` (iris-agent #86661
     fix) when the bundled agent source is importable, and mirrors its logic
     otherwise so the two surfaces cannot drift. A scalar string still means one
     name.
@@ -1102,10 +1102,10 @@ def _skill_view_from_file(skill_dir: Path | None, skill_md: Path) -> dict:
         return {"success": False, "error": "Skill is not available on this platform."}
 
     metadata = frontmatter.get("metadata")
-    hermes_meta = metadata.get("hermes", {}) if isinstance(metadata, dict) else {}
-    tags = _parse_tags(hermes_meta.get("tags") or frontmatter.get("tags", ""))
+    iris_meta = metadata.get("iris", {}) if isinstance(metadata, dict) else {}
+    tags = _parse_tags(iris_meta.get("tags") or frontmatter.get("tags", ""))
     related_skills = _parse_tags(
-        hermes_meta.get("related_skills") or frontmatter.get("related_skills", "")
+        iris_meta.get("related_skills") or frontmatter.get("related_skills", "")
     )
     try:
         path = str(skill_md.relative_to((skill_dir or skill_md.parent).parent))
@@ -1137,7 +1137,7 @@ def _skill_view_from_active_dir(name: str) -> dict:
         if ":" in str(name or ""):
             try:
                 from agent.skill_utils import is_valid_namespace, parse_qualified_name
-                from hermes_cli.plugins import discover_plugins, get_plugin_manager
+                from iris_cli.plugins import discover_plugins, get_plugin_manager
 
                 namespace, _bare = parse_qualified_name(name)
                 if is_valid_namespace(namespace):
@@ -1187,11 +1187,11 @@ def _safe_first(*values):
 
 def _gateway_session_metadata_path():
     try:
-        from api.profiles import get_active_hermes_home
-        hermes_home = Path(get_active_hermes_home()).expanduser().resolve()
+        from api.profiles import get_active_iris_home
+        iris_home = Path(get_active_iris_home()).expanduser().resolve()
     except Exception:
-        hermes_home = Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser().resolve()
-    return hermes_home / "sessions" / "sessions.json"
+        iris_home = Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser().resolve()
+    return iris_home / "sessions" / "sessions.json"
 
 
 def _load_gateway_session_identity_map() -> dict[str, dict]:
@@ -1330,7 +1330,7 @@ _GATEWAY_LIFECYCLE_TIMEOUT_SECONDS = 60
 # Server-side single-flight guard for gateway lifecycle actions. The client
 # disables its button while a request is in flight, but a scripted authed
 # client could still fire overlapping start/stop/restart calls, spawning
-# concurrent `hermes gateway` subprocesses. Serialize them here (mirrors the
+# concurrent `iris gateway` subprocesses. Serialize them here (mirrors the
 # self-update _apply_lock pattern): a non-blocking acquire returns 409 on
 # contention rather than launching a second overlapping subprocess.
 _GATEWAY_ACTION_LOCK = threading.Lock()
@@ -1345,11 +1345,11 @@ def _run_gateway_lifecycle_command(action: str) -> subprocess.CompletedProcess:
 
     agent_dir = getattr(api_config, "_AGENT_DIR", None)
     if not agent_dir:
-        raise FileNotFoundError("Hermes agent checkout not found")
+        raise FileNotFoundError("Iris agent checkout not found")
     agent_dir = Path(agent_dir).expanduser().resolve()
-    main_py = agent_dir / "hermes_cli" / "main.py"
+    main_py = agent_dir / "iris_cli" / "main.py"
     if not main_py.exists():
-        raise FileNotFoundError("Hermes agent CLI entrypoint not found")
+        raise FileNotFoundError("Iris agent CLI entrypoint not found")
 
     cmd = [str(getattr(api_config, "PYTHON_EXE", sys.executable)), str(main_py)]
     profile_name = ""
@@ -1377,7 +1377,7 @@ def _run_gateway_lifecycle_command(action: str) -> subprocess.CompletedProcess:
 def _handle_gateway_lifecycle(handler, action: str, body: dict):
     del body  # Reserved for future per-gateway naming without changing the route contract.
     # Reject overlapping lifecycle actions instead of spawning concurrent
-    # `hermes gateway` subprocesses (a non-blocking acquire — the action holds
+    # `iris gateway` subprocesses (a non-blocking acquire — the action holds
     # the lock for at most _GATEWAY_LIFECYCLE_TIMEOUT_SECONDS).
     if action not in {"start", "stop", "restart"}:
         return bad(handler, "unsupported gateway action", 400)
@@ -1446,7 +1446,7 @@ def _handle_gateway_lifecycle(handler, action: str, body: dict):
         {
             "ok": True,
             "action": action,
-            # Do NOT return captured stdout/stderr — the `hermes gateway` CLI
+            # Do NOT return captured stdout/stderr — the `iris gateway` CLI
             # prints service/PID/status details the browser shouldn't receive
             # (mirrors the failure path, which already suppresses them). The
             # frontend localizes its own success copy; the refreshed status
@@ -1591,7 +1591,7 @@ def _cron_jobs_cross_profile(active_profile: str) -> tuple[list[dict], list[dict
     from cron.jobs import list_jobs
     from api.profiles import (
         cron_profile_context_for_home,
-        get_hermes_home_for_profile,
+        get_iris_home_for_profile,
         list_profiles_api,
     )
 
@@ -1629,7 +1629,7 @@ def _cron_jobs_cross_profile(active_profile: str) -> tuple[list[dict], list[dict
     other_jobs: list[dict] = []
     seen_homes: set[str] = set()
     for owner_profile in names:
-        home = Path(get_hermes_home_for_profile(owner_profile))
+        home = Path(get_iris_home_for_profile(owner_profile))
         home_key = _home_key(home)
         if home_key in seen_homes:
             continue
@@ -1685,18 +1685,18 @@ def _profile_home_for_cron_job(job: dict):
     points at a profile that was deleted after save, fall back to the active
     server profile and log a warning instead of crashing the Run Now path.
     """
-    from api.profiles import get_active_hermes_home, get_hermes_home_for_profile
+    from api.profiles import get_active_iris_home, get_iris_home_for_profile
 
     raw = str((job or {}).get("profile") or "").strip()
     if not raw:
-        return get_active_hermes_home()
+        return get_active_iris_home()
     if raw not in _available_cron_profile_names():
         logger.warning(
             "Cron job %s references missing profile %r; falling back to server default",
             (job or {}).get("id", "?"), raw,
         )
-        return get_active_hermes_home()
-    return get_hermes_home_for_profile(raw)
+        return get_active_iris_home()
+    return get_iris_home_for_profile(raw)
 
 
 def _event_profile_for_cron_job(job: dict) -> str | None:
@@ -1751,7 +1751,7 @@ def _cron_subprocess_result_timeout_seconds(job):
 def _run_cron_job_in_profile_subprocess(job, execution_profile_home):
     """Execute cron.scheduler.run_job without holding the parent cron env lock.
 
-    cron.scheduler/cron.jobs still rely on process-global HERMES_HOME and module
+    cron.scheduler/cron.jobs still rely on process-global IRIS_HOME and module
     constants, so running the job body in a child process gives each long cron
     execution its own globals. The parent process only uses cron_profile_context
     for short metadata reads/writes and remains responsive to unrelated cron UI
@@ -1889,7 +1889,7 @@ def _run_cron_tracked(
                 mark_job_run(job_id, _success, _error, delivery_error=delivery_error)
             except TypeError:
                 # Older/fake cron.jobs modules used by focused WebUI tests may
-                # not expose the newer delivery_error parameter. Real Hermes
+                # not expose the newer delivery_error parameter. Real Iris
                 # scheduler builds do, so this is only a compatibility shim for
                 # legacy test doubles and deployments.
                 mark_job_run(job_id, _success, _error)
@@ -1917,7 +1917,7 @@ _PROVIDER_ALIASES = {
 }
 
 # OpenAI-compatible /v1/models endpoints for live model discovery.
-# Used as fallback when hermes_cli.provider_model_ids() is unavailable or
+# Used as fallback when iris_cli.provider_model_ids() is unavailable or
 # returns [] for a provider (#871).  Kept at module level so the dict is
 # built once, not reconstructed per request.
 _OPENAI_COMPAT_ENDPOINTS = {
@@ -1932,7 +1932,7 @@ _OPENAI_COMPAT_ENDPOINTS = {
 # NOTE: "openai-codex" is excluded because it maps to the same endpoint as
 # the base "openai" provider (api.openai.com/v1).  When both are configured
 # the openai provider is already wired through provider_model_ids(); codex-
-# specific model filtering happens downstream in hermes_cli.
+# specific model filtering happens downstream in iris_cli.
 #
 _LIVE_MODELS_CACHE_TTL = 60.0
 _LIVE_MODELS_CACHE: dict[tuple[str, str], tuple[float, dict]] = {}
@@ -2965,7 +2965,7 @@ from api.config import (
     persisted_speech_settings_keys,
     save_settings,
     SETTINGS_FILE,
-    set_hermes_default_model,
+    set_iris_default_model,
     canonical_model_provider_lane,
     model_with_provider_context,
     get_reasoning_status,
@@ -3014,7 +3014,7 @@ from api.system_health import build_system_health_payload
 #
 # Several WebUI consumers build their own AIAgent outside the streaming path
 # (POST /api/chat, manual compression, update summary, git commit message,
-# handoff summary). They resolve a model/provider, ask the Hermes runtime
+# handoff summary). They resolve a model/provider, ask the Iris runtime
 # provider for a connection, then had to apply the named ``custom:<slug>``
 # record's authority by hand.
 #
@@ -3092,7 +3092,7 @@ def _agent_bundle_kwargs(agent_cls, bundle):
     ``api_mode``/``acp_command``/``acp_args``/``credential_pool`` were added to
     AIAgent over several releases, so gate each on the constructor signature the
     way the streaming path does rather than raising TypeError against an older
-    hermes-agent build. Values come from the BUNDLE, never from the runtime
+    iris-agent build. Values come from the BUNDLE, never from the runtime
     provider dict: a custom-provider override clears these, and reading them off
     the runtime would re-introduce the authority the merge just replaced.
     """
@@ -5831,12 +5831,12 @@ def _local_service_hostnames() -> set[str]:
 
 
 def _allowed_public_origins() -> set[str]:
-    """Parse HERMES_WEBUI_ALLOWED_ORIGINS env var (comma-separated) into a set.
+    """Parse IRIS_WEBUI_ALLOWED_ORIGINS env var (comma-separated) into a set.
 
     Each entry must include the scheme, e.g. https://myapp.example.com:8000.
     Entries without a scheme are silently skipped and a warning is printed.
     """
-    raw = os.getenv('HERMES_WEBUI_ALLOWED_ORIGINS', '')
+    raw = os.getenv('IRIS_WEBUI_ALLOWED_ORIGINS', '')
     result = set()
     for value in raw.split(','):
         value = value.strip().rstrip('/').lower()
@@ -5845,7 +5845,7 @@ def _allowed_public_origins() -> set[str]:
         if not (value.startswith('http://') or value.startswith('https://')):
             import sys
             print(
-                f"[webui] WARNING: HERMES_WEBUI_ALLOWED_ORIGINS entry {value!r} is missing "
+                f"[webui] WARNING: IRIS_WEBUI_ALLOWED_ORIGINS entry {value!r} is missing "
                 f"the scheme (expected https://hostname or http://hostname). Entry ignored.",
                 flush=True, file=sys.stderr,
             )
@@ -5901,7 +5901,7 @@ def _check_same_origin_browser_request(handler, *, require_provenance: bool = Fa
         # using the request Host's port, which the attacker cannot leverage.
         _req_name, req_port = _normalize_host_port(host)
         allowed_entries = [(name, req_port) for name in _local_service_hostnames()]
-        trust_forwarded_host = os.getenv("HERMES_WEBUI_TRUST_FORWARDED_HOST", "").strip().lower()
+        trust_forwarded_host = os.getenv("IRIS_WEBUI_TRUST_FORWARDED_HOST", "").strip().lower()
         if trust_forwarded_host in ("1", "true", "yes", "on"):
             allowed_entries.extend(
                 _normalize_host_port(h.strip())
@@ -5926,7 +5926,7 @@ def apply_cors_preflight_headers(handler) -> None:
     200 as a preflight denial).
 
     Echoes the request Origin only when it is same-origin or explicitly
-    allowlisted via HERMES_WEBUI_ALLOWED_ORIGINS — the exact policy the CSRF gate
+    allowlisted via IRIS_WEBUI_ALLOWED_ORIGINS — the exact policy the CSRF gate
     enforces for real requests. Reuses _check_same_origin_browser_request so the
     preflight can never advertise wider access (`*`) than an actual request would
     be granted. A wildcard here would let any site read authenticated responses
@@ -5952,7 +5952,7 @@ def _csrf_exempt_path(path: str) -> bool:
     }
 
 
-_CSRF_FAILURE_ATTR = "_hermes_csrf_failure_reason"
+_CSRF_FAILURE_ATTR = "_iris_csrf_failure_reason"
 
 
 def _set_csrf_failure_reason(handler, reason: str) -> bool:
@@ -6091,7 +6091,7 @@ def _extension_sidecar_proxy_request_headers(handler) -> dict[str, str]:
             lower in blocked_headers
             or lower in {"authorization", "cookie", "content-length", "host", "origin", "referer"}
             or lower.startswith("x-csrf")
-            or lower.startswith("x-hermes-")
+            or lower.startswith("x-iris-")
         ):
             continue
         headers[str(name)] = str(value)
@@ -6108,7 +6108,7 @@ def _send_extension_sidecar_proxy_response(handler, status: int, body: bytes, he
             if (
                 lower in blocked_headers
                 or lower in {"content-length", "set-cookie"}
-                or lower.startswith("x-hermes-")
+                or lower.startswith("x-iris-")
             ):
                 continue
             if lower == "content-type":
@@ -6216,11 +6216,11 @@ def _handle_extension_sidecar_proxy(
         )
         proxied_headers = _extension_sidecar_proxy_request_headers(handler)
         # token-v1: inject the per-extension shared secret core minted. The
-        # inbound x-hermes-* strip above guarantees the client cannot have
+        # inbound x-iris-* strip above guarantees the client cannot have
         # forged this header.
         _auth_token = target.get("auth_token")
         if _auth_token:
-            proxied_headers["X-Hermes-Sidecar-Token"] = _auth_token
+            proxied_headers["X-Iris-Sidecar-Token"] = _auth_token
         request = Request(
             target["upstream_url"],
             data=request_body,
@@ -6307,7 +6307,7 @@ def _trusted_proxy_networks():
 
     Loopback is ALWAYS trusted implicitly (the common same-host reverse-proxy
     deployment). Operators fronting the WebUI with a LAN/remote proxy add its
-    address(es) via HERMES_WEBUI_TRUSTED_PROXY_CIDRS (comma-separated CIDRs or
+    address(es) via IRIS_WEBUI_TRUSTED_PROXY_CIDRS (comma-separated CIDRs or
     bare IPs). Malformed entries are skipped, never widening trust.
     """
     import ipaddress
@@ -6317,7 +6317,7 @@ def _trusted_proxy_networks():
         ipaddress.ip_network("::1/128"),
         ipaddress.ip_network("::ffff:127.0.0.0/104"),
     ]
-    raw = os.getenv("HERMES_WEBUI_TRUSTED_PROXY_CIDRS", "") or ""
+    raw = os.getenv("IRIS_WEBUI_TRUSTED_PROXY_CIDRS", "") or ""
     for token in raw.replace(";", ",").split(","):
         token = token.strip()
         if not token:
@@ -6441,7 +6441,7 @@ def _onboarding_request_is_local(handler) -> bool:
     tests/test_cvd3_terminal_local_origin_gate.py):
 
     * Forwarded client-IP headers are honored ONLY when the RAW socket peer is a
-      trusted proxy (loopback, or an address in HERMES_WEBUI_TRUSTED_PROXY_CIDRS).
+      trusted proxy (loopback, or an address in IRIS_WEBUI_TRUSTED_PROXY_CIDRS).
       This is checked on the un-spoofable socket address, so a direct client
       cannot promote itself to "local" by sending X-Forwarded-For: 127.0.0.1.
     * When the peer is NOT a trusted proxy, forwarded headers are ignored and the
@@ -6449,11 +6449,11 @@ def _onboarding_request_is_local(handler) -> bool:
       private/LAN client (no proxy) is therefore still correctly local — so
       onboarding, first-password/passkey setup, and passwordless embedded-terminal
       access keep working on the common direct-LAN deployment.
-    * HERMES_WEBUI_TRUST_FORWARDED_FOR=1 is the opt-in that makes us CONSULT the
+    * IRIS_WEBUI_TRUST_FORWARDED_FOR=1 is the opt-in that makes us CONSULT the
       forwarded chain at all; without it the raw peer is authoritative. Either
       way the classification fails closed on malformed/empty chains.
     """
-    trust_forwarded = _truthy_env("HERMES_WEBUI_TRUST_FORWARDED_FOR")
+    trust_forwarded = _truthy_env("IRIS_WEBUI_TRUST_FORWARDED_FOR")
     peer_is_trusted_proxy = _raw_peer_is_trusted_proxy(handler)
 
     if trust_forwarded and peer_is_trusted_proxy:
@@ -6486,7 +6486,7 @@ def _onboarding_request_is_local(handler) -> bool:
     # (no trusted-proxy env, or the peer isn't in the allowlist) — so a
     # private/LAN raw peer could be an untrusted proxy relaying an arbitrary
     # (public) client we can't see. Deny in that case; require the operator to
-    # opt in via HERMES_WEBUI_TRUST_FORWARDED_FOR (+ HERMES_WEBUI_TRUSTED_PROXY_CIDRS
+    # opt in via IRIS_WEBUI_TRUST_FORWARDED_FOR (+ IRIS_WEBUI_TRUSTED_PROXY_CIDRS
     # for a non-loopback proxy). With NO forwarded header, a direct private/LAN
     # client (the common direct-LAN deployment) stays local so onboarding,
     # first-password/passkey setup, and passwordless terminal keep working.
@@ -6503,7 +6503,7 @@ def _onboarding_gate_allows(handler, auth_enabled: bool | None = None) -> bool:
     from api.auth import is_auth_enabled
 
     auth_enabled = is_auth_enabled() if auth_enabled is None else auth_enabled
-    if auth_enabled or _truthy_env("HERMES_WEBUI_ONBOARDING_OPEN"):
+    if auth_enabled or _truthy_env("IRIS_WEBUI_ONBOARDING_OPEN"):
         return True
     return _onboarding_request_is_local(handler)
 
@@ -6512,7 +6512,7 @@ def _onboarding_gate_allows(handler, auth_enabled: bool | None = None) -> bool:
 _EMBEDDED_TERMINAL_GATE_DENIED_MESSAGE = (
     "Embedded terminal is only available from local networks when authentication "
     "is not configured. Configure a password/passkey, or set "
-    "HERMES_WEBUI_ONBOARDING_OPEN=1 to allow it on a deliberately-exposed server."
+    "IRIS_WEBUI_ONBOARDING_OPEN=1 to allow it on a deliberately-exposed server."
 )
 
 
@@ -6528,7 +6528,7 @@ def _embedded_terminal_gate_allows(handler) -> bool:
     origins — the same trust model the onboarding/bootstrap endpoints use, ignoring
     spoofable forwarded headers unless an operator has opted into trusting them.
     A deliberately-exposed passwordless server (access secured at another layer)
-    opts out with ``HERMES_WEBUI_ONBOARDING_OPEN=1``.
+    opts out with ``IRIS_WEBUI_ONBOARDING_OPEN=1``.
     """
     return _onboarding_gate_allows(handler)
 
@@ -7400,10 +7400,10 @@ def _read_profile_model_config(
         return None, None, None
 
     try:
-        from api.profiles import get_hermes_home_for_profile
+        from api.profiles import get_iris_home_for_profile
 
         _profile_name = str(session.profile or "")
-        _profile_home = get_hermes_home_for_profile(_profile_name)
+        _profile_home = get_iris_home_for_profile(_profile_name)
         _profile_cfg_path = os.path.join(str(_profile_home), "config.yaml")
         if not os.path.isfile(_profile_cfg_path):
             return None, None, None
@@ -7520,10 +7520,10 @@ def _load_profile_config_dict(session) -> dict | None:
     if not getattr(session, "profile", None):
         return None
     try:
-        from api.profiles import get_hermes_home_for_profile
+        from api.profiles import get_iris_home_for_profile
 
         _profile_cfg_path = os.path.join(
-            str(get_hermes_home_for_profile(session.profile)),
+            str(get_iris_home_for_profile(session.profile)),
             "config.yaml",
         )
         if not os.path.isfile(_profile_cfg_path):
@@ -8181,7 +8181,7 @@ def _resolve_context_length_for_session_model(
                 custom_providers=_ctx_lookup.custom_providers,
             ) or 0
         except TypeError:
-            # Older hermes-agent builds: legacy 2-arg form.
+            # Older iris-agent builds: legacy 2-arg form.
             return _get_cl(model_for_lookup, _ctx_lookup.base_url) or 0
     except Exception:
         return 0
@@ -8317,9 +8317,9 @@ def _worktree_default_from_config(profile: str | None) -> bool:
     """
     try:
         if profile:
-            from api.profiles import get_hermes_home_for_profile
+            from api.profiles import get_iris_home_for_profile
 
-            cfg_dict = get_config_for_profile_home(get_hermes_home_for_profile(profile))
+            cfg_dict = get_config_for_profile_home(get_iris_home_for_profile(profile))
         else:
             cfg_dict = get_config_for_profile_home(None)
         # Strict boolean: only a real YAML `true` opts in.  Any other shape
@@ -8466,7 +8466,7 @@ def _state_db_session_source(sid: str) -> str:
 def _is_subagent_child_session_id(sid: str) -> bool:
     """Return True when ``sid`` is a delegated subagent child in state.db.
 
-    Delegated ``delegate_task`` children are recorded in Hermes state.db with
+    Delegated ``delegate_task`` children are recorded in Iris state.db with
     ``source='subagent'`` and a ``parent_session_id``. They frequently have no
     WebUI sidecar (they ran server-side), so opening one from the sidebar must
     recover the transcript from state.db rather than 404 as a deleted WebUI
@@ -8953,7 +8953,7 @@ def _should_hide_stale_messaging_session(
 ) -> bool:
     """Hide stale Gateway-owned internal rows after an external chat moved on.
 
-    Hermes Gateway keeps the external conversation identity in sessions.json.
+    Iris Gateway keeps the external conversation identity in sessions.json.
     Compression/session-reset can leave old Agent state.db rows behind; those
     rows are implementation segments, not distinct conversations users chose.
     Only apply this aggressive hiding when Gateway is currently advertising an
@@ -11403,7 +11403,7 @@ def _normalize_logs_tail(raw_tail) -> int:
 
 
 def _handle_logs(handler, parsed) -> bool:
-    """Return a bounded tail window for an active-profile Hermes log file."""
+    """Return a bounded tail window for an active-profile Iris log file."""
     query = parse_qs(parsed.query)
     file_key = (query.get("file", ["agent"])[0] or "agent").strip().lower()
     filename = _LOG_FILE_WHITELIST.get(file_key)
@@ -11412,13 +11412,13 @@ def _handle_logs(handler, parsed) -> bool:
 
     tail = _normalize_logs_tail(query.get("tail", [None])[0])
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        hermes_home = Path(get_active_hermes_home()).expanduser()
+        iris_home = Path(get_active_iris_home()).expanduser()
     except Exception:
-        hermes_home = Path(os.environ.get("HERMES_HOME") or (Path.home() / ".hermes")).expanduser()
+        iris_home = Path(os.environ.get("IRIS_HOME") or (Path.home() / ".iris")).expanduser()
 
-    log_dir = hermes_home / "logs"
+    log_dir = iris_home / "logs"
     log_path = log_dir / filename
     try:
         # Defense in depth: the filename is hardcoded above, but keep the final
@@ -11459,20 +11459,20 @@ def _handle_logs(handler, parsed) -> bool:
 
 # ── Insights endpoint ──────────────────────────────────────────────────────────
 
-_LLM_WIKI_DOCS_URL = "https://hermes-agent.nousresearch.com/docs/user-guide/skills/bundled/research/research-llm-wiki"
+_LLM_WIKI_DOCS_URL = "https://gitcode.com/badhope/iris/tree/main/docs"
 _LLM_WIKI_PAGE_DIRS = ("entities", "concepts", "comparisons", "queries")
 
 
-def _llm_wiki_active_hermes_home() -> Path:
+def _llm_wiki_active_iris_home() -> Path:
     try:
-        from api.profiles import get_active_hermes_home
-        return Path(get_active_hermes_home()).expanduser()
+        from api.profiles import get_active_iris_home
+        return Path(get_active_iris_home()).expanduser()
     except Exception:
-        return Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser()
+        return Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser()
 
 
-def _llm_wiki_env_file_path(hermes_home: Path) -> str | None:
-    env_path = hermes_home / ".env"
+def _llm_wiki_env_file_path(iris_home: Path) -> str | None:
+    env_path = iris_home / ".env"
     if not env_path.exists() or not env_path.is_file():
         return None
     try:
@@ -11531,8 +11531,8 @@ _wiki_allowlist_cache_lock = threading.Lock()
 
 
 def _llm_wiki_resolve_path() -> tuple[Path, str, bool]:
-    hermes_home = _llm_wiki_active_hermes_home()
-    raw = os.getenv("WIKI_PATH") or _llm_wiki_env_file_path(hermes_home)
+    iris_home = _llm_wiki_active_iris_home()
+    raw = os.getenv("WIKI_PATH") or _llm_wiki_env_file_path(iris_home)
     source = "WIKI_PATH" if raw else "default"
     configured = bool(raw)
     if not raw:
@@ -11923,7 +11923,7 @@ def _build_llm_wiki_status() -> dict:
             "path_configured": path_configured,
             "path_source": path_source,
             "toggle_available": False,
-            "toggle_reason": "Hermes Agent exposes WIKI_PATH/wiki.path for location, but no stable on/off config flag is currently available.",
+            "toggle_reason": "Iris Agent exposes WIKI_PATH/wiki.path for location, but no stable on/off config flag is currently available.",
             "docs_url": _LLM_WIKI_DOCS_URL,
         }
         if not wiki_path.exists():
@@ -12112,7 +12112,7 @@ def _handle_insights(handler, parsed) -> bool:
             except Exception:
                 pass
 
-    # ── Also include CLI sessions from Hermes state.db ─────────────────────
+    # ── Also include CLI sessions from Iris state.db ─────────────────────
     try:
         from api.models import _active_state_db_path
         db_path = _active_state_db_path()
@@ -12431,7 +12431,7 @@ def _project_os_onboarding_context(repo_root: Path, project_md: dict | None, pla
     status_text = str((status_md or {}).get("content") or "")
     merged = "\n".join([project_text, plan_text, status_text])
     is_non_git_workspace = not (repo_root / ".git").exists()
-    has_boundary_hold = "TO_BE_VALIDATED_BY_HERMES" in merged
+    has_boundary_hold = "TO_BE_VALIDATED_BY_IRIS" in merged
     child_repo_blocked = (
         "auto-promoted" in merged
         or "auto-adopted" in merged
@@ -12449,7 +12449,7 @@ def _project_os_onboarding_context(repo_root: Path, project_md: dict | None, pla
     summary = "workspace root onboarding 진행 중 · 저장소 경계는 아직 미확정이며 자동 승격은 금지됩니다."
     next_safe_action = "workspace-root 기준으로 경계만 좁게 검증"
     if has_boundary_hold:
-        summary = "workspace root onboarding 진행 중 · 저장소 경계는 아직 미확정이며 TO_BE_VALIDATED_BY_HERMES 상태를 유지합니다."
+        summary = "workspace root onboarding 진행 중 · 저장소 경계는 아직 미확정이며 TO_BE_VALIDATED_BY_IRIS 상태를 유지합니다."
     return {
         "active": True,
         "doc_source": "root",
@@ -12457,7 +12457,7 @@ def _project_os_onboarding_context(repo_root: Path, project_md: dict | None, pla
         "summary": summary,
         "next_safe_action": next_safe_action,
         "workspace_root_confirmed": workspace_root_confirmed,
-        "repo_boundary_status": "TO_BE_VALIDATED_BY_HERMES" if has_boundary_hold else "confirmed",
+        "repo_boundary_status": "TO_BE_VALIDATED_BY_IRIS" if has_boundary_hold else "confirmed",
         "child_repo_auto_promotion_blocked": bool(child_repo_blocked),
         "guardrails": [
             "workspace root 확인됨" if workspace_root_confirmed else "workspace root 확인 필요",
@@ -12696,7 +12696,7 @@ def _deep_health_checks(stream_check: dict | None = None) -> tuple[dict, bool]:
 
     Plain /health intentionally stays tiny. /health?deep=1 is for supervisors
     and watchdogs that need to know whether the process can still touch the
-    shared stream map, sidebar/session path, project state, and Hermes state.db
+    shared stream map, sidebar/session path, project state, and Iris state.db
     without hitting the RST-before-write failure mode from #1458.
 
     `stream_check` is the result from a prior `_streams_lock_health()` call;
@@ -12816,8 +12816,8 @@ _PLUGIN_VISIBILITY_HOOK_SET = set(_PLUGIN_VISIBILITY_HOOKS)
 
 
 def _get_plugin_manager_for_visibility():
-    """Return Hermes Agent's plugin manager for read-only WebUI visibility."""
-    from hermes_cli.plugins import get_plugin_manager
+    """Return Iris Agent's plugin manager for read-only WebUI visibility."""
+    from iris_cli.plugins import get_plugin_manager
 
     return get_plugin_manager()
 
@@ -12863,7 +12863,7 @@ def _plugin_visibility_selected_provider(category: str) -> str:
 def _plugin_visibility_payload(manager=None) -> dict:
     """Build a sanitized plugin/hook visibility payload for Settings.
 
-    The Hermes Agent manager stores manifests and callback objects internally.
+    The Iris Agent manager stores manifests and callback objects internally.
     This endpoint intentionally exposes only safe, user-facing metadata and the
     four lifecycle hook names called out by the Settings visibility MVP. It
     never includes plugin source paths, callback names, callback reprs, or raw
@@ -12885,7 +12885,7 @@ def _plugin_visibility_payload(manager=None) -> dict:
 
     plugins = []
 
-    # Hermes Agent lifecycle-hook plugins
+    # Iris Agent lifecycle-hook plugins
     raw_plugins = getattr(manager, "_plugins", {}) or {}
     for key, loaded in sorted(raw_plugins.items(), key=lambda item: str(item[0])):
         manifest = getattr(loaded, "manifest", None)
@@ -12974,13 +12974,13 @@ def _webui_plugin_payload() -> list[dict]:
 
 def _handle_plugins(handler, parsed) -> bool:
     try:
-        hermes_plugins = _plugin_visibility_payload()
+        iris_plugins = _plugin_visibility_payload()
         webui = _webui_plugin_payload()
-        all_plugins = hermes_plugins["plugins"] + webui
+        all_plugins = iris_plugins["plugins"] + webui
         return j(handler, {
             "plugins": all_plugins,
             "empty": not bool(all_plugins),
-            "supported_hooks": hermes_plugins["supported_hooks"],
+            "supported_hooks": iris_plugins["supported_hooks"],
             "read_only": True,
         })
     except Exception as exc:
@@ -13002,11 +13002,11 @@ _SHELL_ERROR_HTML = """<!doctype html>
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
-  <title>Hermes is restarting</title>
+  <title>Iris is restarting</title>
 </head>
 <body style=\"margin:0;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111827;color:#e5e7eb;\">
   <main style=\"max-width:40rem;margin:10vh auto;line-height:1.5;\">
-    <h1 style=\"font-size:1.5rem;margin:0 0 0.75rem;\">Hermes is restarting…</h1>
+    <h1 style=\"font-size:1.5rem;margin:0 0 0.75rem;\">Iris is restarting…</h1>
     <p style=\"margin:0;color:#cbd5e1;\">The WebUI shell could not load cleanly. Refresh in a moment if this page does not update automatically.</p>
   </main>
 </body>
@@ -13072,7 +13072,7 @@ def _handle_shutdown(handler) -> bool:
 
 
 def _handle_health_restart(handler) -> bool:
-    """Restart the Hermes messaging gateway service."""
+    """Restart the Iris messaging gateway service."""
     # This endpoint never consumes its request body on any outcome, so close when
     # one was DECLARED -- and only then. Arming unconditionally closed the socket
     # on every call including the successful, body-less one the WebUI actually
@@ -13128,10 +13128,10 @@ def _serve_manifest(handler) -> bool:
 
 def _saved_prompts_path() -> "Path":
     try:
-        from api.profiles import get_active_hermes_home
-        return Path(get_active_hermes_home()).expanduser() / "webui" / "saved_prompts.json"
+        from api.profiles import get_active_iris_home
+        return Path(get_active_iris_home()).expanduser() / "webui" / "saved_prompts.json"
     except Exception:
-        return Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser() / "webui" / "saved_prompts.json"
+        return Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser() / "webui" / "saved_prompts.json"
 
 
 def _load_saved_prompts() -> list:
@@ -13197,7 +13197,7 @@ def _handle_session_get(handler, parsed) -> bool:
     """GET /api/session — full session payload (messages, tool calls, lineage...). Extracted verbatim from handle_get; every early-return path calls _diag.finish() (see the tier2c note inside)."""
     import time as _time
     _t0 = _time.monotonic()
-    _debug_slow = os.environ.get("HERMES_DEBUG_SLOW", "")
+    _debug_slow = os.environ.get("IRIS_DEBUG_SLOW", "")
     # perf(webui/session-load-latency) tier2c: per-stage breakdown via
     # RequestDiagnostics. maybe_start() returns None for paths not in
     # the allowlist, in which case the existing _tN-driven [SLOW] log
@@ -13661,7 +13661,7 @@ def _handle_session_get(handler, parsed) -> bool:
         _t6 = _time.monotonic()
         if _diag: _diag.stage("t6_after_json_write")
         _total_ms = (_t6 - _t0) * 1000
-        # Always log when slow (>2s) so we don't need HERMES_DEBUG_SLOW env var
+        # Always log when slow (>2s) so we don't need IRIS_DEBUG_SLOW env var
         # to diagnose latency regressions. Opt-in env var still forces
         # logging on every request for development.
         if _debug_slow or _total_ms >= 2000:
@@ -13856,7 +13856,7 @@ def handle_get(handler, parsed) -> bool:
         from api.updates import WEBUI_VERSION
         # #7056: only render the password input / submit / passkey controls
         # when password auth is actually enabled. With native OIDC configured
-        # and ``HERMES_WEBUI_PASSWORD`` unset, the form previously still
+        # and ``IRIS_WEBUI_PASSWORD`` unset, the form previously still
         # displayed the password prompt and accepted — silently 401-ing at
         # the server — every submit. The OIDC SSO entry point stays the
         # sole path. ``is_password_auth_enabled`` is the same predicate
@@ -14241,7 +14241,7 @@ def handle_get(handler, parsed) -> bool:
         from api.knowledge import list_documents
         return j(handler, list_documents())
     if parsed.path == "/api/plugins/catalog":
-        # Iris: 可安装插件目录（`hermes plugins browse/search --json`）
+        # Iris: 可安装插件目录（`iris plugins browse/search --json`）
         term = (parse_qs(parsed.query).get("term", [""])[0] or "").strip()
         from api.plugins import catalog_plugins
         result = catalog_plugins(term)
@@ -14294,7 +14294,7 @@ def handle_get(handler, parsed) -> bool:
         # precedence in api.auth.get_password_hash(), but until now the UI
         # had no way to know — see issue #1139 / #1560.
         settings["password_env_var"] = bool(
-            os.getenv("HERMES_WEBUI_PASSWORD", "").strip()
+            os.getenv("IRIS_WEBUI_PASSWORD", "").strip()
         )
         # Auth-state fields for frontend safety badge / confirmation flows
         from api.auth import get_password_hash, is_auth_enabled
@@ -14610,7 +14610,7 @@ def handle_get(handler, parsed) -> bool:
 
     if parsed.path == "/api/personalities":
         # Read personalities from config.yaml agent.personalities section
-        # (matches hermes-agent CLI behavior, not filesystem SOUL.md approach)
+        # (matches iris-agent CLI behavior, not filesystem SOUL.md approach)
         from api.config import reload_config as _reload_cfg
 
         _reload_cfg()  # pick up config.yaml changes without server restart
@@ -14692,8 +14692,8 @@ def handle_get(handler, parsed) -> bool:
                         "current_sha": "abc1234",
                         "latest_sha": "def5678",
                         "branch": "master",
-                        "repo_url": "https://github.com/nesquena/hermes-webui",
-                        "compare_url": "https://github.com/nesquena/hermes-webui/compare/abc1234...def5678",
+                        "repo_url": "https://github.com/X33834/iris",
+                        "compare_url": "https://github.com/X33834/iris/compare/abc1234...def5678",
                     },
                     "agent": {
                         "name": "agent",
@@ -14702,8 +14702,8 @@ def handle_get(handler, parsed) -> bool:
                         "current_sha": "aaa0001",
                         "latest_sha": "bbb0002",
                         "branch": "master",
-                        "repo_url": "https://github.com/NousResearch/hermes-agent",
-                        "compare_url": "https://github.com/NousResearch/hermes-agent/compare/aaa0001...bbb0002",
+                        "repo_url": "https://gitcode.com/badhope/iris",
+                        "compare_url": "https://gitcode.com/badhope/iris/compare/aaa0001...bbb0002",
                     },
                     "checked_at": 0,
                 },
@@ -15037,7 +15037,7 @@ def handle_get(handler, parsed) -> bool:
         # get_last_workspace) so a named profile without its own last_workspace.txt
         # resolves to its config.yaml workspace/terminal.cwd rather than leaking the
         # GLOBAL last-workspace file (the #5169 regression Codex flagged). It is
-        # profile-scoped via the per-request hermes_profile cookie set in server.py.
+        # profile-scoped via the per-request iris_profile cookie set in server.py.
         # Fail open: a resolution error must never 500 this boot-critical endpoint.
         try:
             try:
@@ -15051,7 +15051,7 @@ def handle_get(handler, parsed) -> bool:
             handler,
             {
                 "name": active_profile_name,
-                "path": str(profiles_api.get_active_hermes_home()),
+                "path": str(profiles_api.get_active_iris_home()),
                 "is_default": profiles_api._is_root_profile(active_profile_name),
                 "default_workspace": _profile_default_workspace,
             },
@@ -15329,7 +15329,7 @@ def _llm_update_summary(system_prompt: str, user_prompt: str, active_profile: st
         _rt = None
         try:
             from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-            from hermes_cli.runtime_provider import resolve_runtime_provider
+            from iris_cli.runtime_provider import resolve_runtime_provider
 
             _rt = resolve_runtime_provider_with_anthropic_env_lock(
                 resolve_runtime_provider,
@@ -15535,7 +15535,7 @@ def handle_post(handler, parsed) -> bool:
     if parsed.path == "/api/escape/authorize":
         return _handle_escape_authorize(handler, parsed, body)
 
-    # ── Iris: 插件安装 / 卸载 / 启停（复用 hermes CLI） ──
+    # ── Iris: 插件安装 / 卸载 / 启停（复用 iris CLI） ──
     if parsed.path == "/api/plugins/install":
         from api.plugins import install_plugin
         result = install_plugin((body or {}).get("identifier", "") if isinstance(body, dict) else "")
@@ -16041,7 +16041,7 @@ def handle_post(handler, parsed) -> bool:
             provider = body.get("provider") if isinstance(body, dict) else None
             if str(provider or "").strip().lower() == "auto":
                 provider = None
-            return j(handler, set_hermes_default_model(body.get("model"), provider=provider, advanced=advanced))
+            return j(handler, set_iris_default_model(body.get("model"), provider=provider, advanced=advanced))
         except ValueError as e:
             return bad(handler, str(e))
         except RuntimeError as e:
@@ -16063,7 +16063,7 @@ def handle_post(handler, parsed) -> bool:
         if scope == "main":
             try:
                 main_provider = provider if provider != "auto" else None
-                return j(handler, set_hermes_default_model(model, provider=main_provider, advanced=advanced))
+                return j(handler, set_iris_default_model(model, provider=main_provider, advanced=advanced))
             except ValueError as exc:
                 return bad(handler, str(exc), status=400)
         return bad(handler, f"unknown scope: {scope}", status=400)
@@ -16228,7 +16228,7 @@ def handle_post(handler, parsed) -> bool:
         except KeyError:
             return bad(handler, "Session not found", 404)
         # Resolve personality from config.yaml agent.personalities section
-        # (matches hermes-agent CLI behavior)
+        # (matches iris-agent CLI behavior)
         prompt = ""
         if name:
             from api.config import reload_config as _reload_cfg2
@@ -16244,7 +16244,7 @@ def handle_post(handler, parsed) -> bool:
                     handler, f'Personality "{name}" not found in config.yaml', 404
                 )
             value = raw_personalities[name]
-            # Resolve prompt using the same logic as hermes-agent cli.py
+            # Resolve prompt using the same logic as iris-agent cli.py
             if isinstance(value, dict):
                 parts = [value.get("system_prompt", "") or value.get("prompt", "")]
                 if value.get("tone"):
@@ -17303,16 +17303,16 @@ def handle_post(handler, parsed) -> bool:
 
         current_password = body.pop("_current_password", None)
 
-        # #1560: HERMES_WEBUI_PASSWORD env var takes precedence in
+        # #1560: IRIS_WEBUI_PASSWORD env var takes precedence in
         # api.auth.get_password_hash(), so writing password_hash to settings.json
         # has no effect on auth. Refuse loudly with 409 instead of silently
         # succeeding — the previous behaviour returned 200 + a green save toast
         # while every subsequent login still required the env-var password.
         if requested_password or requested_clear_password:
-            if os.getenv("HERMES_WEBUI_PASSWORD", "").strip():
+            if os.getenv("IRIS_WEBUI_PASSWORD", "").strip():
                 return bad(
                     handler,
-                    "HERMES_WEBUI_PASSWORD env var is set — it overrides the settings password. "
+                    "IRIS_WEBUI_PASSWORD env var is set — it overrides the settings password. "
                     "Unset the env var and restart the server before changing the password here.",
                     409,
                 )
@@ -17325,13 +17325,13 @@ def handle_post(handler, parsed) -> bool:
         # WebUI. While auth is disabled, the generic /api/settings route is also
         # unauthenticated, so gate bootstrap password setup the same way as
         # onboarding setup: local/private networks only, unless the operator
-        # explicitly opts into remote bootstrap with HERMES_WEBUI_ONBOARDING_OPEN.
+        # explicitly opts into remote bootstrap with IRIS_WEBUI_ONBOARDING_OPEN.
         if requested_password and not auth_enabled_before:
             if not _onboarding_gate_allows(handler, auth_enabled_before):
                 return bad(
                     handler,
                     "First password setup is only available from local networks when auth is not enabled. "
-                    "To bootstrap this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.",
+                    "To bootstrap this on a remote server, set IRIS_WEBUI_ONBOARDING_OPEN=1.",
                     403,
                 )
 
@@ -17356,7 +17356,7 @@ def handle_post(handler, parsed) -> bool:
             from api.passkeys import registered_credentials
 
             if not _passkey_feature_flag_enabled():
-                return bad(handler, "Passkey support is disabled. Enable HERMES_WEBUI_PASSKEY before going passwordless.", 409)
+                return bad(handler, "Passkey support is disabled. Enable IRIS_WEBUI_PASSKEY before going passwordless.", 409)
             if not registered_credentials():
                 return bad(handler, "Register a passkey before going passwordless.", 409)
         elif requested_clear_password:
@@ -17453,7 +17453,7 @@ def handle_post(handler, parsed) -> bool:
 
     if parsed.path == "/api/onboarding/oauth/start":
         if not _onboarding_gate_allows(handler):
-            return bad(handler, "Onboarding OAuth is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+            return bad(handler, "Onboarding OAuth is only available from local networks when auth is not enabled. To bypass this on a remote server, set IRIS_WEBUI_ONBOARDING_OPEN=1.", 403)
         try:
             return j(handler, start_onboarding_oauth_flow(body), extra_headers={"Cache-Control": "no-store"})
         except ValueError as e:
@@ -17473,10 +17473,10 @@ def handle_post(handler, parsed) -> bool:
         # even when the user accesses via localhost:8787 on the host.
         # Behind a reverse proxy (nginx/Caddy/Traefik) or SSH tunnel, X-Forwarded-For
         # carries the real origin IP — read it first before falling back to the raw socket addr.
-        # HERMES_WEBUI_ONBOARDING_OPEN=1 lets operators on remote servers explicitly bypass
+        # IRIS_WEBUI_ONBOARDING_OPEN=1 lets operators on remote servers explicitly bypass
         # the check when they control network access themselves (e.g. firewall + VPN).
         if not _onboarding_gate_allows(handler):
-            return bad(handler, "Onboarding setup is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+            return bad(handler, "Onboarding setup is only available from local networks when auth is not enabled. To bypass this on a remote server, set IRIS_WEBUI_ONBOARDING_OPEN=1.", 403)
         try:
             return j(handler, apply_onboarding_setup(body))
         except ValueError as e:
@@ -17490,7 +17490,7 @@ def handle_post(handler, parsed) -> bool:
         # the other onboarding mutators so an unauthenticated public client on a
         # passwordless bind can't hide the first-run wizard. (#3765)
         if not _onboarding_gate_allows(handler):
-            return bad(handler, "Onboarding is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+            return bad(handler, "Onboarding is only available from local networks when auth is not enabled. To bypass this on a remote server, set IRIS_WEBUI_ONBOARDING_OPEN=1.", 403)
         return j(handler, complete_onboarding())
 
     if parsed.path == "/api/onboarding/probe":
@@ -17501,7 +17501,7 @@ def handle_post(handler, parsed) -> bool:
         # network gate as /api/onboarding/setup (also writing-adjacent in
         # spirit because it carries an api_key the user typed).
         if not _onboarding_gate_allows(handler):
-            return bad(handler, "Onboarding probe is only available from local networks when auth is not enabled. To bypass this on a remote server, set HERMES_WEBUI_ONBOARDING_OPEN=1.", 403)
+            return bad(handler, "Onboarding probe is only available from local networks when auth is not enabled. To bypass this on a remote server, set IRIS_WEBUI_ONBOARDING_OPEN=1.", 403)
         provider = str((body or {}).get("provider") or "").strip().lower()
         base_url = str((body or {}).get("base_url") or "")
         api_key = str((body or {}).get("api_key") or "").strip() or None
@@ -17959,7 +17959,7 @@ def handle_post(handler, parsed) -> bool:
         from api.passkeys import PasskeyError, PasskeyRateLimitError, authentication_options
 
         if not _passkey_feature_flag_enabled():
-            return j(handler, {"error": "Passkey support is disabled. Set HERMES_WEBUI_PASSKEY=1 or webui_passkey_enabled: true to enable."}, status=404)
+            return j(handler, {"error": "Passkey support is disabled. Set IRIS_WEBUI_PASSKEY=1 or webui_passkey_enabled: true to enable."}, status=404)
         if not is_auth_enabled():
             return j(handler, {"error": "Auth not enabled"}, status=400)
         try:
@@ -18362,7 +18362,7 @@ def _handle_session_export(handler, parsed):
     handler.send_response(200)
     handler.send_header("Content-Type", content_type)
     handler.send_header(
-        "Content-Disposition", f'attachment; filename="hermes-{sid}.{ext}"'
+        "Content-Disposition", f'attachment; filename="iris-{sid}.{ext}"'
     )
     handler.send_header("Content-Length", str(len(payload.encode("utf-8"))))
     handler.send_header("Cache-Control", "no-store")
@@ -19750,7 +19750,7 @@ def _gateway_sse_probe_payload(settings, watcher):
         'fallback_poll_ms': 30000,
         'ok': enabled and watcher_alive,
         'watcher_running': watcher_alive,
-        # Cross-client scope markers (hermes-webui/hermes-android#58 follow-up):
+        # Cross-client scope markers (iris-webui/iris-android#58 follow-up):
         # this probe ONLY describes the optional gateway/agent-sessions stream.
         # Persistent per-session streaming (GET /api/session/stream) is always
         # available and is NOT gated by show_cli_sessions, so a negative gateway
@@ -20125,7 +20125,7 @@ def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_
                             handler.wfile.write(chunk)
                             remaining -= len(chunk)
             except _CLIENT_DISCONNECT_ERRORS as exc:
-                logging.getLogger("hermes.webui").debug(
+                logging.getLogger("iris.webui").debug(
                     "Client disconnected mid-response (%s): %s",
                     type(exc).__name__,
                     getattr(handler, "path", "?"),
@@ -20139,7 +20139,7 @@ def _serve_file_bytes(handler, target: Path, mime: str, disposition: str, cache_
                 # SECOND status line after the committed 200/206, corrupting
                 # the HTTP stream. Log at debug and stop — the client already
                 # received its headers (and possibly a partial body).
-                logging.getLogger("hermes.webui").debug(
+                logging.getLogger("iris.webui").debug(
                     "Body transmission error after commit (%s): %s",
                     type(exc).__name__,
                     getattr(handler, "path", "?"),
@@ -20471,7 +20471,7 @@ def _handle_tts(handler, parsed):
                 self._checks = 0
 
             def _get_client_key(self, h):
-                trust_proxy = os.getenv("HERMES_WEBUI_TRUST_FORWARDED_FOR", "").strip().lower()
+                trust_proxy = os.getenv("IRIS_WEBUI_TRUST_FORWARDED_FOR", "").strip().lower()
                 if trust_proxy in ("1", "true", "yes", "on"):
                     for hdr in ("X-Forwarded-For", "X-Real-IP", "Forwarded"):
                         val = h.headers.get(hdr)
@@ -20509,19 +20509,19 @@ def _handle_tts(handler, parsed):
     if engine == "elevenlabs":
         api_key = os.getenv("ELEVENLABS_API_KEY", "").strip()
         if not api_key:
-            # Fall back to reading from Hermes .env file
+            # Fall back to reading from Iris .env file
             try:
                 from api.onboarding import _load_env_file
-                from api.profiles import get_active_hermes_home
-                api_key = _load_env_file(get_active_hermes_home() / ".env").get("ELEVENLABS_API_KEY", "")
+                from api.profiles import get_active_iris_home
+                api_key = _load_env_file(get_active_iris_home() / ".env").get("ELEVENLABS_API_KEY", "")
             except Exception:
                 pass
         if not api_key:
             from api.helpers import bad as _bad
             return _bad(handler, "ELEVENLABS_API_KEY not configured", 503)
 
-        # Resolve voice_id from Hermes config.yaml → env fallback
-        voice_id = "pNInz6obpgDQGcFmaJgB"  # Adam (same default as hermes-agent config.yaml)
+        # Resolve voice_id from Iris config.yaml → env fallback
+        voice_id = "pNInz6obpgDQGcFmaJgB"  # Adam (same default as iris-agent config.yaml)
         model_id = "eleven_multilingual_v2"
         try:
             from api.config import get_config
@@ -20592,8 +20592,8 @@ def _handle_tts(handler, parsed):
         if not api_key:
             try:
                 from api.onboarding import _load_env_file
-                from api.profiles import get_active_hermes_home
-                env_cfg = _load_env_file(get_active_hermes_home() / ".env")
+                from api.profiles import get_active_iris_home
+                env_cfg = _load_env_file(get_active_iris_home() / ".env")
                 api_key = env_cfg.get("VOICE_TOOLS_OPENAI_KEY", "") or env_cfg.get("OPENAI_API_KEY", "")
             except Exception:
                 pass
@@ -20890,17 +20890,17 @@ def _media_deny_reason(target: Path) -> str | None:
     Model: the ACTIVE WORKSPACE is a legitimate-media carve-out — the user is
     entitled to their own workspace files (that is also how the workspace file
     browser reaches them), even when a workspace happens to live under a
-    Hermes root. The deny rules target Hermes's OWN internal state, which lives
+    Iris root. The deny rules target Iris's OWN internal state, which lives
     OUTSIDE any workspace. So: if the target is inside the active workspace, it
     is never denied here; otherwise we deny known secret/config basenames and
-    the internal state subdirectories across every Hermes root the allowlist
-    accepts (active-profile HERMES_HOME, base ~/.hermes, the api.profiles
+    the internal state subdirectories across every Iris root the allowlist
+    accepts (active-profile IRIS_HOME, base ~/.iris, the api.profiles
     default home, and STATE_DIR — which also defends sibling profiles).
     """
     import os as _os
 
     _HOME = Path(_os.path.expanduser("~"))
-    _HERMES_HOME = Path(_os.getenv("HERMES_HOME", str(_HOME / ".hermes"))).expanduser()
+    _IRIS_HOME = Path(_os.getenv("IRIS_HOME", str(_HOME / ".iris"))).expanduser()
 
     _DENY_FILENAMES = {
         "settings.json", "state.db", "state.db-wal", "state.db-shm",
@@ -20929,39 +20929,39 @@ def _media_deny_reason(target: Path) -> str | None:
         _state_dir = Path(_STATE_DIR).resolve()
     except Exception:
         _state_dir = None
-    _base_hermes_home = None
+    _base_iris_home = None
     try:
-        from api.profiles import _DEFAULT_HERMES_HOME as _BASE_HH
-        _base_hermes_home = Path(_BASE_HH).resolve()
+        from api.profiles import _DEFAULT_IRIS_HOME as _BASE_HH
+        _base_iris_home = Path(_BASE_HH).resolve()
     except Exception:
-        _base_hermes_home = None
-    _hermes_roots = []
+        _base_iris_home = None
+    _iris_roots = []
     for _r in (
-        _HERMES_HOME.resolve(),
-        (_HOME / ".hermes").resolve(),
-        _base_hermes_home,
+        _IRIS_HOME.resolve(),
+        (_HOME / ".iris").resolve(),
+        _base_iris_home,
         _state_dir,
     ):
-        if _r is not None and _r not in _hermes_roots:
-            _hermes_roots.append(_r)
+        if _r is not None and _r not in _iris_roots:
+            _iris_roots.append(_r)
     # Enumerate named-profile roots (<root>/profiles/<name>) and treat each as a
-    # Hermes root in its own right, so a sibling/other profile's sensitive subdirs
+    # Iris root in its own right, so a sibling/other profile's sensitive subdirs
     # + secret files are denied — WITHOUT denying the whole `profiles` container
     # (which would block a legit named-profile workspace at
     # <root>/profiles/<name>/workspace/). (Codex review #3234.)
     _profile_roots = []
-    for _root in list(_hermes_roots):
+    for _root in list(_iris_roots):
         _profiles_dir = (_root / "profiles")
         try:
             if _profiles_dir.is_dir():
                 for _pchild in _profiles_dir.iterdir():
                     if _pchild.is_dir():
                         _pr = _pchild.resolve()
-                        if _pr not in _hermes_roots and _pr not in _profile_roots:
+                        if _pr not in _iris_roots and _pr not in _profile_roots:
                             _profile_roots.append(_pr)
         except OSError:
             pass
-    _hermes_roots.extend(_profile_roots)
+    _iris_roots.extend(_profile_roots)
 
     # Case-insensitive path helpers so STATE.DB / Sessions/ casing variants
     # cannot bypass the deny on macOS/Windows filesystems (Codex review #3234).
@@ -20979,7 +20979,7 @@ def _media_deny_reason(target: Path) -> str | None:
         except (ValueError, OSError):
             return False
 
-    # State-subdir deny set: each DENY_SUBDIR directly under any Hermes root
+    # State-subdir deny set: each DENY_SUBDIR directly under any Iris root
     # (which includes STATE_DIR — so STATE_DIR/sessions, STATE_DIR/memories,
     # etc. are covered). These ALWAYS apply — even to a file under the active
     # workspace — so a workspace pointed at (or overlapping) a state dir cannot
@@ -20988,7 +20988,7 @@ def _media_deny_reason(target: Path) -> str | None:
     # legitimate user media — direct sensitive files there are still caught by
     # the filename denies below. (Codex review #3234.)
     _deny_dirs = []
-    for _root in _hermes_roots:
+    for _root in _iris_roots:
         for _sub in _DENY_SUBDIRS:
             _deny_dirs.append((_root / _sub).resolve())
         # Per-profile WebUI state lives at <root>/webui_state (api/workspace.py),
@@ -21001,7 +21001,7 @@ def _media_deny_reason(target: Path) -> str | None:
     # only reachable through the validated `snap=` parameter on an authorized
     # path, so a bare `path=` request at or below the store is rejected
     # REGARDLESS of the store's configured name/location
-    # (HERMES_WEBUI_MEDIA_SNAPSHOT_DIR may point anywhere, e.g. /tmp/custom-name;
+    # (IRIS_WEBUI_MEDIA_SNAPSHOT_DIR may point anywhere, e.g. /tmp/custom-name;
     # the literal "media_snapshots" entry above only covers the default layout).
     # (#6979 Round 2 MUST-FIX 2.)
     try:
@@ -21016,10 +21016,10 @@ def _media_deny_reason(target: Path) -> str | None:
     # Active-workspace carve-out: a file inside a genuine PROJECT workspace is
     # the user's own content, so the secret/config FILENAME denies are relaxed
     # for it. The carve-out is DISABLED when the workspace is a broad/internal
-    # location ($HOME, a Hermes root itself, an ANCESTOR of a Hermes root, a
+    # location ($HOME, a Iris root itself, an ANCESTOR of a Iris root, a
     # */profiles dir, a named-profile root, or a state subdir) — honoring those
     # would re-open the disclosure. A workspace that is a proper DESCENDANT of a
-    # Hermes root (e.g. STATE_DIR/workspace) is still a legit project workspace
+    # Iris root (e.g. STATE_DIR/workspace) is still a legit project workspace
     # and keeps the carve-out. The dir-based denies above are NOT relaxed.
     _active_workspace = None
     try:
@@ -21035,7 +21035,7 @@ def _media_deny_reason(target: Path) -> str | None:
             return False
         if _equal_ci(ws, _HOME):
             return False
-        for _root in _hermes_roots:
+        for _root in _iris_roots:
             # ws IS a root, or ws is an ANCESTOR of a root → unsafe. (A proper
             # descendant of a root is fine — that's a normal project workspace.)
             if _equal_ci(ws, _root) or _within_ci(_root, ws):
@@ -21055,10 +21055,10 @@ def _media_deny_reason(target: Path) -> str | None:
     # Dir-based denies always fire (even inside the active workspace).
     if any(_within_ci(target, d) for d in _deny_dirs):
         return "denied state subdir"
-    # Filename-based denies fire for files under a Hermes root, UNLESS the file
+    # Filename-based denies fire for files under a Iris root, UNLESS the file
     # is inside a genuine project workspace (carve-out).
     if not _in_active_workspace:
-        _under_hermes_root = any(_within_ci(target, _root) for _root in _hermes_roots)
+        _under_iris_root = any(_within_ci(target, _root) for _root in _iris_roots)
         _name_cf = target.name.casefold()
         # Exact secret/state basenames, plus atomic-write temp files for those
         # (api/auth.py and api/passkeys.py write via a `tmp*.<name>.tmp` / `tmp*.tmp`
@@ -21066,7 +21066,7 @@ def _media_deny_reason(target: Path) -> str | None:
         # cannot be fetched. (Codex review #3234.)
         _deny_tmp_suffixes = (".sessions.tmp", ".login_attempts.tmp",
                               ".passkeys.tmp", ".passkey_challenges.tmp")
-        if _under_hermes_root and (
+        if _under_iris_root and (
             _name_cf in _deny_names_ci
             or _name_cf.endswith(_deny_tmp_suffixes)
         ):
@@ -21078,7 +21078,7 @@ def _handle_media(handler, parsed):
     """Serve a local file by absolute path for inline display in the chat.
 
     Security:
-    - Path must resolve to an allowed root (hermes home, /tmp, common dirs)
+    - Path must resolve to an allowed root (iris home, /tmp, common dirs)
     - Auth-gated when auth is enabled
     - Safe preview MIME types can render inline when requested; SVG always downloads
     - SVG always served as attachment (XSS risk)
@@ -21089,7 +21089,7 @@ def _handle_media(handler, parsed):
     import os as _os
     from api.auth import is_auth_enabled, parse_cookie, verify_session
     _HOME = Path(_os.path.expanduser("~"))
-    _HERMES_HOME = Path(_os.getenv("HERMES_HOME", str(_HOME / ".hermes"))).expanduser()
+    _IRIS_HOME = Path(_os.getenv("IRIS_HOME", str(_HOME / ".iris"))).expanduser()
 
     # Auth check
     if is_auth_enabled():
@@ -21114,13 +21114,13 @@ def _handle_media(handler, parsed):
     except Exception:
         return bad(handler, "Invalid path", 400)
 
-    # Allowed roots: hermes home, /tmp, and active workspace.
+    # Allowed roots: iris home, /tmp, and active workspace.
     # Intentionally NOT the entire home dir — that would expose ~/.ssh,
     # ~/.aws, browser profiles, etc. to any authenticated user.
     allowed_roots = [
-        _HERMES_HOME.resolve(),
+        _IRIS_HOME.resolve(),
         Path("/tmp").resolve(),
-        (_HOME / ".hermes").resolve(),
+        (_HOME / ".iris").resolve(),
     ]
     # Also allow the active workspace directory (where screenshots land)
     try:
@@ -21172,8 +21172,8 @@ def _handle_media(handler, parsed):
         _SESSION_MEDIA_TOKEN_TYPES,
     )
 
-    # ── #3234: hard-deny Hermes's own state + secret/config files ────────────
-    # The allowlist above grants the whole Hermes home (and base ~/.hermes), so
+    # ── #3234: hard-deny Iris's own state + secret/config files ────────────
+    # The allowlist above grants the whole Iris home (and base ~/.iris), so
     # an authenticated session rendering attacker-influenced agent output that
     # emits a file:// / MEDIA: link to a state/secret file could fetch it
     # through /api/media. This guard runs BEFORE the allow/serve decision so it
@@ -21307,14 +21307,14 @@ def _file_raw_target(session, sid: str, rel: str) -> tuple[Path, Path] | None:
 
 
 # ─── /api/folder/download ───────────────────────────────────────────────────
-# Configurable caps. Match the HERMES_WEBUI_MAX_UPLOAD_MB style used elsewhere
+# Configurable caps. Match the IRIS_WEBUI_MAX_UPLOAD_MB style used elsewhere
 # (api/config.py) so operators have one consistent env-var convention.
 # Bound on per-request wall-clock and bandwidth, not RSS. The zip streams
 # straight into handler.wfile, so peak memory is the per-file read buffer
 # inside zipfile, not the cap value.
 def _folder_zip_max_bytes() -> int:
     try:
-        mb = int(os.getenv("HERMES_WEBUI_FOLDER_ZIP_MAX_MB", "1024"))
+        mb = int(os.getenv("IRIS_WEBUI_FOLDER_ZIP_MAX_MB", "1024"))
     except ValueError:
         mb = 1024
     return max(1, mb) * 1024 * 1024
@@ -21322,7 +21322,7 @@ def _folder_zip_max_bytes() -> int:
 
 def _folder_zip_max_files() -> int:
     try:
-        return max(1, int(os.getenv("HERMES_WEBUI_FOLDER_ZIP_MAX_FILES", "50000")))
+        return max(1, int(os.getenv("IRIS_WEBUI_FOLDER_ZIP_MAX_FILES", "50000")))
     except ValueError:
         return 50000
 
@@ -21377,7 +21377,7 @@ def _handle_folder_download(handler, parsed):
 
     Streams a zip of <session.workspace>/<path>. Symlinks escaping the
     workspace are skipped. Empty folders return an empty (valid) zip.
-    Respects HERMES_WEBUI_FOLDER_ZIP_MAX_MB and HERMES_WEBUI_FOLDER_ZIP_MAX_FILES.
+    Respects IRIS_WEBUI_FOLDER_ZIP_MAX_MB and IRIS_WEBUI_FOLDER_ZIP_MAX_FILES.
     Pre-flights the walk so size/count failures return a clean 413 with JSON
     body BEFORE any zip bytes are sent.
     """
@@ -21414,13 +21414,13 @@ def _handle_folder_download(handler, parsed):
         return j(handler, {
             "error": "too many files",
             "limit": max_files,
-            "configure": "HERMES_WEBUI_FOLDER_ZIP_MAX_FILES",
+            "configure": "IRIS_WEBUI_FOLDER_ZIP_MAX_FILES",
         }, status=413)
     if limit_hit == "max_bytes":
         return j(handler, {
             "error": "folder too large",
             "limit_bytes": max_bytes,
-            "configure": "HERMES_WEBUI_FOLDER_ZIP_MAX_MB",
+            "configure": "IRIS_WEBUI_FOLDER_ZIP_MAX_MB",
         }, status=413)
 
     zip_name = (target.name or "workspace") + ".zip"
@@ -21959,7 +21959,7 @@ def _handle_live_models(handler, parsed):
         # The browser sends whatever active_provider the static endpoint returned;
         # without normalization, provider_model_ids() misses the alias and returns [].
         # Uses the WebUI-owned table (api/config._resolve_provider_alias) which
-        # works even when hermes_cli is not on sys.path.
+        # works even when iris_cli is not on sys.path.
         from api.config import _resolve_provider_alias
         provider = _resolve_provider_alias(provider)
 
@@ -21979,11 +21979,11 @@ def _handle_live_models(handler, parsed):
             import sys as _sys
             import os as _os
             _agent_dir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-                                       "..", "..", ".hermes", "hermes-agent")
+                                       "..", "..", ".iris", "iris-agent")
             _agent_dir = _os.path.normpath(_agent_dir)
             if _agent_dir not in _sys.path:
                 _sys.path.insert(0, _agent_dir)
-            from hermes_cli.models import provider_model_ids as _pmi
+            from iris_cli.models import provider_model_ids as _pmi
             ids = _pmi(provider)
         except Exception as _import_err:
             logger.debug("provider_model_ids import failed for %s: %s", provider, _import_err)
@@ -22050,7 +22050,7 @@ def _handle_live_models(handler, parsed):
             def _custom_provider_models_discover_is_false(_cp):
                 """True when ``discover_models`` is an explicit ``false`` opt-out.
 
-                Mirrors ``api.config._provider_discover_allowed`` / Hermes
+                Mirrors ``api.config._provider_discover_allowed`` / Iris
                 Agent ``model_switch_providers._discover_flag``: ``discover_models``
                 defaults to True, and the string forms ``"false"``/``"no"``/``"0"``
                 (case-insensitive) mean False.  Used to decide whether a
@@ -22071,7 +22071,7 @@ def _handle_live_models(handler, parsed):
                 list) would be collapsed to a single model.  Only an explicit
                 ``models`` allowlist expresses "show exactly these models".
 
-                An auto-discovered catalog is NOT an allowlist: when Hermes
+                An auto-discovered catalog is NOT an allowlist: when Iris
                 persisted discovery results back into config (``models: {...}``
                 plus ``models_discovered: true``), that mapping is a snapshot
                 of what the gateway exposed at discovery time.  Gating on it
@@ -22085,8 +22085,8 @@ def _handle_live_models(handler, parsed):
                 hand-pinned discovered catalog still filters.
 
                 A dict-shaped ``models`` mapping that is NOT marked discovered is
-                *per-model metadata* written by the Hermes Agent setup flow
-                (``hermes_cli/model_switch.py::_save_custom_provider`` and the
+                *per-model metadata* written by the Iris Agent setup flow
+                (``iris_cli/model_switch.py::_save_custom_provider`` and the
                 setup wizard) — e.g. ``{chat-a: {context_length: 128000}}``.  It is
                 not a catalog narrow: treating its keys as an allowlist would
                 collapse the live picker to the single saved default (keyless
@@ -22096,7 +22096,7 @@ def _handle_live_models(handler, parsed):
                 shapes remain plain allowlists.
 
                 The plural value is decoded through ``_parse_config_string_list()``
-                because ``hermes config set`` / JSON-mode editor saves persist
+                because ``iris config set`` / JSON-mode editor saves persist
                 lists as quoted JSON-array strings (``'["chat-a","chat-b"]'``) or
                 Python literals (``"['chat-a']"``).  Handling only ``dict``/``list``
                 made a serialized allowlist fall through to ``[]``, which the
@@ -22110,7 +22110,7 @@ def _handle_live_models(handler, parsed):
                     return []
                 _ids = []
                 _models = _cp.get("models")
-                # Serialized shapes only: ``hermes config set`` / JSON-mode
+                # Serialized shapes only: ``iris config set`` / JSON-mode
                 # editor saves persist lists as quoted JSON-array strings
                 # (``'["chat-a","chat-b"]'``) or Python literals
                 # (``"['chat-a']"``).  Decode those through the shared helper so
@@ -22121,7 +22121,7 @@ def _handle_live_models(handler, parsed):
                     _models = _parse_config_string_list(_models)
                 if isinstance(_models, dict):
                     # A dict-shaped ``models`` is per-model metadata written by
-                    # the Hermes Agent setup flow, NOT a catalog narrow.  Only a
+                    # the Iris Agent setup flow, NOT a catalog narrow.  Only a
                     # ``discover_models: false`` opt-out treats the dict keys as a
                     # pinned allowlist; otherwise return the empty allowlist so the
                     # live probe returns the full catalog.
@@ -22141,7 +22141,7 @@ def _handle_live_models(handler, parsed):
                 return _ids
 
             # For 'custom' and 'custom:*' providers, provider_model_ids()
-            # returns [] because they aren't real hermes_cli endpoints.
+            # returns [] because they aren't real iris_cli endpoints.
             # Fall back to the custom_providers entries from config.yaml so
             # the live-model enrichment step can add any models that weren't
             # already in the static list (issue #1619).
@@ -22644,7 +22644,7 @@ def _handle_cron_recent(handler, parsed):
         return j(handler, {"completions": [], "since": since})
 
 
-_PROJECT_CONTEXT_HERMES_NAMES = (".hermes.md", "HERMES.md")
+_PROJECT_CONTEXT_IRIS_NAMES = (".iris.md", "IRIS.md")
 # Mirror the agent's lowercase filename variants (agents.md / claude.md) so the
 # tab does not under-report on case-sensitive filesystems.
 _PROJECT_CONTEXT_CWD_NAMES = (
@@ -22689,19 +22689,19 @@ def _project_context_git_root(start: Path) -> Path | None:
 def _project_context_candidates(workspace: Path) -> list[Path]:
     """Mirror the agent's first-match project context file priority.
 
-    #4164: in a non-git workspace the agent's ``_find_hermes_md`` walks all
+    #4164: in a non-git workspace the agent's ``_find_iris_md`` walks all
     the way up to filesystem root because its ``stop_at = git_root`` is
     ``None`` — so a workspace at ``/tmp/x/project/subdir`` could surface
-    ``/tmp/x/HERMES.md`` (a file *outside* the user's workspace) in the
+    ``/tmp/x/IRIS.md`` (a file *outside* the user's workspace) in the
     Project Context tab.
 
     The WebUI tab is a read-only mirror of what the agent injects, so the
     safest bound that does not over-promise is: when there is no git root,
     treat the workspace itself as the stop boundary. The cwd is still
-    scanned (preserving the in-workspace AGENTS.md / HERMES.md behavior),
+    scanned (preserving the in-workspace AGENTS.md / IRIS.md behavior),
     but we no longer walk into the user's home directory or ``/tmp``.
 
-    The agent-side walk in ``agent/prompt_builder._find_hermes_md`` should
+    The agent-side walk in ``agent/prompt_builder._find_iris_md`` should
     be bounded the same way for full parity; until that ships the WebUI
     will under-report context files that live *above* a non-git workspace,
     which is strictly less surprising than over-reporting them.
@@ -22715,7 +22715,7 @@ def _project_context_candidates(workspace: Path) -> list[Path]:
     stop_at = git_root if git_root is not None else cwd
 
     for directory in [cwd, *cwd.parents]:
-        for name in _PROJECT_CONTEXT_HERMES_NAMES:
+        for name in _PROJECT_CONTEXT_IRIS_NAMES:
             candidates.append(directory / name)
         if directory == stop_at:
             break
@@ -22740,7 +22740,7 @@ def _memory_project_context_workspace(parsed) -> Path | None:
         try:
             # A blank session workspace (freshly-created/draft sessions) must not
             # fall through to Path("").resolve(), which returns the server's own
-            # CWD and would surface the install's AGENTS.md/HERMES.md as if it
+            # CWD and would surface the install's AGENTS.md/IRIS.md as if it
             # were the user's project context.
             session = get_session(sid)
             ws = (session.workspace or "").strip()
@@ -22834,18 +22834,18 @@ def _read_active_project_context(workspace: Path | None) -> dict:
 
 def _handle_memory_read(handler, parsed=None):
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        home = get_active_hermes_home()
+        home = get_active_iris_home()
         mem_dir = home / "memories"
     except ImportError:
-        home = Path.home() / ".hermes"
+        home = Path.home() / ".iris"
         mem_dir = home / "memories"
 
     # Respect memory_enabled and user_profile_enabled config flags (#6406)
     # Use get_config_snapshot() for per-profile isolation — get_config() returns
     # the process-global mutable _cfg_cache which races across profiles.
-    # The flags are nested under cfg["memory"] in Hermes Agent's schema.
+    # The flags are nested under cfg["memory"] in Iris Agent's schema.
     cfg = get_config_snapshot()
     mem = cfg.get("memory") if isinstance(cfg, dict) else None
     mem_cfg = mem if isinstance(mem, dict) else {}
@@ -23967,7 +23967,7 @@ def _runtime_runner_client_factory():
     `runner-local` remains default-off and bounded: without an explicit runner
     endpoint this factory preserves the existing "runner-local chat backend is
     not configured" 501 path. When
-    `HERMES_WEBUI_RUNNER_BASE_URL` is set, the WebUI process only acts as a
+    `IRIS_WEBUI_RUNNER_BASE_URL` is set, the WebUI process only acts as a
     transport client; the runner endpoint owns execution, run ids, replay, and
     controls.
     """
@@ -24616,9 +24616,9 @@ def _handle_goal_command(handler, body):
             _clear_stale_stream_state(s)
 
     try:
-        from api.profiles import get_hermes_home_for_profile
+        from api.profiles import get_iris_home_for_profile
 
-        profile_home = get_hermes_home_for_profile(getattr(s, "profile", None))
+        profile_home = get_iris_home_for_profile(getattr(s, "profile", None))
     except Exception:
         profile_home = None
 
@@ -24837,7 +24837,7 @@ def _handle_chat_start(handler, body, diag=None):
                 # Persisting the sidecar failed: surface a generic 500 to
                 # the client (paths sanitised, see _sanitize_error) and log
                 # the full exception server-side. Returning the raw str(exc)
-                # would leak /root/.hermes/webui/sessions/<sid>.json or any
+                # would leak /root/.iris/webui/sessions/<sid>.json or any
                 # other absolute filesystem path the OSError happened to
                 # carry — #4911 review feedback.
                 logger.exception(
@@ -25163,7 +25163,7 @@ def _normalize_chat_attachments(raw_attachments):
 
     Older clients send a list of filenames. Newer clients send upload result
     objects containing name/path/mime/size so image attachments can be supplied
-    to Hermes as native multimodal inputs for the current turn.
+    to Iris as native multimodal inputs for the current turn.
     """
     normalized = []
     if not isinstance(raw_attachments, list):
@@ -25226,10 +25226,10 @@ def _handle_chat_sync(handler, body):
     with _ENV_LOCK:
         old_cwd = os.environ.get("TERMINAL_CWD")
         os.environ["TERMINAL_CWD"] = str(workspace)
-        old_exec_ask = os.environ.get("HERMES_EXEC_ASK")
-        old_session_key = os.environ.get("HERMES_SESSION_KEY")
-        os.environ["HERMES_EXEC_ASK"] = "1"
-        os.environ["HERMES_SESSION_KEY"] = s.session_id
+        old_exec_ask = os.environ.get("IRIS_EXEC_ASK")
+        old_session_key = os.environ.get("IRIS_SESSION_KEY")
+        os.environ["IRIS_EXEC_ASK"] = "1"
+        os.environ["IRIS_SESSION_KEY"] = s.session_id
     try:
         AIAgent = require_ai_agent_class()
 
@@ -25239,12 +25239,12 @@ def _handle_chat_sync(handler, body):
             _model, _provider, _base_url = resolve_model_provider(
                 model_with_provider_context(s.model, getattr(s, "model_provider", None))
             )
-            # Resolve API key via Hermes runtime provider (matches gateway behaviour)
+            # Resolve API key via Iris runtime provider (matches gateway behaviour)
             _api_key = None
             _rt = None
             try:
                 from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-                from hermes_cli.runtime_provider import resolve_runtime_provider
+                from iris_cli.runtime_provider import resolve_runtime_provider
 
                 _rt = resolve_runtime_provider_with_anthropic_env_lock(
                     resolve_runtime_provider,
@@ -25295,7 +25295,7 @@ def _handle_chat_sync(handler, body):
                 provider=_provider,
                 base_url=_base_url,
                 api_key=_api_key,
-                # Identify browser-originated sessions as WebUI so Hermes Agent
+                # Identify browser-originated sessions as WebUI so Iris Agent
                 # does not inject CLI-specific terminal/output guidance.
                 platform="webui",
                 quiet_mode=True,
@@ -25360,13 +25360,13 @@ def _handle_chat_sync(handler, body):
             else:
                 os.environ["TERMINAL_CWD"] = old_cwd
             if old_exec_ask is None:
-                os.environ.pop("HERMES_EXEC_ASK", None)
+                os.environ.pop("IRIS_EXEC_ASK", None)
             else:
-                os.environ["HERMES_EXEC_ASK"] = old_exec_ask
+                os.environ["IRIS_EXEC_ASK"] = old_exec_ask
             if old_session_key is None:
-                os.environ.pop("HERMES_SESSION_KEY", None)
+                os.environ.pop("IRIS_SESSION_KEY", None)
             else:
-                os.environ["HERMES_SESSION_KEY"] = old_session_key
+                os.environ["IRIS_SESSION_KEY"] = old_session_key
     with _get_session_agent_lock(s.session_id):
         _result_messages = result.get("messages") or _previous_context_messages
         # Active-turn boundary is fixed BEFORE any restoration (same as streaming),
@@ -25628,18 +25628,18 @@ def _handle_cron_run(handler, body):
     # Capture the TLS-active profile home now — the thread runs after the
     # request finishes, so TLS is gone by then.
     #
-    # Resolve directly without a try/except: get_active_hermes_home() does
+    # Resolve directly without a try/except: get_active_iris_home() does
     # in-memory dict reads + a single Path.is_dir() stat, so the only way
     # it could raise from inside a request handler is if api.profiles
     # itself partially failed to import (in which case we'd already be
     # 500-ing the whole request). A silent fallback to None here would
     # re-introduce the exact bug #1573 fixes — the worker thread would
-    # run unpinned against the process-global HERMES_HOME — so we'd
+    # run unpinned against the process-global IRIS_HOME — so we'd
     # rather let any unexpected exception 500 the request than corrupt
     # cross-profile state.
-    from api.profiles import get_active_hermes_home
+    from api.profiles import get_active_iris_home
 
-    _profile_home = get_active_hermes_home()
+    _profile_home = get_active_iris_home()
     _execution_profile_home = _profile_home_for_cron_job(job)
     _event_profile = _event_profile_for_cron_job(job)
     threading.Thread(target=_run_cron_tracked, args=(job, _profile_home, _execution_profile_home, _event_profile), daemon=True).start()
@@ -25894,7 +25894,7 @@ def _llm_git_commit_message(system_prompt: str, user_prompt: str, session=None) 
         _rt = None
         try:
             from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-            from hermes_cli.runtime_provider import resolve_runtime_provider
+            from iris_cli.runtime_provider import resolve_runtime_provider
 
             _rt = resolve_runtime_provider_with_anthropic_env_lock(
                 resolve_runtime_provider,
@@ -26526,7 +26526,7 @@ def _handle_file_open_vscode(handler, body):
     If ``host_path_prefix`` and ``container_path_prefix`` are both set,
     paths that begin with ``container_path_prefix`` are translated to the
     host prefix before being handed to VS Code.  This lets users running
-    Hermes WebUI inside Docker still open files in their local editor.
+    Iris WebUI inside Docker still open files in their local editor.
     """
     try:
         require(body, "session_id", "path")
@@ -27960,7 +27960,7 @@ def _handle_session_compress(handler, body):
         ensure_agent_runtime_current()
         import api.config as _cfg
         from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-        import hermes_cli.runtime_provider as _runtime_provider
+        import iris_cli.runtime_provider as _runtime_provider
         AIAgent = require_ai_agent_class()
 
         resolved_model, resolved_provider, resolved_base_url = _cfg.resolve_model_provider(
@@ -28014,7 +28014,7 @@ def _handle_session_compress(handler, body):
             provider=resolved_provider,
             base_url=resolved_base_url,
             api_key=resolved_api_key,
-            # Identify browser-originated sessions as WebUI so Hermes Agent
+            # Identify browser-originated sessions as WebUI so Iris Agent
             # does not inject CLI-specific terminal/output guidance.
             platform="webui",
             quiet_mode=True,
@@ -28281,13 +28281,13 @@ def _persist_handoff_summary_to_state_db(sid: str, message: dict) -> bool:
         return False
 
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        hermes_home = Path(get_active_hermes_home()).expanduser().resolve()
+        iris_home = Path(get_active_iris_home()).expanduser().resolve()
     except Exception:
-        hermes_home = Path(os.getenv("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser().resolve()
+        iris_home = Path(os.getenv("IRIS_HOME", str(Path.home() / ".iris"))).expanduser().resolve()
 
-    db_path = hermes_home / "state.db"
+    db_path = iris_home / "state.db"
     if not db_path.exists():
         return False
 
@@ -28546,7 +28546,7 @@ def _handle_handoff_summary(handler, body):
         return channel_label
 
     def _agent_text_completion(agent, system_prompt, user_text, max_tokens=700):
-        """Use the current Hermes Agent transport without mutating conversation history."""
+        """Use the current Iris Agent transport without mutating conversation history."""
         api_messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_text},
@@ -28629,7 +28629,7 @@ def _handle_handoff_summary(handler, body):
         ensure_agent_runtime_current()
         import api.config as _cfg
         from api.oauth import resolve_runtime_provider_with_anthropic_env_lock
-        import hermes_cli.runtime_provider as _runtime_provider
+        import iris_cli.runtime_provider as _runtime_provider
         AIAgent = require_ai_agent_class()
 
         # Try to resolve model from an existing session, fall back to default.
@@ -28899,7 +28899,7 @@ def _handle_skill_toggle(handler, body):
     Writes through to ``skills.platform_disabled.webui`` when that key exists
     so the toggle takes effect for WebUI sessions (the agent's
     ``get_disabled_skill_names`` checks platform-specific lists first when
-    ``HERMES_SESSION_PLATFORM`` is set).
+    ``IRIS_SESSION_PLATFORM`` is set).
     """
     try:
         require(body, "name", "enabled")
@@ -28932,7 +28932,7 @@ def _handle_skill_toggle(handler, body):
 
         # Write-through to platform_disabled.webui if it exists so that the
         # toggle takes effect for WebUI sessions (the agent checks the
-        # platform-specific list first when HERMES_SESSION_PLATFORM=webui).
+        # platform-specific list first when IRIS_SESSION_PLATFORM=webui).
         platform_disabled = skills_cfg.get("platform_disabled")
         if isinstance(platform_disabled, dict) and "webui" in platform_disabled:
             platform_disabled["webui"] = _toggle_name_in_list(
@@ -28957,7 +28957,7 @@ def _handle_memory_write(handler, body):
     # Respect memory_enabled and user_profile_enabled config flags (#6406)
     # Use get_config_snapshot() for per-profile isolation — get_config() returns
     # the process-global mutable _cfg_cache which races across profiles.
-    # The flags are nested under cfg["memory"] in Hermes Agent's schema.
+    # The flags are nested under cfg["memory"] in Iris Agent's schema.
     cfg = get_config_snapshot()
     mem = cfg.get("memory") if isinstance(cfg, dict) else None
     mem_cfg = mem if isinstance(mem, dict) else {}
@@ -28969,12 +28969,12 @@ def _handle_memory_write(handler, body):
             return bad(handler, "User profile is disabled by configuration (user_profile_enabled: false)", 403)
 
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        home = get_active_hermes_home()
+        home = get_active_iris_home()
         mem_dir = home / "memories"
     except ImportError:
-        home = Path.home() / ".hermes"
+        home = Path.home() / ".iris"
         mem_dir = home / "memories"
     mem_dir.mkdir(parents=True, exist_ok=True)
     if section == "memory":
@@ -29420,7 +29420,7 @@ def _mask_secrets(obj):
 
 
 def _parse_mcp_enabled(value) -> bool:
-    """Parse Hermes MCP ``enabled`` values without raising on bad config."""
+    """Parse Iris MCP ``enabled`` values without raising on bad config."""
     if value is None:
         return True
     if isinstance(value, bool):
@@ -29440,7 +29440,7 @@ def _mcp_runtime_status_by_name() -> dict[str, dict]:
     """Return already-known MCP runtime status without starting servers.
 
     ``tools.mcp_tool.get_mcp_status()`` only reads the existing MCP registry and
-    configuration; it does not probe or spawn MCP subprocesses. If Hermes Agent
+    configuration; it does not probe or spawn MCP subprocesses. If Iris Agent
     is unavailable, fall back to an empty map so the API remains safe.
     """
     try:
@@ -29661,7 +29661,7 @@ def _mcp_tools_from_registry(server_summaries):
 
 def _handle_mcp_tools_list(handler):
     """List known MCP tools from already-available runtime inventory only."""
-    cfg = get_config_for_profile_home(get_active_hermes_home())
+    cfg = get_config_for_profile_home(get_active_iris_home())
     servers = cfg.get("mcp_servers", {})
     if not isinstance(servers, dict):
         servers = {}
@@ -29699,7 +29699,7 @@ def _external_notes_sources_enabled(config_data: dict | None = None) -> bool:
     The Memory panel is a primary surface, so this power-user drawer stays
     default-off unless a deployment opts in through config or environment.
     """
-    env_value = os.getenv("HERMES_WEBUI_EXTERNAL_NOTES_SOURCES", "")
+    env_value = os.getenv("IRIS_WEBUI_EXTERNAL_NOTES_SOURCES", "")
     if env_value:
         return _webui_truthy(env_value)
     cfg = config_data if isinstance(config_data, dict) else get_config()
@@ -30069,7 +30069,7 @@ def _joplin_prefill_script_path() -> Path | None:
     # configured. Fall back to the legacy generic session prefill script only for
     # deployments that have not opted into WebUI dynamic recall.
     return _script_path_from_config_value(
-        os.getenv("HERMES_WEBUI_PREFILL_MESSAGES_SCRIPT", "")
+        os.getenv("IRIS_WEBUI_PREFILL_MESSAGES_SCRIPT", "")
         or cfg.get("webui_prefill_messages_script")
         or cfg.get("prefill_messages_script")
     )
@@ -30175,7 +30175,7 @@ def _handle_notes_item(handler, parsed):
 
 def _handle_mcp_servers_list(handler):
     """List configured MCP servers with safe, read-only runtime visibility."""
-    cfg = get_config_for_profile_home(get_active_hermes_home())
+    cfg = get_config_for_profile_home(get_active_iris_home())
     servers = cfg.get("mcp_servers", {})
     if not isinstance(servers, dict):
         servers = {}

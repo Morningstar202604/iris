@@ -13,9 +13,9 @@ from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
 
-_CA_BUNDLE_ENV_VARS = ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE")
+_CA_BUNDLE_ENV_VARS = ("IRIS_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE")
 _REPAIR_HINT = (
-    "Repair: run `hermes doctor --fix` (auto-reinstalls certifi), or "
+    "Repair: run `iris doctor --fix` (auto-reinstalls certifi), or "
     "manually: python -m pip install --force-reinstall certifi openai httpx\n"
     "If you configured a custom corporate CA bundle, fix or unset the broken CA bundle environment variable."
 )
@@ -49,8 +49,8 @@ def _validate_bundle_path(label: str, value: str, *, require_substantial: bool =
 def verify_ca_bundle() -> None:
     """Raise SSLConfigurationError when a CA-bundle env var points at a bad path or certifi's ``cacert.pem``
     is missing/corrupt."""
-    if is_truthy_value(os.getenv("HERMES_SKIP_SSL_GUARD", "")):
-        logger.debug("SSL CA bundle guard skipped via HERMES_SKIP_SSL_GUARD")
+    if is_truthy_value(os.getenv("IRIS_SKIP_SSL_GUARD", "")):
+        logger.debug("SSL CA bundle guard skipped via IRIS_SKIP_SSL_GUARD")
         return
     for env_var in _CA_BUNDLE_ENV_VARS:
         if value := os.getenv(env_var):

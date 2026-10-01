@@ -9,7 +9,7 @@ STYLE_CSS = ROOT / "static" / "style.css"
 def test_sidebar_has_separate_webui_and_cli_session_source_tabs():
     src = SESSIONS_JS.read_text(encoding="utf-8")
     assert "let _sessionSourceFilter = 'webui'" in src
-    assert "hermes-session-source-filter" in src
+    assert "iris-session-source-filter" in src
     assert "session-source-tabs" in src
     assert "t('sessions_source_webui', n)" in src
     assert "t('sessions_source_cli', n)" in src
@@ -205,7 +205,7 @@ def test_real_cli_sidebar_cli_flag_is_preserved_before_frontend_response():
 
 
 def test_tui_state_db_rows_are_cli_sidebar_rows():
-    """Hermes TUI state.db rows belong in the CLI/agent sidebar bucket.
+    """Iris TUI state.db rows belong in the CLI/agent sidebar bucket.
 
     TUI sessions are projected from state.db with raw/source_tag='tui'. If they
     stay session_source='other' and is_cli_session=false, the two-tab sidebar

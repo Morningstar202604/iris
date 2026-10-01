@@ -47,11 +47,11 @@ def test_config_snapshot_waits_for_reload_lock(monkeypatch, tmp_path):
 
 
 def _install_fake_moa_config(monkeypatch, *, default_preset="moa-default", usage_text="Usage: /moa <prompt>"):
-    hermes_cli_pkg = sys.modules.get("hermes_cli") or ModuleType("hermes_cli")
-    # monkeypatch.setattr restores the REAL hermes_cli.__path__ on teardown;
+    iris_cli_pkg = sys.modules.get("iris_cli") or ModuleType("iris_cli")
+    # monkeypatch.setattr restores the REAL iris_cli.__path__ on teardown;
     # emptying it in place would strand the package for the rest of the suite.
-    monkeypatch.setattr(hermes_cli_pkg, "__path__", [], raising=False)
-    moa_config = ModuleType("hermes_cli.moa_config")
+    monkeypatch.setattr(iris_cli_pkg, "__path__", [], raising=False)
+    moa_config = ModuleType("iris_cli.moa_config")
 
     def normalize_moa_config(cfg):
         return {"default_preset": default_preset}
@@ -62,16 +62,16 @@ def _install_fake_moa_config(monkeypatch, *, default_preset="moa-default", usage
     moa_config_any = cast(Any, moa_config)
     moa_config_any.normalize_moa_config = normalize_moa_config
     moa_config_any.moa_usage = moa_usage
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.moa_config", moa_config)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.moa_config", moa_config)
 
 
-def _install_fake_hermes_config(monkeypatch, cfg_data=None):
-    hermes_cli_pkg = sys.modules.get("hermes_cli") or ModuleType("hermes_cli")
-    # monkeypatch.setattr restores the REAL hermes_cli.__path__ on teardown;
+def _install_fake_iris_config(monkeypatch, cfg_data=None):
+    iris_cli_pkg = sys.modules.get("iris_cli") or ModuleType("iris_cli")
+    # monkeypatch.setattr restores the REAL iris_cli.__path__ on teardown;
     # emptying it in place would strand the package for the rest of the suite.
-    monkeypatch.setattr(hermes_cli_pkg, "__path__", [], raising=False)
-    config_mod = ModuleType("hermes_cli.config")
+    monkeypatch.setattr(iris_cli_pkg, "__path__", [], raising=False)
+    config_mod = ModuleType("iris_cli.config")
 
     def load_config():
         if cfg_data is None:
@@ -80,13 +80,13 @@ def _install_fake_hermes_config(monkeypatch, cfg_data=None):
 
     config_mod_any = cast(Any, config_mod)
     config_mod_any.load_config = load_config
-    monkeypatch.setitem(sys.modules, "hermes_cli", hermes_cli_pkg)
-    monkeypatch.setitem(sys.modules, "hermes_cli.config", config_mod)
+    monkeypatch.setitem(sys.modules, "iris_cli", iris_cli_pkg)
+    monkeypatch.setitem(sys.modules, "iris_cli.config", config_mod)
 
 
 def test_resolve_moa_config_returns_expected_shape(monkeypatch):
     _install_fake_moa_config(monkeypatch, default_preset="moa-fast", usage_text="/moa <prompt> -- run with MoA")
-    _install_fake_hermes_config(monkeypatch, cfg_data={"moa": {}})
+    _install_fake_iris_config(monkeypatch, cfg_data={"moa": {}})
     from api.commands import resolve_moa_config
     result = resolve_moa_config()
     assert result["default_preset"] == "moa-fast"
@@ -98,7 +98,7 @@ def test_resolve_moa_config_returns_expected_shape(monkeypatch):
 
 def test_resolve_moa_config_degrades_without_config(monkeypatch):
     _install_fake_moa_config(monkeypatch, default_preset="moa-default-cfg")
-    _install_fake_hermes_config(monkeypatch, cfg_data=None)
+    _install_fake_iris_config(monkeypatch, cfg_data=None)
     from api.commands import resolve_moa_config
     result = resolve_moa_config()
     assert result["default_preset"] == "moa-default-cfg"
@@ -106,7 +106,7 @@ def test_resolve_moa_config_degrades_without_config(monkeypatch):
 
 
 def test_resolve_moa_config_raises_when_moa_unavailable(monkeypatch):
-    monkeypatch.setitem(sys.modules, "hermes_cli.moa_config", None)
+    monkeypatch.setitem(sys.modules, "iris_cli.moa_config", None)
     from api.commands import resolve_moa_config
     with pytest.raises(RuntimeError, match="MoA runtime unavailable"):
         resolve_moa_config()
@@ -139,7 +139,7 @@ def test_no_subprocess_in_moa_code_paths():
     assert match, "resolve_moa_config not found in commands.py"
     func_body = match.group(0)
     assert "process_command" not in func_body
-    assert "HermesCLI" not in func_body
+    assert "IrisCLI" not in func_body
     assert "subprocess" not in func_body
 
 
@@ -150,7 +150,7 @@ def test_moa_config_is_per_turn_not_persisted():
     source = streaming_path.read_text(encoding="utf-8")
     # moa_config is threaded into the live agent turn as a per-turn kwarg. It is
     # added CONDITIONALLY (only when not None) so a normal send never trips a
-    # TypeError on an older hermes-agent whose run_conversation() predates the
+    # TypeError on an older iris-agent whose run_conversation() predates the
     # kwarg — so accept either the direct kwarg form or the conditional-dict form.
     assert (
         re.search(r"run_conversation\([\s\S]*?moa_config=moa_config", source)
@@ -268,7 +268,7 @@ def test_moa_gateway_configured_default_reaches_start_run(monkeypatch, tmp_path)
     monkeypatch.setattr(routes, "get_session", lambda _sid: _Session())
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     config_snapshot = {
         "chat_backend": "gateway",
@@ -333,7 +333,7 @@ def test_moa_gateway_string_model_config_reaches_start_run(monkeypatch, tmp_path
     monkeypatch.setattr(routes, "get_session", lambda _sid: _Session())
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(routes, "get_config_snapshot", lambda: {"chat_backend": "gateway", "model": "@moa:moa-configured"})
     monkeypatch.setattr(routes, "webui_gateway_chat_enabled", lambda _cfg: True)
@@ -421,7 +421,7 @@ def test_moa_gateway_authorization_uses_request_owned_config(
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
     monkeypatch.setattr(routes, "_resolve_compatible_session_model_state", resolve_and_mutate)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(routes, "get_config_snapshot", lambda: routes.copy.deepcopy(config_snapshot))
     monkeypatch.setattr(routes, "webui_gateway_chat_enabled", lambda _cfg: True)
@@ -482,7 +482,7 @@ def test_moa_gateway_explicit_configured_default_fails_closed(monkeypatch, tmp_p
     monkeypatch.setattr(routes, "get_session", lambda _sid: _Session())
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     config_snapshot = {
         "chat_backend": "gateway",
@@ -546,7 +546,7 @@ def test_moa_gateway_spoofed_provider_fails_closed(monkeypatch, tmp_path):
     monkeypatch.setattr(routes, "get_session", lambda _sid: _Session())
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     config_snapshot = {
         "chat_backend": "gateway",
@@ -612,7 +612,7 @@ def test_gateway_non_moa_model_reaches_start_run(monkeypatch, tmp_path):
     monkeypatch.setattr(routes, "get_session", lambda _sid: _Session())
     monkeypatch.setattr(routes, "_resolve_chat_workspace_with_recovery", lambda _s, _w: str(tmp_path))
     monkeypatch.setattr(routes, "_start_run", start_run)
-    for name in ("HERMES_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
+    for name in ("IRIS_MODEL", "OPENAI_MODEL", "LLM_MODEL"):
         monkeypatch.delenv(name, raising=False)
     config_snapshot = {
         "chat_backend": "gateway",

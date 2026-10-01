@@ -64,7 +64,7 @@ def test_onboarding_provider_notice_uses_i18n_key():
 def test_bootstrap_script_contains_official_installer_and_windows_guard():
     src = read("bootstrap.py")
     assert (
-        "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh"
+        "https://gitcode.com/badhope/iris/raw/main/agent/scripts/install.sh"
         in src
     )
     # Native Windows is now experimental-supported (#1952), not hard-blocked:

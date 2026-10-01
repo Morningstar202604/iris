@@ -79,7 +79,7 @@ def _run(driver_path: str, tc: dict) -> dict:
 
 
 _MULTILINE = (
-    "cd ~/hermes-webui-public\n"
+    "cd ~/iris-webui-public\n"
     "git fetch origin --tags -q\n"
     "for t in a b c; do echo $t; done\n"
     "echo done"
@@ -101,7 +101,7 @@ def test_expanded_shell_lead_shows_full_multiline_command(driver_path):
 def test_collapsed_header_stays_first_line_only(driver_path):
     """The compact header should remain the first line (unchanged behavior)."""
     out = _run(driver_path, {"args": {"command": _MULTILINE}})
-    assert out["header"] == "cd ~/hermes-webui-public", out["header"]
+    assert out["header"] == "cd ~/iris-webui-public", out["header"]
     assert "\n" not in out["header"]
 
 

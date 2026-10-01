@@ -1,15 +1,15 @@
-"""Secret-scrub policy for Hermes child processes: pure data + predicates for which env
-names are Hermes-managed credentials. The env *builders* applying it (``_make_run_env``,
-``_sanitize_subprocess_env``, ``hermes_subprocess_env``) live in ``tools.environments.local``."""
+"""Secret-scrub policy for Iris child processes: pure data + predicates for which env
+names are Iris-managed credentials. The env *builders* applying it (``_make_run_env``,
+``_sanitize_subprocess_env``, ``iris_subprocess_env``) live in ``tools.environments.local``."""
 
 import functools
 import os
 from typing import Optional
 
 # Prefix a caller uses in ``extra_env`` to force a blocklisted var through.
-_HERMES_PROVIDER_ENV_FORCE_PREFIX = "_HERMES_FORCE_"
+_IRIS_PROVIDER_ENV_FORCE_PREFIX = "_IRIS_FORCE_"
 
-# Hermes-managed AWS *inference* credentials for ``auth_type="aws_sdk"`` (Bedrock):
+# Iris-managed AWS *inference* credentials for ``auth_type="aws_sdk"`` (Bedrock):
 # only the Bedrock bearer token, which no aws/terraform/boto3 toolchain uses. The
 # general AWS chain stays inheritable on purpose — the local terminal is the user's
 # trusted operator shell (SECURITY.md §3.2) and env_passthrough can never re-allow a
@@ -34,7 +34,7 @@ _STATIC_PROVIDER_ENV_BLOCKLIST = frozenset({
     "SIGNAL_ALLOWED_USERS", "SIGNAL_GROUP_ALLOWED_USERS", "SIGNAL_HOME_CHANNEL",
     "SIGNAL_HOME_CHANNEL_NAME", "SIGNAL_IGNORE_STORIES", "HASS_TOKEN", "HASS_URL",
     "EMAIL_ADDRESS", "EMAIL_PASSWORD", "EMAIL_IMAP_HOST", "EMAIL_SMTP_HOST",
-    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "IRIS_DASHBOARD_SESSION_TOKEN",
     "GATEWAY_ALLOWED_USERS", "GH_TOKEN", "GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY_PATH",
     "GITHUB_APP_INSTALLATION_ID", "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET",
     "DAYTONA_API_KEY", "GATEWAY_RELAY_ID", "GATEWAY_RELAY_SECRET",
@@ -47,7 +47,7 @@ def _build_provider_env_blocklist() -> frozenset:
     """Derive the blocklist from provider, tool, and gateway config."""
     blocked: set[str] = set(_STATIC_PROVIDER_ENV_BLOCKLIST)
     try:
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from iris_cli.auth import PROVIDER_REGISTRY
         for pconfig in PROVIDER_REGISTRY.values():
             blocked.update(pconfig.api_key_env_vars)
             if pconfig.auth_type == "aws_sdk":
@@ -57,7 +57,7 @@ def _build_provider_env_blocklist() -> frozenset:
     except ImportError:
         pass
     try:
-        from hermes_cli.config import OPTIONAL_ENV_VARS
+        from iris_cli.config import OPTIONAL_ENV_VARS
         for name, metadata in OPTIONAL_ENV_VARS.items():
             category = metadata.get("category")
             if category in {"tool", "messaging"} or (
@@ -66,14 +66,14 @@ def _build_provider_env_blocklist() -> frozenset:
     except ImportError:
         pass
     # CLAUDE_CODE_OAUTH_TOKEN (via the anthropic registry entry) belongs to the user's
-    # Claude Code install, not Hermes: stripping it made agent-spawned ``claude`` CLIs
+    # Claude Code install, not Iris: stripping it made agent-spawned ``claude`` CLIs
     # fall through to the shared Keychain / ~/.claude store and, on auth failure, wipe
     # it — logging the user out. BUZZ_* is deliberately NOT discarded: this list feeds
     # every scrub surface, so an import-time discard would leak BUZZ_PRIVATE_KEY into
     # non-terminal children; the Buzz carve-out is terminal-only and context-gated
     # (``_is_terminal_first_party_env``).
-    # It is set and owned by the user's Claude Code install (subscription OAuth), not a Hermes-managed
-    # inference credential — Claude subscription auth is not a working Hermes provider path. It arrives via
+    # It is set and owned by the user's Claude Code install (subscription OAuth), not a Iris-managed
+    # inference credential — Claude subscription auth is not a working Iris provider path. It arrives via
     # the registry loop above (anthropic api_key_env_vars), so remove it explicitly. See #55878.
     blocked.discard("CLAUDE_CODE_OAUTH_TOKEN")
     # BUZZ_* is deliberately NOT discarded here, even for Buzz-managed agents (BUZZ_MANAGED_AGENT set by the
@@ -81,21 +81,21 @@ def _build_provider_env_blocklist() -> frozenset:
     return frozenset(blocked)
 
 
-_HERMES_PROVIDER_ENV_BLOCKLIST = _build_provider_env_blocklist()
+_IRIS_PROVIDER_ENV_BLOCKLIST = _build_provider_env_blocklist()
 
 
 def _is_provider_env_blocklisted(name: str) -> bool:
     """``name`` is a blocklisted provider/tool credential, matched the way the
     platform's environment resolves names: exact plus case-folded. On Windows
     the environment block is case-insensitive, so ``openai_api_key`` IS
-    ``OPENAI_API_KEY``; consistent with ``_is_hermes_internal_secret``, which
+    ``OPENAI_API_KEY``; consistent with ``_is_iris_internal_secret``, which
     already folds (``key.upper()``)."""
-    return (name in _HERMES_PROVIDER_ENV_BLOCKLIST
-            or name.upper() in _HERMES_PROVIDER_ENV_BLOCKLIST)
+    return (name in _IRIS_PROVIDER_ENV_BLOCKLIST
+            or name.upper() in _IRIS_PROVIDER_ENV_BLOCKLIST)
 
 # First-party platform credentials (``BUZZ_*``, driving the platform-mandated ``buzz``
 # CLI) carved out of the TERMINAL scrub only (``_make_run_env``,
-# ``_sanitize_subprocess_env``); execute_code, hermes_subprocess_env, docker and
+# ``_sanitize_subprocess_env``); execute_code, iris_subprocess_env, docker and
 # env_passthrough registration stay sealed (GHSA-rhgp-j443-p4rf). CONTEXT-GATED via
 # ``_buzz_terminal_context_active``: a Telegram/CLI/cron session on a host that also
 # runs a Buzz gateway must not get the signing key. Values are used directly, never
@@ -108,14 +108,14 @@ def _is_provider_env_blocklisted(name: str) -> bool:
 # the terminal scrub. CONTEXT-GATED: the carve-out applies ONLY when this process/session is actually
 # operating as a Buzz agent — either the process is a Buzz-ACP managed agent (``BUZZ_MANAGED_AGENT`` is set,
 # only by Buzz Desktop's buzz-acp harness; see #76243 / #78511) or the current session's platform is
-# ``buzz`` (the gateway's ``HERMES_SESSION_PLATFORM`` ContextVar; concurrency safe under a multi-session
+# ``buzz`` (the gateway's ``IRIS_SESSION_PLATFORM`` ContextVar; concurrency safe under a multi-session
 # host). A Telegram/CLI/cron session on a host that also runs a Buzz gateway does NOT get BUZZ_PRIVATE_KEY
 # in its terminal children — blanket passthrough of a signing key to every terminal child on the host would
 # be wrong (maintainer triage note on #76243: don't expose the key to unrelated shell commands).
 # ``_sanitize_subprocess_env`` is also consumed by search workers (e.g. the ddgs web-search subprocess), the
 # computer-use driver binary, and user-script runners (bang ``!`` commands, quick commands, cron scripts,
 # webhook-filter scripts), so those children receive the vars too — matching the approved background/PTY
-# scope. Every other surface stays sealed — execute_code scrubbing, :func:`hermes_subprocess_env` (browser /
+# scope. Every other surface stays sealed — execute_code scrubbing, :func:`iris_subprocess_env` (browser /
 # TUI host / copilot-executor spawns), docker children, and ``env_passthrough`` registration (skills/config
 # still cannot register these names). The GHSA-rhgp-j443-p4rf seal is preserved because no registration path
 # is opened; this is a scrub-path exemption, not an allowlist addition. First-party matches use the merged
@@ -125,7 +125,7 @@ def _is_provider_env_blocklisted(name: str) -> bool:
 # treats these names like profile-scoped passthrough names (see
 # ``LocalEnvironment._additional_profile_scoped_passthrough_names``) so they never persist in the shared
 # terminal snapshot across profiles. Contrast with CLAUDE_CODE_OAUTH_TOKEN above, which is discarded from
-# the blocklist entirely because it is NOT a Hermes credential; these ARE Hermes-managed first-party
+# the blocklist entirely because it is NOT a Iris credential; these ARE Iris-managed first-party
 # platform credentials, so they stay IN the blocklist for every non-terminal surface. See issue #78026 (Buzz
 # agents could not use ``buzz`` from the terminal tool) and #76243 (Buzz Desktop managed agent wakes but
 # cannot reply).
@@ -154,7 +154,7 @@ def _buzz_terminal_context_active() -> bool:
     try:
         from gateway.session_context import get_session_env
 
-        return get_session_env("HERMES_SESSION_PLATFORM", "").strip().lower() == "buzz"
+        return get_session_env("IRIS_SESSION_PLATFORM", "").strip().lower() == "buzz"
     except Exception:
         return False
 
@@ -166,26 +166,26 @@ def _is_terminal_first_party_env(name: str) -> bool:
 
 
 # Active-venv markers that must NOT leak: VIRTUAL_ENV/CONDA_PREFIX make uv/poetry sync
-# ANOTHER project's deps into the Hermes venv (still reachable via PATH, so stripping
-# is safe); PYTHONHOME redirects a child interpreter's stdlib to the Hermes venv
-# (version-mismatch crashes). PYTHONPATH is handled separately (Hermes-owned entries only).
+# ANOTHER project's deps into the Iris venv (still reachable via PATH, so stripping
+# is safe); PYTHONHOME redirects a child interpreter's stdlib to the Iris venv
+# (version-mismatch crashes). PYTHONPATH is handled separately (Iris-owned entries only).
 # The gateway runs inside its own venv, so its process environment carries VIRTUAL_ENV (and possibly
 # CONDA_PREFIX). If those leak into commands the agent runs against OTHER Python projects, tools like
 # ``uv``/``poetry`` treat the inherited value as the active environment and build/sync that other project's
-# dependencies into the Hermes venv path instead of the project's own ``.venv`` — silently clobbering the
-# Hermes environment (e.g. a project pinned to a different Python version overwrites it and breaks the
+# dependencies into the Iris venv path instead of the project's own ``.venv`` — silently clobbering the
+# Iris environment (e.g. a project pinned to a different Python version overwrites it and breaks the
 # gateway). PYTHONHOME is included because a gateway-inherited value redirects the standard-library search
-# of ANY child interpreter — including unrelated system/venv Pythons — to the Hermes venv's stdlib, which
-# crashes with version-mismatch errors before a child script even imports a package (#75018). Hermes itself
+# of ANY child interpreter — including unrelated system/venv Pythons — to the Iris venv's stdlib, which
+# crashes with version-mismatch errors before a child script even imports a package (#75018). Iris itself
 # treats PYTHONHOME as contamination in its own child processes (managed_uv.py, sqlite_runtime.py), so
 # stripping it from subprocess envs is consistent. Users who need PYTHONHOME for a specific child can set it
 # explicitly in the command. PYTHONPATH is NOT included here — it's handled by
-# _strip_hermes_owned_pythonpath() which removes only Hermes-owned entries, preserving user-set paths.
+# _strip_iris_owned_pythonpath() which removes only Iris-owned entries, preserving user-set paths.
 _ACTIVE_VENV_MARKER_VARS = ("VIRTUAL_ENV", "CONDA_PREFIX", "PYTHONHOME")
 
 
-def _is_hermes_internal_secret(key: str) -> bool:
-    """True for Hermes-internal secrets injected under *dynamic* names the static
+def _is_iris_internal_secret(key: str) -> bool:
+    """True for Iris-internal secrets injected under *dynamic* names the static
     blocklist cannot enumerate: ``AUXILIARY_<TASK>_API_KEY``/``_BASE_URL`` (per-task
     side-LLM credentials) and ``GATEWAY_RELAY_*_SECRET``/``_KEY``/``_TOKEN`` (relay
     auth; non-secret routing hints stay visible). Stripped on every spawn path
@@ -204,9 +204,9 @@ def _is_hermes_internal_secret(key: str) -> bool:
 # A's channel/user/role list as its own (#113270). The suffix is matched by shape so a gate
 # added to any adapter is covered without a second edit, but ONLY under a platform prefix
 # (``DISCORD_``, ``GATEWAY_``, a plugin adapter's name): an operator's own ``DEMO_ALLOWED_SENDER``
-# is script data, not a Hermes gate, and deleting it by name shape broke routed ``no_agent``
-# cron scripts (#119539). ``HERMES_*`` never counts (``HERMES_MEDIA_ALLOW_DIRS``,
-# ``HERMES_ALLOW_PRIVATE_URLS`` are process settings, not adapter gates).
+# is script data, not a Iris gate, and deleting it by name shape broke routed ``no_agent``
+# cron scripts (#119539). ``IRIS_*`` never counts (``IRIS_MEDIA_ALLOW_DIRS``,
+# ``IRIS_ALLOW_PRIVATE_URLS`` are process settings, not adapter gates).
 _PROFILE_GATE_ENV_MARKERS = (
     "_ALLOWED_", "_ALLOW_ALL_", "_ALLOW_FROM", "_ALLOW_BOTS", "_ALLOW_PUBLIC_", "_IGNORED_CHANNELS",
     "_NO_THREAD_CHANNELS", "_FREE_RESPONSE_CHANNELS", "_BACKFILL_CHANNELS", "_GROUP_ALLOWED",
@@ -251,7 +251,7 @@ def is_profile_gate_env(name: str, _prefixes: Optional[frozenset] = None) -> boo
     for ANOTHER profile must never inherit. A gate is a platform prefix AND a gate-shaped suffix;
     an operator variable that merely contains ``_ALLOWED_`` is not one."""
     upper = name.upper()
-    if upper.startswith("HERMES_") or upper.startswith("_"):
+    if upper.startswith("IRIS_") or upper.startswith("_"):
         return False
     if not any(marker in upper for marker in _PROFILE_GATE_ENV_MARKERS):
         return False
@@ -290,10 +290,10 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "SLACK_BOT_TOKEN", "SLACK_APP_TOKEN",
     "SLACK_SIGNING_SECRET", "GATEWAY_ALLOWED_USERS", "GATEWAY_ALLOW_ALL_USERS",
     # Gateway relay auth triplet. _SECRET/_DELIVERY_KEY are also matched by
-    # _is_hermes_internal_secret, but _ID has no secret suffix, so it must be
+    # _is_iris_internal_secret, but _ID has no secret suffix, so it must be
     # enumerated here to stay stripped on the inherit_credentials=True path.
     "GATEWAY_RELAY_ID", "GATEWAY_RELAY_SECRET", "GATEWAY_RELAY_DELIVERY_KEY",
-    "HASS_TOKEN", "EMAIL_PASSWORD", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "HASS_TOKEN", "EMAIL_PASSWORD", "IRIS_DASHBOARD_SESSION_TOKEN",
     # Remote-compute / infrastructure secrets
     "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "DAYTONA_API_KEY",
 })

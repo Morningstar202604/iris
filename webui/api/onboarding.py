@@ -17,7 +17,7 @@ from api.config import (
     DEFAULT_MODEL,
     DEFAULT_WORKSPACE,
     _FALLBACK_MODELS,
-    _HERMES_FOUND,
+    _IRIS_FOUND,
     invalidate_models_cache,
     _PROVIDER_DISPLAY,
     _PROVIDER_MODELS,
@@ -27,7 +27,7 @@ from api.config import (
     load_settings,
     reload_config,
     save_settings,
-    verify_hermes_imports,
+    verify_iris_imports,
 )
 from api.paths import _atomic_write_text
 from api.providers import _write_env_file  # shared impl with _ENV_LOCK (#1164)
@@ -115,7 +115,7 @@ _SUPPORTED_PROVIDER_SETUPS = {
     },
     "lmstudio": {
         "label": "LM Studio",
-        # Canonical env var matches the agent CLI runtime (hermes_cli/auth.py:182,
+        # Canonical env var matches the agent CLI runtime (iris_cli/auth.py:182,
         # api_key_env_vars=("LM_API_KEY",)).  Onboarding writes this name so the
         # agent runtime actually picks up the key on the next chat — pre-#1499/#1500
         # the WebUI wrote LMSTUDIO_API_KEY which the agent runtime ignored, masked
@@ -236,13 +236,13 @@ _UNSUPPORTED_PROVIDER_NOTE = (
 )
 
 
-def _get_active_hermes_home() -> Path:
+def _get_active_iris_home() -> Path:
     try:
-        from api.profiles import get_active_hermes_home
+        from api.profiles import get_active_iris_home
 
-        return get_active_hermes_home()
+        return get_active_iris_home()
     except ImportError:
-        return Path.home() / ".hermes"
+        return Path.home() / ".iris"
 
 
 def _load_env_file(env_path: Path) -> dict[str, str]:
@@ -429,7 +429,7 @@ def probe_provider_endpoint(
 
     headers = {
         "Accept": "application/json",
-        "User-Agent": "hermes-webui-onboarding-probe",
+        "User-Agent": "iris-webui-onboarding-probe",
     }
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -608,14 +608,14 @@ def _provider_api_key_present(
                 return True
 
     # For providers not in _SUPPORTED_PROVIDER_SETUPS (e.g. minimax-cn, deepseek,
-    # xai, etc.), ask the hermes_cli auth registry — it knows every provider's env
+    # xai, etc.), ask the iris_cli auth registry — it knows every provider's env
     # var names and can check os.environ for a valid key.
     # Exclude known OAuth/token-flow providers — those are handled separately by
     # _provider_oauth_authenticated() and should not be short-circuited here.
     _known_oauth = {"openai-codex", "copilot", "copilot-acp", "qwen-oauth", "nous", "anthropic"}
     if provider not in _SUPPORTED_PROVIDER_SETUPS and provider not in _known_oauth:
         try:
-            from hermes_cli.auth import get_auth_status as _gas
+            from iris_cli.auth import get_auth_status as _gas
             status = _gas(provider)
             if isinstance(status, dict) and status.get("logged_in"):
                 return True
@@ -647,13 +647,13 @@ def _oauth_payload_has_token(payload: dict) -> bool:
 
 
 
-def _provider_oauth_authenticated(provider: str, hermes_home: "Path") -> bool:
+def _provider_oauth_authenticated(provider: str, iris_home: "Path") -> bool:
     """Return True if the provider has valid OAuth credentials.
 
     Reads the profile-scoped auth.json directly so onboarding respects the
-    requested Hermes home. Known OAuth providers may store auth either in the
+    requested Iris home. Known OAuth providers may store auth either in the
     legacy providers[provider_id] singleton state or in credential_pool entries
-    used by current Hermes runtime auth resolution.
+    used by current Iris runtime auth resolution.
     """
     provider = (provider or "").strip().lower()
     provider = {"claude": "anthropic", "claude-code": "anthropic"}.get(provider, provider)
@@ -667,7 +667,7 @@ def _provider_oauth_authenticated(provider: str, hermes_home: "Path") -> bool:
     try:
         import json as _j
 
-        auth_path = hermes_home / "auth.json"
+        auth_path = iris_home / "auth.json"
         if not auth_path.exists():
             return False
         store = _j.loads(auth_path.read_text(encoding="utf-8"))
@@ -702,7 +702,7 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
     provider = _extract_current_provider(cfg)
     model = _extract_current_model(cfg)
     base_url = _extract_current_base_url(cfg)
-    env_values = _load_env_file(_get_active_hermes_home() / ".env")
+    env_values = _load_env_file(_get_active_iris_home() / ".env")
 
     provider_configured = bool(provider and model)
     provider_ready = False
@@ -734,7 +734,7 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
                     provider_ready = _provider_api_key_present(provider, cfg, env_values)
                 if not provider_ready and meta.get("oauth_provider"):
                     provider_ready = _provider_oauth_authenticated(
-                        str(meta.get("oauth_provider")), _get_active_hermes_home()
+                        str(meta.get("oauth_provider")), _get_active_iris_home()
                     )
         else:
             # Unknown provider — may be an OAuth flow (openai-codex, copilot, etc.)
@@ -743,13 +743,13 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
             # third-party providers), then OAuth auth.json.
             provider_ready = (
                 _provider_api_key_present(provider, cfg, env_values)
-                or _provider_oauth_authenticated(provider, _get_active_hermes_home())
+                or _provider_oauth_authenticated(provider, _get_active_iris_home())
             )
 
-    chat_ready = bool(_HERMES_FOUND and imports_ok and provider_ready)
+    chat_ready = bool(_IRIS_FOUND and imports_ok and provider_ready)
     note_args: list[str] = []
 
-    if not _HERMES_FOUND or not imports_ok:
+    if not _IRIS_FOUND or not imports_ok:
         state = "agent_unavailable"
         note_key = "onboarding_notice_system_unavailable"
         note = (
@@ -778,7 +778,7 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
             # OAuth / unsupported provider: avoid misleading "API key" wording.
             note = (
                 f"Provider '{provider}' is configured but not yet authenticated. "
-                "Run 'hermes auth' or 'hermes model' in a terminal to complete "
+                "Run 'iris auth' or 'iris model' in a terminal to complete "
                 "setup, then reload the Web UI."
             )
         else:
@@ -803,7 +803,7 @@ def _status_from_runtime(cfg: dict, imports_ok: bool) -> dict:
         "current_provider": provider or None,
         "current_model": model or None,
         "current_base_url": base_url or None,
-        "env_path": str(_get_active_hermes_home() / ".env"),
+        "env_path": str(_get_active_iris_home() / ".env"),
     }
 
 
@@ -849,10 +849,10 @@ def _build_setup_catalog(cfg: dict) -> dict:
 
     # Flag whether the currently-configured provider is OAuth-based (not in the
     # API-key flow).  The frontend uses this to show a confirmation card instead
-    # of a key input when the user has already authenticated via 'hermes auth'.
+    # of a key input when the user has already authenticated via 'iris auth'.
     current_is_oauth = (
         current_provider not in _SUPPORTED_PROVIDER_SETUPS and bool(current_provider)
-    ) or _provider_oauth_authenticated(current_provider, _get_active_hermes_home())
+    ) or _provider_oauth_authenticated(current_provider, _get_active_iris_home())
 
     return {
         "providers": providers,
@@ -873,24 +873,24 @@ def _build_setup_catalog(cfg: dict) -> dict:
 def get_onboarding_status() -> dict:
     settings = load_settings()
     cfg = get_config()
-    imports_ok, missing, errors = verify_hermes_imports()
+    imports_ok, missing, errors = verify_iris_imports()
     runtime = _status_from_runtime(cfg, imports_ok)
     workspaces = load_workspaces()
     last_workspace = get_last_workspace()
     available_models = get_available_models()
 
-    # HERMES_WEBUI_SKIP_ONBOARDING=1 lets hosting providers (e.g. Agent37) ship
+    # IRIS_WEBUI_SKIP_ONBOARDING=1 lets hosting providers (e.g. Agent37) ship
     # a pre-configured instance without the wizard blocking the first load.
     # This is an operator-level override and is honoured unconditionally —
     # the operator knows their deployment is configured; we must not second-guess
     # it by requiring chat_ready to also be true.
-    skip_env = os.environ.get("HERMES_WEBUI_SKIP_ONBOARDING", "").strip()
+    skip_env = os.environ.get("IRIS_WEBUI_SKIP_ONBOARDING", "").strip()
     skip_requested = skip_env in {"1", "true", "yes"}
     auto_completed = skip_requested  # unconditional: operator says skip, we skip
 
-    # Auto-complete for existing Hermes users: if config.yaml already exists
+    # Auto-complete for existing Iris users: if config.yaml already exists
     # AND the provider is configured (or the system is chat_ready), treat onboarding
-    # as done.  These users configured Hermes via the CLI before the Web UI existed;
+    # as done.  These users configured Iris via the CLI before the Web UI existed;
     # they must never be shown the first-run wizard — it would silently overwrite their
     # config.  We use provider_configured (not chat_ready) so that users with
     # non-wizard providers (ollama-cloud, deepseek, xai, kimi, etc.) are not forced
@@ -918,7 +918,7 @@ def get_onboarding_status() -> dict:
     )
 
     # Persist the flag so it survives future transient import failures (e.g. after
-    # a git branch switch in the hermes-agent repo).  Without this, a CLI-configured
+    # a git branch switch in the iris-agent repo).  Without this, a CLI-configured
     # user who never ran the wizard has no onboarding_completed flag — any momentary
     # imports_ok=False during restart makes chat_ready=False, config_auto_completed=False,
     # and the wizard reappears with a broken dropdown that clobbers their config.
@@ -946,7 +946,7 @@ def get_onboarding_status() -> dict:
             "bot_name": settings.get("bot_name") or "Iris",
         },
         "system": {
-            "hermes_found": bool(_HERMES_FOUND),
+            "iris_found": bool(_IRIS_FOUND),
             "imports_ok": bool(imports_ok),
             "missing_modules": missing,
             "import_errors": errors,
@@ -969,7 +969,7 @@ def apply_onboarding_setup(body: dict) -> dict:
     # (e.g. a stale JS bundle or a curious user), we must not overwrite the
     # operator's config.yaml or .env files.  Just mark onboarding complete and
     # return the current status — no file writes.
-    skip_env = os.environ.get("HERMES_WEBUI_SKIP_ONBOARDING", "").strip()
+    skip_env = os.environ.get("IRIS_WEBUI_SKIP_ONBOARDING", "").strip()
     if skip_env in {"1", "true", "yes"}:
         save_settings({"onboarding_completed": True})
         return get_onboarding_status()
@@ -1011,7 +1011,7 @@ def apply_onboarding_setup(body: dict) -> dict:
         }
 
     cfg = _load_yaml_config(config_path)
-    env_path = _get_active_hermes_home() / ".env"
+    env_path = _get_active_iris_home() / ".env"
     env_values = _load_env_file(env_path)
 
     if not api_key and not _provider_api_key_present(provider, cfg, env_values):
@@ -1021,7 +1021,7 @@ def apply_onboarding_setup(body: dict) -> dict:
         # via Claude Code) are also allowed once their server-side OAuth/link
         # marker is present.
         oauth_ready = bool(provider_meta.get("oauth_provider")) and _provider_oauth_authenticated(
-            str(provider_meta.get("oauth_provider")), _get_active_hermes_home()
+            str(provider_meta.get("oauth_provider")), _get_active_iris_home()
         )
         if not provider_meta.get("key_optional") and not oauth_ready:
             raise ValueError(f"{provider_meta['env_var']} is required")
@@ -1046,11 +1046,11 @@ def apply_onboarding_setup(body: dict) -> dict:
     if api_key:
         _write_env_file(env_path, {provider_meta["env_var"]: api_key})
 
-    # Reload the hermes_cli provider/config cache so the next streaming call
+    # Reload the iris_cli provider/config cache so the next streaming call
     # picks up the new key without requiring a server restart.
     try:
         from api.profiles import _reload_dotenv
-        _reload_dotenv(_get_active_hermes_home())
+        _reload_dotenv(_get_active_iris_home())
     except Exception:
         logger.debug("Failed to reload dotenv")
 
@@ -1061,11 +1061,11 @@ def apply_onboarding_setup(body: dict) -> dict:
         os.environ[provider_meta["env_var"]] = api_key
 
     try:
-        # hermes_cli may cache config at import time; ask it to reload if possible.
-        from hermes_cli.config import reload as _cli_reload
+        # iris_cli may cache config at import time; ask it to reload if possible.
+        from iris_cli.config import reload as _cli_reload
         _cli_reload()
     except Exception:
-        logger.debug("Failed to reload hermes_cli config")
+        logger.debug("Failed to reload iris_cli config")
 
     reload_config()
     return get_onboarding_status()
@@ -1122,21 +1122,21 @@ def apply_self_hosted_provider_setup(body: dict) -> dict:
     _save_yaml_config(config_path, cfg)
 
     if api_key and env_var:
-        _write_env_file(_get_active_hermes_home() / ".env", {env_var: api_key})
+        _write_env_file(_get_active_iris_home() / ".env", {env_var: api_key})
         os.environ[env_var] = api_key
 
     try:
         from api.profiles import _reload_dotenv
-        _reload_dotenv(_get_active_hermes_home())
+        _reload_dotenv(_get_active_iris_home())
     except Exception:
         logger.debug("Failed to reload dotenv")
 
     try:
-        # hermes_cli may cache config at import time; ask it to reload if possible.
-        from hermes_cli.config import reload as _cli_reload
+        # iris_cli may cache config at import time; ask it to reload if possible.
+        from iris_cli.config import reload as _cli_reload
         _cli_reload()
     except Exception:
-        logger.debug("Failed to reload hermes_cli config")
+        logger.debug("Failed to reload iris_cli config")
 
     invalidate_models_cache()
     result = {"ok": True, "provider": provider, "base_url": base_url}

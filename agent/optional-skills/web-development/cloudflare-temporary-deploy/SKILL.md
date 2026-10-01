@@ -2,11 +2,11 @@
 name: cloudflare-temporary-deploy
 description: Deploy a Worker live, no account, via wrangler --temporary.
 version: 1.0.0
-author: Hermes Agent
+author: Iris Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  iris:
     tags: [cloudflare, workers, wrangler, deploy, temporary, agent, serverless, web-development]
     category: web-development
 ---

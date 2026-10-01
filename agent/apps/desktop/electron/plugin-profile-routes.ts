@@ -6,7 +6,7 @@ export interface ProfileRouteConfig {
   remoteUrl: string
   sshHost: string
   sshPort: null | number
-  sshRemoteHermesPath: string
+  sshRemoteIrisPath: string
   sshRemoteProfile: string
   sshUser: string
 }
@@ -151,7 +151,7 @@ async function connectionScope(
     }
 
     // Remote profile is intentionally excluded: profiles mapped into the same
-    // remote Hermes home form one interaction scope. Key/identity-file paths are
+    // remote Iris home form one interaction scope. Key/identity-file paths are
     // credentials and likewise stay out of the scope material.
     return {
       key: [
@@ -159,7 +159,7 @@ async function connectionScope(
         effective.user.trim(),
         effective.hostname.trim().toLowerCase(),
         effective.port ?? 22,
-        config.sshRemoteHermesPath.trim()
+        config.sshRemoteIrisPath.trim()
       ].join('\0'),
       mode: 'remote'
     }

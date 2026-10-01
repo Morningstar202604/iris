@@ -13,7 +13,7 @@ purely backend changes, use the runtime/state contracts instead.
 
 ## Product shape
 
-Hermes WebUI is a browser workbench for Hermes Agent with near-CLI parity and a
+Iris WebUI is a browser workbench for Iris Agent with near-CLI parity and a
 simple implementation shape: Python on the server, vanilla JavaScript in the
 browser, no build step, no bundler, and no frontend framework.
 
@@ -25,7 +25,7 @@ The primary layout is three-panel:
 
 Model, profile, workspace, attachments, voice input, context usage, Stop, and
 Send controls live in the composer footer. Settings and session-level tools live
-in the Hermes Control Center. Preserve this shape unless the change explicitly
+in the Iris Control Center. Preserve this shape unless the change explicitly
 justifies a different interaction model.
 
 ## Core feeling: calm developer console

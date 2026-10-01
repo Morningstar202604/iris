@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { $connection } from '@/store/session'
-import type { SessionInfo, SessionMessage } from '@/types/hermes'
+import type { SessionInfo, SessionMessage } from '@/types/iris'
 
 import { artifactImageSrc, collectArtifactsForSession, loadArtifactsForSessions } from './artifact-utils'
 
@@ -136,7 +136,7 @@ describe('collectArtifactsForSession', () => {
     const payload = JSON.stringify({
       images: ['https://cdn.example.com/advertising/banner.gif'],
       page_url: 'https://example.com/article',
-      screenshot_path: '/tmp/hermes-browser/screenshot.png'
+      screenshot_path: '/tmp/iris-browser/screenshot.png'
     })
 
     const artifacts = collectArtifactsForSession(makeSession({ id: 'browser-session' }), [
@@ -155,7 +155,7 @@ ${payload}
     expect(artifacts).toHaveLength(1)
     expect(artifacts[0]).toMatchObject({
       kind: 'image',
-      value: '/tmp/hermes-browser/screenshot.png'
+      value: '/tmp/iris-browser/screenshot.png'
     })
   })
 
@@ -165,7 +165,7 @@ ${payload}
         content: {
           _multimodal: true,
           content: [{ image_url: { url: 'data:image/png;base64,AAAA' }, type: 'image_url' }],
-          meta: { screenshot_path: '/tmp/hermes-browser/native-screenshot.png' },
+          meta: { screenshot_path: '/tmp/iris-browser/native-screenshot.png' },
           text_summary: 'Screenshot attached'
         },
         role: 'tool',
@@ -173,13 +173,13 @@ ${payload}
         tool_name: 'browser_vision'
       },
       {
-        content: 'Image attached. Screenshot path: /tmp/hermes browser/summary screenshot.png',
+        content: 'Image attached. Screenshot path: /tmp/iris browser/summary screenshot.png',
         role: 'tool',
         timestamp: 1_781_774_002,
         tool_name: 'browser_vision'
       },
       {
-        content: 'Image attached. Screenshot path: C:\\Users\\Example User\\.hermes\\screenshot.png',
+        content: 'Image attached. Screenshot path: C:\\Users\\Example User\\.iris\\screenshot.png',
         role: 'tool',
         timestamp: 1_781_774_003,
         tool_name: 'browser_vision'
@@ -187,9 +187,9 @@ ${payload}
     ])
 
     expect(artifacts.map(artifact => artifact.value)).toEqual([
-      '/tmp/hermes-browser/native-screenshot.png',
-      '/tmp/hermes browser/summary screenshot.png',
-      'C:\\Users\\Example User\\.hermes\\screenshot.png'
+      '/tmp/iris-browser/native-screenshot.png',
+      '/tmp/iris browser/summary screenshot.png',
+      'C:\\Users\\Example User\\.iris\\screenshot.png'
     ])
   })
 
@@ -363,12 +363,12 @@ ${payload}
 
   it('resolves local file image artifacts through the desktop fs bridge', async () => {
     const readFileDataUrl = vi.fn(async () => 'data:image/png;base64,TE9DQUw=')
-    vi.stubGlobal('window', { hermesDesktop: { readFileDataUrl } })
+    vi.stubGlobal('window', { irisDesktop: { readFileDataUrl } })
 
     // Local desktop (connection mode != 'remote'): a local image_generate
     // output path must be read through the Electron bridge, not left as a
     // file:// URL the renderer cannot load (#83380).
-    const path = '/home/me/.hermes/cache/image_generate/out.png'
+    const path = '/home/me/.iris/cache/image_generate/out.png'
 
     await expect(artifactImageSrc(path)).resolves.toBe('data:image/png;base64,TE9DQUw=')
     expect(readFileDataUrl).toHaveBeenCalledWith(path)
@@ -383,15 +383,15 @@ ${payload}
       throw new Error(`unexpected path ${path}`)
     })
 
-    vi.stubGlobal('window', { hermesDesktop: { api } })
+    vi.stubGlobal('window', { irisDesktop: { api } })
     $connection.set({ baseUrl: 'https://gw', mode: 'remote', token: 'secret' } as never)
 
-    const path = '/Users/me/.hermes/skills/work-esab/references/images/manual-step03.jpeg'
+    const path = '/Users/me/.iris/skills/work-esab/references/images/manual-step03.jpeg'
 
     await expect(artifactImageSrc(path)).resolves.toBe('data:image/jpeg;base64,cmVtb3Rl')
 
     expect(api).toHaveBeenCalledWith({
-      path: '/api/fs/read-data-url?path=%2FUsers%2Fme%2F.hermes%2Fskills%2Fwork-esab%2Freferences%2Fimages%2Fmanual-step03.jpeg'
+      path: '/api/fs/read-data-url?path=%2FUsers%2Fme%2F.iris%2Fskills%2Fwork-esab%2Freferences%2Fimages%2Fmanual-step03.jpeg'
     })
   })
 })

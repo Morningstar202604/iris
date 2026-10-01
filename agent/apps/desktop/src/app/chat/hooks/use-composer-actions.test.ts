@@ -10,7 +10,7 @@ import {
   attachmentPreviewDataUrl,
   type DroppedFile,
   extractDroppedFiles,
-  HERMES_PATHS_MIME,
+  IRIS_PATHS_MIME,
   partitionDroppedFiles,
   useComposerActions
 } from './use-composer-actions'
@@ -56,7 +56,7 @@ describe('partitionDroppedFiles', () => {
     // extractDroppedFiles emits a dropped directory as a path-only entry so it
     // stays a @folder: ref instead of hitting file.attach, which can't stage a
     // directory ("file not found on gateway and no data_url provided").
-    const folder = inAppRef('/Users/jeff/projects/hermes', { isDirectory: true })
+    const folder = inAppRef('/Users/jeff/projects/iris', { isDirectory: true })
 
     const { inAppRefs, osDrops } = partitionDroppedFiles([folder])
 
@@ -108,7 +108,7 @@ function stubTransfer(
   })
 
   return {
-    getData: (mime: string) => (mime === HERMES_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
+    getData: (mime: string) => (mime === IRIS_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
     files: {
       length: files.length,
       item: (i: number) => files[i] ?? null
@@ -125,14 +125,14 @@ describe('extractDroppedFiles', () => {
 
   const stubBridge = (transfer: DataTransfer & { _pathByFile: Map<File, string> }) => {
     vi.stubGlobal('window', {
-      hermesDesktop: {
+      irisDesktop: {
         getPathForFile: (file: File) => transfer._pathByFile.get(file) ?? ''
       }
     })
   }
 
   it('emits a dropped directory as a path-only entry with isDirectory (no File to upload)', () => {
-    const transfer = stubTransfer([{ path: '/Users/jeff/projects/hermes', isDirectory: true }]) as DataTransfer & {
+    const transfer = stubTransfer([{ path: '/Users/jeff/projects/iris', isDirectory: true }]) as DataTransfer & {
       _pathByFile: Map<File, string>
     }
 
@@ -142,7 +142,7 @@ describe('extractDroppedFiles', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]?.isDirectory).toBe(true)
-    expect(result[0]?.path).toBe('/Users/jeff/projects/hermes')
+    expect(result[0]?.path).toBe('/Users/jeff/projects/iris')
     // A directory carries no bytes — it must NOT ride the File/upload pipeline.
     expect(result[0]?.file).toBeUndefined()
     // And it partitions as an in-app ref (→ @folder:), never an OS upload drop.
@@ -246,7 +246,7 @@ describe('attachmentPreviewDataUrl', () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
     const api = vi.fn()
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { irisDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/Users/me/Pictures/pic.png')).resolves.toBe(LOCAL_PREVIEW)
@@ -268,7 +268,7 @@ describe('attachmentPreviewDataUrl', () => {
       throw new Error(`unexpected path ${path}`)
     })
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { irisDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/home/gateway/shot.png')).resolves.toBe(REMOTE_PREVIEW)
@@ -283,7 +283,7 @@ describe('attachmentPreviewDataUrl', () => {
 
     const api = vi.fn(async () => ({ dataUrl: REMOTE_PREVIEW }))
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { irisDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/home/gateway/shot.png')).resolves.toBe(REMOTE_PREVIEW)
@@ -292,7 +292,7 @@ describe('attachmentPreviewDataUrl', () => {
 
 describe('useComposerActions native image drops', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'irisDesktop')
     vi.unstubAllGlobals()
     vi.clearAllMocks()
   })
@@ -308,7 +308,7 @@ describe('useComposerActions native image drops', () => {
     )
 
     const add = vi.fn()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { saveImageBuffer } })
+    Object.defineProperty(window, 'irisDesktop', { configurable: true, value: { saveImageBuffer } })
 
     const { result } = renderHook(() =>
       useComposerActions({
@@ -343,7 +343,7 @@ describe('useComposerActions native image drops', () => {
     const transientPath =
       '/var/folders/x7/example/T/TemporaryItems/NSIRD_screencaptureui_4roSuW/Screen Shot 2026-08-11.png'
 
-    const durablePath = '/Users/test/Library/Application Support/Hermes/composer-images/composer_saved.png'
+    const durablePath = '/Users/test/Library/Application Support/Iris/composer-images/composer_saved.png'
     const previewUrl = 'data:image/png;base64,c2NyZWVuc2hvdA=='
 
     const screenshot = new File([new Uint8Array([1, 2, 3])], 'Screen Shot 2026-08-11.png', {
@@ -362,7 +362,7 @@ describe('useComposerActions native image drops', () => {
 
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
 
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'irisDesktop', {
       configurable: true,
       value: {
         readFileDataUrl,
@@ -410,14 +410,14 @@ describe('useComposerActions native image drops', () => {
 
 describe('useComposerActions generated paste title metadata', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'irisDesktop')
     vi.clearAllMocks()
   })
 
-  it('marks only a Hermes-generated large paste with a bounded title preview', async () => {
+  it('marks only a Iris-generated large paste with a bounded title preview', async () => {
     const savePastedText = vi.fn(async () => '/tmp/composer-pastes/pasted-content.txt')
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { savePastedText } })
+    Object.defineProperty(window, 'irisDesktop', { configurable: true, value: { savePastedText } })
 
     const { result } = renderHook(() =>
       useComposerActions({
@@ -457,7 +457,7 @@ describe('attachImagePath thumbnail separation', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { irisDesktop?: unknown }).irisDesktop
     $composerAttachments.set([])
     $connection.set(null)
   })
@@ -467,9 +467,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -532,9 +532,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -601,9 +601,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -646,7 +646,7 @@ describe('attachImagePath thumbnail separation', () => {
       ...original,
       attachedSessionId: 'session-1',
       label: 'photo.png',
-      path: '/root/.hermes/attachments/photo.png',
+      path: '/root/.iris/attachments/photo.png',
       uploadState: undefined
     })
 
@@ -658,7 +658,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     expect($composerAttachments.get()[0]).toMatchObject({
       attachedSessionId: 'session-1',
-      path: '/root/.hermes/attachments/photo.png',
+      path: '/root/.iris/attachments/photo.png',
       thumbnailUrl: expect.stringMatching(/^data:image\/png;base64,/)
     })
   })
@@ -668,9 +668,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     // Exercise the real downscale path: 4000×3000 bitmap → 512×384 canvas.
     const drawImage = vi.fn()
@@ -731,9 +731,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     vi.stubGlobal(
       'fetch',
@@ -775,9 +775,9 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        irisDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).irisDesktop = { readFileDataUrl }
 
     const { result } = renderHook(() =>
       useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() })

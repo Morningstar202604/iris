@@ -752,7 +752,7 @@ class TestAuxiliaryModelsBackend:
             })
             return {"ok": True, "model": model, "provider": provider}
 
-        monkeypatch.setattr(routes, "set_hermes_default_model", fake_set_default_model)
+        monkeypatch.setattr(routes, "set_iris_default_model", fake_set_default_model)
 
         bodies = {
             "/api/default-model": {
@@ -792,7 +792,7 @@ class TestAuxiliaryModelsBackend:
         )
 
     def test_backend_aux_task_slots_include_agent_defaults(self):
-        """Backend allow-list must include newer Hermes auxiliary slots."""
+        """Backend allow-list must include newer Iris auxiliary slots."""
         for key in ("kanban_decomposer", "profile_describer", "triage_specifier"):
             assert f'"{key}"' in self.CONFIG_PY
 
@@ -989,7 +989,7 @@ class TestAuxiliaryModelsBackend:
 
         assert "arbitrary_key" not in config_path.read_text(encoding="utf-8")
 
-    def test_set_hermes_default_model_persists_advanced_options(self, monkeypatch, tmp_path):
+    def test_set_iris_default_model_persists_advanced_options(self, monkeypatch, tmp_path):
         """Main-model gear-modal payload should persist supported model options."""
         from api import config
 
@@ -1000,7 +1000,7 @@ class TestAuxiliaryModelsBackend:
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
         monkeypatch.setattr(config, "resolve_model_provider", lambda model: (model, "openai", None))
 
-        result = config.set_hermes_default_model(
+        result = config.set_iris_default_model(
             "gpt-5.5",
             advanced={
                 "base_url": "https://example.invalid/v1/",
@@ -1021,7 +1021,7 @@ class TestAuxiliaryModelsBackend:
         assert "reasoning_effort: none" in text
         assert "DUMMY_KEY_DO_NOT_PRINT" in text
 
-    def test_set_hermes_default_model_persists_explicit_provider_override(self, monkeypatch, tmp_path):
+    def test_set_iris_default_model_persists_explicit_provider_override(self, monkeypatch, tmp_path):
         from api import config
 
         config_path = tmp_path / "config.yaml"
@@ -1031,14 +1031,14 @@ class TestAuxiliaryModelsBackend:
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
         monkeypatch.setattr(config, "resolve_model_provider", lambda model: (model, "", None))
 
-        result = config.set_hermes_default_model("gpt-5.5", provider="anthropic")
+        result = config.set_iris_default_model("gpt-5.5", provider="anthropic")
 
         assert result["ok"] is True
         assert result["provider"] == "anthropic"
         text = config_path.read_text(encoding="utf-8")
         assert "provider: anthropic" in text
 
-    def test_set_hermes_default_model_provider_override_replaces_stale_custom_base_url(self, monkeypatch, tmp_path):
+    def test_set_iris_default_model_provider_override_replaces_stale_custom_base_url(self, monkeypatch, tmp_path):
         from api import config
 
         config_path = tmp_path / "config.yaml"
@@ -1048,7 +1048,7 @@ class TestAuxiliaryModelsBackend:
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
         monkeypatch.setattr(config, "resolve_model_provider", lambda model: (model, "custom", "http://old.local/v1"))
 
-        result = config.set_hermes_default_model("gpt-5.5", provider="openai")
+        result = config.set_iris_default_model("gpt-5.5", provider="openai")
 
         assert result["ok"] is True
         saved = config_path.read_text(encoding="utf-8")
@@ -1133,7 +1133,7 @@ class TestAuxiliaryModelsBackend:
 
 
 
-    def test_set_hermes_default_model_clear_api_key_removes_key(self, monkeypatch, tmp_path):
+    def test_set_iris_default_model_clear_api_key_removes_key(self, monkeypatch, tmp_path):
         """Clearing a write-only API key override should remove the key, not persist api_key: ''."""
         from api import config
 
@@ -1147,7 +1147,7 @@ class TestAuxiliaryModelsBackend:
         monkeypatch.setattr(config, "invalidate_models_cache", lambda: None)
         monkeypatch.setattr(config, "resolve_model_provider", lambda model: (model, "openai", None))
 
-        result = config.set_hermes_default_model(
+        result = config.set_iris_default_model(
             "gpt-5.5",
             advanced={"api_key_clear": True, "api_key": ""},
         )

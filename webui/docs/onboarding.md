@@ -1,6 +1,6 @@
 # First-run onboarding guide
 
-This guide explains what happens the first time Hermes WebUI starts, which
+This guide explains what happens the first time Iris WebUI starts, which
 setup path to choose, and how to recover when the wizard cannot finish.
 
 If an AI assistant is helping with install, reinstall, bootstrap, provider
@@ -15,15 +15,15 @@ below.
 
 ## Before you start
 
-Hermes WebUI is only the browser interface. The actual agent runtime, memory,
-skills, config, cron jobs, and provider credentials belong to Hermes Agent.
+Iris WebUI is only the browser interface. The actual agent runtime, memory,
+skills, config, cron jobs, and provider credentials belong to Iris Agent.
 
 The bootstrap supports Linux, macOS, and WSL2. Native Windows is not supported
 by the bootstrap yet. A community native Windows setup is being tracked in
 [#1952](https://github.com/nesquena/hermes-webui/issues/1952), including:
 
-- [Native Windows guide](https://github.com/markwang2658/hermes-windows-native-guide)
-- [Native Windows setup scripts](https://github.com/markwang2658/hermes-windows-native)
+- [Native Windows guide](https://github.com/markwang2658/iris-windows-native-guide)
+- [Native Windows setup scripts](https://github.com/markwang2658/iris-windows-native)
 
 For Windows users who want the supported path today, use WSL2 and see
 [Windows / WSL auto-start](wsl-autostart.md).
@@ -44,17 +44,17 @@ It avoids most UID/GID, source-volume, and tool-location surprises. See
 
 ## Re-running onboarding safely
 
-Do not delete `~/.hermes` just to see the wizard again. That directory can hold
-your real Hermes config, credentials, memory, skills, profiles, sessions, and
+Do not delete `~/.iris` just to see the wizard again. That directory can hold
+your real Iris config, credentials, memory, skills, profiles, sessions, and
 cron state.
 
-For a clean local trial, use an isolated Hermes home and WebUI state directory:
+For a clean local trial, use an isolated Iris home and WebUI state directory:
 
 ```bash
-mkdir -p ~/hermes-onboarding-test
-HERMES_HOME=~/hermes-onboarding-test/.hermes \
-HERMES_WEBUI_STATE_DIR=~/hermes-onboarding-test/webui \
-HERMES_WEBUI_PORT=8789 \
+mkdir -p ~/iris-onboarding-test
+IRIS_HOME=~/iris-onboarding-test/.iris \
+IRIS_WEBUI_STATE_DIR=~/iris-onboarding-test/webui \
+IRIS_WEBUI_PORT=8789 \
 python3 bootstrap.py
 ```
 
@@ -65,17 +65,17 @@ pass/fail criteria in
 [`docs/onboarding-agent-checklist.md`](onboarding-agent-checklist.md).
 
 If your repo has a `.env` file, remember that the bootstrap loads it. Remove or
-adjust any `HERMES_HOME`, `HERMES_WEBUI_STATE_DIR`, or `HERMES_WEBUI_PORT`
+adjust any `IRIS_HOME`, `IRIS_WEBUI_STATE_DIR`, or `IRIS_WEBUI_PORT`
 entries there before using the isolated command above.
 
 For managed hosting or fully preconfigured images, set
-`HERMES_WEBUI_SKIP_ONBOARDING=1` to bypass the wizard.
+`IRIS_WEBUI_SKIP_ONBOARDING=1` to bypass the wizard.
 
 ## What the wizard checks
 
 The first screen reports the runtime state WebUI can see:
 
-- Hermes Agent importability: whether WebUI can import and run `AIAgent`.
+- Iris Agent importability: whether WebUI can import and run `AIAgent`.
 - Provider status: whether `config.yaml` and credential state are enough for a
   chat request.
 - Password status: whether WebUI password protection is enabled.
@@ -83,7 +83,7 @@ The first screen reports the runtime state WebUI can see:
 
 If the agent check fails, use [Troubleshooting](troubleshooting.md), especially
 the `AIAgent not available` section. If provider setup is incomplete, continue
-through the wizard or run `hermes model` in the same machine environment that
+through the wizard or run `iris model` in the same machine environment that
 will run WebUI.
 
 ## Choosing a provider
@@ -96,7 +96,7 @@ The setup step groups providers by how much information they usually need.
 | Open / self-hosted | Ollama, LM Studio, custom OpenAI-compatible, AIML API | Base URL, model, optional API key. |
 | Specialized | Gemini, DeepSeek, Xiaomi MiMo, Z.AI / GLM, NVIDIA NIM, Mistral, xAI | Provider API key and default model. |
 
-For API-key providers, the wizard writes the key to the active Hermes `.env`
+For API-key providers, the wizard writes the key to the active Iris `.env`
 file and writes the default model/provider to `config.yaml`.
 
 For local providers, the API key field can be blank when the server is keyless.
@@ -105,7 +105,7 @@ Use **Test connection** to verify the Base URL and populate the model list
 before continuing.
 
 AIML API uses the existing custom OpenAI-compatible setup path, not a
-first-class built-in Hermes provider id. Configure it under the
+first-class built-in Iris provider id. Configure it under the
 custom-provider flow with Base URL `https://api.aimlapi.com/v1`, then use
 either the normal custom-provider API key field or a config entry that points
 at `AIMLAPI_API_KEY` if you want the custom provider to read its key from the
@@ -115,8 +115,8 @@ a static WebUI-maintained model list.
 
 Advanced provider flows such as Nous Portal and GitHub Copilot are still
 terminal-first. OpenAI Codex and Anthropic Claude Code OAuth can be started in
-the onboarding flow when your Hermes config selects the corresponding provider.
-If the wizard points you back to `hermes model`, use that CLI flow first, then
+the onboarding flow when your Iris config selects the corresponding provider.
+If the wizard points you back to `iris model`, use that CLI flow first, then
 refresh WebUI.
 
 ## Base URL rules for local model servers
@@ -140,7 +140,7 @@ use the server's LAN IP address, or add a Linux Docker host alias:
 
 ```yaml
 services:
-  hermes-webui:
+  iris-webui:
     extra_hosts:
       - "api.local:host-gateway"
 ```
@@ -156,7 +156,7 @@ unexpected response shape.
 
 ## Workspace step
 
-The workspace is the filesystem location Hermes should use for new sessions.
+The workspace is the filesystem location Iris should use for new sessions.
 It can be a source checkout, a project directory, or a general workspace folder.
 
 In Docker, the default browsable path is `/workspace`, which maps to the host
@@ -177,18 +177,18 @@ server-side. You can change it later from Settings.
 
 The wizard uses the same files and APIs as the normal app:
 
-- Active Hermes `config.yaml`: provider, default model, and Base URL when
+- Active Iris `config.yaml`: provider, default model, and Base URL when
   relevant.
-- Active Hermes `.env`: provider API keys when you entered one.
+- Active Iris `.env`: provider API keys when you entered one.
 - WebUI `settings.json`: onboarding completion, workspace, password state, and
   other WebUI preferences.
 
 State normally lives outside the repository. By default:
 
-- Hermes Agent state: Windows `%LOCALAPPDATA%\hermes`; POSIX `~/.hermes`
-- WebUI state: `$HERMES_HOME/webui` (Windows default `%LOCALAPPDATA%\hermes\webui`, POSIX default `~/.hermes/webui`)
+- Iris Agent state: Windows `%LOCALAPPDATA%\iris`; POSIX `~/.iris`
+- WebUI state: `$IRIS_HOME/webui` (Windows default `%LOCALAPPDATA%\iris\webui`, POSIX default `~/.iris/webui`)
 
-Override these with `HERMES_HOME` and `HERMES_WEBUI_STATE_DIR` when you need an
+Override these with `IRIS_HOME` and `IRIS_WEBUI_STATE_DIR` when you need an
 isolated test install.
 
 ## When to file an issue
@@ -205,7 +205,7 @@ configuration. Include:
    container, for example:
 
 ```bash
-docker exec hermes-webui sh -c 'curl -sS -w "\nHTTP %{http_code}\n" http://host.docker.internal:1234/v1/models | head -50'
+docker exec iris-webui sh -c 'curl -sS -w "\nHTTP %{http_code}\n" http://host.docker.internal:1234/v1/models | head -50'
 ```
 
 5. Any inline wizard error text and relevant logs.

@@ -224,7 +224,7 @@ export function shouldReapplyFrozenThreadScrollOffset(
 // Storage is scoped per profile with the same `.profile.<encoded>` suffix the
 // app's other persisted session state uses (session.ts profileNavigationKey),
 // so two profiles can never read or evict each other's reading positions.
-const SCROLL_POS_KEY_BASE = 'hermes.desktop.threadScroll.v1'
+const SCROLL_POS_KEY_BASE = 'iris.desktop.threadScroll.v1'
 
 export function threadScrollStorageKey(profile = $activeProfile.get()): string {
   return `${SCROLL_POS_KEY_BASE}.profile.${encodeURIComponent(normalizeProfileKey(profile))}${activeConnectionScopeSuffix()}`

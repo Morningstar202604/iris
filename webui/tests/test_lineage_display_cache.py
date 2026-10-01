@@ -20,25 +20,25 @@ import api.profiles as profiles
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes_home"
+def iris_home(tmp_path, monkeypatch):
+    home = tmp_path / "iris_home"
     home.mkdir()
     (home / "sessions").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(profiles, "_DEFAULT_HERMES_HOME", home)
+    monkeypatch.setenv("IRIS_HOME", str(home))
+    monkeypatch.setattr(profiles, "_DEFAULT_IRIS_HOME", home)
     return home
 
 
 @pytest.fixture
-def lineage(hermes_home, monkeypatch):
+def lineage(iris_home, monkeypatch):
     """A snapshot parent + continuation child pair persisted to disk."""
     import api.routes as routes
     from api.models import Session
 
-    monkeypatch.setattr(routes, "SESSION_DIR", hermes_home / "sessions")
+    monkeypatch.setattr(routes, "SESSION_DIR", iris_home / "sessions")
     import api.models as models
 
-    monkeypatch.setattr(models, "SESSION_DIR", hermes_home / "sessions")
+    monkeypatch.setattr(models, "SESSION_DIR", iris_home / "sessions")
     # Fresh cache per test.
     routes._lineage_display_cache.clear()
 
@@ -87,7 +87,7 @@ def test_cache_hits_return_copies_not_aliases(lineage):
     assert "__mutated" not in m3[0], "caller mutation leaked into the cache"
 
 
-def test_child_write_invalidates_cache(lineage, hermes_home):
+def test_child_write_invalidates_cache(lineage, iris_home):
     routes, Session, child = lineage
     routes._webui_sidecar_lineage_messages_for_display(child)
     child.messages.append({"role": "user", "content": "new turn", "timestamp": 6000})
@@ -100,7 +100,7 @@ def test_child_write_invalidates_cache(lineage, hermes_home):
     )
 
 
-def test_parent_write_invalidates_cache(lineage, hermes_home):
+def test_parent_write_invalidates_cache(lineage, iris_home):
     routes, Session, child = lineage
     routes._webui_sidecar_lineage_messages_for_display(child)
     parent = Session.load("lineage_parent")
@@ -164,13 +164,13 @@ def test_lru_eviction_during_parent_validation_cannot_crash(lineage, monkeypatch
     assert [m.get("content") for m in got] == [m.get("content") for m in expected]
 
 
-def test_incomplete_multihop_parent_signatures_disable_cache(hermes_home, monkeypatch):
+def test_incomplete_multihop_parent_signatures_disable_cache(iris_home, monkeypatch):
     import api.models as models
     import api.routes as routes
     from api.models import Session
 
-    monkeypatch.setattr(routes, "SESSION_DIR", hermes_home / "sessions")
-    monkeypatch.setattr(models, "SESSION_DIR", hermes_home / "sessions")
+    monkeypatch.setattr(routes, "SESSION_DIR", iris_home / "sessions")
+    monkeypatch.setattr(models, "SESSION_DIR", iris_home / "sessions")
     routes._lineage_display_cache.clear()
 
     grandparent = Session(

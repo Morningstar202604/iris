@@ -1,4 +1,4 @@
-# Hermes WebUI local test/lint dependencies.
+# Iris WebUI local test/lint dependencies.
 #
 # Runtime dependencies stay in requirements.txt. This file mirrors the Python
 # tools CI installs for contributor validation.

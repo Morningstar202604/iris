@@ -12,8 +12,8 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
-  saveHermesConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
+vi.mock('@/iris', () => ({
+  saveIrisConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
 }))
 
 vi.mock('@/i18n', () => ({
@@ -42,8 +42,8 @@ vi.mock('@/store/notifications', () => ({
 }))
 
 vi.mock('../hooks/use-config-record', () => ({
-  hermesConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
-  useHermesConfigRecord: () => ({ data: mocks.loadedConfig })
+  irisConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
+  useIrisConfigRecord: () => ({ data: mocks.loadedConfig })
 }))
 
 describe('BrowserRealProfilePanel', () => {

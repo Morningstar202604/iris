@@ -99,7 +99,7 @@ import { CommandPalette } from '../command-palette'
 import { triggerAndRefreshCronJobs } from '../cron/cron-actions'
 import { useGatewayBoot } from '../gateway/hooks/use-gateway-boot'
 import { useGatewayRequest } from '../gateway/hooks/use-gateway-request'
-import { useHermesConfigRecord } from '../hooks/use-config-record'
+import { useIrisConfigRecord } from '../hooks/use-config-record'
 import { useKeybinds } from '../hooks/use-keybinds'
 import { useHudHandoff } from '../hud/handoff'
 import { ModelPickerOverlay } from '../model-picker-overlay'
@@ -125,7 +125,7 @@ import { SessionSwitcher } from '../session-switcher'
 import { useBackgroundQueueDrain } from '../session/hooks/use-background-queue-drain'
 import { useContextSuggestions } from '../session/hooks/use-context-suggestions'
 import { useCwdActions } from '../session/hooks/use-cwd-actions'
-import { useHermesConfig } from '../session/hooks/use-hermes-config'
+import { useIrisConfig } from '../session/hooks/use-iris-config'
 import { useMessageStream } from '../session/hooks/use-message-stream'
 import { useModelControls } from '../session/hooks/use-model-controls'
 import { usePreviewRouting } from '../session/hooks/use-preview-routing'
@@ -231,7 +231,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     navigate(routeRequest.path)
   }, [navigate, routeRequest])
 
-  // "Restart Hermes" from a toast: recycle the local backend the user is
+  // "Restart Iris" from a toast: recycle the local backend the user is
   // looking at (same IPC the Models page uses), then let the boot hook re-dial.
   // A remote/cloud connection has no local process to recycle — there the
   // only meaningful "restart" is re-dialing the connection.
@@ -245,14 +245,14 @@ export function ContribWiring({ children }: { children: ReactNode }) {
 
     if (backendRestartRequest > 0) {
       if ($connection.get()?.mode === 'remote') {
-        void reconnectGateway().catch(err => notifyError(err, translateNow('notifications.errors.restartHermesFailed')))
+        void reconnectGateway().catch(err => notifyError(err, translateNow('notifications.errors.restartIrisFailed')))
 
         return
       }
 
-      void window.hermesDesktop
+      void window.irisDesktop
         ?.recycleBackend?.(normalizeProfileKey($activeGatewayProfile.get()))
-        .catch(err => notifyError(err, translateNow('notifications.errors.restartHermesFailed')))
+        .catch(err => notifyError(err, translateNow('notifications.errors.restartIrisFailed')))
     }
   }, [backendRestartRequest])
 
@@ -436,7 +436,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     requestGateway
   })
 
-  const { refreshHermesConfig, sttEnabled, voiceMaxRecordingSeconds } = useHermesConfig({ activeSessionIdRef })
+  const { refreshIrisConfig, sttEnabled, voiceMaxRecordingSeconds } = useIrisConfig({ activeSessionIdRef })
 
   const { applySavedMainModel, refreshCurrentModel, selectModel } = useModelControls({
     cacheOwnerConnectionId: activeConnectionId || undefined,
@@ -451,9 +451,9 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   // don't have router access); listen and navigate to the settings keybinds tab.
   useEffect(() => {
     const onOpenKeybinds = () => navigate(`${SETTINGS_ROUTE}?tab=keybinds`)
-    window.addEventListener('hermes:open-keybinds', onOpenKeybinds)
+    window.addEventListener('iris:open-keybinds', onOpenKeybinds)
 
-    return () => window.removeEventListener('hermes:open-keybinds', onOpenKeybinds)
+    return () => window.removeEventListener('iris:open-keybinds', onOpenKeybinds)
   }, [navigate])
 
   // Dev-only: install the credit-notice demo trigger (Ctrl+Shift+C / ⌘K palette
@@ -521,7 +521,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     activeSessionIdRef,
     hydrateFromStoredSession,
     queryClient,
-    refreshHermesConfig,
+    refreshIrisConfig,
     refreshSessions,
     sessionStateByRuntimeIdRef,
     updateSessionState
@@ -617,10 +617,10 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     // backend. These refreshes carry intent tokens so an in-flight picker
     // click still wins.
     void refreshCurrentModel(true)
-    void refreshHermesConfig(true)
+    void refreshIrisConfig(true)
     void refreshActiveProfile()
     resetProjectTreeState()
-  }, [gatewayScope, refreshCurrentModel, refreshHermesConfig])
+  }, [gatewayScope, refreshCurrentModel, refreshIrisConfig])
 
   // New session anchored to a workspace. Seeds cwd + branch from the clicked
   // workspace; an explicit worktree path also drills the sidebar into that
@@ -924,7 +924,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     onGatewayReady: g => {
       gatewayRef.current = g
     },
-    refreshHermesConfig,
+    refreshIrisConfig,
     refreshSessions
   })
 
@@ -955,7 +955,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     refreshActiveTranscript,
     refreshCronJobs,
     refreshCurrentModel,
-    refreshHermesConfig,
+    refreshIrisConfig,
     refreshMessagingSessions,
     refreshSessions,
     requestGateway,
@@ -970,7 +970,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   // display.resume_last_session gates the cold-start restore. `undefined` while
   // the record is still loading holds the restore latch open; a failed fetch
   // falls back to the historical behavior (resume).
-  const configRecord = useHermesConfigRecord()
+  const configRecord = useIrisConfigRecord()
 
   const resumeLastSession = configRecord.isPending
     ? undefined
@@ -1245,7 +1245,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const titlebarToolsRight = titlebarToolsRightCss(nativeOverlayWidth, titlebarChrome)
   // WSLg: Electron's native overlay drifts its hit-region under RAIL, so the
   // renderer paints its own min/max/close (main decides via customWindowControls).
-  const customWindowControls = connection?.customWindowControls ?? window.hermesDesktop?.windowControls?.custom ?? false
+  const customWindowControls = connection?.customWindowControls ?? window.irisDesktop?.windowControls?.custom ?? false
   const appActionsSide = useStore($titlebarAppActionsSide)
   const interfaceMode = useStore($interfaceMode)
   const shownTool = shownInMode(interfaceMode)
@@ -1314,7 +1314,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
         <DesktopOnboardingOverlay
           enabled={gatewayState === 'open'}
           onCompleted={() => {
-            void refreshHermesConfig()
+            void refreshIrisConfig()
             void refreshCurrentModel()
             void queryClient.invalidateQueries({ queryKey: ['model-options'] })
           }}
@@ -1358,7 +1358,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
             gateway={gateway}
             onClose={closeOverlayToPreviousRoute}
             onConfigSaved={() => {
-              void refreshHermesConfig()
+              void refreshIrisConfig()
               void refreshCurrentModel()
               void queryClient.invalidateQueries({ queryKey: ['model-options'] })
             }}

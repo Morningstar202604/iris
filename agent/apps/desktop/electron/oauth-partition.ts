@@ -5,10 +5,10 @@
  * dashboard basic-auth) remote gateways (#92183).
  *
  * Historically every cookie-mode remote rode ONE Electron session partition
- * (`persist:hermes-remote-oauth`) — the jar was keyed on the auth *mode*, not
+ * (`persist:iris-remote-oauth`) — the jar was keyed on the auth *mode*, not
  * on the connection's identity. Chromium cookie jars scope by host and ignore
  * the port, so two registered gateways on the same host (the #92183 VPN
- * setup: one box, two dashboards) fought over the same `hermes_session*`
+ * setup: one box, two dashboards) fought over the same `iris_session*`
  * cookies: signing in to gateway B evicted gateway A's session, and A's
  * cookie was silently PRESENTED to B on every request — a cross-connection
  * credential leak.
@@ -34,7 +34,7 @@
  * project; main.ts owns session.fromPartition() and injects nothing here.
  */
 
-export const LEGACY_OAUTH_PARTITION = 'persist:hermes-remote-oauth'
+export const LEGACY_OAUTH_PARTITION = 'persist:iris-remote-oauth'
 
 // Colon-free ON PURPOSE: Electron escapes ':' in a partition name to '%3A' in
 // the on-disk profile folder, and a Windows profile folder whose name contains
@@ -49,7 +49,7 @@ export const LEGACY_OAUTH_PARTITION = 'persist:hermes-remote-oauth'
 // The name used to be `${LEGACY_OAUTH_PARTITION}:conn:<id>` (#92183). That
 // jar never worked on Windows; on macOS/Linux a non-primary remote signed in
 // under the old name is re-prompted ONCE after this change (the old
-// `Partitions/hermes-remote-oauth%3Aconn%3A<id>` folder is left on disk,
+// `Partitions/iris-remote-oauth%3Aconn%3A<id>` folder is left on disk,
 // inert). One name on every platform beats a per-OS partition scheme.
 const CONNECTION_PARTITION_PREFIX = `${LEGACY_OAUTH_PARTITION}-conn-`
 

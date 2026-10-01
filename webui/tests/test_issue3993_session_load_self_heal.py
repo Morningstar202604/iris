@@ -35,7 +35,7 @@ def test_clear_stuck_session_helper_exists_and_is_wired():
     # Guarded on the boot condition (no active session on screen).
     helper = js[js.index(marker): js.index(marker) + 260]
     assert "if(!currentSid){" in helper
-    assert "localStorage.removeItem('hermes-webui-session')" in helper
+    assert "localStorage.removeItem('iris-webui-session')" in helper
     assert "history.replaceState" in helper
 
 
@@ -49,7 +49,7 @@ def _run_helper(current_sid_js: str) -> dict:
     helper_src = js[start:end]
     script = f"""
 let removed=false, replaced=false;
-const localStorage = {{ removeItem(k){{ if(k==='hermes-webui-session') removed=true; }} }};
+const localStorage = {{ removeItem(k){{ if(k==='iris-webui-session') removed=true; }} }};
 const history = {{ replaceState(){{ replaced=true; }} }};
 function _appRootPath(){{ return '/'; }}
 {helper_src}
@@ -94,7 +94,7 @@ def test_stale_load_guard_present_before_self_heal():
     assert block.index(guard) < block.index("_clearStuckSessionOnBoot(sid, currentSid);"), \
         "stale-load guard must precede _clearStuckSessionOnBoot"
     # And before the 404 inline clear too.
-    assert block.index(guard) < block.index("localStorage.removeItem('hermes-webui-session')"), \
+    assert block.index(guard) < block.index("localStorage.removeItem('iris-webui-session')"), \
         "stale-load guard must precede the 404 inline self-heal"
     # It re-arms the active stream rather than leaving it torn down.
     guard_tail = block[block.index(guard): block.index(guard) + 120]

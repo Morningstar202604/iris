@@ -1,13 +1,20 @@
 # 🔁 Mirroring & Syncing
 
-Iris is published on four code hosts. This page explains how the mirrors stay in sync.
+Iris ships on a **dual-track release policy**: two hosts are *formal release
+homes* (both carry the same `v*` tags and published Releases), plus two fast
+mirrors for clones. This page explains how they stay in sync.
 
-| Host | Repository | Primary? |
+| Host | Repository | Role |
 |---|---|---|
-| GitHub | `X33834/iris` | ✅ primary (CI, Releases) |
-| GitHub | `Morningstar202604/iris` | mirror |
-| Gitee | `badhope/iris` | mirror (fast in China) |
-| GitCode | `badhope/iris` | mirror (fast in China) |
+| GitHub | `X33834/iris` | ✅ **co-release primary** — CI + Releases |
+| GitCode | `badhope/iris` | ✅ **co-release** — homepage + Releases (China) |
+| GitHub | `Morningstar202604/iris` | mirror (release-asset mirror) |
+| Gitee | `badhope/iris` | mirror (fast clones, China) |
+
+> Both `X33834/iris` (GitHub) and `badhope/iris` (GitCode) are official,
+> equal-weight release homes. CI runs on GitHub; the GitCode host is the
+> homepage + Releases entry for mainland-China users. A release tag must be
+> pushed to **both** co-release hosts — see the tag-push commands below.
 
 ## Option A — push to all remotes (simple, no extra service)
 
@@ -71,5 +78,7 @@ jobs:
 
 ---
 
-**Rule of thumb**: develop on GitHub (CI + Releases), and let the China hosts serve
-fast clones for users in mainland China.
+**Rule of thumb**: develop and run CI on GitHub (`X33834/iris`), cut the release
+there, then push the same tag to GitCode (`badhope/iris`) so it is an equal
+release home. Morningstar mirrors the release assets; Gitee serves fast clones
+for users in mainland China.

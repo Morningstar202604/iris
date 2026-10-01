@@ -15,7 +15,7 @@ const setDefault = vi.fn()
 beforeEach(() => {
   openWindow.mockResolvedValue({ ok: true })
   setDefault.mockImplementation(async route => route)
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'irisDesktop', {
     configurable: true,
     value: { openWindow, profile: { setDefault } }
   })

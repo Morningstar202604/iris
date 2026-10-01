@@ -1,1 +1,1 @@
-"""Hermes Web UI -- API modules."""
+"""Iris Web UI -- API modules."""

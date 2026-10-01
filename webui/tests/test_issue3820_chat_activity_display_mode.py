@@ -257,7 +257,7 @@ const src = fs.readFileSync({json.dumps(str(ROOT / "static" / "assistant_turn_an
 const sandbox = {{window:{{}}}};
 vm.createContext(sandbox);
 vm.runInContext(src, sandbox, {{filename:'assistant_turn_anchors.js'}});
-const api = sandbox.window.HermesAssistantTurnAnchors;
+const api = sandbox.window.IrisAssistantTurnAnchors;
 const empty = api.projectAssistantTurnAnchorActivityScene(null, {{mode:'hide_all_activity'}});
 const registry = api.createAssistantTurnAnchorRegistry({{session_id:'sid-1', turn_id:'turn-1'}});
 api.applyAssistantTurnAnchorSourceEvents(registry, [
@@ -814,7 +814,7 @@ def test_mcp_tool_names_appear_in_event_rows():
     mcp__<server>__<tool>. Their full name must be preserved on the row's
     data-tool-name attribute, the header must use a friendly short form
     (e.g. github/create_issue), and a plug-style icon must be used when
-    no canonical Hermes icon matches."""
+    no canonical Iris icon matches."""
     # toolIcon: plug icon for mcp__ / mcp. prefixed names.
     assert "startsWith('mcp__')" in UI_JS
     assert "startsWith('mcp.')" in UI_JS
@@ -828,7 +828,7 @@ def test_mcp_tool_names_appear_in_event_rows():
 
 
 def test_transparent_turn_header_is_collapsible():
-    """The Hermes chat name tag (assistant role label) must be clickable
+    """The Iris chat name tag (assistant role label) must be clickable
     in transparent mode to collapse/expand the entire event stack
     underneath. A chevron is appended to the role to telegraph the
     affordance; toggling flips data-transparent-turn-collapsed on the

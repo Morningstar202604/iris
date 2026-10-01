@@ -1,6 +1,6 @@
 # SSE streams and capability signaling
 
-Cross-client reference for the server-sent events (SSE) endpoints Hermes WebUI
+Cross-client reference for the server-sent events (SSE) endpoints Iris WebUI
 exposes. Browser and non-browser clients (Android wrapper, CLI observers)
 should integrate against this page so every client describes the same
 behavior.
@@ -79,6 +79,6 @@ reads, so disconnect is not blocked by a slow projection.
 - Handlers send `X-Accel-Buffering: no` so nginx-style proxies pass events
   through unbuffered.
 - Deployments behind buffering proxies that read-until-close (notably
-  Tornado-based `jupyter-server-proxy`) can set `HERMES_WEBUI_SSE_CHUNKED=1`
+  Tornado-based `jupyter-server-proxy`) can set `IRIS_WEBUI_SSE_CHUNKED=1`
   to frame each event as an HTTP/1.1 chunk. The default wire format is
   unchanged when the flag is unset.

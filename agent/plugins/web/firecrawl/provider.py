@@ -62,7 +62,7 @@ def _wt():
 
 
 def _env(name: str) -> str:
-    from hermes_cli.config import get_env_value
+    from iris_cli.config import get_env_value
     return (get_env_value(name) or "").strip()
 
 
@@ -127,7 +127,7 @@ def _is_tool_gateway_ready() -> bool:
 
 
 def check_firecrawl_api_key() -> bool:
-    """True when the route selected via ``hermes tools`` (or, on a never-configured
+    """True when the route selected via ``iris tools`` (or, on a never-configured
     install, either route) is usable."""
     from tools.tool_backend_helpers import NOUS_MANAGED_PROVIDER, read_selection
     selected = read_selection("web")
@@ -159,7 +159,7 @@ def _get_firecrawl_client() -> Any:
     def _unconfigured_message() -> str:
         message = "Web tools are not configured. Set FIRECRAWL_API_KEY for cloud Firecrawl or set FIRECRAWL_API_URL for a self-hosted Firecrawl instance."
         if _backend_helpers.managed_nous_tools_enabled():
-            return message + " With your Nous subscription you can also use the Tool Gateway. run `hermes tools` and select Nous Subscription as the web provider."
+            return message + " With your Nous subscription you can also use the Tool Gateway. run `iris tools` and select Nous Subscription as the web provider."
         return message + " " + _backend_helpers.nous_tool_gateway_unavailable_message("managed Firecrawl web tools")
 
     # (resolved config, log detail, error message) per selection state; the message is built lazily.
@@ -346,7 +346,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

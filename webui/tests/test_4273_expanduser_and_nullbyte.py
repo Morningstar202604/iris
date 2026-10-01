@@ -3,7 +3,7 @@
 Scope note: an earlier gate round suggested restoring ~user/~root expansion and
 blocking /root. Both were REVERTED after the full suite surfaced
 tests/test_batch_fixes.py::TestRootWorkspaceUnblocked — /root is DELIBERATELY
-not blocked (#510/#521: Hermes commonly runs as root, where /root is the
+not blocked (#510/#521: Iris commonly runs as root, where /root is the
 legitimate home, allowed via the home carve-out). Expanding ~root for a non-root
 deployment would then register root's home, so the PR's original behavior
 (leave ~user literal) is the correct, safer choice. Only the null-byte
@@ -38,11 +38,11 @@ def test_validate_workspace_to_add_null_byte_is_clean_validation_error():
 
 def test_root_remains_unblocked_for_root_deployments():
     # Guard the deliberate #510/#521 decision: /root must stay registrable
-    # (Hermes-as-root deployments). This pins that our null-byte work did not
+    # (Iris-as-root deployments). This pins that our null-byte work did not
     # accidentally re-block it.
     src = (Path(__file__).resolve().parent.parent / "api" / "workspace.py").read_text(encoding="utf-8")
     assert "'/root'" not in src and "PurePosixPath('/root')" not in src, (
-        "/root must not be blocked — breaks Hermes-as-root deployments (#510/#521)"
+        "/root must not be blocked — breaks Iris-as-root deployments (#510/#521)"
     )
 
 

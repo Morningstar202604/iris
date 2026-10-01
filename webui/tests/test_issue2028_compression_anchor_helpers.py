@@ -92,7 +92,7 @@ def test_compression_summary_ignores_tool_output_that_mentions_compression():
     }
     skill_tool_output = {
         "role": "tool",
-        "content": "{\"name\": \"hermes-webui-operations\", \"content\": \"Troubleshooting frequent context compression indicators...\"}",
+        "content": "{\"name\": \"iris-webui-operations\", \"content\": \"Troubleshooting frequent context compression indicators...\"}",
     }
 
     assert _compression_summary_from_messages([marker, skill_tool_output]) == marker["content"]

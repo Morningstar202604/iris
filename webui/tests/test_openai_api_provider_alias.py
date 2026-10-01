@@ -1,7 +1,7 @@
 """openai-api as a first-class picker provider.
 
-hermes-agent registers its built-in OpenAI provider as ``openai-api`` in
-``hermes_cli.auth.PROVIDER_REGISTRY``.  The WebUI must recognise this
+iris-agent registers its built-in OpenAI provider as ``openai-api`` in
+``iris_cli.auth.PROVIDER_REGISTRY``.  The WebUI must recognise this
 slug in ``_PROVIDER_DISPLAY`` and ``_PROVIDER_MODELS`` so that GPT
 models appear in the picker AND the session ``model_provider`` stays
 ``openai-api`` on the send path (where the agent resolves it against

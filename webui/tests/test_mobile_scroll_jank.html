@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Mobile Scroll Jank Test</title>
 <style>
-  /* Simulate the Hermes WebUI messages container */
+  /* Simulate the Iris WebUI messages container */
   *{box-sizing:border-box;margin:0;padding:0}
 
   .shell{display:flex;flex-direction:column;height:100vh;width:100%;max-width:430px;margin:0 auto;border:1px solid #ccc;position:relative;}
@@ -14,7 +14,7 @@
 
   .messages-shell{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;}
 
-  /* EXACT copy of the .messages CSS from hermes-webui */
+  /* EXACT copy of the .messages CSS from iris-webui */
   .messages{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;min-height:0;position:relative;z-index:0;
     -webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior-y:contain;
   }
@@ -49,7 +49,7 @@
 <body>
 
 <div class="shell">
-  <div class="header">🤖 Hermes WebUI (Mobile Test)</div>
+  <div class="header">🤖 Iris WebUI (Mobile Test)</div>
 
   <div class="controls">
     <label><input type="checkbox" id="fixCss" checked> overflow-anchor: auto (on mobile)</label>
@@ -77,7 +77,7 @@
 <script>
 (function(){
   // ---------------------------------------------------------------
-  // Simulate Hermes WebUI scroll infrastructure
+  // Simulate Iris WebUI scroll infrastructure
   // ---------------------------------------------------------------
   const messages=document.getElementById('messages');
   const msgInner=document.getElementById('msgInner');
@@ -112,7 +112,7 @@
   };
 
   // ---------------------------------------------------------------
-  // Messages scroll helpers (mirrors Hermes WebUI)
+  // Messages scroll helpers (mirrors Iris WebUI)
   // ---------------------------------------------------------------
   function _setMessageScrollToBottom(){
     _programmaticScroll=true;

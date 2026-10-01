@@ -63,7 +63,7 @@ def _discord_request(
         url, data=None if body is None else json.dumps(body).encode("utf-8"), method=method,
         headers={
             "Authorization": f"Bot {token}", "Content-Type": "application/json",
-            "User-Agent": "Hermes-Agent (https://github.com/NousResearch/hermes-agent)"})
+            "User-Agent": "Iris-Agent (https://github.com/X33834/iris)"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             if resp.status == 204:
@@ -109,8 +109,8 @@ _PERMISSIVE_CAPS = {"has_members_intent": True, "has_message_content": True, "de
 
 
 def _capability_disk_cache_path() -> Path:
-    from hermes_constants import get_hermes_home
-    return get_hermes_home() / "cache" / "discord_capabilities.json"
+    from iris_constants import get_iris_home
+    return get_iris_home() / "cache" / "discord_capabilities.json"
 
 
 def _token_cache_key(token: str) -> str:
@@ -427,7 +427,7 @@ def _load_allowed_actions_config() -> Optional[List[str]]:
     """``discord.server_actions`` allowlist (comma string or YAML list), or ``None`` when
     unrestricted. Unknown names are dropped with a warning."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         cfg = load_config()
     except Exception as exc:
         logger.debug("discord: could not load config (%s); allowing all actions.", exc)

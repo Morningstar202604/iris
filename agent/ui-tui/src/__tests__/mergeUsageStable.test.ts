@@ -1,4 +1,4 @@
-import type { Usage } from '@hermes/shared/gateway-events'
+import type { Usage } from '@iris/shared/gateway-events'
 import { describe, expect, it } from 'vitest'
 
 import { mergeUsageStable, usageChanged } from '../app/createGatewayEventHandler.js'

@@ -414,7 +414,7 @@ def _convert_assistant_message(m: Dict[str, Any]) -> Dict[str, Any]:
     # (injected as a fallback upstream). Prepend, since thinking must precede text/tool_use. Skip
     # when reasoning_details already supplied (signed) thinking blocks: a duplicate unsigned one
     # would be downgraded to a spurious text block on the last assistant message.
-    # See hermes-agent#13848. Accept empty string "" — _copy_reasoning_content_for_api() injects "" as a
+    # See iris-agent#13848. Accept empty string "" — _copy_reasoning_content_for_api() injects "" as a
     # tier-3 fallback for Kimi tool-call messages that had no reasoning.
     reasoning_content = m.get("reasoning_content")
     if isinstance(reasoning_content, str) and not _has_block_type(blocks, _THINKING_TYPES):

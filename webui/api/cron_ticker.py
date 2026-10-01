@@ -1,6 +1,6 @@
 """In-process cron scheduler ticker for single-process WebUI deployments.
 
-The Tasks panel used to demand a separate ``hermes gateway`` daemon for
+The Tasks panel used to demand a separate ``iris gateway`` daemon for
 scheduled jobs. A single-process local WebUI has no reason to run one: the
 gateway's own ticker is ``InProcessCronScheduler`` — a plain 60s loop that
 works in any process. This module starts it on a supervised daemon thread at
@@ -37,7 +37,7 @@ def _external_gateway_is_ticking() -> bool:
 
 
 def _install_profile_isolation() -> None:
-    """Give auto-fired jobs the same HERMES_HOME isolation as manual runs."""
+    """Give auto-fired jobs the same IRIS_HOME isolation as manual runs."""
     try:
         from api.profiles import install_cron_scheduler_profile_isolation
 

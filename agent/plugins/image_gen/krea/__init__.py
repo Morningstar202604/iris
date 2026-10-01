@@ -51,7 +51,7 @@ KREA_MODEL_IDS = frozenset(_MODELS)
 
 DEFAULT_MODEL = "krea-2-medium"
 
-# Hermes' 3 abstract ratios → Krea's enum (1:1, 4:3, 3:2, 16:9, 2.35:1, 4:5, 2:3, 9:16).
+# Iris' 3 abstract ratios → Krea's enum (1:1, 4:3, 3:2, 16:9, 2.35:1, 4:5, 2:3, 9:16).
 _ASPECT_MAP = {"landscape": "16:9", "square": "1:1", "portrait": "9:16"}
 DEFAULT_RESOLUTION = "1K"  # only resolution Krea currently supports
 # Style refs are objects ({"url", "strength"}); bare URLs get Krea's recommended start (range -2..2).
@@ -71,7 +71,7 @@ _TERMINAL_STATES = {"completed", "failed", "cancelled"}
 # Krea Enhance — the optional ``upscale`` pass after generation (max 8K).
 _ENHANCE_PATH = "/generate/enhance/krea/enhance"
 _ENHANCE_SCALE_FACTOR = 2
-_USER_AGENT = "Hermes-Agent/1.0 (krea-image-gen)"
+_USER_AGENT = "Iris-Agent/1.0 (krea-image-gen)"
 
 # Fatal poll outcome (``_poll_krea_job`` ``kind``) → (error_type, message builder).
 _POLL_FAILURES: Dict[str, Tuple[str, Callable[[str, Any], str]]] = {
@@ -347,7 +347,7 @@ def _submit_job(
                     "Krea's shared-key concurrency cap was hit — retry shortly." if status == 429 else
                     f"Model '{model_id}' may not be enabled/priced on the Nous Portal's Krea gateway. "
                     "Set KREA_API_KEY to use Krea directly, or pick a different model via "
-                    "`hermes tools` → Image Generation.")
+                    "`iris tools` → Image Generation.")
                 return None, fail(
                     f"Nous Subscription Krea gateway rejected '{model_id}' "
                     f"(HTTP {status}): {err_msg}. {hint}",
@@ -436,11 +436,11 @@ class KreaImageGenProvider(StaticImageGenProvider):
             auth_token = get_secret("KREA_API_KEY")
             if not auth_token:
                 return error_factory("krea", aspect)(
-                    "KREA_API_KEY not set. Run `hermes tools` → Image "
+                    "KREA_API_KEY not set. Run `iris tools` → Image "
                     "Generation → Krea to configure, get a key at "
                     "https://www.krea.ai/settings/api-tokens, or sign in to "
                     "a Nous account with the managed Krea gateway enabled "
-                    "(`hermes setup`).",
+                    "(`iris setup`).",
                     "auth_required")
 
         model_id, meta = _resolve_model(kwargs.get("model"))
@@ -539,7 +539,7 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     if target is None:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
-    from hermes_cli.plugin_compat import warn_once
+    from iris_cli.plugin_compat import warn_once
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----

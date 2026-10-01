@@ -31,7 +31,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
     name="honcho",
     label="Honcho",
     storage=STORAGE_HONCHO_HOST_BLOCK,
-    docs_url="https://docs.honcho.dev/v3/guides/integrations/hermes",
+    docs_url="https://docs.honcho.dev/v3/guides/integrations/iris",
     fields=(
         # — Connection (inline) —
         _field("apiKey", "API key", KIND_SECRET, "Authenticate with Honcho Cloud. Not needed for a self-hosted base URL.",

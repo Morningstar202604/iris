@@ -13,7 +13,7 @@ import api.profiles as profiles
 import pytest
 
 from tests.js_source_extract import extract_function
-from tests.test_provider_management import _install_fake_hermes_cli, _post
+from tests.test_provider_management import _install_fake_iris_cli, _post
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -141,7 +141,7 @@ eval(fnSource);
 
 @pytest.fixture
 def isolated_self_hosted_env(monkeypatch, tmp_path):
-    _install_fake_hermes_cli(monkeypatch)
+    _install_fake_iris_cli(monkeypatch)
     fake_config_path = tmp_path / "config.yaml"
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
@@ -149,8 +149,8 @@ def isolated_self_hosted_env(monkeypatch, tmp_path):
     config.cfg["model"] = {}
     config.cfg["providers"] = {}
     config._cfg_mtime = 0.0
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr(onboarding, "_get_active_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
+    monkeypatch.setattr(onboarding, "_get_active_iris_home", lambda: tmp_path)
     monkeypatch.setattr(onboarding, "_get_config_path", lambda: fake_config_path)
     monkeypatch.setattr(config, "_get_config_path", lambda: fake_config_path)
     yield tmp_path, fake_config_path
@@ -307,8 +307,8 @@ def test_post_self_hosted_provider_rejects_invalid_provider(isolated_self_hosted
 
 
 def test_get_providers_exposes_self_hosted_flags_and_base_url(monkeypatch, tmp_path):
-    _install_fake_hermes_cli(monkeypatch)
-    monkeypatch.setattr(profiles, "get_active_hermes_home", lambda: tmp_path)
+    _install_fake_iris_cli(monkeypatch)
+    monkeypatch.setattr(profiles, "get_active_iris_home", lambda: tmp_path)
     old_cfg = dict(config.cfg)
     old_mtime = config._cfg_mtime
     config.cfg.clear()

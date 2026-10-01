@@ -211,7 +211,7 @@ class TestIssue495TitleStreaming(unittest.TestCase):
         messages = [
             {
                 "role": "user",
-                "content": "过去两个礼拜发生了一些事情。最重要的一点就是我加入了一个 Hermes Web UI 的项目。\n\n因为我开始使用 Hermes 这个 agent 以后，就逐渐不再使用 OpenClaw了。",
+                "content": "过去两个礼拜发生了一些事情。最重要的一点就是我加入了一个 Iris Web UI 的项目。\n\n因为我开始使用 Iris 这个 agent 以后，就逐渐不再使用 OpenClaw了。",
             },
             {"role": "assistant", "content": "Sure, let me help."},
         ]

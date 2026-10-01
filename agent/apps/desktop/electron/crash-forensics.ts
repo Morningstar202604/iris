@@ -5,7 +5,7 @@
  * unhandled rejections, so the app usually survives — but the reason lands on
  * stderr alone, which is discarded entirely when the app is launched from
  * Finder or the Start menu. Without a record in desktop.log, a main-process
- * fault is invisible in a `hermes debug share` bundle and the user is left
+ * fault is invisible in a `iris debug share` bundle and the user is left
  * describing symptoms instead of showing a stack.
  */
 

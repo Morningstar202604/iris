@@ -1,16 +1,16 @@
 /**
- * Hermes desktop plugin template. Save as:
- *   <hermes home>/desktop-plugins/<id>/plugin.js   (folder name == id)
- * where <hermes home> is ~/.hermes by default, or ~/.hermes/profiles/<name>
- * when running a named profile (`hermes -p <name>`). Run `hermes doctor` (or
+ * Iris desktop plugin template. Save as:
+ *   <iris home>/desktop-plugins/<id>/plugin.js   (folder name == id)
+ * where <iris home> is ~/.iris by default, or ~/.iris/profiles/<name>
+ * when running a named profile (`iris -p <name>`). Run `iris doctor` (or
  * check the app's Settings → Plugins folder path) if unsure which is active.
  * Then run "Reload desktop plugins" from ⌘K in the desktop app.
  *
  * Plain ESM, loaded uncompiled — UI is jsx() calls, not JSX syntax.
- * Only these imports resolve: @hermes/plugin-sdk, react, react/jsx-runtime.
+ * Only these imports resolve: @iris/plugin-sdk, react, react/jsx-runtime.
  */
 
-import { cn, haptic, host, Tip, usePluginI18n, useValue } from '@hermes/plugin-sdk'
+import { cn, haptic, host, Tip, usePluginI18n, useValue } from '@iris/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
 // Ship your OWN strings (never edit core en.ts). `usePluginI18n` resolves them

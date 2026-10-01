@@ -1,6 +1,6 @@
-# WebUI to hermes-agent source dependency contract
+# WebUI to iris-agent source dependency contract
 
-This document records the current WebUI dependency on the hermes-agent source
+This document records the current WebUI dependency on the iris-agent source
 tree for issue #2491. It is an audit and replacement contract only; it does not
 change runtime behavior or Docker wiring.
 
@@ -19,9 +19,9 @@ fixtures.
 
 The multi-container setup still shares the agent source tree with the WebUI:
 
-- `docker-compose.two-container.yml` mounts `hermes-agent-src` at `/opt/hermes`
+- `docker-compose.two-container.yml` mounts `iris-agent-src` at `/opt/iris`
   in the agent service and read-only at
-  `/home/hermeswebui/.hermes/hermes-agent` in the WebUI service.
+  `/home/iriswebui/.iris/iris-agent` in the WebUI service.
 - `docker-compose.three-container.yml` uses the same source volume pattern.
 - `docker_init.bash` documents that the WebUI-side mount is read-only and uses
   a staged copy when installing from the source checkout.
@@ -30,7 +30,7 @@ The multi-container setup still shares the agent source tree with the WebUI:
   code from it.
 
 The durable target is that multi-container WebUI should not need a direct
-`hermes-agent-src` mount. The WebUI should communicate with hermes-agent through
+`iris-agent-src` mount. The WebUI should communicate with iris-agent through
 HTTP endpoints and a small versioned client/shared-schema package where pure
 helpers are genuinely shared code.
 
@@ -38,25 +38,25 @@ helpers are genuinely shared code.
 
 | Audit class | Current surface | Replacement classification |
 | --- | --- | --- |
-| `docker_agent_source_volume` | Compose files and Docker docs expose `hermes-agent-src` and `/opt/hermes` to make the agent checkout visible to WebUI. | Remove the WebUI source mount only after startup install and runtime imports have migrated. This needs Docker/compose follow-up work, not a runtime behavior change in this audit PR. |
-| `startup_dependency_install` | `api/startup.py` discovers `HERMES_WEBUI_AGENT_DIR` or `$HERMES_HOME/hermes-agent`; `server.py` calls `auto_install_agent_deps()` after import verification fails; `docker_init.bash` installs from the staged agent source. | Replace source-tree pip installs with a packaged hermes-agent WebUI client plus an agent health/version capability contract. Keep `HERMES_WEBUI_AGENT_DIR` during migration as an override/debug path, but it should stop being required in normal multi-container startup. |
-| `runtime_auxiliary_model_metadata` | `api/streaming.py`, `api/routes.py`, `api/config.py`, and `api/providers.py` import `agent.auxiliary_client`, `agent.model_metadata`, `agent.models_dev`, `hermes_cli.models`, and `agent.account_usage`. | Existing provider/model WebUI endpoints can keep serving UI data where they already wrap agent helpers. Missing surfaces need hermes-agent endpoints or a client package for auxiliary task config, text auxiliary calls, context length, token estimate, provider catalog, and account usage. |
-| `runtime_session_state` | `api/streaming.py`, `api/goals.py`, and `api/state_sync.py` import `hermes_state.SessionDB` directly. `api/models.py` also reads the `messages` table directly (see [state.db message content encoding](#statedb-message-content-encoding) for the storage-format coupling that creates) and opens the active profile's canonical `state.db` for scoped session deletion because the current canonical helper does not preserve branch/compression evidence ahead of inherited delegate metadata or expose retryable artifact-cleanup semantics. | Move cross-container state reads and writes, including destructive session deletion, behind hermes-agent session/state endpoints once the agent API provides equivalent lineage precedence, transaction, and retry-manifest guarantees. WebUI-only presentation state can remain local, but agent session storage should not be opened from the WebUI container. |
-| `runtime_gateway_provider` | `api/streaming.py` and `api/routes.py` import `hermes_cli.runtime_provider`; adapter helpers such as `agent.anthropic_adapter` are also imported for gateway normalization. | Provider resolution, runtime routing, and gateway invocation should be hermes-agent API calls. WebUI can keep request validation and display formatting, but it should not import runtime provider internals from the agent checkout. |
-| `webui_local_or_client_package` | WebUI imports `hermes_cli.auth`, `hermes_cli.config`, `hermes_cli.plugins`, `hermes_cli.profiles`, `hermes_cli.goals`, `agent.skill_utils`, `agent.credential_pool`, and `hermes_constants`. | Pure schemas, constants, and parsing helpers can move into a small versioned client/shared package. Privileged data such as credential pools, auth status, profile mutation, plugin discovery, and goal persistence need hermes-agent endpoints. UI-only formatting can remain in WebUI. |
+| `docker_agent_source_volume` | Compose files and Docker docs expose `iris-agent-src` and `/opt/iris` to make the agent checkout visible to WebUI. | Remove the WebUI source mount only after startup install and runtime imports have migrated. This needs Docker/compose follow-up work, not a runtime behavior change in this audit PR. |
+| `startup_dependency_install` | `api/startup.py` discovers `IRIS_WEBUI_AGENT_DIR` or `$IRIS_HOME/iris-agent`; `server.py` calls `auto_install_agent_deps()` after import verification fails; `docker_init.bash` installs from the staged agent source. | Replace source-tree pip installs with a packaged iris-agent WebUI client plus an agent health/version capability contract. Keep `IRIS_WEBUI_AGENT_DIR` during migration as an override/debug path, but it should stop being required in normal multi-container startup. |
+| `runtime_auxiliary_model_metadata` | `api/streaming.py`, `api/routes.py`, `api/config.py`, and `api/providers.py` import `agent.auxiliary_client`, `agent.model_metadata`, `agent.models_dev`, `iris_cli.models`, and `agent.account_usage`. | Existing provider/model WebUI endpoints can keep serving UI data where they already wrap agent helpers. Missing surfaces need iris-agent endpoints or a client package for auxiliary task config, text auxiliary calls, context length, token estimate, provider catalog, and account usage. |
+| `runtime_session_state` | `api/streaming.py`, `api/goals.py`, and `api/state_sync.py` import `iris_state.SessionDB` directly. `api/models.py` also reads the `messages` table directly (see [state.db message content encoding](#statedb-message-content-encoding) for the storage-format coupling that creates) and opens the active profile's canonical `state.db` for scoped session deletion because the current canonical helper does not preserve branch/compression evidence ahead of inherited delegate metadata or expose retryable artifact-cleanup semantics. | Move cross-container state reads and writes, including destructive session deletion, behind iris-agent session/state endpoints once the agent API provides equivalent lineage precedence, transaction, and retry-manifest guarantees. WebUI-only presentation state can remain local, but agent session storage should not be opened from the WebUI container. |
+| `runtime_gateway_provider` | `api/streaming.py` and `api/routes.py` import `iris_cli.runtime_provider`; adapter helpers such as `agent.anthropic_adapter` are also imported for gateway normalization. | Provider resolution, runtime routing, and gateway invocation should be iris-agent API calls. WebUI can keep request validation and display formatting, but it should not import runtime provider internals from the agent checkout. |
+| `webui_local_or_client_package` | WebUI imports `iris_cli.auth`, `iris_cli.config`, `iris_cli.plugins`, `iris_cli.profiles`, `iris_cli.goals`, `agent.skill_utils`, `agent.credential_pool`, and `iris_constants`. | Pure schemas, constants, and parsing helpers can move into a small versioned client/shared package. Privileged data such as credential pools, auth status, profile mutation, plugin discovery, and goal persistence need iris-agent endpoints. UI-only formatting can remain in WebUI. |
 
 ## state.db message content encoding
 
 `api/models.py` reads the agent's `messages` table with its own SQL, so it also
-depends on how hermes-agent *encodes* that table, not only on its schema. This
+depends on how iris-agent *encodes* that table, not only on its schema. This
 is a storage-format coupling and belongs with the `runtime_session_state`
 dependency class above.
 
-`hermes_state` stores list/dict message content (multimodal parts) as a
+`iris_state` stores list/dict message content (multimodal parts) as a
 sentinel-prefixed JSON string, because sqlite3 binds only scalars:
 
 ```
-_CONTENT_JSON_PREFIX = "\x00json:"        # hermes_state.py
+_CONTENT_JSON_PREFIX = "\x00json:"        # iris_state.py
 ```
 
 It provides `_decode_content()` to reverse this. Any WebUI read path that
@@ -140,7 +140,7 @@ an identity from it must agree on one representation:
   `get_state_db_session_messages()`, so it inherits the canonical decoded
   projection rather than reading the column itself.
 
-When session state moves behind hermes-agent endpoints, this decode should move
+When session state moves behind iris-agent endpoints, this decode should move
 with it: the agent should return structured content over the API and the WebUI
 should stop depending on the sentinel format at all.
 
@@ -154,27 +154,27 @@ when they only format UI responses, but their implementations should stop
 loading agent modules directly. Good candidates for reusing the current WebUI
 route shape while changing its backend dependency are:
 
-- Provider/model catalog routes currently backed by `hermes_cli.models`.
+- Provider/model catalog routes currently backed by `iris_cli.models`.
 - Auxiliary title/compression paths currently backed by `agent.auxiliary_client`.
 - Context-window and token-estimate paths currently backed by
   `agent.model_metadata`.
-- Runtime-provider choices currently backed by `hermes_cli.runtime_provider`.
+- Runtime-provider choices currently backed by `iris_cli.runtime_provider`.
 
-### New hermes-agent endpoints needed
+### New iris-agent endpoints needed
 
 These surfaces require an agent-owned endpoint because they read agent state,
 perform provider/runtime decisions, or expose privileged data:
 
 - SessionDB/session state read and write operations now using
-  `hermes_state.SessionDB`, plus the scoped direct-SQL session deletion in
+  `iris_state.SessionDB`, plus the scoped direct-SQL session deletion in
   `api/models.py`. The replacement endpoint must preserve branch/compression
   precedence and expose retryable post-commit artifact cleanup before that
   compatibility path can be removed.
 - Runtime provider resolution and gateway normalization now using
-  `hermes_cli.runtime_provider` and `agent.anthropic_adapter`.
+  `iris_cli.runtime_provider` and `agent.anthropic_adapter`.
 - Auxiliary task execution and configuration now using `agent.auxiliary_client`.
 - Credential/auth/account usage access now using `agent.credential_pool`,
-  `hermes_cli.auth`, and `agent.account_usage`.
+  `iris_cli.auth`, and `agent.account_usage`.
 - Profile, plugin, goal, and skill operations that mutate or discover
   agent-owned resources.
 
@@ -183,16 +183,16 @@ perform provider/runtime decisions, or expose privileged data:
 These items can be kept out of the live agent API if they are pure, versioned,
 and safe to import without the agent source tree:
 
-- Shared constants currently imported from `hermes_constants`.
+- Shared constants currently imported from `iris_constants`.
 - Provider/model schema names and non-privileged catalog shape definitions.
 - Pure skill/profile parsing helpers that do not touch agent-owned state.
-- Typed response/request models for the new hermes-agent endpoints.
+- Typed response/request models for the new iris-agent endpoints.
 
 ### WebUI-local items
 
 The WebUI can keep code that is only presentation, validation, or routing glue:
 
-- User-facing diagnostics that display whether `HERMES_WEBUI_AGENT_DIR` is set.
+- User-facing diagnostics that display whether `IRIS_WEBUI_AGENT_DIR` is set.
 - Route-level request validation and response formatting.
 - WebUI-only caches and client-facing state that do not open agent SessionDB.
 - Docker documentation describing the transition while both paths are supported.
@@ -202,7 +202,7 @@ The WebUI can keep code that is only presentation, validation, or routing glue:
 `tests/test_agent_source_dependency_audit.py` pins the contract shape:
 
 - Docker/compose source sharing is reported.
-- Startup dependency installation and `HERMES_WEBUI_AGENT_DIR` are reported.
+- Startup dependency installation and `IRIS_WEBUI_AGENT_DIR` are reported.
 - Runtime auxiliary/model metadata imports are reported.
 - Runtime SessionDB/state imports are reported.
 - Runtime provider/gateway imports are reported.

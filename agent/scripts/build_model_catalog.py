@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build the Hermes Model Catalog — a centralized JSON manifest of curated models.
+"""Build the Iris Model Catalog — a centralized JSON manifest of curated models.
 
 This script reads the in-repo hardcoded curated lists (``OPENROUTER_MODELS``,
 ``_PROVIDER_MODELS["nous"]``) and writes them to a JSON manifest that the
-Hermes CLI fetches at runtime. Publishing the catalog through the docs site
-lets maintainers update model lists without shipping a Hermes release.
+Iris CLI fetches at runtime. Publishing the catalog through the docs site
+lets maintainers update model lists without shipping a Iris release.
 
 The runtime fetcher falls back to the same in-repo hardcoded lists if the
 manifest is unreachable, so this script is a convenience for keeping the
@@ -17,7 +17,7 @@ Usage::
 Output: ``website/static/api/model-catalog.json``
 
 Live URL (after ``deploy-site.yml`` runs on merge to main):
-``https://hermes-agent.nousresearch.com/docs/api/model-catalog.json``
+``https://gitcode.com/badhope/iris/tree/main/docs.json``
 """
 
 from __future__ import annotations
@@ -30,10 +30,10 @@ from datetime import datetime, timezone
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
-# Ensure HERMES_HOME is set for imports that touch it at module level.
-os.environ.setdefault("HERMES_HOME", os.path.join(os.path.expanduser("~"), ".hermes"))
+# Ensure IRIS_HOME is set for imports that touch it at module level.
+os.environ.setdefault("IRIS_HOME", os.path.join(os.path.expanduser("~"), ".iris"))
 
-from hermes_cli.models import (  # noqa: E402
+from iris_cli.models import (  # noqa: E402
     OPENROUTER_MODELS,
     PREFERRED_SILENT_DEFAULT_MODEL,
     _PROVIDER_MODELS,
@@ -63,8 +63,8 @@ def build_catalog() -> dict:
         "version": CATALOG_VERSION,
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "metadata": {
-            "source": "hermes-agent repo",
-            "docs": "https://hermes-agent.nousresearch.com/docs/reference/model-catalog",
+            "source": "iris-agent repo",
+            "docs": "https://gitcode.com/badhope/iris/tree/main/docs",
         },
         "providers": {
             "openrouter": {
@@ -73,7 +73,7 @@ def build_catalog() -> dict:
                     "note": (
                         "Descriptions drive picker badges. Live /api/v1/models "
                         "filters curated ids by tool-calling support and free pricing. "
-                        'The entry labeled "default": true is the model Hermes '
+                        'The entry labeled "default": true is the model Iris '
                         "silently lands on when the user never picked one."
                     ),
                 },
@@ -86,7 +86,7 @@ def build_catalog() -> dict:
                 "metadata": {
                     "display_name": "Nous Portal",
                     "note": (
-                        'The entry labeled "default": true is the model Hermes '
+                        'The entry labeled "default": true is the model Iris '
                         "silently lands on when the user never picked one."
                     ),
                 },

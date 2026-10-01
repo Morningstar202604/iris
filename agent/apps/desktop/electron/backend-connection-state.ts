@@ -50,7 +50,7 @@ export function createBackendConnectionState<TProcess, TConnection>() {
 
     assertCurrentAttempt(attempt: BackendConnectionAttempt<TConnection>): void {
       if (attempt.generation !== generation) {
-        throw new Error('Hermes backend start was superseded by a newer connection attempt.')
+        throw new Error('Iris backend start was superseded by a newer connection attempt.')
       }
     },
 

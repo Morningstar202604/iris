@@ -212,8 +212,8 @@ def _split_top_level_args(arg_src: str) -> list[str]:
 
 def _has_precedence_call(src: str, first_arg: str) -> bool:
     expected_second = {
-        "localStorage.getItem('hermes-lang')",
-        'localStorage.getItem("hermes-lang")',
+        "localStorage.getItem('iris-lang')",
+        'localStorage.getItem("iris-lang")',
     }
     for arg_src in _extract_call_arglists(src, "resolvePreferredLocale"):
         args = _split_top_level_args(arg_src)
@@ -261,7 +261,7 @@ def test_set_locale_normalizes_alias_and_persists_canonical_key():
         """
 {
   ...(setLocale('zh-CN'), {}),
-  saved: localStorage.getItem('hermes-lang'),
+  saved: localStorage.getItem('iris-lang'),
   htmlLang: document.documentElement.lang,
 }
         """
@@ -374,7 +374,7 @@ def test_load_locale_first_visit_uses_browser_hint_when_no_preference():
         """
 {
   ...(loadLocale(), {}),
-  saved: localStorage.getItem('hermes-lang'),
+  saved: localStorage.getItem('iris-lang'),
   htmlLang: document.documentElement.lang,
 }
         """,
@@ -389,7 +389,7 @@ def test_load_locale_first_visit_uses_browser_hint_when_no_preference():
         """
 {
   ...(loadLocale(), {}),
-  saved: localStorage.getItem('hermes-lang'),
+  saved: localStorage.getItem('iris-lang'),
 }
         """,
         navigator_obj="throwing",
@@ -403,7 +403,7 @@ def test_load_locale_first_visit_uses_browser_hint_when_no_preference():
         """
 {
   ...(loadLocale(), {}),
-  saved: localStorage.getItem('hermes-lang'),
+  saved: localStorage.getItem('iris-lang'),
 }
         """,
         navigator_obj={"languages": ["en-US", "en"], "language": "en-US"},
@@ -420,7 +420,7 @@ def test_load_locale_first_visit_uses_browser_hint_when_no_preference():
 {
   ...(setLocale('fr'), {}),  // pre-seed localStorage
   ...(loadLocale(), {}),
-  saved: localStorage.getItem('hermes-lang'),
+  saved: localStorage.getItem('iris-lang'),
 }
         """,
         navigator_obj={"languages": ["zh-CN"], "language": "zh-CN"},

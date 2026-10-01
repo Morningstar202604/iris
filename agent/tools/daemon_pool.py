@@ -26,7 +26,7 @@ class DaemonThreadPoolExecutor(ThreadPoolExecutor):
     def submit(self, fn, /, *args, **kwargs):
         """Submit a callable, propagating the caller's contextvars. Stdlib only does
         this from 3.14; on 3.11-3.13 a bare worker starts with an EMPTY Context and
-        drops profile secret scope / HERMES_HOME override — under the multiplexed
+        drops profile secret scope / IRIS_HOME override — under the multiplexed
         gateway a credential read then fails closed with ``UnscopedSecretError``.
         Unconditional: on 3.14+ ``ctx.run`` re-applies the same context (no-op)."""
         ctx = copy_context()

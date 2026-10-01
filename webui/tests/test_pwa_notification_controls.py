@@ -12,7 +12,7 @@ CHANGELOG = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
 DESKTOP_BACKGROUND_NOTIFICATION_NAMES = (
     "_desktopBackgroundedForNotifications",
-    "__hermesSetBackgrounded",
+    "__irisSetBackgrounded",
     "_isBackgroundedForBrowserNotification",
 )
 
@@ -36,7 +36,7 @@ def test_notification_payload_uses_completion_session_when_provided():
     assert "const sid=(options&&options.sid)||(S&&S.session&&S.session.session_id);" in MESSAGES_JS
     assert "_sessionUrlForSid(sid)" in MESSAGES_JS
     assert "data:{url}" in MESSAGES_JS
-    assert "tag:sid?`hermes-${sid}`" in MESSAGES_JS
+    assert "tag:sid?`iris-${sid}`" in MESSAGES_JS
     assert "function _completionNotificationPreviewText" in MESSAGES_JS
     assert "_completionNotificationPreviewText(lastAsst," in MESSAGES_JS
     assert "sendBrowserNotification('Response complete',_completionPreview||'Task finished',{forceHidden:_wasEverBackgrounded,sid:activeSid})" in MESSAGES_JS
@@ -83,7 +83,7 @@ def test_completion_notification_fires_when_tab_was_hidden_during_stream():
     assert "const forceHidden=!!(options&&options.forceHidden);" in MESSAGES_JS
     assert "if(!force&&!window._notificationsEnabled) return;" in MESSAGES_JS
     assert "function _isBackgroundedForBrowserNotification(){" in MESSAGES_JS
-    assert "window.__hermesSetBackgrounded=(value)=>{" in MESSAGES_JS
+    assert "window.__irisSetBackgrounded=(value)=>{" in MESSAGES_JS
     assert "if(!force&&!forceHidden&&!_isBackgroundedForBrowserNotification()) return;" in MESSAGES_JS
 
 

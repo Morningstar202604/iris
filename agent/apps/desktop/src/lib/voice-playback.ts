@@ -1,7 +1,7 @@
-import { resolveGatewayWsUrl } from '@hermes/shared'
+import { resolveGatewayWsUrl } from '@iris/shared'
 
 import type { OwnerScope } from '@/api/client'
-import { getApiRequestConnection, getApiRequestProfile, speakText } from '@/hermes'
+import { getApiRequestConnection, getApiRequestProfile, speakText } from '@/iris'
 import {
   cutSentences,
   directTtsConfig,
@@ -110,7 +110,7 @@ export function stopVoicePlayback() {
 /** Exported for tests: the (connection, profile) routing contract below is
  *  exactly what broke in the desktop-remote voice report — keep it pinned. */
 export async function resolveSpeakStreamUrl(owner?: OwnerScope): Promise<null | string> {
-  const desktop = window.hermesDesktop
+  const desktop = window.irisDesktop
 
   if (!desktop?.getConnection) {
     return null

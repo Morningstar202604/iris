@@ -1,6 +1,6 @@
-"""Tests for fix: onboarding wizard must not fire when Hermes is already configured.
+"""Tests for fix: onboarding wizard must not fire when Iris is already configured.
 
-Issue #420 — existing Hermes users (config.yaml present + chat_ready) were
+Issue #420 — existing Iris users (config.yaml present + chat_ready) were
 shown the first-run wizard because the only gate was settings.onboarding_completed.
 
 Covers:
@@ -57,7 +57,7 @@ def _make_status(
         "current_provider": "openrouter" if chat_ready else None,
         "current_model": "anthropic/claude-sonnet-4.6" if chat_ready else None,
         "current_base_url": None,
-        "env_path": str(tmp_path / ".hermes_test" / ".env"),
+        "env_path": str(tmp_path / ".iris_test" / ".env"),
     }
 
     with (
@@ -65,7 +65,7 @@ def _make_status(
         mock.patch.object(mod, "get_config", return_value={}),
         mock.patch.object(
             mod,
-            "verify_hermes_imports",
+            "verify_iris_imports",
             return_value=(chat_ready, [], {}),
         ),
         mock.patch.object(mod, "_status_from_runtime", return_value=runtime),
@@ -87,7 +87,7 @@ class TestOnboardingGate:
         """Primary fix: existing valid config → wizard must NOT fire."""
         result = _make_status(tmp_path=tmp_path, config_exists=True, chat_ready=True)
         assert result["completed"] is True, (
-            "Wizard fired for existing Hermes user! "
+            "Wizard fired for existing Iris user! "
             "config.yaml + chat_ready must auto-complete onboarding."
         )
 
@@ -140,14 +140,14 @@ class TestOnboardingGate:
             "current_provider": "openrouter",
             "current_model": "anthropic/claude-sonnet-4.6",
             "current_base_url": None,
-            "env_path": str(tmp_path / ".hermes_test" / ".env"),
+            "env_path": str(tmp_path / ".iris_test" / ".env"),
         }
         fake_config_path = tmp_path / "_test_config.yaml"
 
         with (
             mock.patch.object(mod, "load_settings", return_value=settings),
             mock.patch.object(mod, "get_config", return_value={}),
-            mock.patch.object(mod, "verify_hermes_imports", return_value=(True, [], {})),
+            mock.patch.object(mod, "verify_iris_imports", return_value=(True, [], {})),
             mock.patch.object(mod, "_status_from_runtime", return_value=runtime),
             mock.patch.object(mod, "load_workspaces", return_value=[]),
             mock.patch.object(mod, "get_last_workspace", return_value=None),
@@ -211,9 +211,9 @@ class TestApplyOnboardingSetupGuard:
             with tempfile.TemporaryDirectory() as tmp_home:
                 tmp_home_path = pathlib.Path(tmp_home)
                 # Without patching Path.exists, use a non-existent path so it won't block.
-                # Also redirect _get_active_hermes_home so .env writes go to the temp dir,
-                # never to the real ~/.hermes/.env.
-                with mock.patch.object(mod, "_get_active_hermes_home", return_value=tmp_home_path):
+                # Also redirect _get_active_iris_home so .env writes go to the temp dir,
+                # never to the real ~/.iris/.env.
+                with mock.patch.object(mod, "_get_active_iris_home", return_value=tmp_home_path):
                     result = mod.apply_onboarding_setup(
                         {
                             "provider": "openrouter",
@@ -241,11 +241,11 @@ class TestApplyOnboardingSetupGuard:
         try:
             with tempfile.TemporaryDirectory() as tmp_home:
                 tmp_home_path = pathlib.Path(tmp_home)
-                # Redirect both config path and hermes home into temp dirs so the
-                # test never touches the real ~/.hermes/.env.
+                # Redirect both config path and iris home into temp dirs so the
+                # test never touches the real ~/.iris/.env.
                 with (
                     mock.patch.object(mod, "_get_config_path", return_value=fake_config_path),
-                    mock.patch.object(mod, "_get_active_hermes_home", return_value=tmp_home_path),
+                    mock.patch.object(mod, "_get_active_iris_home", return_value=tmp_home_path),
                 ):
                     result = mod.apply_onboarding_setup(
                         {
@@ -285,13 +285,13 @@ def _http_post(path, body=None):
         return json.loads(e.read()), e.code
 
 
-def _server_hermes_home() -> pathlib.Path:
+def _server_iris_home() -> pathlib.Path:
     data, _ = _http_get("/api/onboarding/status")
     env_path = data.get("system", {}).get("env_path", "")
     if env_path:
         return pathlib.Path(env_path).parent
     from tests._pytest_port import TEST_STATE_DIR
-    return pathlib.Path(os.environ.get("HERMES_WEBUI_TEST_STATE_DIR", str(TEST_STATE_DIR)))
+    return pathlib.Path(os.environ.get("IRIS_WEBUI_TEST_STATE_DIR", str(TEST_STATE_DIR)))
 
 
 def _server_reachable() -> bool:
@@ -328,14 +328,14 @@ class TestOnboardingGateIntegration:
 
     @pytest.fixture(autouse=True)
     def _clean(self):
-        hermes_home = _server_hermes_home()
+        iris_home = _server_iris_home()
         for rel in ("config.yaml", ".env"):
-            (hermes_home / rel).unlink(missing_ok=True)
+            (iris_home / rel).unlink(missing_ok=True)
         _http_post("/api/settings", {"onboarding_completed": False})
         _flush_server_config_cache()
         yield
         for rel in ("config.yaml", ".env"):
-            (hermes_home / rel).unlink(missing_ok=True)
+            (iris_home / rel).unlink(missing_ok=True)
         _http_post("/api/settings", {"onboarding_completed": False})
         _flush_server_config_cache()
 
@@ -350,18 +350,18 @@ class TestOnboardingGateIntegration:
         """Write a valid config.yaml + .env → completed must be True."""
         import yaml
 
-        hermes_home = _server_hermes_home()
+        iris_home = _server_iris_home()
         # Write a real config.yaml
         cfg = {"model": {"provider": "openrouter", "default": "anthropic/claude-sonnet-4.6"}}
-        (hermes_home / "config.yaml").write_text(
+        (iris_home / "config.yaml").write_text(
             yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8"
         )
         # Write a fake API key so provider_ready (and thus chat_ready) fires
-        # — but only when hermes_cli imports are available
+        # — but only when iris_cli imports are available
         data, _ = _http_get("/api/onboarding/status")
         try:
-            if data["system"]["hermes_found"] and data["system"]["imports_ok"]:
-                (hermes_home / ".env").write_text(
+            if data["system"]["iris_found"] and data["system"]["imports_ok"]:
+                (iris_home / ".env").write_text(
                     "OPENROUTER_API_KEY=test-e...\n", encoding="utf-8"
                 )
                 data, status = _http_get("/api/onboarding/status")
@@ -377,17 +377,17 @@ class TestOnboardingGateIntegration:
             # Clean up: the auto-persist in get_onboarding_status() (#921) writes
             # onboarding_completed=True to settings.json when config_auto_completed fires.
             # Reset to avoid contaminating subsequent tests.
-            (hermes_home / "config.yaml").unlink(missing_ok=True)
-            (hermes_home / ".env").unlink(missing_ok=True)
+            (iris_home / "config.yaml").unlink(missing_ok=True)
+            (iris_home / ".env").unlink(missing_ok=True)
             _http_post("/api/settings", {"onboarding_completed": False})
     @_needs_yaml
     def test_setup_blocked_for_existing_config(self):
         """POST /api/onboarding/setup must return config_exists error if config.yaml exists."""
         import yaml
 
-        hermes_home = _server_hermes_home()
+        iris_home = _server_iris_home()
         cfg = {"model": {"provider": "openrouter", "default": "anthropic/claude-sonnet-4.6"}}
-        (hermes_home / "config.yaml").write_text(
+        (iris_home / "config.yaml").write_text(
             yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8"
         )
 
@@ -410,9 +410,9 @@ class TestOnboardingGateIntegration:
         """POST /api/onboarding/setup with confirm_overwrite=True succeeds."""
         import yaml
 
-        hermes_home = _server_hermes_home()
+        iris_home = _server_iris_home()
         cfg = {"model": {"provider": "openrouter", "default": "anthropic/claude-sonnet-4.6"}}
-        (hermes_home / "config.yaml").write_text(
+        (iris_home / "config.yaml").write_text(
             yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8"
         )
 
@@ -431,5 +431,5 @@ class TestOnboardingGateIntegration:
         )
         # Clean up so onboarding_completed=True left by this test's setup call
         # does not contaminate subsequent tests (#921 test isolation).
-        (hermes_home / "config.yaml").unlink(missing_ok=True)
+        (iris_home / "config.yaml").unlink(missing_ok=True)
         _http_post("/api/settings", {"onboarding_completed": False})

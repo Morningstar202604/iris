@@ -103,7 +103,7 @@ _RUNTIME_PATTERN = r"nvapi-[A-Za-z0-9]{60}"
 
 @pytest.fixture
 def agent_registry():
-    redact = pytest.importorskip("agent.redact", reason="hermes-agent not installed")
+    redact = pytest.importorskip("agent.redact", reason="iris-agent not installed")
     if not hasattr(redact, "register_redaction_patterns"):
         pytest.skip("installed agent.redact has no runtime pattern registry")
     if helpers._redact_fn_uncached.__name__ != "_combined_redact":

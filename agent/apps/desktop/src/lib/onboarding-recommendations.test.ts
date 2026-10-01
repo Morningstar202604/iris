@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 
 import { orderConnectorPicks } from '@/components/onboarding-chat/options'
 import { onboardingRecommendations } from '@/lib/onboarding-recommendations'
-import type { McpCatalogEntry } from '@/types/hermes'
+import type { McpCatalogEntry } from '@/types/iris'
 
 it('keeps new enabled managed apps searchable without disturbing the curated leaders', () => {
   const next = { connector: 'new-reviewed-app', enabled: true }

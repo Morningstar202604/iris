@@ -1,5 +1,5 @@
 {
-  description = "Hermes Web UI";
+  description = "Iris Web UI";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -15,7 +15,7 @@
       ];
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      hermesModule = import ./nix/nixosModules.nix { inherit self; };
+      irisModule = import ./nix/nixosModules.nix { inherit self; };
       packageVersion = self.shortRev or (self.dirtyShortRev or "unstable");
       perSystem = forAllSystems (system: let
         pkgs = import nixpkgs { inherit system; };
@@ -28,34 +28,34 @@
             moduleConfig = nixpkgs.lib.nixosSystem {
               inherit system;
               modules = [
-                hermesModule
+                irisModule
                 {
-                  services.hermes-webui = {
+                  services.iris-webui = {
                     enable = true;
                     package = package;
                     host = "127.0.0.1";
                     port = 8787;
-                    stateDir = "/var/lib/hermes-webui";
-                    agent.dir = "/var/lib/hermes-agent";
+                    stateDir = "/var/lib/iris-webui";
+                    agent.dir = "/var/lib/iris-agent";
                   };
                 }
               ];
             };
-            packageOnlyAgentVenv = pkgs.runCommand "hermes-agent-package-only-venv-${system}" { } ''
+            packageOnlyAgentVenv = pkgs.runCommand "iris-agent-package-only-venv-${system}" { } ''
               mkdir -p "$out/bin"
               touch "$out/bin/python3"
             '';
-            packageOnlyAgentPackage = pkgs.runCommand "hermes-agent-package-only-${system}" {
-              passthru.hermesVenv = packageOnlyAgentVenv;
+            packageOnlyAgentPackage = pkgs.runCommand "iris-agent-package-only-${system}" {
+              passthru.irisVenv = packageOnlyAgentVenv;
             } ''
               touch "$out"
             '';
             packageOnlyModuleConfig = nixpkgs.lib.nixosSystem {
               inherit system;
               modules = [
-                hermesModule
+                irisModule
                 {
-                  services.hermes-webui = {
+                  services.iris-webui = {
                     enable = true;
                     package = package;
                     agent.package = packageOnlyAgentPackage;
@@ -63,34 +63,34 @@
                 }
               ];
             };
-            moduleServiceEnvironment = nixpkgs.lib.concatStringsSep "\n" moduleConfig.config.systemd.services.hermes-webui.serviceConfig.Environment;
-            envProbe = pkgs.writeText "hermes-webui-nixos-env-${system}.txt" moduleServiceEnvironment;
-            packageOnlyServiceEnvironment = nixpkgs.lib.concatStringsSep "\n" packageOnlyModuleConfig.config.systemd.services.hermes-webui.serviceConfig.Environment;
-            packageOnlyEnvProbe = pkgs.writeText "hermes-webui-nixos-package-only-env-${system}.txt" packageOnlyServiceEnvironment;
+            moduleServiceEnvironment = nixpkgs.lib.concatStringsSep "\n" moduleConfig.config.systemd.services.iris-webui.serviceConfig.Environment;
+            envProbe = pkgs.writeText "iris-webui-nixos-env-${system}.txt" moduleServiceEnvironment;
+            packageOnlyServiceEnvironment = nixpkgs.lib.concatStringsSep "\n" packageOnlyModuleConfig.config.systemd.services.iris-webui.serviceConfig.Environment;
+            packageOnlyEnvProbe = pkgs.writeText "iris-webui-nixos-package-only-env-${system}.txt" packageOnlyServiceEnvironment;
           in
           {
-            module-env-mapping = pkgs.runCommand "hermes-webui-nixos-module-${system}" {
+            module-env-mapping = pkgs.runCommand "iris-webui-nixos-module-${system}" {
               nativeBuildInputs = [ pkgs.coreutils ];
             } ''
-              grep -q 'HERMES_WEBUI_HOST=127.0.0.1' ${envProbe}
-              grep -q 'HERMES_WEBUI_PORT=8787' ${envProbe}
-              grep -q 'HERMES_WEBUI_STATE_DIR=/var/lib/hermes-webui' ${envProbe}
-              grep -q 'HERMES_WEBUI_AGENT_DIR=/var/lib/hermes-agent' ${envProbe}
-              grep -q 'HERMES_WEBUI_PYTHON=${packageOnlyAgentVenv}/bin/python3' ${packageOnlyEnvProbe}
-              ! grep -q 'HERMES_WEBUI_AGENT_DIR=' ${packageOnlyEnvProbe}
+              grep -q 'IRIS_WEBUI_HOST=127.0.0.1' ${envProbe}
+              grep -q 'IRIS_WEBUI_PORT=8787' ${envProbe}
+              grep -q 'IRIS_WEBUI_STATE_DIR=/var/lib/iris-webui' ${envProbe}
+              grep -q 'IRIS_WEBUI_AGENT_DIR=/var/lib/iris-agent' ${envProbe}
+              grep -q 'IRIS_WEBUI_PYTHON=${packageOnlyAgentVenv}/bin/python3' ${packageOnlyEnvProbe}
+              ! grep -q 'IRIS_WEBUI_AGENT_DIR=' ${packageOnlyEnvProbe}
               touch "$out"
             '';
-            runtime-layout = pkgs.runCommand "hermes-webui-runtime-layout-${system}" {
+            runtime-layout = pkgs.runCommand "iris-webui-runtime-layout-${system}" {
               nativeBuildInputs = [ pkgs.coreutils ];
             } ''
-              test -f ${package}/hermes-webui/bootstrap.py
-              test -f ${package}/hermes-webui/server.py
-              test -d ${package}/hermes-webui/api
-              test -d ${package}/hermes-webui/static
-              cd ${package}/hermes-webui
-              ${package}/bin/hermes-webui --help >/dev/null
-              ${package}/bin/hermes-webui --help 2>&1 | grep -q -- '--foreground'
-              PYTHONPATH=${package}/hermes-webui ${pkgs.python3.withPackages (ps: with ps; [ pyyaml cryptography ])}/bin/python3 -c 'import api.config, server; print("runtime imports ok")'
+              test -f ${package}/iris-webui/bootstrap.py
+              test -f ${package}/iris-webui/server.py
+              test -d ${package}/iris-webui/api
+              test -d ${package}/iris-webui/static
+              cd ${package}/iris-webui
+              ${package}/bin/iris-webui --help >/dev/null
+              ${package}/bin/iris-webui --help 2>&1 | grep -q -- '--foreground'
+              PYTHONPATH=${package}/iris-webui ${pkgs.python3.withPackages (ps: with ps; [ pyyaml cryptography ])}/bin/python3 -c 'import api.config, server; print("runtime imports ok")'
               touch "$out"
             '';
           }
@@ -99,14 +99,14 @@
       in
       {
         packages = {
-          hermes-webui = package;
+          iris-webui = package;
           default = package;
         };
 
         apps = {
           default = {
             type = "app";
-            program = "${package}/bin/hermes-webui";
+            program = "${package}/bin/iris-webui";
           };
         };
 
@@ -121,8 +121,8 @@
       checks = nixpkgs.lib.genAttrs linuxSystems (system: perSystem.${system}.checks);
 
       nixosModules = {
-        default = hermesModule;
-        hermes-webui = hermesModule;
+        default = irisModule;
+        iris-webui = irisModule;
       };
     };
 }

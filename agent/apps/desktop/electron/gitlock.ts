@@ -4,7 +4,7 @@
 // `.git/shallow.lock` behind. Every later fetch then fails with
 // "fatal: Unable to create '.git/shallow.lock': File exists", so the desktop
 // update check reports 'fetch-failed' forever — git never self-heals these
-// lock files. Mirrors hermes_cli/gitlock.py: a lock is removed only when it
+// lock files. Mirrors iris_cli/gitlock.py: a lock is removed only when it
 // is older than the min age AND no git process is currently running.
 
 import { execFile } from 'node:child_process'
@@ -16,7 +16,7 @@ import path from 'node:path'
 // anything older than 10 minutes is abandoned.
 export const STALE_LOCK_MIN_AGE_MS = 10 * 60 * 1000
 
-// Same self-healable lock set as hermes_cli/gitlock.py.
+// Same self-healable lock set as iris_cli/gitlock.py.
 export const LOCK_NAMES = ['shallow.lock', 'index.lock', 'HEAD.lock', 'MERGE_HEAD.lock']
 
 function gitProcessRunning(): Promise<boolean> {

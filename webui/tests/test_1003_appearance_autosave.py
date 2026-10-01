@@ -66,9 +66,9 @@ def test_appearance_pickers_schedule_autosave_and_do_not_mark_dirty():
 
 def test_appearance_revert_preview_no_longer_rolls_back_theme_skin_font():
     block = _function_block(PANELS_JS, "_revertSettingsPreview")
-    assert "hermes-theme" not in block
-    assert "hermes-skin" not in block
-    assert "hermes-font-size" not in block
+    assert "iris-theme" not in block
+    assert "iris-skin" not in block
+    assert "iris-font-size" not in block
     assert "_markSettingsDirty()" not in block
 
 

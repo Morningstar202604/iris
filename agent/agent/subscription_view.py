@@ -170,7 +170,7 @@ def subscription_state_from_payload(payload: dict[str, Any], *, portal_url: Opti
 
 def build_subscription_state(*, timeout: float = 15.0) -> SubscriptionState:
     """Fetch + parse ``GET /api/billing/subscription``; fail-open like ``fetch_portal_state``.
-    ``HERMES_DEV_SUBSCRIPTION_FIXTURE`` short-circuits to a fixture so every state is testable offline."""
+    ``IRIS_DEV_SUBSCRIPTION_FIXTURE`` short-circuits to a fixture so every state is testable offline."""
     fixture = dev_fixture_subscription_state()
     if fixture is not None:
         return fixture
@@ -272,9 +272,9 @@ def _dev_plan(tier_id: str, remaining: str, **over: Any) -> dict[str, Any]:
 
 
 def dev_fixture_subscription_state() -> Optional[SubscriptionState]:
-    """``HERMES_DEV_SUBSCRIPTION_FIXTURE`` (``free | mid | top | not-admin | downgrade | cancel | team |
+    """``IRIS_DEV_SUBSCRIPTION_FIXTURE`` (``free | mid | top | not-admin | downgrade | cancel | team |
     logged-out``) -> fixture state; None when unset; unknown name → logged-out with ``error`` set."""
-    name = (os.getenv("HERMES_DEV_SUBSCRIPTION_FIXTURE") or "").strip().lower()
+    name = (os.getenv("IRIS_DEV_SUBSCRIPTION_FIXTURE") or "").strip().lower()
     if not name:
         return None
     name = _DEV_FIXTURE_ALIASES.get(name, name)
@@ -292,5 +292,5 @@ def dev_fixture_subscription_state() -> Optional[SubscriptionState]:
         "team": dict(context="team", current=None, org_name="Acme Engineering", org_id="org_eng"),
     }
     if name not in states:
-        return SubscriptionState(logged_in=False, error=f"unknown HERMES_DEV_SUBSCRIPTION_FIXTURE: {name}")
+        return SubscriptionState(logged_in=False, error=f"unknown IRIS_DEV_SUBSCRIPTION_FIXTURE: {name}")
     return SubscriptionState(**{**common, **states[name]})

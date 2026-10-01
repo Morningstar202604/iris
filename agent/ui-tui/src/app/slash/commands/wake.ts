@@ -116,7 +116,7 @@ const WAKE_RUNNERS: Record<WakeSub, (ctx: SlashRunCtx) => void> = {
 
 export const wakeCommands: SlashCommand[] = [
   {
-    help: "toggle the 'Hey Hermes' wake word listener [on|off|status]",
+    help: "toggle the 'Hey Iris' wake word listener [on|off|status]",
     name: 'wake',
     usage: '/wake [on|off|status]',
     run: (arg, ctx) => {

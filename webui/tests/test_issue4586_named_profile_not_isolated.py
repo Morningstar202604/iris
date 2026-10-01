@@ -1,9 +1,9 @@
 """
 Regression test for issue #4586: the v0.51.528 isolated-profile-mode feature (#2698)
-must NOT engage from the HERMES_HOME *shape* alone.
+must NOT engage from the IRIS_HOME *shape* alone.
 
 The bug: `_is_isolated_profile_mode()` inferred "isolated mode" purely from a
-`~/.hermes/profiles/<name>` shaped HERMES_HOME. But the Hermes Agent launcher exports
+`~/.iris/profiles/<name>` shaped IRIS_HOME. But the Iris Agent launcher exports
 exactly that shape for ANY active named (non-default) profile in a normal single-user
 deployment — so an ordinary single user running under a named profile (e.g. `webui`) was
 wrongly treated as an intentional multi-user isolation deployment. Symptoms (v0.51.528+):
@@ -11,8 +11,8 @@ wrongly treated as an intentional multi-user isolation deployment. Symptoms (v0.
   - switching to any other profile was blocked with PermissionError
       ("Profile switching is not allowed in isolated profile mode.").
 
-The fix (#4586): isolated mode requires an EXPLICIT opt-in — HERMES_WEBUI_ISOLATED_PROFILE —
-as the primary gate (default OFF). The profile-shaped HERMES_HOME is only a secondary
+The fix (#4586): isolated mode requires an EXPLICIT opt-in — IRIS_WEBUI_ISOLATED_PROFILE —
+as the primary gate (default OFF). The profile-shaped IRIS_HOME is only a secondary
 requirement. A normal named-profile launch (shape set, flag unset) must therefore stay in
 normal multi-profile mode.
 
@@ -40,10 +40,10 @@ from api.profiles import (
 def _clear_cache_and_force_flag_off(monkeypatch):
     """Every test here runs WITHOUT the isolated opt-in — the regressed single-user case.
 
-    We explicitly clear HERMES_WEBUI_ISOLATED_PROFILE so the suite's ambient env can't
+    We explicitly clear IRIS_WEBUI_ISOLATED_PROFILE so the suite's ambient env can't
     accidentally enable isolation and mask the regression.
     """
-    monkeypatch.delenv("HERMES_WEBUI_ISOLATED_PROFILE", raising=False)
+    monkeypatch.delenv("IRIS_WEBUI_ISOLATED_PROFILE", raising=False)
     monkeypatch.setattr(_profiles_mod, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "")
     _profiles_mod._LIST_PROFILES_CACHE = None
     yield
@@ -52,14 +52,14 @@ def _clear_cache_and_force_flag_off(monkeypatch):
 
 @pytest.fixture
 def named_profile_home():
-    """A normal single-user layout: base ~/.hermes with several profiles, active = `webui`.
+    """A normal single-user layout: base ~/.iris with several profiles, active = `webui`.
 
-    The active profile's home is `~/.hermes/profiles/webui` — exactly the
-    `*/profiles/<name>` shape the Hermes Agent launcher exports for a named profile, and
+    The active profile's home is `~/.iris/profiles/webui` — exactly the
+    `*/profiles/<name>` shape the Iris Agent launcher exports for a named profile, and
     exactly what the #4586 false-positive keyed off.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
-        home = Path(tmpdir) / ".hermes"
+        home = Path(tmpdir) / ".iris"
         profiles_root = home / "profiles"
         profiles_root.mkdir(parents=True)
         for name in ("alpha", "beta", "webui"):
@@ -77,12 +77,12 @@ class TestIssue4586NamedProfileIsNotIsolated:
         """The core regression: */profiles/<name> WITHOUT the flag → NOT isolated."""
         active = named_profile_home["active"]
         assert active.parent.name == "profiles"  # has the shape that used to false-positive
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active)}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active)}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 assert _isolated_profile_opt_in() is False
                 assert _is_isolated_profile_mode() is False, (
                     "named-profile shape must NOT engage isolated mode without the explicit "
-                    "HERMES_WEBUI_ISOLATED_PROFILE opt-in (#4586)"
+                    "IRIS_WEBUI_ISOLATED_PROFILE opt-in (#4586)"
                 )
 
     def test_profiles_tab_is_not_clamped_to_single_profile(self, named_profile_home):
@@ -91,13 +91,13 @@ class TestIssue4586NamedProfileIsNotIsolated:
         The regression was driven entirely by `list_profiles_api()` taking its
         isolated-mode early-return (`if _is_isolated_profile_mode(): return [only active]`).
         We assert the GATE that controls that branch is off — environment-independent,
-        unlike exercising the full hermes_cli-backed discovery machinery (which depends on
+        unlike exercising the full iris_cli-backed discovery machinery (which depends on
         real base-home/profiles-root dirs that differ under CI). With the gate off,
         list_profiles_api() takes its normal multi-profile path instead of clamping to one.
         """
         active = named_profile_home["active"]
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active)}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active)}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 # The isolated early-return in list_profiles_api() is gated on this:
                 assert _is_isolated_profile_mode() is False, (
                     "list_profiles_api() must NOT take its single-profile early-return for "
@@ -106,7 +106,7 @@ class TestIssue4586NamedProfileIsNotIsolated:
                 )
 
     def test_profile_shape_without_opt_in_warns_once(self, named_profile_home, monkeypatch, caplog):
-        """A profile-shaped startup HERMES_HOME without opt-in emits one diagnostic."""
+        """A profile-shaped startup IRIS_HOME without opt-in emits one diagnostic."""
         active = named_profile_home["active"]
         monkeypatch.setattr(
             _profiles_mod,
@@ -114,8 +114,8 @@ class TestIssue4586NamedProfileIsNotIsolated:
             False,
         )
 
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active)}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active)}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 with caplog.at_level(logging.WARNING, logger="api.profiles"):
                     assert _is_isolated_profile_mode() is False
                     assert _is_isolated_profile_mode() is False
@@ -123,7 +123,7 @@ class TestIssue4586NamedProfileIsNotIsolated:
         warnings = [
             record.getMessage()
             for record in caplog.records
-            if "HERMES_WEBUI_ISOLATED_PROFILE was not enabled at startup" in record.getMessage()
+            if "IRIS_WEBUI_ISOLATED_PROFILE was not enabled at startup" in record.getMessage()
         ]
         assert len(warnings) == 1
 
@@ -131,10 +131,10 @@ class TestIssue4586NamedProfileIsNotIsolated:
         """Regressed symptom #2: switching was blocked with PermissionError."""
         base = named_profile_home["base"]
         active = named_profile_home["active"]
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active)}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
-                with mock.patch("api.profiles._DEFAULT_HERMES_HOME", base):
-                    with mock.patch("api.profiles._resolve_base_hermes_home", return_value=base):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active)}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
+                with mock.patch("api.profiles._DEFAULT_IRIS_HOME", base):
+                    with mock.patch("api.profiles._resolve_base_iris_home", return_value=base):
                         # Must NOT raise PermissionError (the regression). process_wide=False
                         # keeps this from mutating global interpreter state during the test.
                         try:
@@ -152,9 +152,9 @@ class TestIssue4586ExplicitOptInStillWorks:
     @pytest.mark.parametrize("flag", ["1", "true", "TRUE", "yes", "on"])
     def test_flag_plus_shape_enables_isolated_mode(self, named_profile_home, flag):
         active = named_profile_home["active"]
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active),
-                                          "HERMES_WEBUI_ISOLATED_PROFILE": flag}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active),
+                                          "IRIS_WEBUI_ISOLATED_PROFILE": flag}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 with mock.patch(
                     "api.profiles._INITIAL_ISOLATED_PROFILE_OPT_IN",
                     flag.strip().lower(),
@@ -165,22 +165,22 @@ class TestIssue4586ExplicitOptInStillWorks:
                     )
 
     def test_flag_without_profile_shape_stays_off(self, named_profile_home):
-        """Secondary requirement: a stray flag without a profile-shaped HERMES_HOME = OFF."""
-        base = named_profile_home["base"]  # base ~/.hermes, NOT a */profiles/<name> path
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(base),
-                                          "HERMES_WEBUI_ISOLATED_PROFILE": "1"}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(base)):
+        """Secondary requirement: a stray flag without a profile-shaped IRIS_HOME = OFF."""
+        base = named_profile_home["base"]  # base ~/.iris, NOT a */profiles/<name> path
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(base),
+                                          "IRIS_WEBUI_ISOLATED_PROFILE": "1"}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(base)):
                 with mock.patch("api.profiles._INITIAL_ISOLATED_PROFILE_OPT_IN", "1"):
                     assert _is_isolated_profile_mode() is False, (
-                        "flag set but HERMES_HOME is the base home → isolation must stay off"
+                        "flag set but IRIS_HOME is the base home → isolation must stay off"
                     )
 
     @pytest.mark.parametrize("flag", ["", "0", "false", "no", "off", "  "])
     def test_falsey_flag_values_are_off(self, named_profile_home, flag):
         active = named_profile_home["active"]
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active),
-                                          "HERMES_WEBUI_ISOLATED_PROFILE": flag}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active),
+                                          "IRIS_WEBUI_ISOLATED_PROFILE": flag}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 with mock.patch(
                     "api.profiles._INITIAL_ISOLATED_PROFILE_OPT_IN",
                     flag.strip().lower(),
@@ -194,21 +194,21 @@ class TestIssue4590ProfileEnvCannotDisableIsolation:
     """#4590: a pinned profile's own .env must NOT be able to turn isolation OFF.
 
     _reload_dotenv() copies a profile's .env into os.environ. Before the fix, a
-    contained user could put HERMES_WEBUI_ISOLATED_PROFILE=0 in their profile .env
+    contained user could put IRIS_WEBUI_ISOLATED_PROFILE=0 in their profile .env
     and escape isolation. The operator flag is now snapshotted at startup.
     """
 
     def test_profile_env_cannot_clear_isolated_flag(self, named_profile_home, monkeypatch):
         from api.profiles import _reload_dotenv, _PROTECTED_ENV_KEYS
 
-        assert "HERMES_WEBUI_ISOLATED_PROFILE" in _PROTECTED_ENV_KEYS
+        assert "IRIS_WEBUI_ISOLATED_PROFILE" in _PROTECTED_ENV_KEYS
 
         active = named_profile_home["active"]
         monkeypatch.setattr(_profiles_mod, "_INITIAL_ISOLATED_PROFILE_OPT_IN", "1")
         # Operator opts the deployment into isolation.
-        with mock.patch.dict(os.environ, {"HERMES_HOME": str(active),
-                                          "HERMES_WEBUI_ISOLATED_PROFILE": "1"}, clear=False):
-            with mock.patch("api.profiles._INITIAL_HERMES_HOME", str(active)):
+        with mock.patch.dict(os.environ, {"IRIS_HOME": str(active),
+                                          "IRIS_WEBUI_ISOLATED_PROFILE": "1"}, clear=False):
+            with mock.patch("api.profiles._INITIAL_IRIS_HOME", str(active)):
                 assert _is_isolated_profile_mode() is True
 
                 # Prove the startup snapshot is the authority even if a future
@@ -217,15 +217,15 @@ class TestIssue4590ProfileEnvCannotDisableIsolation:
                 monkeypatch.setattr(_profiles_mod, "_PROTECTED_ENV_KEYS", frozenset())
                 assert _is_isolated_profile_mode() is True
 
-                # The contained user plants HERMES_WEBUI_ISOLATED_PROFILE=0 in their .env.
+                # The contained user plants IRIS_WEBUI_ISOLATED_PROFILE=0 in their .env.
                 (active / ".env").write_text(
-                    "HERMES_WEBUI_ISOLATED_PROFILE=0\nSOME_OTHER_KEY=ok\n", encoding="utf-8"
+                    "IRIS_WEBUI_ISOLATED_PROFILE=0\nSOME_OTHER_KEY=ok\n", encoding="utf-8"
                 )
                 try:
                     _reload_dotenv(active)
                     # Even if live env is overwritten, the startup snapshot keeps
                     # the deployment isolated.
-                    assert os.environ.get("HERMES_WEBUI_ISOLATED_PROFILE") == "0", (
+                    assert os.environ.get("IRIS_WEBUI_ISOLATED_PROFILE") == "0", (
                         "test setup should prove live os.environ was mutated by profile .env"
                     )
                     assert _is_isolated_profile_mode() is True, (
@@ -245,14 +245,14 @@ class TestIssue4590ProfileEnvCannotDisableIsolation:
         also applies runtime env to os.environ — same escape, second door)."""
         from api.profiles import get_profile_runtime_env, _BLOCKED_RUNTIME_ENV_KEYS
 
-        assert "HERMES_WEBUI_ISOLATED_PROFILE" in _BLOCKED_RUNTIME_ENV_KEYS
+        assert "IRIS_WEBUI_ISOLATED_PROFILE" in _BLOCKED_RUNTIME_ENV_KEYS
 
         active = named_profile_home["active"]
         (active / ".env").write_text(
-            "HERMES_WEBUI_ISOLATED_PROFILE=0\nMY_PROFILE_KEY=value1\n", encoding="utf-8"
+            "IRIS_WEBUI_ISOLATED_PROFILE=0\nMY_PROFILE_KEY=value1\n", encoding="utf-8"
         )
         env = get_profile_runtime_env(active)
-        assert "HERMES_WEBUI_ISOLATED_PROFILE" not in env, (
+        assert "IRIS_WEBUI_ISOLATED_PROFILE" not in env, (
             "#4589: runtime env must not carry the isolation flag out of a profile .env"
         )
         # Non-protected profile keys still project into runtime env.

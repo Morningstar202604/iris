@@ -2,9 +2,9 @@
 
 Snapshots a working directory before file-mutating tool calls (once per directory per turn)
 and restores any previous checkpoint.  Not a model tool; controlled by the ``checkpoints``
-config / ``--checkpoints`` flag.  One store under ``~/.hermes/checkpoints/`` so git dedupes
+config / ``--checkpoints`` flag.  One store under ``~/.iris/checkpoints/`` so git dedupes
 blobs across projects (pre-v2 one-repo-per-workdir re-stored ~40 MB each): ``store/`` bare
-repo with per-project ``refs/hermes/<hash16>``, ``indexes/<hash16>``, ``projects/<hash16>.json``
+repo with per-project ``refs/iris/<hash16>``, ``indexes/<hash16>``, ``projects/<hash16>.json``
 (workdir, timestamps, parent identity), ``ledgers/<hash16>.json`` (agent-write ledger), shared
 ``info/exclude``; ``.last_prune`` marker; ``legacy-<ts>/`` archived pre-v2 repos.  Git runs
 with GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE so nothing leaks into the user's project.
@@ -24,26 +24,26 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator, List, NamedTuple, Optional, Set, Tuple
 
-from hermes_constants import get_hermes_home
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_cli.gitlock import clear_stale_tmp_packs
+from iris_constants import get_iris_home
+from iris_cli._subprocess_compat import windows_hide_flags
+from iris_cli.gitlock import clear_stale_tmp_packs
 from utils import env_int, rmtree_readonly
 
 logger = logging.getLogger(__name__)
 
-CHECKPOINT_BASE = get_hermes_home() / "checkpoints"
+CHECKPOINT_BASE = get_iris_home() / "checkpoints"
 _CHECKPOINT_BASE_AT_IMPORT = CHECKPOINT_BASE
 
 
 def _resolve_checkpoint_base() -> Path:
     """Active profile's checkpoint root at call time: the patched ``CHECKPOINT_BASE`` when a test
-    changed it, else live profile-scoped HERMES_HOME — under the multiplexed gateway one process
+    changed it, else live profile-scoped IRIS_HOME — under the multiplexed gateway one process
     serves every profile, so the import-time constant would write every profile's code-edit
     checkpoints into the launch profile's store."""
-    return CHECKPOINT_BASE if CHECKPOINT_BASE != _CHECKPOINT_BASE_AT_IMPORT else get_hermes_home() / "checkpoints"
+    return CHECKPOINT_BASE if CHECKPOINT_BASE != _CHECKPOINT_BASE_AT_IMPORT else get_iris_home() / "checkpoints"
 
 _STORE_DIRNAME, _INDEXES_DIRNAME, _PROJECTS_DIRNAME, _LEDGERS_DIRNAME = "store", "indexes", "projects", "ledgers"
-_REFS_PREFIX, _LEGACY_PREFIX, _PRUNE_MARKER_NAME = "refs/hermes", "legacy-", ".last_prune"
+_REFS_PREFIX, _LEGACY_PREFIX, _PRUNE_MARKER_NAME = "refs/iris", "legacy-", ".last_prune"
 _LEDGER_MAX_ENTRIES = 2000  # newest agent-write entries retained per project
 
 DEFAULT_EXCLUDES = [
@@ -51,7 +51,7 @@ DEFAULT_EXCLUDES = [
     "__pycache__/", "*.pyc", "*.pyo", ".cache/", ".pytest_cache/", ".mypy_cache/",  # caches
     ".ruff_cache/", "coverage/", ".coverage",
     ".venv/", "venv/", "env/",  # virtualenvs
-    ".git/", ".hg/", ".svn/", ".worktrees/",  # VCS + worktrees (Hermes convention — don't snapshot siblings)
+    ".git/", ".hg/", ".svn/", ".worktrees/",  # VCS + worktrees (Iris convention — don't snapshot siblings)
     "*.so", "*.dylib", "*.dll", "*.o", "*.a", "*.jar", "*.class", "*.exe", "*.obj",  # compiled binaries
     "*.mp4", "*.mov", "*.mkv", "*.webm", "*.zip", "*.tar", "*.tar.gz", "*.tgz",  # media / large binaries
     "*.7z", "*.rar", "*.iso",
@@ -59,14 +59,14 @@ DEFAULT_EXCLUDES = [
     ".DS_Store", "Thumbs.db", "*.log",  # OS junk / logs
 ]
 
-_GIT_TIMEOUT: int = max(10, min(60, env_int("HERMES_CHECKPOINT_TIMEOUT", 30)))
+_GIT_TIMEOUT: int = max(10, min(60, env_int("IRIS_CHECKPOINT_TIMEOUT", 30)))
 _MAX_FILES = 50_000  # skip huge directories to avoid slowdowns
 _COMMIT_HASH_RE = re.compile(r'^[0-9a-fA-F]{4,64}$')  # short or full SHA-1/SHA-256
 _MB = 1024 * 1024
 # Inherited GIT_* vars that would redirect the shadow store's git calls.
 _GIT_LEAK_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_NAMESPACE", "GIT_ALTERNATE_OBJECT_DIRECTORIES")
 # Per-store config: isolated by env vars already, but belt-and-suspenders.
-_STORE_GIT_CONFIG = (("user.email", "hermes@local"), ("user.name", "Hermes Checkpoint"),
+_STORE_GIT_CONFIG = (("user.email", "iris@local"), ("user.name", "Iris Checkpoint"),
                      ("commit.gpgsign", "false"), ("tag.gpgSign", "false"), ("gc.auto", "0"))
 _PROJECT_MARKERS = {".git", "pyproject.toml", "package.json", "Cargo.toml", "go.mod", "Makefile", "pom.xml", ".hg", "Gemfile"}
 
@@ -171,7 +171,7 @@ def _hash_file(path: Path) -> Optional[str]:
 
 def _load_ledger(store: Path, dir_hash: str) -> Dict[str, Dict]:
     """Agent-write ledger ``{abs_path: {"sha256", "ts"}}``: hash of every file the last
-    ``write_file``/``patch`` produced, so restores can tell Hermes' writes from later user edits."""
+    ``write_file``/``patch`` produced, so restores can tell Iris' writes from later user edits."""
     return _read_json_dict(_ledger_path(store, dir_hash)) or {}
 
 
@@ -386,7 +386,7 @@ def _shrink_store_to_cap(store: Path, working_dir: str, cap_bytes: int) -> bool:
 
 def _migrate_legacy_store(base: Path) -> Optional[Path]:
     """Archive pre-v2 per-project shadow repos into ``legacy-<ts>/`` (moved, not deleted —
-    users may want to recover; the archive falls under retention and ``hermes checkpoints
+    users may want to recover; the archive falls under retention and ``iris checkpoints
     clear-legacy``).  Returns the archive path or None."""
     if not base.exists():
         return None
@@ -406,7 +406,7 @@ def _migrate_legacy_store(base: Path) -> Optional[Path]:
         except OSError as exc:
             logger.warning("Could not archive legacy checkpoint %s: %s", child, exc)
     logger.info("Migrated pre-v2 checkpoint repos to %s. "
-                "Clear with `hermes checkpoints clear-legacy` when safe.", legacy_root)
+                "Clear with `iris checkpoints clear-legacy` when safe.", legacy_root)
     return legacy_root
 
 
@@ -492,8 +492,8 @@ def _pre_v2_shadow_repos(base: Path) -> List[Dict]:
         workdir: Optional[str] = None
         marker_unreadable = False
         try:
-            if (child / "HERMES_WORKDIR").exists():
-                workdir = (child / "HERMES_WORKDIR").read_text(encoding="utf-8").strip()
+            if (child / "IRIS_WORKDIR").exists():
+                workdir = (child / "IRIS_WORKDIR").read_text(encoding="utf-8").strip()
         except (OSError, UnicodeDecodeError):
             marker_unreadable = True  # present but unreadable: no evidence the project is gone
         out.append({"path": child, "workdir": workdir, "marker_unreadable": marker_unreadable,
@@ -626,7 +626,7 @@ class CheckpointManager:
     # --- public API ---
 
     def record_agent_write(self, file_path: str) -> None:
-        """Record the content hash of a file Hermes just wrote (agent-write ledger), so safe-mode
+        """Record the content hash of a file Iris just wrote (agent-write ledger), so safe-mode
         :meth:`restore` can skip files the user hand-edited afterwards.  Never raises."""
         if not self.enabled:
             return
@@ -641,9 +641,9 @@ class CheckpointManager:
             logger.debug("record_agent_write failed for %s: %s", file_path, exc)
 
     def safe_restore_plan(self, working_dir: str, commit_hash: str) -> Dict:
-        """Classify files changed since ``commit_hash``: ``restore`` = still matching what Hermes
+        """Classify files changed since ``commit_hash``: ``restore`` = still matching what Iris
         last wrote (or deleted since); ``skipped`` = user-edited afterwards or never written by
-        Hermes.  ``ledger_empty`` => no ledger, callers fall back to a full restore."""
+        Iris.  ``ledger_empty`` => no ledger, callers fall back to a full restore."""
         p, err = _locate(working_dir, commit_hash)
         if err:
             return err
@@ -662,8 +662,8 @@ class CheckpointManager:
             abs_path = Path(p.abs_dir) / rel
             entry = ledger.get(str(abs_path))
             recorded = entry.get("sha256") if isinstance(entry, dict) else None
-            hermes_authored = recorded is not None and _hash_file(abs_path) in (None, recorded)
-            out["restore" if hermes_authored else "skipped"].append(rel)
+            iris_authored = recorded is not None and _hash_file(abs_path) in (None, recorded)
+            out["restore" if iris_authored else "skipped"].append(rel)
         return {"success": True, **out}
 
     def ensure_checkpoint(self, working_dir: str, reason: str = "auto") -> bool:
@@ -762,7 +762,7 @@ class CheckpointManager:
     def restore(self, working_dir: str, commit_hash: str, file_path: str = None,
                 safe: bool = False) -> Dict:
         """Restore files to a checkpoint state.  ``safe=True`` (full-directory only) leaves files
-        the user hand-edited after Hermes' last write untouched (agent-write ledger); the result
+        the user hand-edited after Iris' last write untouched (agent-write ledger); the result
         then gains ``skipped_user_edits``, ``skipped_oversize`` (size cap kept them out of every
         checkpoint) and, only when a delete failed, ``failed_deletes``."""
         p, err = _locate(working_dir, commit_hash, file_path)
@@ -815,7 +815,7 @@ class CheckpointManager:
     def _apply_safe_restore_deletes(self, p: _ProjectRefs, commit_hash: str,
                                     restore_paths: List[str]) -> _SafeRestoreTargets:
         """Split ledger-approved paths into checkout targets and delete the rest.  A path absent
-        from the checkpoint is Hermes-created (delete to restore) — unless ``max_file_size_mb`` kept
+        from the checkpoint is Iris-created (delete to restore) — unless ``max_file_size_mb`` kept
         it out of every checkpoint: no prior copy exists and the ledger can't prove it agent-created
         (hashes, not create-vs-modify), so leaving it costs a stale file, deleting costs the file."""
         targets = _SafeRestoreTargets()
@@ -1187,9 +1187,9 @@ def auto_prune_from_config() -> Dict[str, object]:
     """``maybe_auto_prune_checkpoints`` driven by the ``checkpoints:`` config section — the one
     startup/housekeeping entry point for the CLI and the gateway. ``delete_orphans`` is never
     honoured unattended: a missing workdir is ambiguous (deleted vs. unmounted share); orphan
-    cleanup is only via explicit ``hermes checkpoints prune``. Never raises."""
+    cleanup is only via explicit ``iris checkpoints prune``. Never raises."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         cfg = load_config().get("checkpoints") or {}
         if not cfg.get("auto_prune", False):
             return {"skipped": True}
@@ -1210,7 +1210,7 @@ def checkpoint_footprint_notice() -> Optional[str]:
     GB-scale store for a feature they never invoke. The cap is a floor of one snapshot per
     project, so a big store is expected, not broken — the notice names the opt-out. Never raises."""
     try:
-        from hermes_cli.config import load_config
+        from iris_cli.config import load_config
         cfg = load_config().get("checkpoints") or {}
         if not cfg.get("enabled", False):
             return None
@@ -1219,11 +1219,11 @@ def checkpoint_footprint_notice() -> Optional[str]:
         size = int(status["total_size_bytes"])
         if cap_mb <= 0 or size < cap_mb * _MB:
             return None
-        from hermes_cli.sizefmt import format_bytes
+        from iris_cli.sizefmt import format_bytes
         return (f"Filesystem checkpoints (/rollback) are on: {format_bytes(size)} across "
                 f"{status['project_count']} project(s), above the {cap_mb} MB cap (one snapshot per project is "
-                f"always kept). Not using /rollback? `hermes config set checkpoints.enabled false` then "
-                f"`hermes checkpoints clear`; or lower `checkpoints.retention_days`.")
+                f"always kept). Not using /rollback? `iris config set checkpoints.enabled false` then "
+                f"`iris checkpoints clear`; or lower `checkpoints.retention_days`.")
     except Exception as exc:
         logger.debug("checkpoint footprint notice skipped: %s", exc)
         return None

@@ -46,9 +46,9 @@ class TestEmptyDefaultModel:
     def test_default_model_env_var_empty_string_accepted(self, monkeypatch):
         """Empty string is a valid DEFAULT_MODEL value — no KeyError or crash."""
         import os
-        monkeypatch.setenv("HERMES_WEBUI_DEFAULT_MODEL", "")
+        monkeypatch.setenv("IRIS_WEBUI_DEFAULT_MODEL", "")
         # Verify the env var resolution pattern handles empty string gracefully
-        val = os.getenv("HERMES_WEBUI_DEFAULT_MODEL", "")
+        val = os.getenv("IRIS_WEBUI_DEFAULT_MODEL", "")
         assert val == ""
         # And that the guard works
         assert not val  # empty string is falsy — the guard `if default_model:` fires correctly
