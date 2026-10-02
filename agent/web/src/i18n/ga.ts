@@ -51,7 +51,6 @@ export const ga: Translations = {
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "Dún an nascleanúint",
     closeModelTools: "Dún an samhail agus na huirlisí",
     footer: {

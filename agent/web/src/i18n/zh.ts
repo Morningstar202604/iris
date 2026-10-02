@@ -46,11 +46,15 @@ export const zh: Translations = {
     pluginLoadFailed:
       "无法加载此插件的脚本。请检查网络请求（dashboard-plugins/…）以及服务器上的插件路径。",
     pluginNotRegistered: "插件脚本未调用 register()，或执行出错。请打开浏览器控制台查看详情。",
+    gateway: "网关",
+    gatewayHint:
+      "消息平台、API 服务器和 Webhooks 在「频道」页配置。这些是网关级设置（代理/中继模式与全局允许列表）。",
+    loadFailed: "无法加载 {what}。请确认仪表盘服务器正在运行，然后点击重试。",
+    loadFailedDetails: "详情：{detail}",
   },
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "关闭导航",
     closeModelTools: "关闭模型与工具",
     footer: {
@@ -59,7 +63,9 @@ export const zh: Translations = {
     activeSessionsLabel: "活跃会话：",
     gatewayStatusLabel: "网关状态：",
     gatewayStrip: {
+      degraded: "降级",
       failed: "启动失败",
+      heartbeatStale: "心跳超时",
       off: "关闭",
       running: "运行中",
       starting: "启动中",
@@ -89,6 +95,22 @@ export const zh: Translations = {
     statusOverview: "状态概览",
     system: "系统",
     webUi: "管理面板",
+    dismiss: "关闭",
+    currentProfileOption: "此仪表盘（{name}）",
+    managingProfile: "正在管理配置",
+    managingProfileBanner:
+      "正在管理配置「{name}」— 配置、密钥、技能、MCP、模型和新对话都将作用于该配置。",
+    diskCriticalBanner:
+      "代理磁盘空间即将用尽。新消息、记忆和设置可能无法保存。",
+    diskElevatedBanner:
+      "代理磁盘空间不足。建议清理旧会话或扩容存储。",
+    memoryCriticalBanner:
+      "代理内存即将耗尽，可能会重启。建议关闭闲置会话或升级内存。",
+    memoryElevatedBanner: "代理内存不足。",
+    memoryOomRestartBanner:
+      "代理意外重启，很可能是内存不足所致。长会话和大量并发任务会增加内存占用。",
+    multiplexStandaloneBanner:
+      "你的网关仅服务单个配置。未服务：{profiles}。原因：{reason}。修复：iris gateway migrate --multiplex",
   },
 
   status: {
@@ -119,6 +141,14 @@ export const zh: Translations = {
     starting: "启动中",
     startedInBackground: "已在后台启动 — 请查看日志",
     stopped: "已停止",
+    disabled: "已禁用",
+    restartGatewayConfirmTitle: "重启网关？",
+    restartGatewayConfirmMessage:
+      "这将重启 Iris 网关进程。已连接的频道和活跃会话稍后会自动重连。",
+    updateIrisConfirmTitle: "更新 Iris？",
+    updateIrisConfirmMessage:
+      "这将运行 iris update，并在完成后重启网关。在此之前，活跃会话会保留其提示缓存。",
+    updateIrisConfirmNow: "立即更新",
     updateIris: "更新 Iris",
     updatingIris: "正在更新 Iris…",
     waitingForOutput: "等待输出…",
@@ -272,6 +302,12 @@ export const zh: Translations = {
     deliverTo: "投递至",
     scheduledJobs: "已调度任务",
     noJobs: "暂无定时任务。在上方创建一个。",
+    loadWhat: "定时任务",
+    overdueSince: "逾期自",
+    schedulerLastTicked:
+      "调度器上次心跳在 {when} — 此后到期的任务尚未触发",
+    scriptRequired:
+      "脚本模式任务需要脚本路径。请填写「脚本」字段，或将任务切回提示词模式。",
     last: "上次",
     next: "下次",
     pause: "暂停",
@@ -283,6 +319,9 @@ export const zh: Translations = {
       discord: "Discord",
       slack: "Slack",
       email: "邮件",
+      noneConfigured:
+        "未配置任何消息平台。请在「频道」页设置一个以投递报告。",
+      needsHomeChannel: "请先设置主页频道",
     },
   },
 
@@ -316,6 +355,38 @@ export const zh: Translations = {
     created: "已创建",
     deleted: "已删除",
     renamed: "已重命名",
+    actions: "操作",
+    activeProfile: "活跃配置",
+    activeBadge: "活跃",
+    aliasBadge: "别名",
+    reviewBadge: "审核",
+    setActive: "设为活跃",
+    activeSet: "已设为活跃配置",
+    advancedOptions: "高级选项",
+    autoGenerate: "自动生成",
+    cloneAll: "克隆全部（记忆、会话、技能、状态）",
+    noSkillsOption: "不预置内置技能",
+    distribution: "发行版",
+    description: "描述",
+    descriptionOptional: "描述（可选）",
+    descriptionPlaceholder:
+      "这个配置擅长什么？用于按角色路由看板任务。",
+    descriptionSaved: "描述已保存",
+    noDescription: "无描述",
+    editDescription: "编辑描述",
+    describeFailed: "生成描述失败",
+    editModel: "更换模型",
+    modelSelect: "选择模型",
+    modelOptional: "模型（可选）",
+    modelInherit: "继承自克隆 / 默认",
+    modelLoading: "加载模型中…",
+    modelSaved: "模型已更新",
+    modelNone:
+      "尚未设置模型提供商。请在「密钥」页添加 API 密钥，或在「模型」页登录提供商。",
+    gatewayRunning: "网关运行中",
+    gatewayRunningWarning: "此配置的网关正在运行 — 将被停止。",
+    gatewayStopped: "网关已停止",
+    generating: "生成中…",
   },
 
   pluginsPage: {
@@ -393,6 +464,13 @@ export const zh: Translations = {
     setupNeeded: "需要配置",
     disabledForCli: "CLI 已禁用",
     more: "还有 {count} 个",
+    loadWhat: "技能",
+    browseHub: "浏览技能中心",
+    createSkill: "创建技能",
+    profileSelector: "配置",
+    currentProfile: "当前（{name}）",
+    managingProfile:
+      "正在管理配置「{name}」— 开关将作用于该配置，而非本仪表盘。",
   },
 
   config: {
@@ -515,6 +593,12 @@ export const zh: Translations = {
   theme: {
     title: "主题",
     switchTheme: "切换主题",
+    fontTitle: "字体",
+    fontDefault: "主题默认",
+    fontDefaultHint: "使用当前主题的字体",
+    fontSans: "无衬线",
+    fontSerif: "衬线",
+    fontMono: "等宽",
   },
 
   achievements: {
@@ -791,5 +875,30 @@ export const zh: Translations = {
       "工作区路径（可选，留空则根据负责人推导）",
     logTruncated: "（显示最后 100 KB — 完整日志位于 ",
     logAt: "）",
+    saving: "保存中…",
+    create: "创建",
+    taskTitleLabel: "标题",
+    newTaskTitle: "新任务 — {column}",
+    assigneeLabel: "负责人",
+    assigneeLabelHint: "（留空 = 由调度器选择）",
+    needsAssignee: "需要负责人",
+    needsAssigneeHint: "依赖已满足，但在你分配配置前调度器会跳过此任务。",
+    parentLabel: "父任务",
+    parentLabelHint: "（父任务完成前，子任务保持阻塞）",
+    skillsLabel: "技能",
+    skillsLabelHint: "（可选，逗号分隔）",
+    boardSettings: "设置",
+    boardSettingsTitle: "看板设置 — 名称、描述以及新任务继承的默认项目目录",
+    boardSettingsTitleFor: "看板设置 — {name}",
+    projectDirectoryOverrideHint:
+      "新任务将继承此作为工作区默认值；每个任务仍可在创建对话框中覆盖。",
+    confirmScheduled: "将此任务移到「已调度」？用于已知的时间延迟，而非人工阻塞。",
+    commentHint: "评论会在工作者下次运行或 kanban_show() 时送达 — 无需先阻塞任务。",
+    commentHintTitle:
+      "评论是与任务工作者沟通的渠道。它们会立即到达线程。运行中的工作者会在下次 kanban_show() 或重新生成时拾取线程；仅当你想让工作者停止并等待你的输入时才需要阻塞它。",
+    trash: {
+      confirmTitle: "删除任务？",
+      confirmManyTitle: "删除 {n} 个任务？",
+    },
   },
 };

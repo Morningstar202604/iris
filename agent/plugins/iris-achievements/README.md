@@ -1,8 +1,8 @@
 # Iris Achievements
 
-> **Bundled with Iris Agent.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/iris-achievements — vendored into `plugins/iris-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Iris feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
+> **Bundled with Iris Agent.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/hermes-achievements — vendored into `plugins/iris-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Iris feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
 >
-> When Iris is installed via the install script or cloned from source, this plugin auto-registers as a dashboard tab on first `iris dashboard` launch. No separate install step. See [Built-in Plugins → iris-achievements](../../website/docs/user-guide/features/built-in-plugins.md) in the main docs.
+> When Iris is installed via the install script or cloned from source, this plugin auto-registers as a dashboard tab on first `iris dashboard` launch. No separate install step. For the bundled-plugins overview, see the repository root `README.md` and `docs/`.
 
 Achievement system for the Iris Dashboard: collectible, tiered badges generated from real local Iris session history.
 
@@ -61,13 +61,13 @@ Version `0.2.x` expands the catalog to 60+ achievements, including model/provide
 Clone into your Iris plugins directory:
 
 ```bash
-git clone https://github.com/PCinkusz/iris-achievements ~/.iris/plugins/iris-achievements
+git clone https://github.com/PCinkusz/hermes-achievements ~/.iris/plugins/iris-achievements
 ```
 
 For local development, keep the repo elsewhere and symlink it:
 
 ```bash
-git clone https://github.com/PCinkusz/iris-achievements ~/iris-achievements
+git clone https://github.com/PCinkusz/hermes-achievements ~/iris-achievements
 ln -s ~/iris-achievements ~/.iris/plugins/iris-achievements
 ```
 

@@ -51,7 +51,6 @@ export const ja: Translations = {
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "ナビゲーションを閉じる",
     closeModelTools: "モデルとツールを閉じる",
     footer: {

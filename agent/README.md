@@ -164,7 +164,7 @@ For the full command lists, see the [CLI guide](../docs/usage.md) and the [Messa
 
 ## Documentation
 
-All documentation lives at **[docs/](docs/)**:
+All documentation lives at **[docs/](../docs/)**:
 
 | Section                                                                                             | What's Covered                                             |
 | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |

@@ -51,7 +51,6 @@ export const ko: Translations = {
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "내비게이션 닫기",
     closeModelTools: "모델 및 도구 닫기",
     footer: {

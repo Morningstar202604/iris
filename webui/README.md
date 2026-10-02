@@ -219,7 +219,7 @@ pip install -e /path/to/iris-agent --upgrade   # and the agent side, together
 > the `IRIS_WEBUI_STATE_DIR` upgrade note in the overrides table. Full deployment notes:
 > [`docs/DEPLOYING.md`](docs/DEPLOYING.md).
 
-A community-maintained native Windows setup is documented at [@markwang2658/iris-windows-native-guide](https://github.com/markwang2658/iris-windows-native-guide) (companion setup repo: [@markwang2658/iris-windows-native](https://github.com/markwang2658/iris-windows-native)). Notes from the community report in [#1952](https://github.com/nesquena/hermes-webui/issues/1952):
+A community-maintained native Windows setup is documented at [@markwang2658/hermes-windows-native-guide](https://github.com/markwang2658/hermes-windows-native-guide) (companion setup repo: [@markwang2658/hermes-windows-native](https://github.com/markwang2658/hermes-windows-native)). Notes from the community report in [#1952](https://github.com/nesquena/hermes-webui/issues/1952):
 
 - **Memory:** community-measured ~330 MB native vs ~1080 MB with WSL2+Docker (varies by configuration).
 - **What works:** chat, workspace browser, session management, all themes.
@@ -485,7 +485,7 @@ docker compose up -d --force-recreate
 ### Manual `docker run` (no compose)
 
 ```bash
-# [CHANNEL-PENDING] The old ghcr.io/nesquena/iris-webui image is an upstream dead
+# [CHANNEL-PENDING] The old ghcr.io/nesquena/hermes-webui image is an upstream dead
 # link. Recommended target once this project publishes its own registry:
 # ghcr.io/x33834/iris-webui:latest — confirm the published registry before pulling.
 docker pull ghcr.io/x33834/iris-webui:latest
@@ -525,7 +525,7 @@ docker compose -f docker-compose.three-container.yml up -d
 
 Both compose files use **named Docker volumes** by default, which solves the UID/GID problem by construction. If you need bind mounts to share an existing host directory, see [`docs/docker.md`](docs/docker.md) for the full migration recipe.
 
-> **Known limitation (#681)**: in the two-container setup, tools triggered from the WebUI run in the **WebUI container**, not the agent container. If you need git/node/etc. on the WebUI's filesystem, either use the single-container setup, extend the WebUI Dockerfile, or use the community [all-in-one image](https://github.com/sunnysktsang/iris-suite).
+> **Known limitation (#681)**: in the two-container setup, tools triggered from the WebUI run in the **WebUI container**, not the agent container. If you need git/node/etc. on the WebUI's filesystem, either use the single-container setup, extend the WebUI Dockerfile, or use the community [all-in-one image](https://github.com/sunnysktsang/hermes-suite).
 >
 > **Source boundary note (#2453)**: the multi-container setup mounts `iris-agent-src` read-only into the WebUI by default. This prevents WebUI-side source rewrites but is still an implementation-coupling bridge, not a stable Agent API boundary. See [`docs/rfcs/agent-source-boundary.md`](docs/rfcs/agent-source-boundary.md) for the current source/API decoupling inventory.
 

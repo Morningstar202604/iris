@@ -51,7 +51,6 @@ export const ar = defineLocale({
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "إغلاق التنقل",
     closeModelTools: "إغلاق النموذج والأدوات",
     footer: {

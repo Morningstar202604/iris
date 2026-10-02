@@ -1,4 +1,4 @@
-Reproduction source: issue-artifact copied from https://github.com/nesquena/iris-webui/issues/5884
+Reproduction source: issue-artifact copied from https://github.com/nesquena/hermes-webui/issues/5884
 
 1. Open `https://<your-iris-host>/?q=hello+world`
 2. Wait for the page to finish booting

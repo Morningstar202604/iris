@@ -16,7 +16,7 @@ Or set ``IRIS_WEBUI_FOREGROUND=1`` in the environment. The Web UI will
 auto-detect launchd / systemd / supervisord even without the flag, but being
 explicit is safer.
 
-**Important (launchd on macOS):** if the ``com.parantoux.iris-webui`` LaunchAgent is enabled, treat launchd as the single source of truth for WebUI lifecycle. Do **not** also run ``./ctl.sh start``, ``bash start.sh``, ``python bootstrap.py``, or ``python server.py`` against the same state dir/port, or you can create a second WebUI instance and trigger port-8787 restart churn.
+**Important (launchd on macOS):** if the ``com.x33834.iris-webui`` LaunchAgent is enabled, treat launchd as the single source of truth for WebUI lifecycle. Do **not** also run ``./ctl.sh start``, ``bash start.sh``, ``python bootstrap.py``, or ``python server.py`` against the same state dir/port, or you can create a second WebUI instance and trigger port-8787 restart churn.
 
 ## Why ``--foreground`` matters
 

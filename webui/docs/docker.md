@@ -9,11 +9,11 @@ This is the comprehensive Docker reference. For a 5-minute quickstart, see the [
 | **Single-container** (recommended) | You just want chat working. WebUI runs the agent in-process. | `docker-compose.yml` |
 | **Two-container** | You want isolation between gateway (CLI/Telegram/cron) and chat UI. | `docker-compose.two-container.yml` |
 | **Three-container** | Two-container PLUS the dashboard for monitoring. | `docker-compose.three-container.yml` |
-| **All-in-one image** (community fork — third-party, not maintained by us) | Podman 3.4 / multi-arch / supervisord-style preference. | [sunnysktsang/iris-suite](https://github.com/sunnysktsang/iris-suite) — see [#1399](https://github.com/nesquena/hermes-webui/issues/1399) for the original discussion |
+| **All-in-one image** (community fork — third-party, not maintained by us) | Podman 3.4 / multi-arch / supervisord-style preference. | [sunnysktsang/hermes-suite](https://github.com/sunnysktsang/hermes-suite) — see [#1399](https://github.com/nesquena/hermes-webui/issues/1399) for the original discussion |
 
 ### Available Docker tags
 
-> **[CHANNEL-PENDING]** The old `ghcr.io/nesquena/iris-webui` / `nousresearch/iris-agent`
+> **[CHANNEL-PENDING]** The old `ghcr.io/nesquena/hermes-webui` / `nousresearch/hermes-agent`
 > images are upstream dead links. This project's images are not yet published to a
 > registry. **Recommended target** once the registry is stood up:
 > `ghcr.io/x33834/iris-webui` (WebUI) and `ghcr.io/x33834/iris-agent` (agent).
@@ -281,8 +281,8 @@ The three-service pattern uses two containers:
 | `iris-agent` | `ghcr.io/x33834/iris-agent:latest` *(recommended, [CHANNEL-PENDING])* | 8642 (gateway), 9119 (dashboard) |
 | `iris-webui` | `ghcr.io/x33834/iris-webui:latest` *(recommended, [CHANNEL-PENDING])* | 8787 (chat UI) |
 
-> Images below are the recommended targets; the old `nousresearch/iris-agent` and
-> `ghcr.io/nesquena/iris-webui` tags are upstream dead links. Confirm the registry
+> Images below are the recommended targets; the old `nousresearch/hermes-agent` and
+> `ghcr.io/nesquena/hermes-webui` tags are upstream dead links. Confirm the registry
 > has published them before pulling.
 
 Example compose snippet (save as `docker-compose.three-service.yml` or inline into your own file):
@@ -441,7 +441,7 @@ If you must use a bind mount: pick a host path, then mount it to `/opt/iris` in 
 **Workarounds**:
 - **Single-container setup** (`docker-compose.yml`) — everything in one container, no boundary
 - **Custom WebUI image** — extend the `Dockerfile` to install the tools you need
-- **Combined image** ([sunnysktsang/iris-suite](https://github.com/sunnysktsang/iris-suite)) — community fork that ships agent+webui+dashboard in one container
+- **Combined image** ([sunnysktsang/hermes-suite](https://github.com/sunnysktsang/hermes-suite)) — community fork that ships agent+webui+dashboard in one container
 
 ### 6. "config.yaml not loaded"
 
@@ -460,7 +460,7 @@ If you must use a bind mount: pick a host path, then mount it to `/opt/iris` in 
 
 **Cause**: Podman 3.4 (Ubuntu 22.04 default) has limited support for `userns_mode: keep-id` across multiple containers — files written by one container appear with a different UID in the other.
 
-**Fix**: Either upgrade to Podman 4+ (which fixes this), or use the [single-container setup](#5-minute-quickstart-single-container), or use the [community all-in-one image](https://github.com/sunnysktsang/iris-suite).
+**Fix**: Either upgrade to Podman 4+ (which fixes this), or use the [single-container setup](#5-minute-quickstart-single-container), or use the [community all-in-one image](https://github.com/sunnysktsang/hermes-suite).
 
 ### 8. "API base URL set to localhost fails from Docker" (#3012)
 

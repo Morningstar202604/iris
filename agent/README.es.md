@@ -124,7 +124,7 @@ Para las listas de comandos completas, consulta la [guía de CLI](../docs/usage.
 
 ## Documentación
 
-Toda la documentación está en **[docs/](docs/)**:
+Toda la documentación está en **[docs/](../docs/)**:
 
 | Sección                                                                                             | Contenido                                                    |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |

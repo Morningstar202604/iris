@@ -221,6 +221,8 @@ docs/superpowers/*
 /hook_outputs/
 /hooks/
 /cache/
+/audio_cache/
+/image_cache/
 /checkpoints/
 /pending_messages/
 /plugin-data/

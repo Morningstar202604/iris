@@ -75,7 +75,6 @@ export interface Translations {
   // ── App shell ──
   app: {
     brand: string;
-    brandShort: string;
     closeNavigation: string;
     closeModelTools: string;
     footer: {

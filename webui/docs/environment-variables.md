@@ -39,6 +39,7 @@
 | `IRIS_WEBUI_PID_FILE` | `$IRIS_HOME/webui.pid` | `ctl.sh` 记录守护进程 PID 的文件。 |
 | `IRIS_WEBUI_LOCK_FILE` / `IRIS_WEBUI_CTL_STATE_FILE` | ctl 内部默认 | `ctl.sh` 的单实例锁 / 状态文件，一般无需手工设置。 |
 | `IRIS_WEBUI_START_GRACE` | `3` 秒 | `ctl.sh start` 后等待 server 起来的宽限秒数。 |
+| `IRIS_WEBUI_STARTUP_GRACE_SECONDS` | `2` 秒 | WSL 自启动脚本 `scripts/wsl/iris_webui_autostart.sh` 用：nohup 拉起 `start.sh` 后、首次探 `/health` 之前的等待秒数。探针结果分三类——已健康 / 进程在但尚未就绪 / 启动后即退出。与上面 `IRIS_WEBUI_START_GRACE`（`ctl.sh`）是两个独立启动器的变量，互不影响。 |
 | `IRIS_WEBUI_WATCHDOG_LOG` | `$IRIS_HOME/webui.watchdog.log` | `watchdog.sh` 自身日志。 |
 | `IRIS_WEBUI_CTL_ALLOW_PORT_CONFLICT` / `IRIS_WEBUI_CTL_ALLOW_SYSTEMD_CONFLICT` / `IRIS_WEBUI_CTL_ALLOW_LAUNCHD_CONFLICT` | *(unset)* | `ctl.sh` 在端口占用 / systemd unit 冲突 / launchd plist 冲突时的放行开关。 |
 | `IRIS_WEBUI_SYSTEMD_UNIT` / `IRIS_WEBUI_LAUNCHD_LABEL` | 自动推断 | 托管集成时使用的 unit 名 / Label 覆盖。 |

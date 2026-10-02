@@ -22,8 +22,8 @@ The bootstrap supports Linux, macOS, and WSL2. Native Windows is not supported
 by the bootstrap yet. A community native Windows setup is being tracked in
 [#1952](https://github.com/nesquena/hermes-webui/issues/1952), including:
 
-- [Native Windows guide](https://github.com/markwang2658/iris-windows-native-guide)
-- [Native Windows setup scripts](https://github.com/markwang2658/iris-windows-native)
+- [Native Windows guide](https://github.com/markwang2658/hermes-windows-native-guide)
+- [Native Windows setup scripts](https://github.com/markwang2658/hermes-windows-native)
 
 For Windows users who want the supported path today, use WSL2 and see
 [Windows / WSL auto-start](wsl-autostart.md).

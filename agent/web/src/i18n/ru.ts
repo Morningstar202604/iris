@@ -51,7 +51,6 @@ export const ru: Translations = {
 
   app: {
     brand: "Iris Agent",
-    brandShort: "HA",
     closeNavigation: "Закрыть навигацию",
     closeModelTools: "Закрыть модель и инструменты",
     footer: {

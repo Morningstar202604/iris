@@ -147,7 +147,7 @@ iris setup --portal
 
 ## دستاویزات (Documentation)
 
-تمام دستاویزات **[docs/](docs/)** پر موجود ہیں:
+تمام دستاویزات **[docs/](../docs/)** پر موجود ہیں:
 
 <div dir="ltr">
 
